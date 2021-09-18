@@ -46,7 +46,6 @@ namespace lwScript
 		std::string Stringify() override { return value; }
 		ObjectType Type() override { return ObjectType::STR; }
 
-
 		std::string value;
 	};
 
@@ -59,7 +58,6 @@ namespace lwScript
 		std::string Stringify() override { return value ? "true" : "false"; }
 		ObjectType Type() override { return ObjectType::BOOL; }
 
-
 		bool value;
 	};
 
@@ -70,7 +68,6 @@ namespace lwScript
 
 		std::string Stringify() override { return "nil"; }
 		ObjectType Type() override { return ObjectType::NIL; }
-
 	};
 
 	struct RefObject:public Object

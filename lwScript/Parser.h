@@ -11,24 +11,24 @@ namespace lwScript
 	enum class Precedence
 	{
 		LOWEST = 0,
-		ASSIGN,		 // = += -= *= /=
-		OR,	 // ||
-		AND,	 // &&
-		EQUAL,		 // == !=
-		COMPARE,	 // < <= > >=
-		ADD_PLUS,	 // + -
-		MUL_DIV, // * / 
-		UNARY,// ref
-		INDEX,// []
-		STRUCT_CALL,// .
-		FUNCTION_CALL,// ()
+		ASSIGN,		   // = += -= *= /=
+		OR,			   // ||
+		AND,		   // &&
+		EQUAL,		   // == !=
+		COMPARE,	   // < <= > >=
+		ADD_PLUS,	   // + -
+		MUL_DIV,	   // * /
+		UNARY,		   // ref
+		INDEX,		   // []
+		STRUCT_CALL,   // .
+		FUNCTION_CALL, // ()
 
 	};
 
 	class Parser;
 
-	typedef Expr* (Parser::* PrefixFn)();
-	typedef Expr* (Parser::* InfixFn)(Expr*);
+	typedef Expr *(Parser::*PrefixFn)();
+	typedef Expr *(Parser::*InfixFn)(Expr *);
 
 	class Parser
 	{
@@ -36,37 +36,37 @@ namespace lwScript
 		Parser();
 		~Parser();
 
-		Stmt* Parse(const std::vector<Token>& tokens);
+		Stmt *Parse(const std::vector<Token> &tokens);
 
 	private:
 		void ResetStatus();
 
-		Stmt* ParseAstStmts();
-		Stmt* ParseStmt();
-		Stmt* ParseExprStmt();
-		Stmt* ParseLetStmt();
-		Stmt* ParseReturnStmt();
-		Stmt* ParseIfStmt();
-		Stmt* ParseScopeStmt();
-		Stmt* ParseWhileStmt();
+		Stmt *ParseAstStmts();
+		Stmt *ParseStmt();
+		Stmt *ParseExprStmt();
+		Stmt *ParseLetStmt();
+		Stmt *ParseReturnStmt();
+		Stmt *ParseIfStmt();
+		Stmt *ParseScopeStmt();
+		Stmt *ParseWhileStmt();
 
-		Expr* ParseExpr(Precedence precedence = Precedence::LOWEST);
-		Expr* ParseIdentifierExpr();
-		Expr* ParseNumExpr();
-		Expr* ParseStrExpr();
-		Expr* ParseNilExpr();
-		Expr* ParseTrueExpr();
-		Expr* ParseFalseExpr();
-		Expr* ParseGroupExpr();
-		Expr* ParseFunctionExpr();
-		Expr* ParseStructExpr();
-		Expr* ParseRefExpr();
-		Expr* ParseArrayExpr();
-		Expr* ParsePrefixExpr();
-		Expr* ParseInfixExpr(Expr* prefixExpr);
-		Expr* ParseIndexExpr(Expr* prefixExpr);
-		Expr* ParseFunctionCallExpr(Expr* prefixExpr);
-		Expr* ParseStructCallExpr(Expr* prefixExpr);
+		Expr *ParseExpr(Precedence precedence = Precedence::LOWEST);
+		Expr *ParseIdentifierExpr();
+		Expr *ParseNumExpr();
+		Expr *ParseStrExpr();
+		Expr *ParseNilExpr();
+		Expr *ParseTrueExpr();
+		Expr *ParseFalseExpr();
+		Expr *ParseGroupExpr();
+		Expr *ParseFunctionExpr();
+		Expr *ParseStructExpr();
+		Expr *ParseRefExpr();
+		Expr *ParseArrayExpr();
+		Expr *ParsePrefixExpr();
+		Expr *ParseInfixExpr(Expr *prefixExpr);
+		Expr *ParseIndexExpr(Expr *prefixExpr);
+		Expr *ParseFunctionCallExpr(Expr *prefixExpr);
+		Expr *ParseStructCallExpr(Expr *prefixExpr);
 
 		Token GetCurToken();
 		Token GetCurTokenAndStepOnce();
@@ -86,7 +86,7 @@ namespace lwScript
 		bool IsAtEnd();
 
 		int64_t m_CurPos;
-		AstStmts* m_Stmts;
+		AstStmts *m_Stmts;
 		std::vector<Token> m_Tokens;
 
 		static std::unordered_map<TokenType, PrefixFn> m_PrefixFunctions;
@@ -95,63 +95,62 @@ namespace lwScript
 	};
 
 	std::unordered_map<TokenType, PrefixFn> Parser::m_PrefixFunctions =
-	{
-		{TokenType::IDENTIFIER, &Parser::ParseIdentifierExpr},
-		{TokenType::NUMBER, &Parser::ParseNumExpr},
-		{TokenType::STRING, &Parser::ParseStrExpr},
-		{TokenType::NIL, &Parser::ParseNilExpr},
-		{TokenType::TRUE, &Parser::ParseTrueExpr},
-		{TokenType::FALSE, &Parser::ParseFalseExpr},
-		{TokenType::MINUS, &Parser::ParsePrefixExpr},
-		{TokenType::LPAREN, &Parser::ParseGroupExpr},
-		{TokenType::FUNCTION, &Parser::ParseFunctionExpr},
-		{TokenType::STRUCT, &Parser::ParseStructExpr},
-		{TokenType::REF, &Parser::ParseRefExpr},
-		{TokenType::LBRACKET, &Parser::ParseArrayExpr},
+		{
+			{TokenType::IDENTIFIER, &Parser::ParseIdentifierExpr},
+			{TokenType::NUMBER, &Parser::ParseNumExpr},
+			{TokenType::STRING, &Parser::ParseStrExpr},
+			{TokenType::NIL, &Parser::ParseNilExpr},
+			{TokenType::TRUE, &Parser::ParseTrueExpr},
+			{TokenType::FALSE, &Parser::ParseFalseExpr},
+			{TokenType::MINUS, &Parser::ParsePrefixExpr},
+			{TokenType::LPAREN, &Parser::ParseGroupExpr},
+			{TokenType::FUNCTION, &Parser::ParseFunctionExpr},
+			{TokenType::STRUCT, &Parser::ParseStructExpr},
+			{TokenType::REF, &Parser::ParseRefExpr},
+			{TokenType::LBRACKET, &Parser::ParseArrayExpr},
 
 	};
 
 	std::unordered_map<TokenType, InfixFn> Parser::m_InfixFunctions =
-	{
-		{TokenType::EQUAL, &Parser::ParseInfixExpr},
-		{TokenType::OR, &Parser::ParseInfixExpr},
-		{TokenType::AND, &Parser::ParseInfixExpr},
-		{TokenType::EEQUAL, &Parser::ParseInfixExpr},
-		{TokenType::BEQUAL, &Parser::ParseInfixExpr},
-		{TokenType::LESS, &Parser::ParseInfixExpr},
-		{TokenType::LEQUAL, &Parser::ParseInfixExpr},
-		{TokenType::GREATER, &Parser::ParseInfixExpr},
-		{TokenType::GEQUAL, &Parser::ParseInfixExpr},
-		{TokenType::PLUS, &Parser::ParseInfixExpr},
-		{TokenType::MINUS, &Parser::ParseInfixExpr},
-		{TokenType::ASTERISK, &Parser::ParseInfixExpr},
-		{TokenType::SLASH, &Parser::ParseInfixExpr},
-		{TokenType::LPAREN, &Parser::ParseFunctionCallExpr},
-		{TokenType::DOT, &Parser::ParseStructCallExpr},
-		{TokenType::LBRACKET, &Parser::ParseIndexExpr},
+		{
+			{TokenType::EQUAL, &Parser::ParseInfixExpr},
+			{TokenType::OR, &Parser::ParseInfixExpr},
+			{TokenType::AND, &Parser::ParseInfixExpr},
+			{TokenType::EEQUAL, &Parser::ParseInfixExpr},
+			{TokenType::BEQUAL, &Parser::ParseInfixExpr},
+			{TokenType::LESS, &Parser::ParseInfixExpr},
+			{TokenType::LEQUAL, &Parser::ParseInfixExpr},
+			{TokenType::GREATER, &Parser::ParseInfixExpr},
+			{TokenType::GEQUAL, &Parser::ParseInfixExpr},
+			{TokenType::PLUS, &Parser::ParseInfixExpr},
+			{TokenType::MINUS, &Parser::ParseInfixExpr},
+			{TokenType::ASTERISK, &Parser::ParseInfixExpr},
+			{TokenType::SLASH, &Parser::ParseInfixExpr},
+			{TokenType::LPAREN, &Parser::ParseFunctionCallExpr},
+			{TokenType::DOT, &Parser::ParseStructCallExpr},
+			{TokenType::LBRACKET, &Parser::ParseIndexExpr},
 	};
 
 	std::unordered_map<TokenType, Precedence> Parser::m_Precedence =
-	{
+		{
 
-		{TokenType::EQUAL,Precedence::ASSIGN},
-		{TokenType::OR,Precedence::OR},
-		{TokenType::AND,Precedence::AND},
-		{TokenType::EEQUAL,Precedence::EQUAL},
-		{TokenType::BEQUAL,Precedence::EQUAL},
-		{TokenType::LESS,Precedence::COMPARE},
-		{TokenType::LEQUAL,Precedence::COMPARE},
-		{TokenType::GREATER,Precedence::COMPARE},
-		{TokenType::GEQUAL,Precedence::COMPARE},
-		{TokenType::PLUS,Precedence::ADD_PLUS},
-		{TokenType::MINUS,Precedence::ADD_PLUS},
-		{TokenType::ASTERISK,Precedence::MUL_DIV},
-		{TokenType::SLASH,Precedence::MUL_DIV},
-		{TokenType::LBRACKET,Precedence::INDEX},
-		{TokenType::LPAREN,Precedence::FUNCTION_CALL},
-		{TokenType::DOT,Precedence::STRUCT_CALL},
-		{TokenType::REF,Precedence::UNARY}
-	};
+			{TokenType::EQUAL, Precedence::ASSIGN},
+			{TokenType::OR, Precedence::OR},
+			{TokenType::AND, Precedence::AND},
+			{TokenType::EEQUAL, Precedence::EQUAL},
+			{TokenType::BEQUAL, Precedence::EQUAL},
+			{TokenType::LESS, Precedence::COMPARE},
+			{TokenType::LEQUAL, Precedence::COMPARE},
+			{TokenType::GREATER, Precedence::COMPARE},
+			{TokenType::GEQUAL, Precedence::COMPARE},
+			{TokenType::PLUS, Precedence::ADD_PLUS},
+			{TokenType::MINUS, Precedence::ADD_PLUS},
+			{TokenType::ASTERISK, Precedence::MUL_DIV},
+			{TokenType::SLASH, Precedence::MUL_DIV},
+			{TokenType::LBRACKET, Precedence::INDEX},
+			{TokenType::LPAREN, Precedence::FUNCTION_CALL},
+			{TokenType::DOT, Precedence::STRUCT_CALL},
+			{TokenType::REF, Precedence::UNARY}};
 
 	Parser::Parser()
 		: m_Stmts(nullptr)
@@ -161,7 +160,7 @@ namespace lwScript
 	{
 	}
 
-	Stmt* Parser::Parse(const std::vector<Token>& tokens)
+	Stmt *Parser::Parse(const std::vector<Token> &tokens)
 	{
 		ResetStatus();
 		m_Tokens = tokens;
@@ -169,11 +168,9 @@ namespace lwScript
 		return ParseAstStmts();
 	}
 
-
 	void Parser::ResetStatus()
 	{
 		m_CurPos = 0;
-
 
 		if (m_Stmts != nullptr)
 		{
@@ -183,14 +180,14 @@ namespace lwScript
 		m_Stmts = new AstStmts();
 	}
 
-	Stmt* Parser::ParseAstStmts()
+	Stmt *Parser::ParseAstStmts()
 	{
 		while (!IsMatchCurToken(TokenType::END))
 			m_Stmts->stmts.emplace_back(ParseStmt());
 		return m_Stmts;
 	}
 
-	Stmt* Parser::ParseStmt()
+	Stmt *Parser::ParseStmt()
 	{
 		if (IsMatchCurToken(TokenType::LET))
 			return ParseLetStmt();
@@ -206,21 +203,21 @@ namespace lwScript
 			return ParseExprStmt();
 	}
 
-	Stmt* Parser::ParseExprStmt()
+	Stmt *Parser::ParseExprStmt()
 	{
 		auto exprStmt = new ExprStmt(ParseExpr());
 		Consume(TokenType::SEMICOLON, "Expect ';' after expr stmt.");
 		return exprStmt;
 	}
 
-	Stmt* Parser::ParseLetStmt()
+	Stmt *Parser::ParseLetStmt()
 	{
 		Consume(TokenType::LET, "Expect 'let' key word");
 		auto varStmt = new LetStmt();
 
 		//the first variable
-		auto identifier = new IdentifierExpr(Consume(TokenType:: IDENTIFIER, "Expect valid identifier").literal);
-		Expr* value = nilExpr;
+		auto identifier = new IdentifierExpr(Consume(TokenType::IDENTIFIER, "Expect valid identifier").literal);
+		Expr *value = nilExpr;
 		if (IsMatchCurTokenAndStepOnce(TokenType::EQUAL))
 			value = ParseExpr();
 		varStmt->variables[identifier] = value;
@@ -229,7 +226,7 @@ namespace lwScript
 		while (IsMatchCurTokenAndStepOnce(TokenType::COMMA))
 		{
 			identifier = new IdentifierExpr(Consume(TokenType::IDENTIFIER, "Expect valid identifier").literal);
-			Expr* value = nilExpr;
+			Expr *value = nilExpr;
 			if (IsMatchCurTokenAndStepOnce(TokenType::EQUAL))
 				value = ParseExpr();
 			varStmt->variables[identifier] = value;
@@ -240,7 +237,7 @@ namespace lwScript
 		return varStmt;
 	}
 
-	Stmt* Parser::ParseReturnStmt()
+	Stmt *Parser::ParseReturnStmt()
 	{
 		Consume(TokenType::RETURN, "Expect 'return' key word.");
 
@@ -253,7 +250,7 @@ namespace lwScript
 		return returnStmt;
 	}
 
-	Stmt* Parser::ParseIfStmt()
+	Stmt *Parser::ParseIfStmt()
 	{
 		Consume(TokenType::IF, "Expect 'if' key word.");
 		Consume(TokenType::LPAREN, "Expect '(' after 'if'.");
@@ -272,7 +269,7 @@ namespace lwScript
 		return ifStmt;
 	}
 
-	Stmt* Parser::ParseScopeStmt()
+	Stmt *Parser::ParseScopeStmt()
 	{
 		Consume(TokenType::LBRACE, "Expect '{'.");
 		auto scopeStmt = new ScopeStmt();
@@ -282,7 +279,7 @@ namespace lwScript
 		return scopeStmt;
 	}
 
-	Stmt* Parser::ParseWhileStmt()
+	Stmt *Parser::ParseWhileStmt()
 	{
 		Consume(TokenType::WHILE, "Expect 'while' keyword.");
 		Consume(TokenType::LPAREN, "Expect '(' after 'while'.");
@@ -298,7 +295,7 @@ namespace lwScript
 		return whileStmt;
 	}
 
-	Expr* Parser::ParseExpr(Precedence precedence)
+	Expr *Parser::ParseExpr(Precedence precedence)
 	{
 		if (m_PrefixFunctions.find(GetCurToken().type) == m_PrefixFunctions.end())
 		{
@@ -311,51 +308,51 @@ namespace lwScript
 
 		while (!IsMatchCurToken(TokenType::SEMICOLON) && precedence < GetCurTokenPrecedence())
 		{
-				if (m_InfixFunctions.find(GetCurToken().type) == m_InfixFunctions.end())
-					return leftExpr;
+			if (m_InfixFunctions.find(GetCurToken().type) == m_InfixFunctions.end())
+				return leftExpr;
 
-				auto infixFn = m_InfixFunctions[GetCurToken().type];
+			auto infixFn = m_InfixFunctions[GetCurToken().type];
 
-				leftExpr = (this->*infixFn)(leftExpr);
+			leftExpr = (this->*infixFn)(leftExpr);
 		}
 
 		return leftExpr;
 	}
 
-	Expr* Parser::ParseIdentifierExpr()
+	Expr *Parser::ParseIdentifierExpr()
 	{
 		return new IdentifierExpr(Consume(TokenType::IDENTIFIER, "Expect a identifier.").literal);
 	}
 
-	Expr* Parser::ParseNumExpr()
+	Expr *Parser::ParseNumExpr()
 	{
 		std::string numLiteral = Consume(TokenType::NUMBER, "Expexct a number literal.").literal;
 
-			return new NumExpr(std::stod(numLiteral));
+		return new NumExpr(std::stod(numLiteral));
 	}
 
-	Expr* Parser::ParseStrExpr()
+	Expr *Parser::ParseStrExpr()
 	{
 		return new StrExpr(Consume(TokenType::STRING, "Expect a string literal.").literal);
 	}
 
-	Expr* Parser::ParseNilExpr()
+	Expr *Parser::ParseNilExpr()
 	{
 		Consume(TokenType::NIL, "Expect 'null' keyword");
 		return nilExpr;
 	}
-	Expr* Parser::ParseTrueExpr()
+	Expr *Parser::ParseTrueExpr()
 	{
 		Consume(TokenType::TRUE, "Expect 'true' keyword");
 		return trueExpr;
 	}
-	Expr* Parser::ParseFalseExpr()
+	Expr *Parser::ParseFalseExpr()
 	{
 		Consume(TokenType::FALSE, "Expect 'false' keyword");
 		return falseExpr;
 	}
 
-	Expr* Parser::ParseGroupExpr()
+	Expr *Parser::ParseGroupExpr()
 	{
 		Consume(TokenType::LPAREN, "Expect '('.");
 		auto groupExpr = new GroupExpr(ParseExpr());
@@ -363,7 +360,7 @@ namespace lwScript
 		return groupExpr;
 	}
 
-	Expr* Parser::ParseFunctionExpr()
+	Expr *Parser::ParseFunctionExpr()
 	{
 		Consume(TokenType::FUNCTION, "Expect 'function' keyword");
 		Consume(TokenType::LPAREN, "Expect '(' after 'function' keyword");
@@ -371,47 +368,47 @@ namespace lwScript
 
 		if (!IsMatchCurToken(TokenType::RPAREN)) //has parameter
 		{
-			IdentifierExpr* idenExpr = (IdentifierExpr*)ParseIdentifierExpr();
+			IdentifierExpr *idenExpr = (IdentifierExpr *)ParseIdentifierExpr();
 			funcExpr->parameters.emplace_back(idenExpr);
 			while (IsMatchCurTokenAndStepOnce(TokenType::COMMA))
 			{
-				idenExpr = (IdentifierExpr*)ParseIdentifierExpr();
+				idenExpr = (IdentifierExpr *)ParseIdentifierExpr();
 				funcExpr->parameters.emplace_back(idenExpr);
 			}
 		}
 		Consume(TokenType::RPAREN, "Expect ')' after function expr's '('");
 
-		funcExpr->body = (ScopeStmt*)ParseScopeStmt();
+		funcExpr->body = (ScopeStmt *)ParseScopeStmt();
 
 		return funcExpr;
 	}
 
-	Expr* Parser::ParseStructExpr()
+	Expr *Parser::ParseStructExpr()
 	{
 		Consume(TokenType::STRUCT, "Expect 'struct' keyword.");
 		Consume(TokenType::LBRACE, "Expect '{' atfter 'struct'");
-		
+
 		auto structExpr = new StructExpr();
 
 		while (!IsMatchCurToken(TokenType::RBRACE))
-			structExpr->letStmts.emplace_back((LetStmt*)ParseLetStmt());
-		
+			structExpr->letStmts.emplace_back((LetStmt *)ParseLetStmt());
+
 		Consume(TokenType::RBRACE, "Expect '}' after struct body.");
 
 		return structExpr;
 	}
 
-	Expr* Parser::ParseRefExpr()
+	Expr *Parser::ParseRefExpr()
 	{
 		Consume(TokenType::REF, "Expect 'ref' keyword.");
 
 		auto refExpr = new RefExpr();
 
-		refExpr->expr=ParseExpr();
+		refExpr->expr = ParseExpr();
 		return refExpr;
 	}
 
-	Expr* Parser::ParseArrayExpr()
+	Expr *Parser::ParseArrayExpr()
 	{
 		Consume(TokenType::LBRACKET, "Expect '['.");
 
@@ -429,7 +426,7 @@ namespace lwScript
 		return arrayExpr;
 	}
 
-	Expr* Parser::ParsePrefixExpr()
+	Expr *Parser::ParsePrefixExpr()
 	{
 		auto prefixExpr = new PrefixExpr();
 		prefixExpr->op = GetCurTokenAndStepOnce().literal;
@@ -437,7 +434,7 @@ namespace lwScript
 		return prefixExpr;
 	}
 
-	Expr* Parser::ParseInfixExpr(Expr* prefixExpr)
+	Expr *Parser::ParseInfixExpr(Expr *prefixExpr)
 	{
 		auto infixExpr = new InfixExpr();
 		infixExpr->left = prefixExpr;
@@ -446,7 +443,7 @@ namespace lwScript
 		return infixExpr;
 	}
 
-	Expr* Parser::ParseIndexExpr(Expr* prefixExpr)
+	Expr *Parser::ParseIndexExpr(Expr *prefixExpr)
 	{
 		Consume(TokenType::LBRACKET, "Expect '['.");
 		auto indexExpr = new IndexExpr();
@@ -456,7 +453,7 @@ namespace lwScript
 		return indexExpr;
 	}
 
-	Expr* Parser::ParseFunctionCallExpr(Expr* prefixExpr)
+	Expr *Parser::ParseFunctionCallExpr(Expr *prefixExpr)
 	{
 		auto funcCallExpr = new FunctionCallExpr();
 
@@ -466,7 +463,7 @@ namespace lwScript
 			exit(1);
 		}
 
-		funcCallExpr->function = (IdentifierExpr*)prefixExpr;
+		funcCallExpr->function = (IdentifierExpr *)prefixExpr;
 		Consume(TokenType::LPAREN, "Expect '('.");
 		if (!IsMatchCurToken(TokenType::RPAREN)) //has arguments
 		{
@@ -479,7 +476,7 @@ namespace lwScript
 		return funcCallExpr;
 	}
 
-	Expr* Parser::ParseStructCallExpr(Expr* prefixExpr)
+	Expr *Parser::ParseStructCallExpr(Expr *prefixExpr)
 	{
 		Consume(TokenType::DOT, "Exoect '.'.");
 
@@ -490,7 +487,7 @@ namespace lwScript
 		}
 
 		auto structCallExpr = new StructCallExpr();
-		structCallExpr->structure = (IdentifierExpr*)prefixExpr;
+		structCallExpr->structure = (IdentifierExpr *)prefixExpr;
 		structCallExpr->member = ParseExpr();
 
 		return structCallExpr;
@@ -570,7 +567,7 @@ namespace lwScript
 	{
 		if (IsMatchCurToken(type))
 			return GetCurTokenAndStepOnce();
-		std::cout << "[line " << std::to_string(GetCurToken().line) + "]:" << errMsg<<std::endl;
+		std::cout << "[line " << std::to_string(GetCurToken().line) + "]:" << errMsg << std::endl;
 		exit(1);
 	}
 
