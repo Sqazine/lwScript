@@ -12,7 +12,8 @@ namespace lwScript
 		NIL,
 		ARRAY,
 		STRUCT,
-		FUNCTION
+		FUNCTION,
+		REF
 	};
 
 	struct Object
@@ -72,6 +73,18 @@ namespace lwScript
 
 	};
 
+	struct RefObject:public Object
+	{
+		RefObject() {}
+		RefObject(std::string refObjName):refObjName(refObjName) {}
+		~RefObject() {}
+
+		std::string Stringify() override { return "ref "+refObjName; }
+		ObjectType Type() override { return ObjectType::REF; }
+
+		std::string refObjName;
+	};
+
 	struct ArrayObject : public Object
 	{
 		ArrayObject() {}
@@ -121,12 +134,17 @@ namespace lwScript
 	struct FunctionObject : public Object
 	{
 		FunctionObject() {}
-		FunctionObject(int8_t frameIndex) : frameIndex(frameIndex) {}
+		FunctionObject(int64_t frameIndex) : frameIndex(frameIndex) {}
 		~FunctionObject() {}
 
 		std::string Stringify() override { return std::to_string(frameIndex); }
 		ObjectType Type() override { return ObjectType::FUNCTION; }
 
-		int8_t frameIndex;
+		int64_t frameIndex;
 	};
+
+
+	 static BoolObject *trueObject = new BoolObject(true);
+    static BoolObject *falseObject = new BoolObject(false);
+    static NilObject *nilObject = new NilObject();
 }

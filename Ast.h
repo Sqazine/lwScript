@@ -479,4 +479,9 @@ namespace lwScript
 
 		std::vector<Stmt *> stmts;
 	};
+
+
+	    static NilExpr *nilExpr = new NilExpr();
+    static BoolExpr *trueExpr = new BoolExpr(true);
+    static BoolExpr *falseExpr = new BoolExpr(false);
 }
