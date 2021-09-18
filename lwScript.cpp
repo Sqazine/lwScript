@@ -47,6 +47,7 @@ void Repl()
 #ifdef _DEBUG
 			std::cout << frame.Stringify() << std::endl;
 #endif
+			vm.ResetStatus();
 			vm.Execute(frame);
 		}
 		std::cout << "> ";

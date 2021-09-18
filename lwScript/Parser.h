@@ -213,14 +213,14 @@ namespace lwScript
 	Stmt *Parser::ParseLetStmt()
 	{
 		Consume(TokenType::LET, "Expect 'let' key word");
-		auto varStmt = new LetStmt();
+		auto letStmt = new LetStmt();
 
 		//the first variable
 		auto identifier = new IdentifierExpr(Consume(TokenType::IDENTIFIER, "Expect valid identifier").literal);
 		Expr *value = nilExpr;
 		if (IsMatchCurTokenAndStepOnce(TokenType::EQUAL))
 			value = ParseExpr();
-		varStmt->variables[identifier] = value;
+		letStmt->variables[identifier] = value;
 
 		//other variable
 		while (IsMatchCurTokenAndStepOnce(TokenType::COMMA))
@@ -229,12 +229,12 @@ namespace lwScript
 			Expr *value = nilExpr;
 			if (IsMatchCurTokenAndStepOnce(TokenType::EQUAL))
 				value = ParseExpr();
-			varStmt->variables[identifier] = value;
+			letStmt->variables[identifier] = value;
 		}
 
-		Consume(TokenType::SEMICOLON, "Expect ';' after var stmt.");
+		Consume(TokenType::SEMICOLON, "Expect ';' after let stmt.");
 
-		return varStmt;
+		return letStmt;
 	}
 
 	Stmt *Parser::ParseReturnStmt()
@@ -463,7 +463,7 @@ namespace lwScript
 			exit(1);
 		}
 
-		funcCallExpr->function = (IdentifierExpr *)prefixExpr;
+		funcCallExpr->name = (IdentifierExpr *)prefixExpr;
 		Consume(TokenType::LPAREN, "Expect '('.");
 		if (!IsMatchCurToken(TokenType::RPAREN)) //has arguments
 		{

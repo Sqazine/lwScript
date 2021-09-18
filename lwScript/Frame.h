@@ -102,6 +102,7 @@ namespace lwScript
 				return m_FunctionFrames.size();
 			}
 
+
 	std::string Frame::Stringify(int depth)
 	{
 		std::string interval;
@@ -122,7 +123,7 @@ namespace lwScript
 				result<<m_FunctionFrames[i].Stringify(depth+1);
 			}
 
-		result <<interval<<"Frame root:\n"<< "\tOpCodes:\n";
+		result <<interval<<"Frame root:\n"<<interval<< "OpCodes:\n";
 
 		for (size_t i = 0; i < m_Codes.size(); ++i)
 		{
@@ -211,13 +212,14 @@ namespace lwScript
 				break;
 			case OP_FUNCTION_CALL:
 				SINGLE_INSTR_STRINGIFY(OP_FUNCTION_CALL);
+				break;
 			default:
 				SINGLE_INSTR_STRINGIFY(UNKNOWN);
 				break;
 			}
 		}
 
-		result << interval<<"\tObjects:\n";
+		result << interval<<"Objects:\n";
 
 		for (size_t i = 0; i < m_Objects.size(); ++i)
 			result <<interval<<"\t" <<std::setfill('0') << std::setw(8) << i << "     " << m_Objects[i]->Stringify() << "\n";

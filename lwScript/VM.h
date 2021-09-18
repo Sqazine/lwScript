@@ -3,6 +3,7 @@
 #include <cstdint>
 #include <stack>
 #include "Frame.h"
+#include "Library.h"
 namespace lwScript
 {
 	struct Object;
@@ -65,10 +66,9 @@ namespace lwScript
 		VM();
 		~VM();
 
-		Object *Execute(const Frame &frame);
-
-	private:
 		void ResetStatus();
+		Object *Execute(const Frame &frame);
+	private:
 
 		void Push(Object *object);
 		Object *Pop();
@@ -77,8 +77,6 @@ namespace lwScript
 		std::array<Object *, 64> m_Stack;
 
 		Environment *m_Environment;
-
-		Frame m_RootFrame;
 	};
 
 	VM::VM()
@@ -130,18 +128,16 @@ namespace lwScript
 			Push(falseObject);                                                                      \
 	}
 
-		ResetStatus();
-		m_RootFrame = frame;
-		for (; ip < m_RootFrame.m_Codes.size(); ++ip)
+		for (ip=0; ip < frame.m_Codes.size(); ++ip)
 		{
-			uint8_t instruction = m_RootFrame.m_Codes[ip];
+			uint8_t instruction = frame.m_Codes[ip];
 			switch (instruction)
 			{
 			case OP_RETURN:
 				return Pop();
 				break;
 			case OP_PUSH:
-				Push(m_RootFrame.m_Objects[m_RootFrame.m_Codes[++ip]]);
+				Push(frame.m_Objects[frame.m_Codes[++ip]]);
 				break;
 			case OP_NEG:
 			{
@@ -364,6 +360,22 @@ namespace lwScript
 			{
 				uint64_t address = (uint64_t)(TO_NUM_OBJ(Pop())->value);
 				ip = address;
+				break;
+			}
+			case OP_FUNCTION_CALL:
+			{
+				NumObject* argCount=TO_NUM_OBJ(Pop());
+				StrObject* fnName=TO_STR_OBJ(Pop());
+				Object* fnObj=m_Environment->GetVariable(fnName->value);
+				if(fnObj->Type()==ObjectType::FUNCTION)
+					Push(Execute(frame.m_FunctionFrames[TO_FUNCTION_OBJ(fnObj)->frameIndex]));
+				else
+				{
+					std::vector<Object*> args;
+					for(size_t i=0;i<argCount->value;++i)
+						args.insert(args.begin(),Pop());
+					Push(Library::GetNativeFunctionObject(fnName->value)->fn(args));
+				}
 				break;
 			}
 			default:

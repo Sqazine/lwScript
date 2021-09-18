@@ -20,9 +20,9 @@ namespace lwScript
 
         static NativeFunctionObject *GetNativeFunctionObject(std::string_view fnName)
         {
-            for (const auto &fn : m_Functions)
-                if (fn->name == fnName)
-                    return fn;
+            for (const auto &fnObj : m_Functions)
+                if (fnObj->name == fnName)
+                    return fnObj;
             std::cout << "No function:" << fnName;
             exit(1);
         }
@@ -34,7 +34,7 @@ namespace lwScript
 
     std::vector<NativeFunctionObject *> Library::m_Functions =
         {
-            new NativeFunctionObject("print", [&](std::vector<Object *> args) -> Object *
+            new NativeFunctionObject("print", [](std::vector<Object *> args) -> Object *
                                      {
                                          if (args.empty())
                                              return nilObject;
@@ -58,6 +58,7 @@ namespace lwScript
                                                      content.replace(pos, 2, args[argpos++]->Stringify());
                                                  else
                                                      content.replace(pos, 2, "nil");
+                                                pos = content.find("{}");
                                              }
 
                                              std::cout << content << std::endl;

@@ -14,6 +14,7 @@ namespace lwScript
 		ARRAY,
 		STRUCT,
 		FUNCTION,
+		NATIVEFUNCTION,
 		REF
 	};
 
@@ -23,6 +24,7 @@ namespace lwScript
 #define TO_BOOL_OBJ(obj) ((BoolObject *)obj)
 #define TO_ARRAY_OBJ(obj) ((ArrayObject *)obj)
 #define TO_REF_OBJ(obj) ((RefObject *)obj)
+#define TO_FUNCTION_OBJ(obj) ((FunctionObject *)obj)
 
 	struct Object
 	{
@@ -155,7 +157,7 @@ namespace lwScript
 		~NativeFunctionObject() {}
 
 		std::string Stringify() override { return "native function:"+name; }
-		ObjectType Type() override { return ObjectType::FUNCTION; }
+		ObjectType Type() override { return ObjectType::NATIVEFUNCTION; }
 
 		std::string name;
 		std::function<Object*(std::vector<Object*>)> fn;

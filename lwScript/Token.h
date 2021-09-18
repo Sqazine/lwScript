@@ -36,7 +36,7 @@ namespace lwScript
 		BEQUAL,	   // !=
 		AND,	   // &&
 		OR,		   // ||
-		LET,	   // var
+		LET,	   // let
 		IF,		   // if
 		ELSE,	   // else
 		TRUE,	   // true

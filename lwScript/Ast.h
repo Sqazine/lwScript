@@ -223,12 +223,12 @@ namespace lwScript
 	struct FunctionCallExpr : public Expr
 	{
 		FunctionCallExpr() {}
-		FunctionCallExpr(IdentifierExpr*function, std::vector<Expr *> arguments) : function(function), arguments(arguments) {}
+		FunctionCallExpr(IdentifierExpr*name, std::vector<Expr *> arguments) : name(name), arguments(arguments) {}
 		~FunctionCallExpr() {}
 
 		std::string Stringify() override
 		{
-			std::string result = function->Stringify() + "(";
+			std::string result = name->Stringify() + "(";
 
 			if (!arguments.empty())
 			{
@@ -241,7 +241,7 @@ namespace lwScript
 		}
 		AstType Type() override { return AstType::FUNCTION_CALL; }
 
-		IdentifierExpr *function;
+		IdentifierExpr *name;
 		std::vector<Expr *> arguments;
 	};
 

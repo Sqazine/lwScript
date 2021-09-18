@@ -8,6 +8,7 @@ namespace lwScript
 {
 	enum State
 	{
+		NONE,
 		INIT,
 		READ,
 		WRITE,
@@ -47,7 +48,7 @@ namespace lwScript
 		void CompileRefExpr(RefExpr *expr, Frame &frame);
 		void CompilePrefixExpr(PrefixExpr *expr, Frame &frame);
 		void CompileInfixExpr(InfixExpr *expr, Frame &frame);
-		void CompileFunctionCallExpr(FunctionCallExpr *expr, Frame &name);
+		void CompileFunctionCallExpr(FunctionCallExpr *expr, Frame &frame);
 
 		Frame m_RootFrame;
 	};
@@ -224,6 +225,9 @@ namespace lwScript
 		case AstType::INFIX:
 			CompileInfixExpr((InfixExpr *)expr, frame);
 			break;
+		case AstType::FUNCTION_CALL:
+			CompileFunctionCallExpr((FunctionCallExpr*)expr,frame);
+			break;
 		default:
 			break;
 		}
@@ -304,8 +308,8 @@ namespace lwScript
 
 		functionFrame.AddOpCode(OP_ENTER_SCOPE);
 
-		for (const auto &iden : expr->parameters)
-			CompileIdentifierExpr(iden, functionFrame, INIT);
+		for (int64_t i=expr->parameters.size()-1;i>=0;--i)
+			CompileIdentifierExpr(expr->parameters[i], functionFrame, INIT);
 
 		CompileScopeStmt(expr->body, functionFrame);
 
@@ -396,7 +400,17 @@ namespace lwScript
 		}
 	}
 
-	void Compiler::CompileFunctionCallExpr(FunctionCallExpr *expr, Frame &name)
+	void Compiler::CompileFunctionCallExpr(FunctionCallExpr *expr, Frame &frame)
 	{
+		for(const auto& arg:expr->arguments)
+			 CompileExpr(arg,frame);
+		CompileExpr(expr->name,frame,NONE);
+
+		//argumentc count
+		frame.AddOpCode(OP_PUSH);
+		uint8_t offset = frame.AddObject(new NumObject(expr->arguments.size()));
+		frame.AddOpCode(offset);
+
+		frame.AddOpCode(OP_FUNCTION_CALL);
 	}
 }
