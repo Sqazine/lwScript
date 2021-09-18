@@ -3,13 +3,7 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
-#include "Token.h"
-#include "Frame.h"
-#include "Object.h"
-#include "Lexer.h"
-#include "Parser.h"
-#include "Compiler.h"
-#include "VM.h"
+#include "lwScript/lwScript.h"
 
 std::string ReadFile(std::string_view path)
 {
