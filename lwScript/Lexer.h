@@ -2,7 +2,8 @@
 #include <cstdint>
 #include <vector>
 #include <string>
-
+#include <iostream>
+#include <unordered_map>
 #include "Token.h"
 namespace lwScript
 {

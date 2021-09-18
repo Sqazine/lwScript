@@ -10,17 +10,50 @@ namespace lwScript
 	class Environment
 	{
 	public:
-		Environment();
-		Environment(Environment *upEnvironment);
-		~Environment();
+		Environment(): m_UpEnvironment(nullptr){}
+		Environment(Environment *upEnvironment): m_UpEnvironment(upEnvironment){}
+		~Environment(){}
 
-		void DefineVariable(std::string_view name, Object *value);
-		void AssignVariable(std::string_view name, Object *value);
-		Object *GetVariable(std::string_view name);
+		void DefineVariable(std::string_view name, Object *value)
+		{
+			auto iter = m_Values.find(name.data());
+			if (iter != m_Values.end())
+			{
+				std::cout << "Redefined variable:" << name << " in current context." << std::endl;
+				exit(1);
+			}
+			else
+				m_Values[name.data()] = value;
+		}
 
-		Environment *GetUpEnvironment();
-		const std::unordered_map<std::string, Object *> &GetValues() const;
+		void AssignVariable(std::string_view name, Object *value)
+		{
+			auto iter = m_Values.find(name.data());
+			if (iter != m_Values.end())
+				m_Values[name.data()] = value;
+			else if (m_UpEnvironment != nullptr)
+				m_UpEnvironment->AssignVariable(name, value);
+			else
+			{
+				std::cout << "Undefine variable:" << name << " in current context" << std::endl;
+				exit(1);
+			}
+		}
 
+		Object *GetVariable(std::string_view name)
+		{
+			auto iter = m_Values.find(name.data());
+
+			if (iter != m_Values.end())
+				return iter->second;
+
+			if (m_UpEnvironment != nullptr)
+				return m_UpEnvironment->GetVariable(name);
+
+			return nilObject;
+		}
+
+		Environment *GetUpEnvironment(){return m_UpEnvironment;}
 	private:
 		std::unordered_map<std::string, Object *> m_Values;
 		Environment *m_UpEnvironment;
@@ -32,7 +65,7 @@ namespace lwScript
 		VM();
 		~VM();
 
-		void Execute(const Frame &frame);
+		Object *Execute(const Frame &frame);
 
 	private:
 		void ResetStatus();
@@ -48,69 +81,6 @@ namespace lwScript
 		Frame m_RootFrame;
 	};
 
-	Environment::Environment()
-		: m_UpEnvironment(nullptr)
-	{
-	}
-
-	Environment::Environment(Environment *upEnvironment)
-		: m_UpEnvironment(upEnvironment)
-	{
-	}
-
-	Environment::~Environment()
-	{
-	}
-
-	void Environment::DefineVariable(std::string_view name, Object *value)
-	{
-		auto iter = m_Values.find(name.data());
-		if (iter != m_Values.end())
-		{
-			std::cout << "Redefined variable:" << name << " in current context." << std::endl;
-			exit(1);
-		}
-		else
-			m_Values[name.data()] = value;
-	}
-
-	void Environment::AssignVariable(std::string_view name, Object *value)
-	{
-		auto iter = m_Values.find(name.data());
-		if (iter != m_Values.end())
-			m_Values[name.data()] = value;
-		else if (m_UpEnvironment != nullptr)
-			m_UpEnvironment->AssignVariable(name, value);
-		else
-		{
-			std::cout << "Undefine variable:" << name << " in current context" << std::endl;
-			exit(1);
-		}
-	}
-
-	Object *Environment::GetVariable(std::string_view name)
-	{
-		auto iter = m_Values.find(name.data());
-
-		if (iter != m_Values.end())
-			return iter->second;
-
-		if (m_UpEnvironment != nullptr)
-			return m_UpEnvironment->GetVariable(name);
-
-		return nilObject;
-	}
-
-	Environment *Environment::GetUpEnvironment()
-	{
-		return m_UpEnvironment;
-	}
-
-	const std::unordered_map<std::string, Object *> &Environment::GetValues() const
-	{
-		return m_Values;
-	}
-
 	VM::VM()
 		: m_Environment(nullptr)
 	{
@@ -124,15 +94,8 @@ namespace lwScript
 			m_Environment = nullptr;
 		}
 	}
-	void VM::Execute(const Frame &frame)
+	Object *VM::Execute(const Frame &frame)
 	{
-#define TO_NUM_OBJ(obj) ((NumObject *)obj)
-#define TO_STR_OBJ(obj) ((StrObject *)obj)
-#define TO_NIL_OBJ(obj) ((NilObject *)obj)
-#define TO_BOOL_OBJ(obj) ((BoolObject *)obj)
-#define TO_ARRAY_OBJ(obj) ((ArrayObject *)obj)
-#define TO_REF_OBJ(obj) ((RefObject *)obj)
-
 // + - * /
 #define COMMON_BINARY(op)                                                                                       \
 	{                                                                                                           \
@@ -175,7 +138,7 @@ namespace lwScript
 			switch (instruction)
 			{
 			case OP_RETURN:
-				std::cout << Pop()->Stringify() << std::endl;
+				return Pop();
 				break;
 			case OP_PUSH:
 				Push(m_RootFrame.m_Objects[m_RootFrame.m_Codes[++ip]]);
@@ -407,6 +370,8 @@ namespace lwScript
 				break;
 			}
 		}
+
+		return nilObject;
 	}
 	void VM::ResetStatus()
 	{

@@ -2,6 +2,7 @@
 #include <string>
 #include <string_view>
 #include <unordered_map>
+#include <functional>
 namespace lwScript
 {
 	enum class ObjectType
@@ -15,6 +16,13 @@ namespace lwScript
 		FUNCTION,
 		REF
 	};
+
+#define TO_NUM_OBJ(obj) ((NumObject *)obj)
+#define TO_STR_OBJ(obj) ((StrObject *)obj)
+#define TO_NIL_OBJ(obj) ((NilObject *)obj)
+#define TO_BOOL_OBJ(obj) ((BoolObject *)obj)
+#define TO_ARRAY_OBJ(obj) ((ArrayObject *)obj)
+#define TO_REF_OBJ(obj) ((RefObject *)obj)
 
 	struct Object
 	{
@@ -138,6 +146,19 @@ namespace lwScript
 		ObjectType Type() override { return ObjectType::FUNCTION; }
 
 		int64_t frameIndex;
+	};
+
+	struct NativeFunctionObject : public Object
+	{
+		NativeFunctionObject() {}
+		NativeFunctionObject(std::string_view name,std::function<Object*(std::vector<Object*>)> fn) :name(name), fn(fn) {}
+		~NativeFunctionObject() {}
+
+		std::string Stringify() override { return "native function:"+name; }
+		ObjectType Type() override { return ObjectType::FUNCTION; }
+
+		std::string name;
+		std::function<Object*(std::vector<Object*>)> fn;
 	};
 
 

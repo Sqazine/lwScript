@@ -38,6 +38,7 @@ namespace lwScript
 		OP_STRUCT,
 		OP_JUMP,
 		OP_JUMP_IF_FALSE,
+		OP_FUNCTION_CALL
 	};
 
 	class Frame
@@ -208,6 +209,8 @@ namespace lwScript
 			case OP_JUMP_IF_FALSE:
 				SINGLE_INSTR_STRINGIFY(OP_JUMP_IF_FALSE);
 				break;
+			case OP_FUNCTION_CALL:
+				SINGLE_INSTR_STRINGIFY(OP_FUNCTION_CALL);
 			default:
 				SINGLE_INSTR_STRINGIFY(UNKNOWN);
 				break;

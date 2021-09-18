@@ -6,52 +6,53 @@
 #include "Object.h"
 namespace lwScript
 {
-    enum State
-    {
-        INIT,
-        READ,
-        WRITE,
-        REF
-    };
-    class Compiler
-    {
-    public:
-        Compiler();
-        ~Compiler();
+	enum State
+	{
+		INIT,
+		READ,
+		WRITE,
+		REF
+	};
+	class Compiler
+	{
+	public:
+		Compiler();
+		~Compiler();
 
-        const Frame& Compile(Stmt* stmt);
+		const Frame &Compile(Stmt *stmt);
 
-        void ResetStatus();
-    private:
-        void CompileAstStmts(AstStmts* stmt,Frame& frame);
-        void CompileStmt(Stmt* stmt,Frame& frame);
-        void CompileReturnStmt(ReturnStmt* stmt,Frame& frame);
-        void CompileExprStmt(ExprStmt* stmt,Frame& frame);
-        void CompileLetStmt(LetStmt* stmt,Frame& frame);
-        void CompileScopeStmt(ScopeStmt* stmt,Frame& frame);
-        void CompileIfStmt(IfStmt* stmt,Frame& frame);
-        void CompileWhileStmt(WhileStmt* stmt,Frame& frame);
+		void ResetStatus();
 
-        void CompileExpr(Expr* expr,Frame& frame, State state = READ);
-        void CompileNumExpr(NumExpr* expr,Frame& frame);
-        void CompileStrExpr(StrExpr* expr,Frame& frame);
-        void CompileBoolExpr(BoolExpr* expr,Frame& frame);
-        void CompileNilExpr(NilExpr* expr,Frame& frame);
-        void CompileIdentifierExpr(IdentifierExpr* expr,Frame& frame, State state=READ);
-        void CompileGroupExpr(GroupExpr* expr,Frame& frame);
-        void CompileArrayExpr(ArrayExpr* expr,Frame& frame);
-        void CompileIndexExpr(IndexExpr* expr,Frame& frame, State state=READ);
-        void CompileFunctionExpr(FunctionExpr* expr,Frame& frame);
-        void CompileStructExpr(StructExpr* expr,Frame& frame);
-        void CompileRefExpr(RefExpr* expr,Frame& frame);
-        void CompilePrefixExpr(PrefixExpr* expr,Frame& frame);
-        void CompileInfixExpr(InfixExpr* expr,Frame& frame);
+	private:
+		void CompileAstStmts(AstStmts *stmt, Frame &frame);
+		void CompileStmt(Stmt *stmt, Frame &frame);
+		void CompileReturnStmt(ReturnStmt *stmt, Frame &frame);
+		void CompileExprStmt(ExprStmt *stmt, Frame &frame);
+		void CompileLetStmt(LetStmt *stmt, Frame &frame);
+		void CompileScopeStmt(ScopeStmt *stmt, Frame &frame);
+		void CompileIfStmt(IfStmt *stmt, Frame &frame);
+		void CompileWhileStmt(WhileStmt *stmt, Frame &frame);
 
-        Frame m_RootFrame;
-    };
+		void CompileExpr(Expr *expr, Frame &frame, State state = READ);
+		void CompileNumExpr(NumExpr *expr, Frame &frame);
+		void CompileStrExpr(StrExpr *expr, Frame &frame);
+		void CompileBoolExpr(BoolExpr *expr, Frame &frame);
+		void CompileNilExpr(NilExpr *expr, Frame &frame);
+		void CompileIdentifierExpr(IdentifierExpr *expr, Frame &frame, State state = READ);
+		void CompileGroupExpr(GroupExpr *expr, Frame &frame);
+		void CompileArrayExpr(ArrayExpr *expr, Frame &frame);
+		void CompileIndexExpr(IndexExpr *expr, Frame &frame, State state = READ);
+		void CompileFunctionExpr(FunctionExpr *expr, Frame &frame);
+		void CompileStructExpr(StructExpr *expr, Frame &frame);
+		void CompileRefExpr(RefExpr *expr, Frame &frame);
+		void CompilePrefixExpr(PrefixExpr *expr, Frame &frame);
+		void CompileInfixExpr(InfixExpr *expr, Frame &frame);
+		void CompileFunctionCallExpr(FunctionCallExpr *expr, Frame &name);
 
+		Frame m_RootFrame;
+	};
 
-    Compiler::Compiler()
+	Compiler::Compiler()
 	{
 	}
 	Compiler::~Compiler()
@@ -92,10 +93,10 @@ namespace lwScript
 			CompileScopeStmt((ScopeStmt *)stmt, frame);
 			break;
 		case AstType::IF:
-			CompileIfStmt((IfStmt*)stmt,frame);
+			CompileIfStmt((IfStmt *)stmt, frame);
 			break;
 		case AstType::WHILE:
-			CompileWhileStmt((WhileStmt*)stmt,frame);
+			CompileWhileStmt((WhileStmt *)stmt, frame);
 			break;
 		default:
 			break;
@@ -145,24 +146,24 @@ namespace lwScript
 
 		CompileStmt(stmt->thenBranch, frame);
 
-		auto jmpAddress=new NumObject();
+		auto jmpAddress = new NumObject();
 		frame.AddOpCode(OP_PUSH);
 		offset = frame.AddObject(jmpAddress);
 		frame.AddOpCode(offset);
 		frame.AddOpCode(OP_JUMP);
 
-		jmpIfFalseAddress->value = (double)frame.GetOpCodeSize()-1.0;
+		jmpIfFalseAddress->value = (double)frame.GetOpCodeSize() - 1.0;
 
 		if (stmt->elseBranch)
 			CompileStmt(stmt->elseBranch, frame);
 
-		jmpAddress->value=(double)frame.GetOpCodeSize()-1.0;
+		jmpAddress->value = (double)frame.GetOpCodeSize() - 1.0;
 	}
 	void Compiler::CompileWhileStmt(WhileStmt *stmt, Frame &frame)
 	{
-		auto jmpAddress=new NumObject();
-		jmpAddress->value=(double)frame.GetOpCodeSize()-1.0;
-		CompileExpr(stmt->condition,frame);
+		auto jmpAddress = new NumObject();
+		jmpAddress->value = (double)frame.GetOpCodeSize() - 1.0;
+		CompileExpr(stmt->condition, frame);
 
 		auto jmpIfFalseAddress = new NumObject();
 		frame.AddOpCode(OP_PUSH);
@@ -170,15 +171,14 @@ namespace lwScript
 		frame.AddOpCode(offset);
 		frame.AddOpCode(OP_JUMP_IF_FALSE);
 
-		CompileStmt(stmt->body,frame);
+		CompileStmt(stmt->body, frame);
 
 		frame.AddOpCode(OP_PUSH);
 		offset = frame.AddObject(jmpAddress);
 		frame.AddOpCode(offset);
 		frame.AddOpCode(OP_JUMP);
 
-
-		jmpIfFalseAddress->value=(double)frame.GetOpCodeSize()-1.0;		
+		jmpIfFalseAddress->value = (double)frame.GetOpCodeSize() - 1.0;
 	}
 
 	void Compiler::CompileExpr(Expr *expr, Frame &frame, State state)
@@ -216,7 +216,7 @@ namespace lwScript
 			CompileFunctionExpr((FunctionExpr *)expr, frame);
 			break;
 		case AstType::REF:
-			CompileRefExpr((RefExpr*)expr,frame);
+			CompileRefExpr((RefExpr *)expr, frame);
 			break;
 		case AstType::PREFIX:
 			CompilePrefixExpr((PrefixExpr *)expr, frame);
@@ -268,9 +268,8 @@ namespace lwScript
 			frame.AddOpCode(OP_SET_VAR);
 		else if (state == INIT)
 			frame.AddOpCode(OP_DEFINE_VAR);
-        else if(state==REF)
-            frame.AddOpCode(OP_REF_VAR);
-
+		else if (state == REF)
+			frame.AddOpCode(OP_REF_VAR);
 	}
 
 	void Compiler::CompileGroupExpr(GroupExpr *expr, Frame &frame)
@@ -341,10 +340,10 @@ namespace lwScript
 		frame.AddOpCode(OP_STRUCT);
 	}
 
-	  void Compiler::CompileRefExpr(RefExpr* expr,Frame& frame)
-	  {
-		  CompileExpr(expr->expr,frame,REF);
-	  }
+	void Compiler::CompileRefExpr(RefExpr *expr, Frame &frame)
+	{
+		CompileExpr(expr->expr, frame, REF);
+	}
 
 	void Compiler::CompilePrefixExpr(PrefixExpr *expr, Frame &frame)
 	{
@@ -395,5 +394,9 @@ namespace lwScript
 				exit(1);
 			}
 		}
+	}
+
+	void Compiler::CompileFunctionCallExpr(FunctionCallExpr *expr, Frame &name)
+	{
 	}
 }
