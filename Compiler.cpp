@@ -13,7 +13,7 @@ namespace lwScript
 
 	const Frame &Compiler::Compile(Stmt *stmt)
 	{
-		CompileAstStmts((AstStmts *)stmt,m_RootFrame);
+		CompileAstStmts((AstStmts *)stmt, m_RootFrame);
 		return m_RootFrame;
 	}
 
@@ -22,139 +22,171 @@ namespace lwScript
 		m_RootFrame.Clear();
 	}
 
-	void Compiler::CompileAstStmts(AstStmts *stmt,Frame& frame)
+	void Compiler::CompileAstStmts(AstStmts *stmt, Frame &frame)
 	{
 		for (const auto &s : stmt->stmts)
-			CompileStmt(s,frame);
+			CompileStmt(s, frame);
 	}
 
-	void Compiler::CompileStmt(Stmt *stmt,Frame& frame)
+	void Compiler::CompileStmt(Stmt *stmt, Frame &frame)
 	{
 		switch (stmt->Type())
 		{
 		case AstType::RETURN:
-			CompileReturnStmt((ReturnStmt *)stmt,frame);
+			CompileReturnStmt((ReturnStmt *)stmt, frame);
 			break;
 		case AstType::EXPR:
-			CompileExprStmt((ExprStmt *)stmt,frame);
+			CompileExprStmt((ExprStmt *)stmt, frame);
 			break;
 		case AstType::LET:
-			CompileLetStmt((LetStmt *)stmt,frame);
+			CompileLetStmt((LetStmt *)stmt, frame);
 			break;
 		case AstType::SCOPE:
-			CompileScopeStmt((ScopeStmt *)stmt,frame);
+			CompileScopeStmt((ScopeStmt *)stmt, frame);
+			break;
+		case AstType::IF:
+			CompileIfStmt((IfStmt*)stmt,frame);
 			break;
 		default:
 			break;
 		}
 	}
-	void Compiler::CompileReturnStmt(ReturnStmt *stmt,Frame& frame)
+	void Compiler::CompileReturnStmt(ReturnStmt *stmt, Frame &frame)
 	{
 		if (stmt->expr)
-			CompileExpr(stmt->expr,frame);
+			CompileExpr(stmt->expr, frame);
 
 		frame.AddOpCode(OP_RETURN);
 	}
 
-	void Compiler::CompileExprStmt(ExprStmt *stmt,Frame& frame)
+	void Compiler::CompileExprStmt(ExprStmt *stmt, Frame &frame)
 	{
-		CompileExpr(stmt->expr,frame);
+		CompileExpr(stmt->expr, frame);
 	}
 
-	void Compiler::CompileLetStmt(LetStmt *stmt,Frame& frame)
+	void Compiler::CompileLetStmt(LetStmt *stmt, Frame &frame)
 	{
 		for (const auto &[key, value] : stmt->variables)
 		{
-			CompileExpr(value,frame);
-			CompileExpr(key,frame, INIT);
+			CompileExpr(value, frame);
+			CompileExpr(key, frame, INIT);
 		}
 	}
 
-	void Compiler::CompileScopeStmt(ScopeStmt *stmt,Frame& frame)
+	void Compiler::CompileScopeStmt(ScopeStmt *stmt, Frame &frame)
 	{
 		frame.AddOpCode(OP_ENTER_SCOPE);
 
 		for (const auto &s : stmt->stmts)
-			CompileStmt(s,frame);
+			CompileStmt(s, frame);
 
 		frame.AddOpCode(OP_EXIT_SCOPE);
 	}
 
-	void Compiler::CompileExpr(Expr *expr,Frame& frame, State state)
+	void Compiler::CompileIfStmt(IfStmt *stmt, Frame &frame)
+	{
+		CompileExpr(stmt->condition, frame);
+
+		auto jmpIfFalseAddress = new NumObject();
+		frame.AddOpCode(OP_PUSH);
+		uint8_t offset = frame.AddObject(jmpIfFalseAddress);
+		frame.AddOpCode(offset);
+		frame.AddOpCode(OP_JUMP_IF_FALSE);
+
+		CompileStmt(stmt->thenBranch, frame);
+
+		auto jmpAddress=new NumObject();
+		frame.AddOpCode(OP_PUSH);
+		offset = frame.AddObject(jmpAddress);
+		frame.AddOpCode(offset);
+		frame.AddOpCode(OP_JUMP);
+		
+		jmpIfFalseAddress->value = frame.GetOpCodeSize()-1;
+
+		if (stmt->elseBranch)
+			CompileStmt(stmt->elseBranch, frame);
+
+		jmpAddress->value=frame.GetOpCodeSize()-1;
+	}
+	void Compiler::CompileWhileStmt(IfStmt *stmt, Frame &frame)
+	{
+	}
+
+	void Compiler::CompileExpr(Expr *expr, Frame &frame, State state)
 	{
 		switch (expr->Type())
 		{
 
 		case AstType::NUM:
-			CompileNumExpr((NumExpr *)expr,frame);
+			CompileNumExpr((NumExpr *)expr, frame);
 			break;
 		case AstType::STR:
-			CompileStrExpr((StrExpr *)expr,frame);
+			CompileStrExpr((StrExpr *)expr, frame);
 			break;
 		case AstType::BOOL:
-			CompileBoolExpr((BoolExpr *)expr,frame);
+			CompileBoolExpr((BoolExpr *)expr, frame);
 			break;
 		case AstType::NIL:
-			CompileNilExpr((NilExpr *)expr,frame);
+			CompileNilExpr((NilExpr *)expr, frame);
 			break;
 		case AstType::IDENTIFIER:
-			CompileIdentifierExpr((IdentifierExpr *)expr,frame, state);
+			CompileIdentifierExpr((IdentifierExpr *)expr, frame, state);
 			break;
 		case AstType::GROUP:
-			CompileGroupExpr((GroupExpr *)expr,frame);
+			CompileGroupExpr((GroupExpr *)expr, frame);
 			break;
 		case AstType::ARRAY:
-			CompileArrayExpr((ArrayExpr *)expr,frame);
+			CompileArrayExpr((ArrayExpr *)expr, frame);
 			break;
 		case AstType::INDEX:
-			CompileIndexExpr((IndexExpr *)expr,frame, state);
+			CompileIndexExpr((IndexExpr *)expr, frame, state);
 			break;
 		case AstType::STRUCT:
-			CompileStructExpr((StructExpr *)expr,frame);
+			CompileStructExpr((StructExpr *)expr, frame);
 			break;
 		case AstType::FUNCTION:
-			CompileFunctionExpr((FunctionExpr*)expr,frame);
+			CompileFunctionExpr((FunctionExpr *)expr, frame);
 			break;
 		case AstType::PREFIX:
-			CompilePrefixExpr((PrefixExpr *)expr,frame);
+			CompilePrefixExpr((PrefixExpr *)expr, frame);
 			break;
 		case AstType::INFIX:
-			CompileInfixExpr((InfixExpr *)expr,frame);
+			CompileInfixExpr((InfixExpr *)expr, frame);
 			break;
 		default:
 			break;
 		}
 	}
 
-	void Compiler::CompileNumExpr(NumExpr *expr,Frame& frame)
+	void Compiler::CompileNumExpr(NumExpr *expr, Frame &frame)
 	{
 		frame.AddOpCode(OP_PUSH);
 		uint8_t offset = frame.AddObject(new NumObject(expr->value));
 		frame.AddOpCode(offset);
 	}
 
-	void Compiler::CompileStrExpr(StrExpr *expr,Frame& frame)
+	void Compiler::CompileStrExpr(StrExpr *expr, Frame &frame)
 	{
 		frame.AddOpCode(OP_PUSH);
 		uint8_t offset = frame.AddObject(new StrObject(expr->value));
 		frame.AddOpCode(offset);
 	}
 
-	void Compiler::CompileBoolExpr(BoolExpr *expr,Frame& frame)
+	void Compiler::CompileBoolExpr(BoolExpr *expr, Frame &frame)
 	{
 		frame.AddOpCode(OP_PUSH);
 		uint8_t offset = frame.AddObject(expr->value ? trueObject : falseObject);
 		frame.AddOpCode(offset);
 	}
 
-	void Compiler::CompileNilExpr(NilExpr *expr,Frame& frame)
+	void Compiler::CompileNilExpr(NilExpr *expr, Frame &frame)
 	{
 		frame.AddOpCode(OP_PUSH);
 		uint8_t offset = frame.AddObject(nilObject);
 		frame.AddOpCode(offset);
 	}
 
-	void Compiler::CompileIdentifierExpr(IdentifierExpr *expr,Frame& frame, State state)
+	void Compiler::CompileIdentifierExpr(IdentifierExpr *expr, Frame &frame, State state)
 	{
 		frame.AddOpCode(OP_PUSH);
 		uint8_t offset = frame.AddObject(new StrObject(expr->literal));
@@ -167,15 +199,15 @@ namespace lwScript
 			frame.AddOpCode(OP_DEFINE_VAR);
 	}
 
-	void Compiler::CompileGroupExpr(GroupExpr *expr,Frame& frame)
+	void Compiler::CompileGroupExpr(GroupExpr *expr, Frame &frame)
 	{
-		CompileExpr(expr->expr,frame);
+		CompileExpr(expr->expr, frame);
 	}
 
-	void Compiler::CompileArrayExpr(ArrayExpr *expr,Frame& frame)
+	void Compiler::CompileArrayExpr(ArrayExpr *expr, Frame &frame)
 	{
 		for (const auto &e : expr->elements)
-			CompileExpr(e,frame);
+			CompileExpr(e, frame);
 
 		frame.AddOpCode(OP_PUSH);
 		uint8_t offset = frame.AddObject(new NumObject((double)expr->elements.size()));
@@ -183,44 +215,44 @@ namespace lwScript
 		frame.AddOpCode(OP_ARRAY);
 	}
 
-	void Compiler::CompileIndexExpr(IndexExpr *expr,Frame& frame, State state)
+	void Compiler::CompileIndexExpr(IndexExpr *expr, Frame &frame, State state)
 	{
-		CompileExpr(expr->index,frame);
-		CompileExpr(expr->array,frame);
+		CompileExpr(expr->index, frame);
+		CompileExpr(expr->array, frame);
 		if (state == READ)
 			frame.AddOpCode(OP_GET_INDEX_VAR);
 		else if (state == WRITE)
 			frame.AddOpCode(OP_SET_INDEX_VAR);
 	}
 
-	void Compiler::CompileFunctionExpr(FunctionExpr *expr,Frame& frame)
+	void Compiler::CompileFunctionExpr(FunctionExpr *expr, Frame &frame)
 	{
 		Frame functionFrame;
-		
+
 		functionFrame.AddOpCode(OP_ENTER_SCOPE);
 
-		for(const auto& iden:expr->parameters)
-			CompileIdentifierExpr(iden,functionFrame,INIT);
-		
-		CompileScopeStmt(expr->body,functionFrame);
+		for (const auto &iden : expr->parameters)
+			CompileIdentifierExpr(iden, functionFrame, INIT);
+
+		CompileScopeStmt(expr->body, functionFrame);
 
 		functionFrame.AddOpCode(OP_EXIT_SCOPE);
 
 		frame.AddFrame(functionFrame);
 
 		frame.AddOpCode(OP_PUSH);
-		uint8_t offset = frame.AddObject(new FunctionObject(frame.GetFrameSize()-1));
+		uint8_t offset = frame.AddObject(new FunctionObject(frame.GetFrameSize() - 1));
 		frame.AddOpCode(offset);
 	}
 
-	void Compiler::CompileStructExpr(StructExpr *expr,Frame& frame)
+	void Compiler::CompileStructExpr(StructExpr *expr, Frame &frame)
 	{
 		uint8_t memberCount = 0;
 		for (const auto &letStmt : expr->letStmts)
 		{
 			for (const auto &[key, value] : letStmt->variables)
 			{
-				CompileExpr(value,frame);
+				CompileExpr(value, frame);
 				frame.AddOpCode(OP_PUSH);
 				uint8_t offset = frame.AddObject(new StrObject(key->literal));
 				frame.AddOpCode(offset);
@@ -235,24 +267,24 @@ namespace lwScript
 		frame.AddOpCode(OP_STRUCT);
 	}
 
-	void Compiler::CompilePrefixExpr(PrefixExpr *expr,Frame& frame)
+	void Compiler::CompilePrefixExpr(PrefixExpr *expr, Frame &frame)
 	{
-		CompileExpr(expr->right,frame);
+		CompileExpr(expr->right, frame);
 		if (expr->op == "-")
 			frame.AddOpCode(OP_NEG);
 	}
 
-	void Compiler::CompileInfixExpr(InfixExpr *expr,Frame& frame)
+	void Compiler::CompileInfixExpr(InfixExpr *expr, Frame &frame)
 	{
 		if (expr->op == "=")
 		{
-			CompileExpr(expr->right,frame);
-			CompileExpr(expr->left,frame, WRITE);
+			CompileExpr(expr->right, frame);
+			CompileExpr(expr->left, frame, WRITE);
 		}
 		else
 		{
-			CompileExpr(expr->right,frame);
-			CompileExpr(expr->left,frame);
+			CompileExpr(expr->right, frame);
+			CompileExpr(expr->left, frame);
 
 			if (expr->op == "+")
 				frame.AddOpCode(OP_ADD);

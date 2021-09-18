@@ -173,7 +173,7 @@ namespace lwScript
 		Consume(TokenType::RPAREN, "Expect ')' after if condition");
 
 		ifStmt->thenBranch = ParseStmt();
-
+		
 		if (IsMatchCurTokenAndStepOnce(TokenType::ELSE))
 			ifStmt->elseBranch = ParseStmt();
 

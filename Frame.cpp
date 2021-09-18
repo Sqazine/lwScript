@@ -19,6 +19,11 @@ namespace lwScript
 		m_Codes.emplace_back(code);
 	}
 
+	size_t Frame::GetOpCodeSize() const
+	{
+		return m_Codes.size();
+	}
+
 	uint8_t Frame::AddObject(Object *object)
 	{
 		m_Objects.emplace_back(object);
@@ -135,6 +140,12 @@ namespace lwScript
 				break;
 			case OP_STRUCT:
 				SINGLE_INSTR_STRINGIFY(OP_STRUCT);
+				break;
+			case OP_JUMP:
+				SINGLE_INSTR_STRINGIFY(OP_JUMP);
+				break;
+			case OP_JUMP_IF_FALSE:
+				SINGLE_INSTR_STRINGIFY(OP_JUMP_IF_FALSE);
 				break;
 			default:
 				SINGLE_INSTR_STRINGIFY(UNKNOWN);

@@ -351,7 +351,7 @@ namespace lwScript
 			std::string result;
 			result = "if(" + condition->Stringify() + ")" + thenBranch->Stringify();
 			if (elseBranch != nullptr)
-				result += elseBranch->Stringify();
+				result +="else"+ elseBranch->Stringify();
 			return result;
 		}
 		AstType Type() override { return AstType::IF; }

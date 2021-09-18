@@ -33,6 +33,8 @@ namespace lwScript
 		OP_ENTER_SCOPE,
 		OP_EXIT_SCOPE,
 		OP_STRUCT,
+		OP_JUMP,
+		OP_JUMP_IF_FALSE
 	};
 
 	class Frame
@@ -42,6 +44,8 @@ namespace lwScript
 		~Frame();
 
 		void AddOpCode(uint8_t code);
+		size_t GetOpCodeSize() const;
+
 		uint8_t AddObject(Object *object);
 
 		void AddFrame(const Frame &frame);

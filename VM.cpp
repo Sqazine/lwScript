@@ -322,6 +322,21 @@ namespace lwScript
 				Push(structObject);
 				break;
 			}
+			case OP_JUMP_IF_FALSE:
+			{
+				uint64_t address=(uint64_t)(TO_NUM_OBJ(Pop())->value);
+				bool isJump=!TO_BOOL_OBJ(Pop())->value;
+
+				if(isJump)
+					ip=address;
+				break;
+			}
+			case OP_JUMP:
+			{
+				uint64_t address=(uint64_t)(TO_NUM_OBJ(Pop())->value);
+					ip=address;
+				break;
+			}
 			default:
 				break;
 			}
