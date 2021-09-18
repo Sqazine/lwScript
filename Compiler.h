@@ -28,7 +28,7 @@ namespace lwScript
         void CompileLetStmt(LetStmt* stmt,Frame& frame);
         void CompileScopeStmt(ScopeStmt* stmt,Frame& frame);
         void CompileIfStmt(IfStmt* stmt,Frame& frame);
-        void CompileWhileStmt(IfStmt* stmt,Frame& frame);
+        void CompileWhileStmt(WhileStmt* stmt,Frame& frame);
 
         void CompileExpr(Expr* expr,Frame& frame, State state = READ);
         void CompileNumExpr(NumExpr* expr,Frame& frame);

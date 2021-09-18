@@ -173,7 +173,7 @@ namespace lwScript
 		Consume(TokenType::RPAREN, "Expect ')' after if condition");
 
 		ifStmt->thenBranch = ParseStmt();
-		
+
 		if (IsMatchCurTokenAndStepOnce(TokenType::ELSE))
 			ifStmt->elseBranch = ParseStmt();
 
@@ -201,7 +201,7 @@ namespace lwScript
 
 		Consume(TokenType::RPAREN, "Expect ')' after while stmt's condition.");
 
-		whileStmt->stmt = ParseStmt();
+		whileStmt->body = ParseStmt();
 
 		return whileStmt;
 	}

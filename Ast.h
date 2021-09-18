@@ -438,28 +438,28 @@ namespace lwScript
 
 	struct WhileStmt : public Stmt
 	{
-		WhileStmt() : condition(nullptr), stmt(nullptr) {}
-		WhileStmt(Expr *condition, Stmt *stmt)
+		WhileStmt() : condition(nullptr), body(nullptr) {}
+		WhileStmt(Expr *condition, Stmt *body)
 			: condition(condition),
-			  stmt(stmt)
+			  body(body)
 		{
 		}
 		~WhileStmt()
 		{
 			delete condition;
 			condition = nullptr;
-			delete stmt;
-			stmt = nullptr;
+			delete body;
+			body = nullptr;
 		}
 
 		std::string Stringify() override
 		{
-			return "while(" + condition->Stringify() + ")" + stmt->Stringify();
+			return "while(" + condition->Stringify() + ")" + body->Stringify();
 		}
 		AstType Type() override { return AstType::WHILE; }
 
 		Expr *condition;
-		Stmt *stmt;
+		Stmt *body;
 	};
 
 	struct AstStmts : public Stmt

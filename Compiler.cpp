@@ -47,6 +47,9 @@ namespace lwScript
 		case AstType::IF:
 			CompileIfStmt((IfStmt*)stmt,frame);
 			break;
+		case AstType::WHILE:
+			CompileWhileStmt((WhileStmt*)stmt,frame);
+			break;
 		default:
 			break;
 		}
@@ -100,7 +103,7 @@ namespace lwScript
 		offset = frame.AddObject(jmpAddress);
 		frame.AddOpCode(offset);
 		frame.AddOpCode(OP_JUMP);
-		
+
 		jmpIfFalseAddress->value = frame.GetOpCodeSize()-1;
 
 		if (stmt->elseBranch)
@@ -108,8 +111,27 @@ namespace lwScript
 
 		jmpAddress->value=frame.GetOpCodeSize()-1;
 	}
-	void Compiler::CompileWhileStmt(IfStmt *stmt, Frame &frame)
+	void Compiler::CompileWhileStmt(WhileStmt *stmt, Frame &frame)
 	{
+		auto jmpAddress=new NumObject();
+		jmpAddress->value=(int64_t)frame.GetOpCodeSize()-1;
+		CompileExpr(stmt->condition,frame);
+
+		auto jmpIfFalseAddress = new NumObject();
+		frame.AddOpCode(OP_PUSH);
+		uint8_t offset = frame.AddObject(jmpIfFalseAddress);
+		frame.AddOpCode(offset);
+		frame.AddOpCode(OP_JUMP_IF_FALSE);
+
+		CompileStmt(stmt->body,frame);
+
+		frame.AddOpCode(OP_PUSH);
+		offset = frame.AddObject(jmpAddress);
+		frame.AddOpCode(offset);
+		frame.AddOpCode(OP_JUMP);
+
+
+		jmpIfFalseAddress->value=frame.GetOpCodeSize()-1;		
 	}
 
 	void Compiler::CompileExpr(Expr *expr, Frame &frame, State state)
