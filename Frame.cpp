@@ -1,4 +1,4 @@
-#include "Chunk.h"
+#include "Frame.h"
 #include <string_view>
 #include <iostream>
 #include <sstream>
@@ -7,35 +7,55 @@
 namespace lwScript
 {
 
-	Chunk::Chunk()
+	Frame::Frame()
 	{
 	}
-	Chunk::~Chunk()
+	Frame::~Frame()
 	{
 	}
 
-	void Chunk::AddOpCode(uint8_t code)
+	void Frame::AddOpCode(uint8_t code)
 	{
 		m_Codes.emplace_back(code);
 	}
 
-	uint8_t Chunk::AddObject(Object *object)
+	uint8_t Frame::AddObject(Object *object)
 	{
 		m_Objects.emplace_back(object);
 		return (uint8_t)(m_Objects.size() - 1);
 	}
 
-	std::string Chunk::Stringify()
+	void Frame::AddFrame(const Frame &frame)
 	{
+		m_FunctionFrames.emplace_back(frame);
+	}
+
+			size_t Frame::GetFrameSize() const
+			{
+				return m_FunctionFrames.size();
+			}
+
+	std::string Frame::Stringify(int depth)
+	{
+		std::string interval;
+		for(size_t i=0;i<depth;++i)
+			interval+="\t";
+
 #define SINGLE_INSTR_STRINGIFY(op) \
-	result << std::setfill('0') << std::setw(8) << i << "     " << (#op) << "\n"
+	result <<interval<<"\t" <<std::setfill('0') << std::setw(8) << i << "     " << (#op) << "\n"
 
 #define CONSTANT_INSTR_STRINGIFY(op) \
-	result << std::setfill('0') << std::setw(8) << i << "     " << (#op) << "     " << std::to_string(m_Codes[++i]) << "    " << m_Objects[m_Codes[i]]->Stringify() << "\n"
+	result <<interval<< "\t"<<std::setfill('0') << std::setw(8) << i << "     " << (#op) << "     " << std::to_string(m_Codes[++i]) << "    " << m_Objects[m_Codes[i]]->Stringify() << "\n"
 
 		std::stringstream result;
 
-		result << "OpCodes:\n";
+		for(size_t i=0;i<m_FunctionFrames.size();++i)
+			{
+				result<<interval<<"Frame "<<i<<":\n";
+				result<<m_FunctionFrames[i].Stringify(depth+1);
+			}
+
+		result <<interval<<"Frame root:\n"<< "\tOpCodes:\n";
 
 		for (size_t i = 0; i < m_Codes.size(); ++i)
 		{
@@ -113,21 +133,25 @@ namespace lwScript
 			case OP_EXIT_SCOPE:
 				SINGLE_INSTR_STRINGIFY(OP_EXIT_SCOPE);
 				break;
+			case OP_STRUCT:
+				SINGLE_INSTR_STRINGIFY(OP_STRUCT);
+				break;
 			default:
 				SINGLE_INSTR_STRINGIFY(UNKNOWN);
 				break;
 			}
 		}
 
-		result << "\nObjects:\n";
+		result << interval<<"\tObjects:\n";
 
 		for (size_t i = 0; i < m_Objects.size(); ++i)
-			result << std::setfill('0') << std::setw(8) << i << "     " << m_Objects[i]->Stringify() << "\n";
+			result <<interval<<"\t" <<std::setfill('0') << std::setw(8) << i << "     " << m_Objects[i]->Stringify() << "\n";
 		return result.str();
 	}
-	void Chunk::Clear()
+	void Frame::Clear()
 	{
 		std::vector<uint8_t>().swap(m_Codes);
 		std::vector<Object *>().swap(m_Objects);
+		std::vector<Frame>().swap(m_FunctionFrames);
 	}
 }

@@ -11,6 +11,8 @@ namespace lwScript
 		BOOL,
 		NIL,
 		ARRAY,
+		STRUCT,
+		FUNCTION
 	};
 
 	struct Object
@@ -91,5 +93,40 @@ namespace lwScript
 		ObjectType Type() override { return ObjectType::ARRAY; }
 
 		std::vector<Object*> elements;
+	};
+
+	struct StructObject:public Object
+	{
+		StructObject() {}
+		StructObject(std::unordered_map<std::string,Object*> variables) : variables(variables) {}
+		~StructObject() {}
+
+		std::string Stringify() override
+		{
+			std::string result = "struct{";
+			if (!variables.empty())
+			{
+				for (const auto& [key,value] : variables)
+					result += key + "="+value->Stringify()+"\n";
+				result = result.substr(0, result.size() - 1);
+			}
+			result += "}";
+			return result;
+		}
+		ObjectType Type() override { return ObjectType::STRUCT; }
+
+		std::unordered_map<std::string,Object*> variables;
+	};
+
+	struct FunctionObject : public Object
+	{
+		FunctionObject() {}
+		FunctionObject(int8_t frameIndex) : frameIndex(frameIndex) {}
+		~FunctionObject() {}
+
+		std::string Stringify() override { return std::to_string(frameIndex); }
+		ObjectType Type() override { return ObjectType::FUNCTION; }
+
+		int8_t frameIndex;
 	};
 }

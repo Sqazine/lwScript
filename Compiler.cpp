@@ -11,228 +11,276 @@ namespace lwScript
 	{
 	}
 
-	const Chunk &Compiler::Compile(Stmt *stmt)
+	const Frame &Compiler::Compile(Stmt *stmt)
 	{
-		CompileAstStmts((AstStmts *)stmt);
-		return m_Chunk;
+		CompileAstStmts((AstStmts *)stmt,m_RootFrame);
+		return m_RootFrame;
 	}
 
 	void Compiler::ResetStatus()
 	{
-		m_Chunk.Clear();
+		m_RootFrame.Clear();
 	}
 
-	void Compiler::CompileAstStmts(AstStmts *stmt)
+	void Compiler::CompileAstStmts(AstStmts *stmt,Frame& frame)
 	{
 		for (const auto &s : stmt->stmts)
-			CompileStmt(s);
+			CompileStmt(s,frame);
 	}
 
-	void Compiler::CompileStmt(Stmt *stmt)
+	void Compiler::CompileStmt(Stmt *stmt,Frame& frame)
 	{
 		switch (stmt->Type())
 		{
 		case AstType::RETURN:
-			CompileReturnStmt((ReturnStmt *)stmt);
+			CompileReturnStmt((ReturnStmt *)stmt,frame);
 			break;
 		case AstType::EXPR:
-			CompileExprStmt((ExprStmt *)stmt);
+			CompileExprStmt((ExprStmt *)stmt,frame);
 			break;
 		case AstType::LET:
-			CompileLetStmt((LetStmt *)stmt);
+			CompileLetStmt((LetStmt *)stmt,frame);
 			break;
 		case AstType::SCOPE:
-			CompileScopeStmt((ScopeStmt*) stmt);
+			CompileScopeStmt((ScopeStmt *)stmt,frame);
 			break;
 		default:
 			break;
 		}
 	}
-	void Compiler::CompileReturnStmt(ReturnStmt *stmt)
+	void Compiler::CompileReturnStmt(ReturnStmt *stmt,Frame& frame)
 	{
 		if (stmt->expr)
-			CompileExpr(stmt->expr);
+			CompileExpr(stmt->expr,frame);
 
-		m_Chunk.AddOpCode(OP_RETURN);
+		frame.AddOpCode(OP_RETURN);
 	}
 
-	void Compiler::CompileExprStmt(ExprStmt *stmt)
+	void Compiler::CompileExprStmt(ExprStmt *stmt,Frame& frame)
 	{
-		CompileExpr(stmt->expr);
+		CompileExpr(stmt->expr,frame);
 	}
 
-	void Compiler::CompileLetStmt(LetStmt *stmt)
+	void Compiler::CompileLetStmt(LetStmt *stmt,Frame& frame)
 	{
 		for (const auto &[key, value] : stmt->variables)
 		{
-			CompileExpr(value);
-			CompileExpr(key, INIT);
+			CompileExpr(value,frame);
+			CompileExpr(key,frame, INIT);
 		}
 	}
 
-	void Compiler::CompileScopeStmt(ScopeStmt *stmt)
+	void Compiler::CompileScopeStmt(ScopeStmt *stmt,Frame& frame)
 	{
-		m_Chunk.AddOpCode(OP_ENTER_SCOPE);
+		frame.AddOpCode(OP_ENTER_SCOPE);
 
-		for(const auto& s:stmt->stmts)
-			CompileStmt(s);
-		
-		m_Chunk.AddOpCode(OP_EXIT_SCOPE);
+		for (const auto &s : stmt->stmts)
+			CompileStmt(s,frame);
+
+		frame.AddOpCode(OP_EXIT_SCOPE);
 	}
 
-	void Compiler::CompileExpr(Expr *expr, State state)
+	void Compiler::CompileExpr(Expr *expr,Frame& frame, State state)
 	{
 		switch (expr->Type())
 		{
-	
+
 		case AstType::NUM:
-			CompileNumExpr((NumExpr *)expr);
+			CompileNumExpr((NumExpr *)expr,frame);
 			break;
 		case AstType::STR:
-			CompileStrExpr((StrExpr *)expr);
+			CompileStrExpr((StrExpr *)expr,frame);
 			break;
 		case AstType::BOOL:
-			CompileBoolExpr((BoolExpr *)expr);
+			CompileBoolExpr((BoolExpr *)expr,frame);
 			break;
 		case AstType::NIL:
-			CompileNilExpr((NilExpr *)expr);
+			CompileNilExpr((NilExpr *)expr,frame);
 			break;
 		case AstType::IDENTIFIER:
-			CompileIdentifierExpr((IdentifierExpr *)expr, state);
+			CompileIdentifierExpr((IdentifierExpr *)expr,frame, state);
 			break;
 		case AstType::GROUP:
-			CompileGroupExpr((GroupExpr *)expr);
+			CompileGroupExpr((GroupExpr *)expr,frame);
 			break;
 		case AstType::ARRAY:
-			CompileArrayExpr((ArrayExpr *)expr);
+			CompileArrayExpr((ArrayExpr *)expr,frame);
 			break;
 		case AstType::INDEX:
-			CompileIndexExpr((IndexExpr *)expr, state);
+			CompileIndexExpr((IndexExpr *)expr,frame, state);
+			break;
+		case AstType::STRUCT:
+			CompileStructExpr((StructExpr *)expr,frame);
+			break;
+		case AstType::FUNCTION:
+			CompileFunctionExpr((FunctionExpr*)expr,frame);
 			break;
 		case AstType::PREFIX:
-			CompilePrefixExpr((PrefixExpr *)expr);
+			CompilePrefixExpr((PrefixExpr *)expr,frame);
 			break;
 		case AstType::INFIX:
-			CompileInfixExpr((InfixExpr *)expr);
+			CompileInfixExpr((InfixExpr *)expr,frame);
 			break;
 		default:
 			break;
 		}
 	}
 
-	void Compiler::CompileNumExpr(NumExpr *expr)
+	void Compiler::CompileNumExpr(NumExpr *expr,Frame& frame)
 	{
-		m_Chunk.AddOpCode(OP_PUSH);
-		uint8_t offset = m_Chunk.AddObject(new NumObject(expr->value));
-		m_Chunk.AddOpCode(offset);
+		frame.AddOpCode(OP_PUSH);
+		uint8_t offset = frame.AddObject(new NumObject(expr->value));
+		frame.AddOpCode(offset);
 	}
 
-	void Compiler::CompileStrExpr(StrExpr *expr)
+	void Compiler::CompileStrExpr(StrExpr *expr,Frame& frame)
 	{
-		m_Chunk.AddOpCode(OP_PUSH);
-		uint8_t offset = m_Chunk.AddObject(new StrObject(expr->value));
-		m_Chunk.AddOpCode(offset);
+		frame.AddOpCode(OP_PUSH);
+		uint8_t offset = frame.AddObject(new StrObject(expr->value));
+		frame.AddOpCode(offset);
 	}
 
-	void Compiler::CompileBoolExpr(BoolExpr *expr)
+	void Compiler::CompileBoolExpr(BoolExpr *expr,Frame& frame)
 	{
-		m_Chunk.AddOpCode(OP_PUSH);
-		uint8_t offset = m_Chunk.AddObject(expr->value ? trueObject : falseObject);
-		m_Chunk.AddOpCode(offset);
+		frame.AddOpCode(OP_PUSH);
+		uint8_t offset = frame.AddObject(expr->value ? trueObject : falseObject);
+		frame.AddOpCode(offset);
 	}
 
-	void Compiler::CompileNilExpr(NilExpr *expr)
+	void Compiler::CompileNilExpr(NilExpr *expr,Frame& frame)
 	{
-		m_Chunk.AddOpCode(OP_PUSH);
-		uint8_t offset = m_Chunk.AddObject(nilObject);
-		m_Chunk.AddOpCode(offset);
+		frame.AddOpCode(OP_PUSH);
+		uint8_t offset = frame.AddObject(nilObject);
+		frame.AddOpCode(offset);
 	}
 
-	void Compiler::CompileIdentifierExpr(IdentifierExpr *expr, State state)
+	void Compiler::CompileIdentifierExpr(IdentifierExpr *expr,Frame& frame, State state)
 	{
-		m_Chunk.AddOpCode(OP_PUSH);
-		uint8_t offset = m_Chunk.AddObject(new StrObject(expr->literal));
-		m_Chunk.AddOpCode(offset);
+		frame.AddOpCode(OP_PUSH);
+		uint8_t offset = frame.AddObject(new StrObject(expr->literal));
+		frame.AddOpCode(offset);
 		if (state == READ)
-			m_Chunk.AddOpCode(OP_GET_VAR);
+			frame.AddOpCode(OP_GET_VAR);
 		else if (state == WRITE)
-			m_Chunk.AddOpCode(OP_SET_VAR);
+			frame.AddOpCode(OP_SET_VAR);
 		else if (state == INIT)
-			m_Chunk.AddOpCode(OP_DEFINE_VAR);
+			frame.AddOpCode(OP_DEFINE_VAR);
 	}
 
-	void Compiler::CompileGroupExpr(GroupExpr *expr)
+	void Compiler::CompileGroupExpr(GroupExpr *expr,Frame& frame)
 	{
-		CompileExpr(expr->expr);
+		CompileExpr(expr->expr,frame);
 	}
 
-	void Compiler::CompileArrayExpr(ArrayExpr *expr)
+	void Compiler::CompileArrayExpr(ArrayExpr *expr,Frame& frame)
 	{
 		for (const auto &e : expr->elements)
-			CompileExpr(e);
+			CompileExpr(e,frame);
 
-		m_Chunk.AddOpCode(OP_PUSH);
-		uint8_t offset = m_Chunk.AddObject(new NumObject((double)expr->elements.size()));
-		m_Chunk.AddOpCode(offset);
-		m_Chunk.AddOpCode(OP_ARRAY);
+		frame.AddOpCode(OP_PUSH);
+		uint8_t offset = frame.AddObject(new NumObject((double)expr->elements.size()));
+		frame.AddOpCode(offset);
+		frame.AddOpCode(OP_ARRAY);
 	}
 
-	void Compiler::CompileIndexExpr(IndexExpr *expr, State state)
+	void Compiler::CompileIndexExpr(IndexExpr *expr,Frame& frame, State state)
 	{
-		CompileExpr(expr->index);
-		CompileExpr(expr->array);
+		CompileExpr(expr->index,frame);
+		CompileExpr(expr->array,frame);
 		if (state == READ)
-			m_Chunk.AddOpCode(OP_GET_INDEX_VAR);
+			frame.AddOpCode(OP_GET_INDEX_VAR);
 		else if (state == WRITE)
-			m_Chunk.AddOpCode(OP_SET_INDEX_VAR);
+			frame.AddOpCode(OP_SET_INDEX_VAR);
 	}
 
-	void Compiler::CompilePrefixExpr(PrefixExpr *expr)
+	void Compiler::CompileFunctionExpr(FunctionExpr *expr,Frame& frame)
 	{
-		CompileExpr(expr->right);
-		if (expr->op == "-")
-			m_Chunk.AddOpCode(OP_NEG);
+		Frame functionFrame;
+		
+		functionFrame.AddOpCode(OP_ENTER_SCOPE);
+
+		for(const auto& iden:expr->parameters)
+			CompileIdentifierExpr(iden,functionFrame,INIT);
+		
+		CompileScopeStmt(expr->body,functionFrame);
+
+		functionFrame.AddOpCode(OP_EXIT_SCOPE);
+
+		frame.AddFrame(functionFrame);
+
+		frame.AddOpCode(OP_PUSH);
+		uint8_t offset = frame.AddObject(new FunctionObject(frame.GetFrameSize()-1));
+		frame.AddOpCode(offset);
 	}
 
-	void Compiler::CompileInfixExpr(InfixExpr *expr)
+	void Compiler::CompileStructExpr(StructExpr *expr,Frame& frame)
+	{
+		uint8_t memberCount = 0;
+		for (const auto &letStmt : expr->letStmts)
+		{
+			for (const auto &[key, value] : letStmt->variables)
+			{
+				CompileExpr(value,frame);
+				frame.AddOpCode(OP_PUSH);
+				uint8_t offset = frame.AddObject(new StrObject(key->literal));
+				frame.AddOpCode(offset);
+			}
+			memberCount += letStmt->variables.size();
+		}
+
+		frame.AddOpCode(OP_PUSH);
+		uint8_t offset = frame.AddObject(new NumObject((double)memberCount));
+		frame.AddOpCode(offset);
+
+		frame.AddOpCode(OP_STRUCT);
+	}
+
+	void Compiler::CompilePrefixExpr(PrefixExpr *expr,Frame& frame)
+	{
+		CompileExpr(expr->right,frame);
+		if (expr->op == "-")
+			frame.AddOpCode(OP_NEG);
+	}
+
+	void Compiler::CompileInfixExpr(InfixExpr *expr,Frame& frame)
 	{
 		if (expr->op == "=")
 		{
-			CompileExpr(expr->right);
-			CompileExpr(expr->left, WRITE);
+			CompileExpr(expr->right,frame);
+			CompileExpr(expr->left,frame, WRITE);
 		}
 		else
 		{
-			CompileExpr(expr->right);
-			CompileExpr(expr->left);
+			CompileExpr(expr->right,frame);
+			CompileExpr(expr->left,frame);
 
 			if (expr->op == "+")
-				m_Chunk.AddOpCode(OP_ADD);
+				frame.AddOpCode(OP_ADD);
 			else if (expr->op == "-")
-				m_Chunk.AddOpCode(OP_SUB);
+				frame.AddOpCode(OP_SUB);
 			else if (expr->op == "*")
-				m_Chunk.AddOpCode(OP_MUL);
+				frame.AddOpCode(OP_MUL);
 			else if (expr->op == "/")
-				m_Chunk.AddOpCode(OP_DIV);
+				frame.AddOpCode(OP_DIV);
 			else if (expr->op == "&&")
-				m_Chunk.AddOpCode(OP_LOGIC_AND);
+				frame.AddOpCode(OP_LOGIC_AND);
 			else if (expr->op == "||")
-				m_Chunk.AddOpCode(OP_LOGIC_OR);
+				frame.AddOpCode(OP_LOGIC_OR);
 			else if (expr->op == ">")
-				m_Chunk.AddOpCode(OP_GREATER);
+				frame.AddOpCode(OP_GREATER);
 			else if (expr->op == "<")
-				m_Chunk.AddOpCode(OP_LESS);
+				frame.AddOpCode(OP_LESS);
 			else if (expr->op == ">=")
-				m_Chunk.AddOpCode(OP_GREATER_EQUAL);
+				frame.AddOpCode(OP_GREATER_EQUAL);
 			else if (expr->op == "<=")
-				m_Chunk.AddOpCode(OP_LESS_EQUAL);
+				frame.AddOpCode(OP_LESS_EQUAL);
 			else if (expr->op == "==")
-				m_Chunk.AddOpCode(OP_EQUAL);
+				frame.AddOpCode(OP_EQUAL);
 			else if (expr->op == "!=")
-				m_Chunk.AddOpCode(OP_NEQUAL);
+				frame.AddOpCode(OP_NEQUAL);
 			else
 			{
-			std::cout<<"Unknown binary op:" << expr->op<<std::endl;
+				std::cout << "Unknown binary op:" << expr->op << std::endl;
 				exit(1);
 			}
 		}

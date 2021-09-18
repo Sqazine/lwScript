@@ -1,4 +1,4 @@
-#pragma once 
+#pragma once
 #include <cstdint>
 #include <vector>
 #include <string>
@@ -32,25 +32,32 @@ namespace lwScript
 		OP_SET_INDEX_VAR,
 		OP_ENTER_SCOPE,
 		OP_EXIT_SCOPE,
+		OP_STRUCT,
 	};
 
-	class Chunk
+	class Frame
 	{
 	public:
-		Chunk();
-		~Chunk();
+		Frame();
+		~Frame();
 
 		void AddOpCode(uint8_t code);
-		uint8_t AddObject(Object* object);
+		uint8_t AddObject(Object *object);
 
-		std::string Stringify();
+		void AddFrame(const Frame &frame);
+		size_t GetFrameSize() const;
+
+		std::string Stringify(int depth=0);
 
 		void Clear();
+
 	private:
+
 		friend class VM;
 
 		std::vector<uint8_t> m_Codes;
-		std::vector<Object*> m_Objects;
+		std::vector<Object *> m_Objects;
+		std::vector<Frame> m_FunctionFrames;
 	};
 
 } // namespace lwScript

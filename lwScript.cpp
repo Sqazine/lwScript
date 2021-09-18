@@ -4,7 +4,7 @@
 #include <fstream>
 #include <sstream>
 #include "Token.h"
-#include "Chunk.h"
+#include "Frame.h"
 #include "Object.h"
 #include "Lexer.h"
 #include "Parser.h"
@@ -33,7 +33,7 @@ void Repl()
 	lwScript::Parser parser;
 	lwScript::Compiler compiler;
 	lwScript::VM vm;
-	lwScript::Chunk chunk;
+	lwScript::Frame frame;
 	std::cout << "> ";
 	while (getline(std::cin, line))
 	{
@@ -49,11 +49,11 @@ void Repl()
 #ifdef _DEBUG
 			std::cout << stmt->Stringify() << std::endl;
 #endif
-			chunk = compiler.Compile(stmt);
+			frame = compiler.Compile(stmt);
 #ifdef _DEBUG
-			std::cout << chunk.Stringify() << std::endl;
+			std::cout << frame.Stringify() << std::endl;
 #endif
-			vm.Execute(chunk);
+			vm.Execute(frame);
 		}
 		std::cout << "> ";
 	}
@@ -66,7 +66,7 @@ void RunFile(std::string path)
 	lwScript::Parser parser;
 	lwScript::Compiler compiler;
 	lwScript::VM vm;
-	lwScript::Chunk chunk;
+	lwScript::Frame frame;
 
 	auto tokens = lexer.ScanTokens(content);
 #ifdef _DEBUG
@@ -77,11 +77,11 @@ void RunFile(std::string path)
 #ifdef _DEBUG
 	std::cout << stmt->Stringify() << std::endl;
 #endif
-	chunk = compiler.Compile(stmt);
+	frame = compiler.Compile(stmt);
 #ifdef _DEBUG
-	std::cout << chunk.Stringify() << std::endl;
+	std::cout << frame.Stringify() << std::endl;
 #endif
-	vm.Execute(chunk);
+	vm.Execute(frame);
 }
 
 int main(int argc, char** argv)

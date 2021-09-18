@@ -4,63 +4,68 @@
 #include "Object.h"
 namespace lwScript
 {
-	Environment::Environment()
-		: m_UpEnvironment(nullptr)
-	{
-	}
+	 Environment::Environment()
+        : m_UpEnvironment(nullptr)
+    {
+    }
 
-	Environment::Environment(Environment *upEnvironment)
-		: m_UpEnvironment(upEnvironment)
-	{
-	}
+    Environment::Environment(Environment *upEnvironment)
+        : m_UpEnvironment(upEnvironment)
+    {
+    }
 
-	Environment::~Environment()
-	{
-	}
+    Environment::~Environment()
+    {
+    }
 
-	void Environment::DefineVariable(std::string_view name, Object *value)
-	{
-		auto iter = m_Values.find(name.data());
-		if (iter != m_Values.end())
-		{
-			std::cout << "Redefined variable:" << name << " in current context." << std::endl;
-			exit(1);
-		}
-		else
-			m_Values[name.data()] = value;
-	}
+    void Environment::DefineVariable(std::string_view name, Object *value)
+    {
+        auto iter = m_Values.find(name.data());
+        if (iter != m_Values.end())
+        {
+            std::cout << "Redefined variable:" << name << " in current context." << std::endl;
+            exit(1);
+        }
+        else
+            m_Values[name.data()] = value;
+    }
 
-	void Environment::AssignVariable(std::string_view name, Object *value)
-	{
-		auto iter = m_Values.find(name.data());
-		if (iter != m_Values.end())
-			m_Values[name.data()] = value;
-		else if(m_UpEnvironment!=nullptr)
-			m_UpEnvironment->AssignVariable(name,value);
-		else
-		{
-			std::cout << "Undefine variable:" << name << " in current context" << std::endl;
-			exit(1);
-		}
-	}
+    void Environment::AssignVariable(std::string_view name, Object *value)
+    {
+        auto iter = m_Values.find(name.data());
+        if (iter != m_Values.end())
+            m_Values[name.data()] = value;
+        else if (m_UpEnvironment != nullptr)
+            m_UpEnvironment->AssignVariable(name, value);
+        else
+        {
+            std::cout << "Undefine variable:" << name << " in current context" << std::endl;
+            exit(1);
+        }
+    }
 
-	Object *Environment::GetVariable(std::string_view name)
-	{
-		auto iter = m_Values.find(name.data());
+    Object *Environment::GetVariable(std::string_view name)
+    {
+        auto iter = m_Values.find(name.data());
 
-		if (iter != m_Values.end())
-			return iter->second;
+        if (iter != m_Values.end())
+            return iter->second;
 
-		if (m_UpEnvironment != nullptr)
-			return m_UpEnvironment->GetVariable(name);
+        if (m_UpEnvironment != nullptr)
+            return m_UpEnvironment->GetVariable(name);
 
-		return nilObject;
-	}
+        return nilObject;
+    }
 
-	Environment *Environment::GetUpEnvironment()
-	{
-		return m_UpEnvironment;
-	}
+    Environment *Environment::GetUpEnvironment()
+    {
+        return m_UpEnvironment;
+    }
+
+    const std::unordered_map<std::string, Object *> &Environment::GetValues() const
+    {
+        return m_Values;
+    }
 
 	VM::VM()
 		: m_Environment(nullptr)
@@ -75,7 +80,7 @@ namespace lwScript
 			m_Environment = nullptr;
 		}
 	}
-	void VM::Execute(const Chunk &chunk)
+	void VM::Execute(const Frame &frame)
 	{
 #define TO_NUM_OBJ(obj) ((NumObject *)obj)
 #define TO_STR_OBJ(obj) ((StrObject *)obj)
@@ -118,17 +123,17 @@ namespace lwScript
 	}
 
 		ResetStatus();
-		m_Chunk = chunk;
-		for (; ip < m_Chunk.m_Codes.size(); ++ip)
+		m_RootFrame = frame;
+		for (; ip < m_RootFrame.m_Codes.size(); ++ip)
 		{
-			uint8_t instruction = m_Chunk.m_Codes[ip];
+			uint8_t instruction = m_RootFrame.m_Codes[ip];
 			switch (instruction)
 			{
 			case OP_RETURN:
 				std::cout << Pop()->Stringify() << std::endl;
 				break;
 			case OP_PUSH:
-				Push(m_Chunk.m_Objects[m_Chunk.m_Codes[++ip]]);
+				Push(m_RootFrame.m_Objects[m_RootFrame.m_Codes[++ip]]);
 				break;
 			case OP_NEG:
 			{
@@ -303,6 +308,18 @@ namespace lwScript
 				Environment *tmp = m_Environment->GetUpEnvironment();
 				delete m_Environment;
 				m_Environment = tmp;
+				break;
+			}
+			case OP_STRUCT:
+			{
+				StructObject* structObject=new StructObject();
+				NumObject* memberCount=TO_NUM_OBJ(Pop());
+				for(size_t i=0;i<memberCount->value;++i)
+				{
+					StrObject* variableName=TO_STR_OBJ(Pop());
+					structObject->variables[variableName->value]=Pop();
+				}
+				Push(structObject);
 				break;
 			}
 			default:

@@ -2,7 +2,7 @@
 #include <vector>
 #include <string>
 #include "Ast.h"
-#include "Chunk.h"
+#include "Frame.h"
 namespace lwScript
 {
     enum State
@@ -17,29 +17,31 @@ namespace lwScript
         Compiler();
         ~Compiler();
 
-        const Chunk& Compile(Stmt* stmt);
+        const Frame& Compile(Stmt* stmt);
 
         void ResetStatus();
     private:
-        void CompileAstStmts(AstStmts* stmt);
-        void CompileStmt(Stmt* stmt);
-        void CompileReturnStmt(ReturnStmt* stmt);
-        void CompileExprStmt(ExprStmt* stmt);
-        void CompileLetStmt(LetStmt* stmt);
-        void CompileScopeStmt(ScopeStmt* stmt);
+        void CompileAstStmts(AstStmts* stmt,Frame& frame);
+        void CompileStmt(Stmt* stmt,Frame& frame);
+        void CompileReturnStmt(ReturnStmt* stmt,Frame& frame);
+        void CompileExprStmt(ExprStmt* stmt,Frame& frame);
+        void CompileLetStmt(LetStmt* stmt,Frame& frame);
+        void CompileScopeStmt(ScopeStmt* stmt,Frame& frame);
 
-        void CompileExpr(Expr* expr, State state = READ);
-        void CompileNumExpr(NumExpr* expr);
-        void CompileStrExpr(StrExpr* expr);
-        void CompileBoolExpr(BoolExpr* expr);
-        void CompileNilExpr(NilExpr* expr);
-        void CompileIdentifierExpr(IdentifierExpr* expr, State state=READ);
-        void CompileGroupExpr(GroupExpr* expr);
-        void CompileArrayExpr(ArrayExpr* expr);
-        void CompileIndexExpr(IndexExpr* expr, State state=READ);
-        void CompilePrefixExpr(PrefixExpr* expr);
-        void CompileInfixExpr(InfixExpr* expr);
+        void CompileExpr(Expr* expr,Frame& frame, State state = READ);
+        void CompileNumExpr(NumExpr* expr,Frame& frame);
+        void CompileStrExpr(StrExpr* expr,Frame& frame);
+        void CompileBoolExpr(BoolExpr* expr,Frame& frame);
+        void CompileNilExpr(NilExpr* expr,Frame& frame);
+        void CompileIdentifierExpr(IdentifierExpr* expr,Frame& frame, State state=READ);
+        void CompileGroupExpr(GroupExpr* expr,Frame& frame);
+        void CompileArrayExpr(ArrayExpr* expr,Frame& frame);
+        void CompileIndexExpr(IndexExpr* expr,Frame& frame, State state=READ);
+        void CompileFunctionExpr(FunctionExpr* expr,Frame& frame);
+        void CompileStructExpr(StructExpr* expr,Frame& frame);
+        void CompilePrefixExpr(PrefixExpr* expr,Frame& frame);
+        void CompileInfixExpr(InfixExpr* expr,Frame& frame);
 
-        Chunk m_Chunk;
+        Frame m_RootFrame;
     };
 }

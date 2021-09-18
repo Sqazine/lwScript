@@ -1,11 +1,13 @@
 #pragma once
 #include <array>
 #include <cstdint>
-#include "Chunk.h"
+#include <stack>
+#include "Frame.h"
 namespace lwScript
 {
+	  struct Object;
 
-  class Environment
+     class Environment
     {
     public:
         Environment();
@@ -17,6 +19,7 @@ namespace lwScript
         Object* GetVariable(std::string_view name);
 
         Environment* GetUpEnvironment();
+        const std::unordered_map<std::string,Object*>& GetValues() const;
     private:
         std::unordered_map<std::string,Object*> m_Values;
         Environment* m_UpEnvironment;
@@ -28,7 +31,7 @@ namespace lwScript
 		VM();
 		~VM();
 
-		void Execute(const Chunk& chunk);
+		void Execute(const Frame& frame);
 
 	private:
 		void ResetStatus();
@@ -41,6 +44,6 @@ namespace lwScript
 
 		Environment* m_Environment;
 
-		Chunk m_Chunk;
+		Frame m_RootFrame;
 	};
 }

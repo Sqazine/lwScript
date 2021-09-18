@@ -431,7 +431,7 @@ namespace lwScript
 			result += "}";
 			return result;
 		}
-		AstType Type() override { return AstType::FUNCTION; }
+		AstType Type() override { return AstType::STRUCT; }
 
 		std::vector<LetStmt*> letStmts;
 	};
