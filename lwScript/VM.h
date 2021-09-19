@@ -3,10 +3,16 @@
 #include <cstdint>
 #include <stack>
 #include "Frame.h"
-#include "Library.h"
+#include "Object.h"
 namespace lwScript
 {
-	struct Object;
+#define TO_NUM_OBJ(obj) ((NumObject *)obj)
+#define TO_STR_OBJ(obj) ((StrObject *)obj)
+#define TO_NIL_OBJ(obj) ((NilObject *)obj)
+#define TO_BOOL_OBJ(obj) ((BoolObject *)obj)
+#define TO_ARRAY_OBJ(obj) ((ArrayObject *)obj)
+#define TO_FUNCTION_OBJ(obj) ((FunctionObject *)obj)
+#define TO_NATIVE_FUNCTION_OBJ(obj) ((NativeFunctionObject *)obj)
 
 	class Environment
 	{
@@ -70,20 +76,61 @@ namespace lwScript
 		void ResetStatus();
 		Object *Execute(const Frame &frame);
 
+		void AddNativeFunctionObject(NativeFunctionObject *fn);
+
 	private:
+		Object *GetNativeFunctionObject(std::string_view fnName);
+
 		void Push(Object *object);
 		Object *Pop();
-		uint64_t ip;
+
 		uint8_t sp;
 		std::array<Object *, 64> m_Stack;
 
 		Environment *m_Environment;
+
+		std::vector<NativeFunctionObject *> m_NativeFunctions;
 	};
 
 	VM::VM()
 		: m_Environment(nullptr)
 	{
 		ResetStatus();
+
+		m_NativeFunctions =
+			{
+				new NativeFunctionObject("print", [](std::vector<Object *> args) -> Object *
+										 {
+											 if (args.empty())
+												 return nilObject;
+
+											 if (args[0]->Type() != ObjectType::STR)
+											 {
+												 std::cout << "Invalid argument:The first argument of native print fn must be string type." << std::endl;
+												 exit(1);
+											 }
+											 if (args.size() == 1)
+												 std::cout << args[0]->Stringify();
+											 else //formatting output
+											 {
+												 std::string content = TO_STR_OBJ(args[0])->value;
+
+												 int32_t pos = content.find("{}");
+												 int32_t argpos = 1;
+												 while (pos != std::string::npos)
+												 {
+													 if (argpos < args.size())
+														 content.replace(pos, 2, args[argpos++]->Stringify());
+													 else
+														 content.replace(pos, 2, "nil");
+													 pos = content.find("{}");
+												 }
+
+												 std::cout << content << std::endl;
+											 }
+											 return nilObject;
+										 }),
+			};
 	}
 	VM::~VM()
 	{
@@ -93,6 +140,24 @@ namespace lwScript
 			m_Environment = nullptr;
 		}
 	}
+
+	void VM::AddNativeFunctionObject(NativeFunctionObject *fn)
+	{
+		for (const auto &f : m_NativeFunctions)
+			if (f->name == fn->name)
+				std::cout << "Redefinite native function:" << fn->name;
+		m_NativeFunctions.emplace_back(fn);
+	}
+
+	Object *VM::GetNativeFunctionObject(std::string_view fnName)
+	{
+		for (const auto &fnObj : m_NativeFunctions)
+			if (fnObj->name == fnName)
+				return fnObj;
+
+		return nilObject;
+	}
+
 	Object *VM::Execute(const Frame &frame)
 	{
 // + - * /
@@ -129,7 +194,7 @@ namespace lwScript
 			Push(falseObject);                                                                      \
 	}
 
-		for (ip = 0; ip < frame.m_Codes.size(); ++ip)
+		for (size_t ip = 0; ip < frame.m_Codes.size(); ++ip)
 		{
 			uint8_t instruction = frame.m_Codes[ip];
 			switch (instruction)
@@ -230,7 +295,20 @@ namespace lwScript
 			{
 				std::string name = TO_STR_OBJ(Pop())->value;
 				Object *variableObject = m_Environment->GetVariable(name);
-				Push(m_Environment->GetVariable(name));
+
+				//not variable
+				if (variableObject->Type() == ObjectType::NIL)
+				{
+					//search native function
+					variableObject = GetNativeFunctionObject(name);
+
+					if (variableObject->Type() == ObjectType::NIL)
+					{
+						std::cout << "No variable or function:" << name << std::endl;
+						exit(1);
+					}
+				}
+				Push(variableObject);
 				break;
 			}
 			case OP_ARRAY:
@@ -336,20 +414,31 @@ namespace lwScript
 				NumObject *argCount = TO_NUM_OBJ(Pop());
 				Object *fn = Pop();
 				if (fn->Type() == ObjectType::STR)
-				{
-					Object *fnObj = m_Environment->GetVariable(TO_STR_OBJ(fn)->value);
-					if (fnObj->Type() == ObjectType::FUNCTION)
-						Push(Execute(frame.m_FunctionFrames[TO_FUNCTION_OBJ(fnObj)->frameIndex]));
-					else
-					{
-						std::vector<Object *> args;
-						for (size_t i = 0; i < argCount->value; ++i)
-							args.insert(args.begin(), Pop());
-						Push(Library::GetNativeFunctionObject(TO_STR_OBJ(fn)->value)->function(args));
-					}
-				}
-				else if (fn->Type() == ObjectType::FUNCTION)
+					fn = m_Environment->GetVariable(TO_STR_OBJ(fn)->value);
+		
+				if (fn->Type() == ObjectType::FUNCTION)
 					Push(Execute(frame.m_FunctionFrames[TO_FUNCTION_OBJ(fn)->frameIndex]));
+				else if (fn->Type() == ObjectType::NATIVEFUNCTION)
+				{
+					std::vector<Object *> args;
+					for (size_t i = 0; i < argCount->value; ++i)
+						args.insert(args.begin(), Pop());
+
+					Object *natFnObj = GetNativeFunctionObject(TO_STR_OBJ(fn)->value);
+
+					if (natFnObj->Type() == ObjectType::NIL)
+					{
+						std::cout << "No function:" << TO_STR_OBJ(fn)->value << std::endl;
+						exit(1);
+					}
+
+					Push(TO_NATIVE_FUNCTION_OBJ(natFnObj)->function(args));
+				}
+				else
+				{
+					std::cout << "No function:" << fn->Stringify() << std::endl;
+					exit(1);
+				}
 				break;
 			}
 			default:
@@ -361,7 +450,7 @@ namespace lwScript
 	}
 	void VM::ResetStatus()
 	{
-		ip = sp = 0;
+		sp = 0;
 		std::array<Object *, 64>().swap(m_Stack);
 
 		if (m_Environment != nullptr)

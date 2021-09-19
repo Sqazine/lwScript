@@ -16,13 +16,6 @@ namespace lwScript
 		NATIVEFUNCTION,
 	};
 
-#define TO_NUM_OBJ(obj) ((NumObject *)obj)
-#define TO_STR_OBJ(obj) ((StrObject *)obj)
-#define TO_NIL_OBJ(obj) ((NilObject *)obj)
-#define TO_BOOL_OBJ(obj) ((BoolObject *)obj)
-#define TO_ARRAY_OBJ(obj) ((ArrayObject *)obj)
-#define TO_FUNCTION_OBJ(obj) ((FunctionObject *)obj)
-
 	struct Object
 	{
 		Object() {}

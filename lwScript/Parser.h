@@ -84,12 +84,15 @@ namespace lwScript
 		AstStmts *m_Stmts;
 		std::vector<Token> m_Tokens;
 
-		static std::unordered_map<TokenType, PrefixFn> m_PrefixFunctions;
-		static std::unordered_map<TokenType, InfixFn> m_InfixFunctions;
-		static std::unordered_map<TokenType, Precedence> m_Precedence;
+		std::unordered_map<TokenType, PrefixFn> m_PrefixFunctions;
+		std::unordered_map<TokenType, InfixFn> m_InfixFunctions;
+		std::unordered_map<TokenType, Precedence> m_Precedence;
 	};
 
-	std::unordered_map<TokenType, PrefixFn> Parser::m_PrefixFunctions =
+	Parser::Parser()
+		: m_Stmts(nullptr)
+	{
+		m_PrefixFunctions =
 		{
 			{TokenType::IDENTIFIER, &Parser::ParseIdentifierExpr},
 			{TokenType::NUMBER, &Parser::ParseNumExpr},
@@ -104,7 +107,7 @@ namespace lwScript
 
 	};
 
-	std::unordered_map<TokenType, InfixFn> Parser::m_InfixFunctions =
+	m_InfixFunctions =
 		{
 			{TokenType::EQUAL, &Parser::ParseInfixExpr},
 			{TokenType::OR, &Parser::ParseInfixExpr},
@@ -123,7 +126,7 @@ namespace lwScript
 			{TokenType::LBRACKET, &Parser::ParseIndexExpr},
 	};
 
-	std::unordered_map<TokenType, Precedence> Parser::m_Precedence =
+	m_Precedence =
 		{
 
 			{TokenType::EQUAL, Precedence::ASSIGN},
@@ -143,9 +146,6 @@ namespace lwScript
 			{TokenType::LPAREN, Precedence::FUNCTION_CALL},
 	};
 
-	Parser::Parser()
-		: m_Stmts(nullptr)
-	{
 	}
 	Parser::~Parser()
 	{
