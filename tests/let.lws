@@ -1,0 +1,11 @@
+let a=10;
+let b=a;
+b=20;
+print("{}",a);
+print("{}",b);
+
+a=fn(){
+
+};
+print("{}",a);
+print("{}",b);

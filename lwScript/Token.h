@@ -27,7 +27,6 @@ namespace lwScript
 		EQUAL,	   // =
 		LESS,	   // <
 		GREATER,   // >
-		SHARP,	   // #
 		EEQUAL,	   // ==
 		LEQUAL,	   // <=
 		GEQUAL,	   // >=

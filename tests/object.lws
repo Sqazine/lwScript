@@ -1,0 +1,18 @@
+
+let add=fn(vec1,vec2){
+    return [vec1[0]+vec2[0],vec1[1]+vec2[1]];
+};
+
+let sub=fn(vec1,vec2){
+    return [vec1[0]-vec2[0],vec1[1]-vec2[1]];
+};
+
+let vec_func=[add,sub];
+
+
+let vec1=[3,3];
+let vec2=[2,2];
+
+let vec3=vec_func[0](vec1,vec2);
+
+println("{}",vec3);

@@ -354,10 +354,7 @@ namespace lwScript
 			else if (expr->op == "!=")
 				frame.AddOpCode(OP_NEQUAL);
 			else
-			{
-				std::cout << "Unknown binary op:" << expr->op << std::endl;
-				exit(1);
-			}
+				Assert( "Unknown binary op:" + expr->op);
 		}
 	}
 

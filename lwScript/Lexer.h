@@ -5,62 +5,63 @@
 #include <iostream>
 #include <unordered_map>
 #include "Token.h"
+#include "Utils.h"
 namespace lwScript
 {
-    class Lexer
-    {
-    public:
-        Lexer();
-        ~Lexer();
-
-       const std::vector<Token>& ScanTokens(std::string_view src);
-    private:
-        void ResetStatus();
-
-        void ScanToken();
-
-        bool IsMatchCurChar(char c);
-        bool IsMatchCurCharAndStepOnce(char c);
-        bool IsMatchNextChar(char c);
-        bool IsMatchNextCharAndStepOnce(char c);
-
-        char GetNextCharAndStepOnce();
-        char GetNextChar();
-        char GetCurCharAndStepOnce();
-        char GetCurChar();
-
-        void AddToken(TokenType type);
-        void AddToken(TokenType type,std::string_view literal);
-
-        bool IsAtEnd();
-
-        bool IsNumber(char c);
-        bool IsLetter(char c);
-        bool IsLetterOrNumber(char c);
-
-        void Number();
-        void Identifier();
-        void String();
-
-        uint64_t m_StartPos;
-        uint64_t m_CurPos;
-        uint64_t m_Line;
-        std::string m_Source;
-        std::vector<Token> m_Tokens;
-    };
-
-
-    static std::unordered_map<std::string, TokenType> keywords =
+	class Lexer
 	{
-		{"let", TokenType::LET},
-		{"if",  TokenType::IF},
-		{"else",TokenType::ELSE},
-		{"true", TokenType::TRUE},
-		{"false", TokenType::FALSE},
-		{"nil", TokenType::NIL},
-		{"while", TokenType::WHILE},
-		{"fn", TokenType::FUNCTION},
-		{"return",TokenType::RETURN},
+	public:
+		Lexer();
+		~Lexer();
+
+		const std::vector<Token> &ScanTokens(std::string_view src);
+
+	private:
+		void ResetStatus();
+
+		void ScanToken();
+
+		bool IsMatchCurChar(char c);
+		bool IsMatchCurCharAndStepOnce(char c);
+		bool IsMatchNextChar(char c);
+		bool IsMatchNextCharAndStepOnce(char c);
+
+		char GetNextCharAndStepOnce();
+		char GetNextChar();
+		char GetCurCharAndStepOnce();
+		char GetCurChar();
+
+		void AddToken(TokenType type);
+		void AddToken(TokenType type, std::string_view literal);
+
+		bool IsAtEnd();
+
+		bool IsNumber(char c);
+		bool IsLetter(char c);
+		bool IsLetterOrNumber(char c);
+
+		void Number();
+		void Identifier();
+		void String();
+
+		uint64_t m_StartPos;
+		uint64_t m_CurPos;
+		uint64_t m_Line;
+		std::string m_Source;
+		std::vector<Token> m_Tokens;
+	};
+
+	static std::unordered_map<std::string, TokenType> keywords =
+		{
+			{"let", TokenType::LET},
+			{"if", TokenType::IF},
+			{"else", TokenType::ELSE},
+			{"true", TokenType::TRUE},
+			{"false", TokenType::FALSE},
+			{"nil", TokenType::NIL},
+			{"while", TokenType::WHILE},
+			{"fn", TokenType::FUNCTION},
+			{"return", TokenType::RETURN},
 	};
 
 	Lexer::Lexer()
@@ -71,7 +72,7 @@ namespace lwScript
 	{
 	}
 
-	const std::vector<Token>& Lexer::ScanTokens(std::string_view src)
+	const std::vector<Token> &Lexer::ScanTokens(std::string_view src)
 	{
 		ResetStatus();
 		m_Source = src;
@@ -119,8 +120,12 @@ namespace lwScript
 			AddToken(TokenType::SEMICOLON);
 			break;
 		case '#':
-			AddToken(TokenType::SHARP);
+		{
+			while (!IsMatchCurChar('\n') && !IsAtEnd())
+				GetCurCharAndStepOnce();
+			m_Line++;
 			break;
+		}
 		case '\"':
 			String();
 			break;
@@ -132,16 +137,16 @@ namespace lwScript
 			m_Line++;
 			break;
 		case '+':
-				AddToken(TokenType::PLUS);
+			AddToken(TokenType::PLUS);
 			break;
 		case '-':
-				AddToken(TokenType::MINUS);
+			AddToken(TokenType::MINUS);
 			break;
 		case '*':
-				AddToken(TokenType::ASTERISK);
+			AddToken(TokenType::ASTERISK);
 			break;
 		case '/':
-				AddToken(TokenType::SLASH);
+			AddToken(TokenType::SLASH);
 			break;
 		case '!':
 			if (IsMatchCurCharAndStepOnce('='))
@@ -162,7 +167,7 @@ namespace lwScript
 				AddToken(TokenType::UNKNOWN);
 			break;
 		case '<':
-			 if (IsMatchCurCharAndStepOnce('='))
+			if (IsMatchCurCharAndStepOnce('='))
 				AddToken(TokenType::LEQUAL);
 			else
 				AddToken(TokenType::LESS);
@@ -286,10 +291,7 @@ namespace lwScript
 				while (IsNumber(GetCurChar()))
 					GetCurCharAndStepOnce();
 			else
-			{
-				std::cout << "[line "<<m_Line<<"]:Number cannot end with '.'" << std::endl;
-				exit(1);
-			}
+				Assert("[line " + std::to_string(m_Line) + "]:Number cannot end with '.'");
 		}
 
 		AddToken(TokenType::NUMBER);
@@ -303,7 +305,7 @@ namespace lwScript
 		std::string literal = m_Source.substr(m_StartPos, m_CurPos - m_StartPos);
 
 		bool isKeyWord = false;
-		for (const auto& [key, value] : keywords)
+		for (const auto &[key, value] : keywords)
 			if (key.compare(literal) == 0)
 			{
 				AddToken(value, literal);

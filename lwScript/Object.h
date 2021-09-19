@@ -99,7 +99,7 @@ namespace lwScript
 		FunctionObject(int64_t frameIndex) : frameIndex(frameIndex) {}
 		~FunctionObject() {}
 
-		std::string Stringify() override { return std::to_string(frameIndex); }
+		std::string Stringify() override { return "function:" +std::to_string(frameIndex); }
 		ObjectType Type() override { return ObjectType::FUNCTION; }
 
 		int64_t frameIndex;

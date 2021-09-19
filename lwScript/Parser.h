@@ -5,6 +5,7 @@
 #include <unordered_map>
 #include "Token.h"
 #include "Ast.h"
+#include "Utils.h"
 namespace lwScript
 {
 
@@ -93,62 +94,70 @@ namespace lwScript
 		: m_Stmts(nullptr)
 	{
 		m_PrefixFunctions =
-		{
-			{TokenType::IDENTIFIER, &Parser::ParseIdentifierExpr},
-			{TokenType::NUMBER, &Parser::ParseNumExpr},
-			{TokenType::STRING, &Parser::ParseStrExpr},
-			{TokenType::NIL, &Parser::ParseNilExpr},
-			{TokenType::TRUE, &Parser::ParseTrueExpr},
-			{TokenType::FALSE, &Parser::ParseFalseExpr},
-			{TokenType::MINUS, &Parser::ParsePrefixExpr},
-			{TokenType::LPAREN, &Parser::ParseGroupExpr},
-			{TokenType::FUNCTION, &Parser::ParseFunctionExpr},
-			{TokenType::LBRACKET, &Parser::ParseArrayExpr},
+			{
+				{TokenType::IDENTIFIER, &Parser::ParseIdentifierExpr},
+				{TokenType::NUMBER, &Parser::ParseNumExpr},
+				{TokenType::STRING, &Parser::ParseStrExpr},
+				{TokenType::NIL, &Parser::ParseNilExpr},
+				{TokenType::TRUE, &Parser::ParseTrueExpr},
+				{TokenType::FALSE, &Parser::ParseFalseExpr},
+				{TokenType::MINUS, &Parser::ParsePrefixExpr},
+				{TokenType::LPAREN, &Parser::ParseGroupExpr},
+				{TokenType::FUNCTION, &Parser::ParseFunctionExpr},
+				{TokenType::LBRACKET, &Parser::ParseArrayExpr},
 
-	};
+			};
 
-	m_InfixFunctions =
-		{
-			{TokenType::EQUAL, &Parser::ParseInfixExpr},
-			{TokenType::OR, &Parser::ParseInfixExpr},
-			{TokenType::AND, &Parser::ParseInfixExpr},
-			{TokenType::EEQUAL, &Parser::ParseInfixExpr},
-			{TokenType::BEQUAL, &Parser::ParseInfixExpr},
-			{TokenType::LESS, &Parser::ParseInfixExpr},
-			{TokenType::LEQUAL, &Parser::ParseInfixExpr},
-			{TokenType::GREATER, &Parser::ParseInfixExpr},
-			{TokenType::GEQUAL, &Parser::ParseInfixExpr},
-			{TokenType::PLUS, &Parser::ParseInfixExpr},
-			{TokenType::MINUS, &Parser::ParseInfixExpr},
-			{TokenType::ASTERISK, &Parser::ParseInfixExpr},
-			{TokenType::SLASH, &Parser::ParseInfixExpr},
-			{TokenType::LPAREN, &Parser::ParseFunctionCallExpr},
-			{TokenType::LBRACKET, &Parser::ParseIndexExpr},
-	};
+		m_InfixFunctions =
+			{
+				{TokenType::EQUAL, &Parser::ParseInfixExpr},
+				{TokenType::OR, &Parser::ParseInfixExpr},
+				{TokenType::AND, &Parser::ParseInfixExpr},
+				{TokenType::EEQUAL, &Parser::ParseInfixExpr},
+				{TokenType::BEQUAL, &Parser::ParseInfixExpr},
+				{TokenType::LESS, &Parser::ParseInfixExpr},
+				{TokenType::LEQUAL, &Parser::ParseInfixExpr},
+				{TokenType::GREATER, &Parser::ParseInfixExpr},
+				{TokenType::GEQUAL, &Parser::ParseInfixExpr},
+				{TokenType::PLUS, &Parser::ParseInfixExpr},
+				{TokenType::MINUS, &Parser::ParseInfixExpr},
+				{TokenType::ASTERISK, &Parser::ParseInfixExpr},
+				{TokenType::SLASH, &Parser::ParseInfixExpr},
+				{TokenType::LPAREN, &Parser::ParseFunctionCallExpr},
+				{TokenType::LBRACKET, &Parser::ParseIndexExpr},
+			};
 
-	m_Precedence =
-		{
+		m_Precedence =
+			{
 
-			{TokenType::EQUAL, Precedence::ASSIGN},
-			{TokenType::OR, Precedence::OR},
-			{TokenType::AND, Precedence::AND},
-			{TokenType::EEQUAL, Precedence::EQUAL},
-			{TokenType::BEQUAL, Precedence::EQUAL},
-			{TokenType::LESS, Precedence::COMPARE},
-			{TokenType::LEQUAL, Precedence::COMPARE},
-			{TokenType::GREATER, Precedence::COMPARE},
-			{TokenType::GEQUAL, Precedence::COMPARE},
-			{TokenType::PLUS, Precedence::ADD_PLUS},
-			{TokenType::MINUS, Precedence::ADD_PLUS},
-			{TokenType::ASTERISK, Precedence::MUL_DIV},
-			{TokenType::SLASH, Precedence::MUL_DIV},
-			{TokenType::LBRACKET, Precedence::INDEX},
-			{TokenType::LPAREN, Precedence::FUNCTION_CALL},
-	};
-
+				{TokenType::EQUAL, Precedence::ASSIGN},
+				{TokenType::OR, Precedence::OR},
+				{TokenType::AND, Precedence::AND},
+				{TokenType::EEQUAL, Precedence::EQUAL},
+				{TokenType::BEQUAL, Precedence::EQUAL},
+				{TokenType::LESS, Precedence::COMPARE},
+				{TokenType::LEQUAL, Precedence::COMPARE},
+				{TokenType::GREATER, Precedence::COMPARE},
+				{TokenType::GEQUAL, Precedence::COMPARE},
+				{TokenType::PLUS, Precedence::ADD_PLUS},
+				{TokenType::MINUS, Precedence::ADD_PLUS},
+				{TokenType::ASTERISK, Precedence::MUL_DIV},
+				{TokenType::SLASH, Precedence::MUL_DIV},
+				{TokenType::LBRACKET, Precedence::INDEX},
+				{TokenType::LPAREN, Precedence::FUNCTION_CALL},
+			};
 	}
 	Parser::~Parser()
 	{
+		if (m_Stmts != nullptr)
+		{
+			delete m_Stmts;
+			m_Stmts = nullptr;
+		}
+
+		std::unordered_map<TokenType, PrefixFn>().swap(m_PrefixFunctions);
+		std::unordered_map<TokenType, InfixFn>().swap(m_InfixFunctions);
+		std::unordered_map<TokenType, Precedence>().swap(m_Precedence);
 	}
 
 	Stmt *Parser::Parse(const std::vector<Token> &tokens)
@@ -510,8 +519,9 @@ namespace lwScript
 	{
 		if (IsMatchCurToken(type))
 			return GetCurTokenAndStepOnce();
-		std::cout << "[line " << std::to_string(GetCurToken().line) + "]:" << errMsg << std::endl;
-		exit(1);
+		Assert("[line " + std::to_string(GetCurToken().line) + "]:"+std::string(errMsg));
+		//avoid warning
+		return Token(TokenType::END,"",0);
 	}
 
 	bool Parser::IsAtEnd()

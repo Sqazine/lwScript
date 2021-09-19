@@ -1,4 +1,0 @@
-let a=fn(x,y){return x+y;};let b=[a];print("{}",b[0.000000](1.000000,2.000000));
-let a=fn(x,y){return x+y;};let b=[a];print("{}",b[0.000000]);
-let a=fn(x,y){return x+y;};let b=[a];b[0.000000](1.000000,2.000000);
-let a=fn(x,y){return x+y;};let b=[a];let c=b[0.000000](1.000000,2.000000); print("{}",c);
