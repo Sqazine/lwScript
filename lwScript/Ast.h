@@ -16,14 +16,11 @@ namespace lwScript
 		IDENTIFIER,
 		GROUP,
 		FUNCTION,
-		STRUCT,
 		ARRAY,
 		PREFIX,
 		INFIX,
 		INDEX,
-		REF,
 		FUNCTION_CALL,
-		STRUCT_CALL,
 		//stmt
 		LET,
 		EXPR,
@@ -69,7 +66,7 @@ namespace lwScript
 		StrExpr() {}
 		StrExpr(std::string_view str) : value(str) {}
 
-		std::string Stringify() override { return value; }
+		std::string Stringify() override { return "\""+value+"\""; }
 		AstType Type() override { return AstType::STR; }
 
 		std::string value;
@@ -204,22 +201,6 @@ namespace lwScript
 		Expr *index;
 	};
 
-	struct RefExpr :public Expr
-	{
-		RefExpr() {}
-		RefExpr(Expr* expr) : expr(expr) {}
-		~RefExpr()
-		{
-			delete expr;
-			expr = nullptr;
-		}
-		std::string Stringify() override { return "ref "+expr->Stringify(); }
-
-		AstType Type() override { return AstType::REF; }
-
-		Expr* expr;
-	};
-
 	struct FunctionCallExpr : public Expr
 	{
 		FunctionCallExpr() {}
@@ -241,27 +222,9 @@ namespace lwScript
 		}
 		AstType Type() override { return AstType::FUNCTION_CALL; }
 
-		IdentifierExpr *name;
+		Expr *name;
 		std::vector<Expr *> arguments;
 	};
-
-	struct StructCallExpr :public Expr
-	{
-		StructCallExpr() {}
-		StructCallExpr(IdentifierExpr* structure, Expr* member) : structure(structure), member(member) {}
-		~StructCallExpr() {}
-
-		std::string Stringify() override
-		{
-			return structure->Stringify() + "."+member->Stringify();
-
-		}
-		AstType Type() override { return AstType::STRUCT_CALL; }
-
-		IdentifierExpr* structure;
-		Expr* member;
-	};
-
 
 	struct Stmt : public AstNode
 	{
@@ -408,32 +371,6 @@ namespace lwScript
 
 		std::vector<IdentifierExpr *> parameters;
 		ScopeStmt *body;
-	};
-
-	struct StructExpr : public Expr
-	{
-		StructExpr() {}
-		StructExpr(std::vector<LetStmt*> letStmts) : letStmts(letStmts) {}
-		~StructExpr()
-		{
-			std::vector<LetStmt*>().swap(letStmts);
-		}
-
-		std::string Stringify() override
-		{
-			std::string result = "struct {";
-			if (!letStmts.empty())
-			{
-				for (auto letStmt : letStmts)
-					result += letStmt->Stringify() + "\n";
-				result = result.substr(0, result.size() - 1);
-			}
-			result += "}";
-			return result;
-		}
-		AstType Type() override { return AstType::STRUCT; }
-
-		std::vector<LetStmt*> letStmts;
 	};
 
 	struct WhileStmt : public Stmt

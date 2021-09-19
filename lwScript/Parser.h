@@ -18,9 +18,7 @@ namespace lwScript
 		COMPARE,	   // < <= > >=
 		ADD_PLUS,	   // + -
 		MUL_DIV,	   // * /
-		UNARY,		   // ref
 		INDEX,		   // []
-		STRUCT_CALL,   // .
 		FUNCTION_CALL, // ()
 
 	};
@@ -59,14 +57,11 @@ namespace lwScript
 		Expr *ParseFalseExpr();
 		Expr *ParseGroupExpr();
 		Expr *ParseFunctionExpr();
-		Expr *ParseStructExpr();
-		Expr *ParseRefExpr();
 		Expr *ParseArrayExpr();
 		Expr *ParsePrefixExpr();
 		Expr *ParseInfixExpr(Expr *prefixExpr);
 		Expr *ParseIndexExpr(Expr *prefixExpr);
 		Expr *ParseFunctionCallExpr(Expr *prefixExpr);
-		Expr *ParseStructCallExpr(Expr *prefixExpr);
 
 		Token GetCurToken();
 		Token GetCurTokenAndStepOnce();
@@ -105,8 +100,6 @@ namespace lwScript
 			{TokenType::MINUS, &Parser::ParsePrefixExpr},
 			{TokenType::LPAREN, &Parser::ParseGroupExpr},
 			{TokenType::FUNCTION, &Parser::ParseFunctionExpr},
-			{TokenType::STRUCT, &Parser::ParseStructExpr},
-			{TokenType::REF, &Parser::ParseRefExpr},
 			{TokenType::LBRACKET, &Parser::ParseArrayExpr},
 
 	};
@@ -127,7 +120,6 @@ namespace lwScript
 			{TokenType::ASTERISK, &Parser::ParseInfixExpr},
 			{TokenType::SLASH, &Parser::ParseInfixExpr},
 			{TokenType::LPAREN, &Parser::ParseFunctionCallExpr},
-			{TokenType::DOT, &Parser::ParseStructCallExpr},
 			{TokenType::LBRACKET, &Parser::ParseIndexExpr},
 	};
 
@@ -149,8 +141,7 @@ namespace lwScript
 			{TokenType::SLASH, Precedence::MUL_DIV},
 			{TokenType::LBRACKET, Precedence::INDEX},
 			{TokenType::LPAREN, Precedence::FUNCTION_CALL},
-			{TokenType::DOT, Precedence::STRUCT_CALL},
-			{TokenType::REF, Precedence::UNARY}};
+	};
 
 	Parser::Parser()
 		: m_Stmts(nullptr)
@@ -383,31 +374,6 @@ namespace lwScript
 		return funcExpr;
 	}
 
-	Expr *Parser::ParseStructExpr()
-	{
-		Consume(TokenType::STRUCT, "Expect 'struct' keyword.");
-		Consume(TokenType::LBRACE, "Expect '{' atfter 'struct'");
-
-		auto structExpr = new StructExpr();
-
-		while (!IsMatchCurToken(TokenType::RBRACE))
-			structExpr->letStmts.emplace_back((LetStmt *)ParseLetStmt());
-
-		Consume(TokenType::RBRACE, "Expect '}' after struct body.");
-
-		return structExpr;
-	}
-
-	Expr *Parser::ParseRefExpr()
-	{
-		Consume(TokenType::REF, "Expect 'ref' keyword.");
-
-		auto refExpr = new RefExpr();
-
-		refExpr->expr = ParseExpr();
-		return refExpr;
-	}
-
 	Expr *Parser::ParseArrayExpr()
 	{
 		Consume(TokenType::LBRACKET, "Expect '['.");
@@ -457,13 +423,7 @@ namespace lwScript
 	{
 		auto funcCallExpr = new FunctionCallExpr();
 
-		if (prefixExpr->Type() != AstType::IDENTIFIER)
-		{
-			std::cout << "[line " << GetCurToken().line << "Invalid function name:" << prefixExpr->Stringify() << std::endl;
-			exit(1);
-		}
-
-		funcCallExpr->name = (IdentifierExpr *)prefixExpr;
+		funcCallExpr->name = prefixExpr;
 		Consume(TokenType::LPAREN, "Expect '('.");
 		if (!IsMatchCurToken(TokenType::RPAREN)) //has arguments
 		{
@@ -474,23 +434,6 @@ namespace lwScript
 		Consume(TokenType::RPAREN, "Expect ')'.");
 
 		return funcCallExpr;
-	}
-
-	Expr *Parser::ParseStructCallExpr(Expr *prefixExpr)
-	{
-		Consume(TokenType::DOT, "Exoect '.'.");
-
-		if (prefixExpr->Type() != AstType::IDENTIFIER)
-		{
-			std::cout << "[line " << GetCurToken().line << "Invalid struct name:" << prefixExpr->Stringify() << std::endl;
-			exit(1);
-		}
-
-		auto structCallExpr = new StructCallExpr();
-		structCallExpr->structure = (IdentifierExpr *)prefixExpr;
-		structCallExpr->member = ParseExpr();
-
-		return structCallExpr;
 	}
 
 	Token Parser::GetCurToken()

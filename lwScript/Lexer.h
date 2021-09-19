@@ -60,9 +60,7 @@ namespace lwScript
 		{"nil", TokenType::NIL},
 		{"while", TokenType::WHILE},
 		{"fn", TokenType::FUNCTION},
-		{"struct",TokenType::STRUCT},
 		{"return",TokenType::RETURN},
-		{"ref",TokenType::REF}
 	};
 
 	Lexer::Lexer()
@@ -113,9 +111,6 @@ namespace lwScript
 			break;
 		case ',':
 			AddToken(TokenType::COMMA);
-			break;
-		case '.':
-			AddToken(TokenType::DOT);
 			break;
 		case ':':
 			AddToken(TokenType::COLON);

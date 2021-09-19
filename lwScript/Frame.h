@@ -29,16 +29,14 @@ namespace lwScript
 		OP_GET_VAR,
 		OP_SET_VAR,
 		OP_DEFINE_VAR,
-		OP_REF_VAR,
 		OP_ARRAY,
 		OP_GET_INDEX_VAR,
 		OP_SET_INDEX_VAR,
 		OP_ENTER_SCOPE,
 		OP_EXIT_SCOPE,
-		OP_STRUCT,
 		OP_JUMP,
 		OP_JUMP_IF_FALSE,
-		OP_FUNCTION_CALL
+		OP_FUNCTION_CALL,
 	};
 
 	class Frame
@@ -69,7 +67,7 @@ namespace lwScript
 	};
 
 
-		Frame::Frame()
+	Frame::Frame()
 	{
 	}
 	Frame::~Frame()
@@ -183,9 +181,6 @@ namespace lwScript
 			case OP_SET_VAR:
 				SINGLE_INSTR_STRINGIFY(OP_SET_VAR);
 				break;
-			case OP_REF_VAR:
-				SINGLE_INSTR_STRINGIFY(OP_REF_VAR);
-				break;
 			case OP_ARRAY:
 				SINGLE_INSTR_STRINGIFY(OP_ARRAY);
 				break;
@@ -200,9 +195,6 @@ namespace lwScript
 				break;
 			case OP_EXIT_SCOPE:
 				SINGLE_INSTR_STRINGIFY(OP_EXIT_SCOPE);
-				break;
-			case OP_STRUCT:
-				SINGLE_INSTR_STRINGIFY(OP_STRUCT);
 				break;
 			case OP_JUMP:
 				SINGLE_INSTR_STRINGIFY(OP_JUMP);

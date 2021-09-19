@@ -12,10 +12,8 @@ namespace lwScript
 		BOOL,
 		NIL,
 		ARRAY,
-		STRUCT,
 		FUNCTION,
 		NATIVEFUNCTION,
-		REF
 	};
 
 #define TO_NUM_OBJ(obj) ((NumObject *)obj)
@@ -23,7 +21,6 @@ namespace lwScript
 #define TO_NIL_OBJ(obj) ((NilObject *)obj)
 #define TO_BOOL_OBJ(obj) ((BoolObject *)obj)
 #define TO_ARRAY_OBJ(obj) ((ArrayObject *)obj)
-#define TO_REF_OBJ(obj) ((RefObject *)obj)
 #define TO_FUNCTION_OBJ(obj) ((FunctionObject *)obj)
 
 	struct Object
@@ -80,18 +77,6 @@ namespace lwScript
 		ObjectType Type() override { return ObjectType::NIL; }
 	};
 
-	struct RefObject:public Object
-	{
-		RefObject() {}
-		RefObject(std::string refObjName):refObjName(refObjName) {}
-		~RefObject() {}
-
-		std::string Stringify() override { return "ref "+refObjName; }
-		ObjectType Type() override { return ObjectType::REF; }
-
-		std::string refObjName;
-	};
-
 	struct ArrayObject : public Object
 	{
 		ArrayObject() {}
@@ -115,29 +100,6 @@ namespace lwScript
 		std::vector<Object*> elements;
 	};
 
-	struct StructObject:public Object
-	{
-		StructObject() {}
-		StructObject(std::unordered_map<std::string,Object*> variables) : variables(variables) {}
-		~StructObject() {}
-
-		std::string Stringify() override
-		{
-			std::string result = "struct{";
-			if (!variables.empty())
-			{
-				for (const auto& [key,value] : variables)
-					result += key + "="+value->Stringify()+"\n";
-				result = result.substr(0, result.size() - 1);
-			}
-			result += "}";
-			return result;
-		}
-		ObjectType Type() override { return ObjectType::STRUCT; }
-
-		std::unordered_map<std::string,Object*> variables;
-	};
-
 	struct FunctionObject : public Object
 	{
 		FunctionObject() {}
@@ -153,14 +115,14 @@ namespace lwScript
 	struct NativeFunctionObject : public Object
 	{
 		NativeFunctionObject() {}
-		NativeFunctionObject(std::string_view name,std::function<Object*(std::vector<Object*>)> fn) :name(name), fn(fn) {}
+		NativeFunctionObject(std::string_view name,std::function<Object*(std::vector<Object*>)> function) :name(name), function(function) {}
 		~NativeFunctionObject() {}
 
 		std::string Stringify() override { return "native function:"+name; }
 		ObjectType Type() override { return ObjectType::NATIVEFUNCTION; }
 
 		std::string name;
-		std::function<Object*(std::vector<Object*>)> fn;
+		std::function<Object*(std::vector<Object*>)> function;
 	};
 
 

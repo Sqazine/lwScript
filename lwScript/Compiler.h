@@ -6,13 +6,11 @@
 #include "Object.h"
 namespace lwScript
 {
-	enum State
+	enum ObjectState
 	{
-		NONE,
 		INIT,
 		READ,
 		WRITE,
-		REF
 	};
 	class Compiler
 	{
@@ -34,18 +32,16 @@ namespace lwScript
 		void CompileIfStmt(IfStmt *stmt, Frame &frame);
 		void CompileWhileStmt(WhileStmt *stmt, Frame &frame);
 
-		void CompileExpr(Expr *expr, Frame &frame, State state = READ);
+		void CompileExpr(Expr *expr, Frame &frame, ObjectState state = READ);
 		void CompileNumExpr(NumExpr *expr, Frame &frame);
 		void CompileStrExpr(StrExpr *expr, Frame &frame);
 		void CompileBoolExpr(BoolExpr *expr, Frame &frame);
 		void CompileNilExpr(NilExpr *expr, Frame &frame);
-		void CompileIdentifierExpr(IdentifierExpr *expr, Frame &frame, State state = READ);
+		void CompileIdentifierExpr(IdentifierExpr *expr, Frame &frame, ObjectState state = READ);
 		void CompileGroupExpr(GroupExpr *expr, Frame &frame);
 		void CompileArrayExpr(ArrayExpr *expr, Frame &frame);
-		void CompileIndexExpr(IndexExpr *expr, Frame &frame, State state = READ);
+		void CompileIndexExpr(IndexExpr *expr, Frame &frame, ObjectState state = READ);
 		void CompileFunctionExpr(FunctionExpr *expr, Frame &frame);
-		void CompileStructExpr(StructExpr *expr, Frame &frame);
-		void CompileRefExpr(RefExpr *expr, Frame &frame);
 		void CompilePrefixExpr(PrefixExpr *expr, Frame &frame);
 		void CompileInfixExpr(InfixExpr *expr, Frame &frame);
 		void CompileFunctionCallExpr(FunctionCallExpr *expr, Frame &frame);
@@ -182,7 +178,7 @@ namespace lwScript
 		jmpIfFalseAddress->value = (double)frame.GetOpCodeSize() - 1.0;
 	}
 
-	void Compiler::CompileExpr(Expr *expr, Frame &frame, State state)
+	void Compiler::CompileExpr(Expr *expr, Frame &frame, ObjectState state)
 	{
 		switch (expr->Type())
 		{
@@ -210,14 +206,8 @@ namespace lwScript
 		case AstType::INDEX:
 			CompileIndexExpr((IndexExpr *)expr, frame, state);
 			break;
-		case AstType::STRUCT:
-			CompileStructExpr((StructExpr *)expr, frame);
-			break;
 		case AstType::FUNCTION:
 			CompileFunctionExpr((FunctionExpr *)expr, frame);
-			break;
-		case AstType::REF:
-			CompileRefExpr((RefExpr *)expr, frame);
 			break;
 		case AstType::PREFIX:
 			CompilePrefixExpr((PrefixExpr *)expr, frame);
@@ -226,7 +216,7 @@ namespace lwScript
 			CompileInfixExpr((InfixExpr *)expr, frame);
 			break;
 		case AstType::FUNCTION_CALL:
-			CompileFunctionCallExpr((FunctionCallExpr*)expr,frame);
+			CompileFunctionCallExpr((FunctionCallExpr *)expr, frame);
 			break;
 		default:
 			break;
@@ -261,7 +251,7 @@ namespace lwScript
 		frame.AddOpCode(offset);
 	}
 
-	void Compiler::CompileIdentifierExpr(IdentifierExpr *expr, Frame &frame, State state)
+	void Compiler::CompileIdentifierExpr(IdentifierExpr *expr, Frame &frame, ObjectState state)
 	{
 		frame.AddOpCode(OP_PUSH);
 		uint8_t offset = frame.AddObject(new StrObject(expr->literal));
@@ -272,8 +262,6 @@ namespace lwScript
 			frame.AddOpCode(OP_SET_VAR);
 		else if (state == INIT)
 			frame.AddOpCode(OP_DEFINE_VAR);
-		else if (state == REF)
-			frame.AddOpCode(OP_REF_VAR);
 	}
 
 	void Compiler::CompileGroupExpr(GroupExpr *expr, Frame &frame)
@@ -292,7 +280,7 @@ namespace lwScript
 		frame.AddOpCode(OP_ARRAY);
 	}
 
-	void Compiler::CompileIndexExpr(IndexExpr *expr, Frame &frame, State state)
+	void Compiler::CompileIndexExpr(IndexExpr *expr, Frame &frame, ObjectState state)
 	{
 		CompileExpr(expr->index, frame);
 		CompileExpr(expr->array, frame);
@@ -308,7 +296,7 @@ namespace lwScript
 
 		functionFrame.AddOpCode(OP_ENTER_SCOPE);
 
-		for (int64_t i=expr->parameters.size()-1;i>=0;--i)
+		for (int64_t i = expr->parameters.size() - 1; i >= 0; --i)
 			CompileIdentifierExpr(expr->parameters[i], functionFrame, INIT);
 
 		CompileScopeStmt(expr->body, functionFrame);
@@ -320,33 +308,6 @@ namespace lwScript
 		frame.AddOpCode(OP_PUSH);
 		uint8_t offset = frame.AddObject(new FunctionObject((uint64_t)frame.GetFunctionFrameSize() - 1));
 		frame.AddOpCode(offset);
-	}
-
-	void Compiler::CompileStructExpr(StructExpr *expr, Frame &frame)
-	{
-		uint8_t memberCount = 0;
-		for (const auto &letStmt : expr->letStmts)
-		{
-			for (const auto &[key, value] : letStmt->variables)
-			{
-				CompileExpr(value, frame);
-				frame.AddOpCode(OP_PUSH);
-				uint8_t offset = frame.AddObject(new StrObject(key->literal));
-				frame.AddOpCode(offset);
-			}
-			memberCount += (uint8_t)letStmt->variables.size();
-		}
-
-		frame.AddOpCode(OP_PUSH);
-		uint8_t offset = frame.AddObject(new NumObject((double)memberCount));
-		frame.AddOpCode(offset);
-
-		frame.AddOpCode(OP_STRUCT);
-	}
-
-	void Compiler::CompileRefExpr(RefExpr *expr, Frame &frame)
-	{
-		CompileExpr(expr->expr, frame, REF);
 	}
 
 	void Compiler::CompilePrefixExpr(PrefixExpr *expr, Frame &frame)
@@ -402,9 +363,9 @@ namespace lwScript
 
 	void Compiler::CompileFunctionCallExpr(FunctionCallExpr *expr, Frame &frame)
 	{
-		for(const auto& arg:expr->arguments)
-			 CompileExpr(arg,frame);
-		CompileExpr(expr->name,frame,NONE);
+		for (const auto &arg : expr->arguments)
+			CompileExpr(arg, frame);
+		CompileExpr(expr->name, frame);
 
 		//argumentc count
 		frame.AddOpCode(OP_PUSH);

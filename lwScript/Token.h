@@ -11,8 +11,6 @@ namespace lwScript
 		NUMBER = 0,
 		STRING,
 		IDENTIFIER,
-
-		DOT,	   // .
 		COMMA,	   // ,
 		COLON,	   // :
 		SEMICOLON, // ;
@@ -44,9 +42,7 @@ namespace lwScript
 		NIL,	   // nil
 		WHILE,	   // while
 		FUNCTION,  // fn
-		STRUCT,	   // struct
 		RETURN,	   // return
-		REF,	   // ref
 
 		UNKNOWN,
 		END

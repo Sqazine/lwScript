@@ -11,9 +11,9 @@ namespace lwScript
 	class Environment
 	{
 	public:
-		Environment(): m_UpEnvironment(nullptr){}
-		Environment(Environment *upEnvironment): m_UpEnvironment(upEnvironment){}
-		~Environment(){}
+		Environment() : m_UpEnvironment(nullptr) {}
+		Environment(Environment *upEnvironment) : m_UpEnvironment(upEnvironment) {}
+		~Environment() {}
 
 		void DefineVariable(std::string_view name, Object *value)
 		{
@@ -54,7 +54,8 @@ namespace lwScript
 			return nilObject;
 		}
 
-		Environment *GetUpEnvironment(){return m_UpEnvironment;}
+		Environment *GetUpEnvironment() { return m_UpEnvironment; }
+
 	private:
 		std::unordered_map<std::string, Object *> m_Values;
 		Environment *m_UpEnvironment;
@@ -68,8 +69,8 @@ namespace lwScript
 
 		void ResetStatus();
 		Object *Execute(const Frame &frame);
-	private:
 
+	private:
 		void Push(Object *object);
 		Object *Pop();
 		uint64_t ip;
@@ -128,7 +129,7 @@ namespace lwScript
 			Push(falseObject);                                                                      \
 	}
 
-		for (ip=0; ip < frame.m_Codes.size(); ++ip)
+		for (ip = 0; ip < frame.m_Codes.size(); ++ip)
 		{
 			uint8_t instruction = frame.m_Codes[ip];
 			switch (instruction)
@@ -220,36 +221,16 @@ namespace lwScript
 			case OP_SET_VAR:
 			{
 				std::string name = TO_STR_OBJ(Pop())->value;
-
 				Object *value = Pop();
-
 				Object *variableObject = m_Environment->GetVariable(name);
-				while (variableObject->Type() == ObjectType::REF)
-				{
-					name = TO_REF_OBJ(variableObject)->refObjName;
-					variableObject = m_Environment->GetVariable(name);
-				}
-
 				m_Environment->AssignVariable(name, value);
 				break;
 			}
 			case OP_GET_VAR:
 			{
 				std::string name = TO_STR_OBJ(Pop())->value;
-
 				Object *variableObject = m_Environment->GetVariable(name);
-				while (variableObject->Type() == ObjectType::REF)
-				{
-					name = TO_REF_OBJ(variableObject)->refObjName;
-					variableObject = m_Environment->GetVariable(name);
-				}
-
 				Push(m_Environment->GetVariable(name));
-				break;
-			}
-			case OP_REF_VAR:
-			{
-				Push(new RefObject(TO_STR_OBJ(Pop())->value));
 				break;
 			}
 			case OP_ARRAY:
@@ -335,18 +316,6 @@ namespace lwScript
 				m_Environment = tmp;
 				break;
 			}
-			case OP_STRUCT:
-			{
-				StructObject *structObject = new StructObject();
-				NumObject *memberCount = TO_NUM_OBJ(Pop());
-				for (size_t i = 0; i < memberCount->value; ++i)
-				{
-					StrObject *variableName = TO_STR_OBJ(Pop());
-					structObject->variables[variableName->value] = Pop();
-				}
-				Push(structObject);
-				break;
-			}
 			case OP_JUMP_IF_FALSE:
 			{
 				uint64_t address = (uint64_t)(TO_NUM_OBJ(Pop())->value);
@@ -364,18 +333,23 @@ namespace lwScript
 			}
 			case OP_FUNCTION_CALL:
 			{
-				NumObject* argCount=TO_NUM_OBJ(Pop());
-				StrObject* fnName=TO_STR_OBJ(Pop());
-				Object* fnObj=m_Environment->GetVariable(fnName->value);
-				if(fnObj->Type()==ObjectType::FUNCTION)
-					Push(Execute(frame.m_FunctionFrames[TO_FUNCTION_OBJ(fnObj)->frameIndex]));
-				else
+				NumObject *argCount = TO_NUM_OBJ(Pop());
+				Object *fn = Pop();
+				if (fn->Type() == ObjectType::STR)
 				{
-					std::vector<Object*> args;
-					for(size_t i=0;i<argCount->value;++i)
-						args.insert(args.begin(),Pop());
-					Push(Library::GetNativeFunctionObject(fnName->value)->fn(args));
+					Object *fnObj = m_Environment->GetVariable(TO_STR_OBJ(fn)->value);
+					if (fnObj->Type() == ObjectType::FUNCTION)
+						Push(Execute(frame.m_FunctionFrames[TO_FUNCTION_OBJ(fnObj)->frameIndex]));
+					else
+					{
+						std::vector<Object *> args;
+						for (size_t i = 0; i < argCount->value; ++i)
+							args.insert(args.begin(), Pop());
+						Push(Library::GetNativeFunctionObject(TO_STR_OBJ(fn)->value)->function(args));
+					}
 				}
+				else if (fn->Type() == ObjectType::FUNCTION)
+					Push(Execute(frame.m_FunctionFrames[TO_FUNCTION_OBJ(fn)->frameIndex]));
 				break;
 			}
 			default:
