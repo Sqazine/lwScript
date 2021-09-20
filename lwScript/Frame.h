@@ -42,9 +42,6 @@ namespace lws
 	class Frame
 	{
 	public:
-		Frame();
-		~Frame();
-
 		void AddOpCode(uint8_t code);
 		size_t GetOpCodeSize() const;
 
@@ -66,13 +63,6 @@ namespace lws
 		std::vector<Frame> m_FunctionFrames;
 	};
 
-
-	Frame::Frame()
-	{
-	}
-	Frame::~Frame()
-	{
-	}
 
 	void Frame::AddOpCode(uint8_t code)
 	{
