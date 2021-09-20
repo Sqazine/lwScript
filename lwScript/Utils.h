@@ -3,7 +3,7 @@
 #include <fstream>
 #include <sstream>
 #include <string_view>
-namespace lwScript
+namespace lws
 {
     inline void Assert(std::string_view msg)
     {

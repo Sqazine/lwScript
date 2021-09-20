@@ -5,16 +5,8 @@
 #include "Frame.h"
 #include "Object.h"
 #include "Utils.h"
-namespace lwScript
+namespace lws
 {
-#define TO_NUM_OBJ(obj) ((NumObject *)obj)
-#define TO_STR_OBJ(obj) ((StrObject *)obj)
-#define TO_NIL_OBJ(obj) ((NilObject *)obj)
-#define TO_BOOL_OBJ(obj) ((BoolObject *)obj)
-#define TO_ARRAY_OBJ(obj) ((ArrayObject *)obj)
-#define TO_FUNCTION_OBJ(obj) ((FunctionObject *)obj)
-#define TO_NATIVE_FUNCTION_OBJ(obj) ((NativeFunctionObject *)obj)
-
 	class Environment
 	{
 	public:
@@ -129,7 +121,7 @@ namespace lwScript
 											 if (args[0]->Type() != ObjectType::STR)
 												 Assert("Invalid argument:The first argument of native print fn must be string type.");
 											 if (args.size() == 1)
-												 std::cout << args[0]->Stringify()<<std::endl;
+												 std::cout << args[0]->Stringify() << std::endl;
 											 else //formatting output
 											 {
 												 std::string content = TO_STR_OBJ(args[0])->value;
@@ -185,7 +177,7 @@ namespace lwScript
 	{                                                                                      \
 		Object *left = Pop();                                                              \
 		Object *right = Pop();                                                             \
-		if (right->Type() == ObjectType::NUM && left->Type() == ObjectType::NUM)           \
+		if (IS_NUM_OBJ(right) && IS_NUM_OBJ(left))                                         \
 		{                                                                                  \
 			auto t = new NumObject();                                                      \
 			t->value = TO_NUM_OBJ(left)->value op TO_NUM_OBJ(right)->value;                \
@@ -201,11 +193,11 @@ namespace lwScript
 	{                                                                                               \
 		Object *left = Pop();                                                                       \
 		Object *right = Pop();                                                                      \
-		if (right->Type() == ObjectType::NUM && left->Type() == ObjectType::NUM)                    \
+		if (IS_NUM_OBJ(right) && IS_NUM_OBJ(left))                                                  \
 			Push(TO_NUM_OBJ(left)->value op TO_NUM_OBJ(right)->value ? trueObject : falseObject);   \
-		else if (right->Type() == ObjectType::BOOL && left->Type() == ObjectType::BOOL)             \
+		else if (IS_BOOL_OBJ(right) && IS_BOOL_OBJ(left))                                           \
 			Push(TO_BOOL_OBJ(left)->value op TO_BOOL_OBJ(right)->value ? trueObject : falseObject); \
-		else if (right->Type() == ObjectType::NIL && left->Type() == ObjectType::NIL)               \
+		else if (IS_NIL_OBJ(right) && IS_NIL_OBJ(left))                                             \
 			Push(TO_NIL_OBJ(left) op TO_NIL_OBJ(right) ? trueObject : falseObject);                 \
 		else                                                                                        \
 			Push(falseObject);                                                                      \
@@ -216,7 +208,7 @@ namespace lwScript
 	{                                                                                                    \
 		Object *left = Pop();                                                                            \
 		Object *right = Pop();                                                                           \
-		if (right->Type() == ObjectType::BOOL && left->Type() == ObjectType::BOOL)                       \
+		if (IS_BOOL_OBJ(right) && IS_BOOL_OBJ(left))                                                     \
 			Push(((BoolObject *)left)->value op((BoolObject *)right)->value ? trueObject : falseObject); \
 		else                                                                                             \
 			Assert("Invalid op:" + left->Stringify() + (#op) + right->Stringify());                      \
@@ -236,7 +228,7 @@ namespace lwScript
 			case OP_NEG:
 			{
 				Object *object = Pop();
-				if (object->Type() == ObjectType::NUM)
+				if (IS_NUM_OBJ(object))
 				{
 					auto t = TO_NUM_OBJ(object);
 					t->value *= -1.0;
@@ -258,25 +250,25 @@ namespace lwScript
 			case OP_DIV:
 				COMMON_BINARY(*);
 				break;
-			case OP_GREATER:
+			case OP_GT:
 				COMPARE_BINARY(>);
 				break;
-			case OP_LESS:
+			case OP_LE:
 				COMPARE_BINARY(<);
 				break;
-			case OP_GREATER_EQUAL:
+			case OP_GTEQ:
 				COMPARE_BINARY(>=);
 				break;
-			case OP_LESS_EQUAL:
+			case OP_LEEQ:
 				COMPARE_BINARY(<=);
 				break;
-			case OP_EQUAL:
+			case OP_EQ:
 				COMPARE_BINARY(==);
 				break;
-			case OP_LOGIC_AND:
+			case OP_AND:
 				LOGIC_BINARY(&&);
 				break;
-			case OP_LOGIC_OR:
+			case OP_OR:
 				LOGIC_BINARY(||);
 				break;
 			case OP_DEFINE_VAR:
@@ -298,20 +290,18 @@ namespace lwScript
 			{
 				std::string name = TO_STR_OBJ(Pop())->value;
 				Object *variableObject = m_Environment->GetVariable(name);
-
 				//not variable
-				if (variableObject->Type() == ObjectType::NIL)
+				if (IS_NIL_OBJ(variableObject))
 				{
 					//search native function
 					variableObject = GetNativeFnObject(name);
-
-					if (variableObject->Type() == ObjectType::NIL)
+					if (IS_NIL_OBJ(variableObject))
 						Assert("No variable or function:" + std::string(name));
 				}
 				Push(variableObject);
 				break;
 			}
-			case OP_ARRAY:
+			case OP_DEFINE_ARRAY:
 			{
 				ArrayObject *arrayObject = new ArrayObject();
 				NumObject *arraySize = TO_NUM_OBJ(Pop());
@@ -324,7 +314,7 @@ namespace lwScript
 			{
 				Object *object = Pop();
 				Object *index = Pop();
-				if (object->Type() == ObjectType::ARRAY)
+				if (IS_ARRAY_OBJ(object))
 				{
 					ArrayObject *arrayObject = TO_ARRAY_OBJ(object);
 					if (index->Type() != ObjectType::NUM)
@@ -347,10 +337,10 @@ namespace lwScript
 				Object *index = Pop();
 				Object *assigner = Pop();
 
-				if (object->Type() == ObjectType::ARRAY)
+				if (IS_ARRAY_OBJ(object))
 				{
 					ArrayObject *arrayObject = TO_ARRAY_OBJ(object);
-					if (index->Type() != ObjectType::NUM)
+					if (IS_NUM_OBJ(index))
 						Assert("Invalid index op.The index type of the array object must ba a int num type,but got:" + index->Stringify());
 
 					int64_t iIndex = (int64_t)TO_NUM_OBJ(index)->value;
@@ -395,12 +385,12 @@ namespace lwScript
 			{
 				NumObject *argCount = TO_NUM_OBJ(Pop());
 				Object *fn = Pop();
-				if (fn->Type() == ObjectType::STR)
+				if (IS_STR_OBJ(fn))
 					fn = m_Environment->GetVariable(TO_STR_OBJ(fn)->value);
 
-				if (fn->Type() == ObjectType::FUNCTION)
+				if (IS_FUNCTION_OBJ(fn))
 					Push(Execute(frame.m_FunctionFrames[TO_FUNCTION_OBJ(fn)->frameIndex]));
-				else if (fn->Type() == ObjectType::NATIVEFUNCTION)
+				else if (IS_NATIVE_FUNCTION_OBJ(fn))
 				{
 					std::vector<Object *> args;
 					for (size_t i = 0; i < argCount->value; ++i)
@@ -408,7 +398,7 @@ namespace lwScript
 
 					Object *natFnObj = GetNativeFnObject(TO_STR_OBJ(fn)->value);
 
-					if (natFnObj->Type() == ObjectType::NIL)
+					if (IS_NIL_OBJ(natFnObj))
 						Assert("No native function:" + TO_STR_OBJ(fn)->value);
 
 					Push(TO_NATIVE_FUNCTION_OBJ(natFnObj)->function(args));

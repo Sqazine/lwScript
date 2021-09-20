@@ -3,7 +3,7 @@
 #include <string_view>
 #include <unordered_map>
 #include <functional>
-namespace lwScript
+namespace lws
 {
 	enum class ObjectType
 	{
@@ -73,7 +73,7 @@ namespace lwScript
 	struct ArrayObject : public Object
 	{
 		ArrayObject() {}
-		ArrayObject(const std::vector<Object*>& elements) : elements(elements) {}
+		ArrayObject(const std::vector<Object *> &elements) : elements(elements) {}
 		~ArrayObject() {}
 
 		std::string Stringify() override
@@ -81,7 +81,7 @@ namespace lwScript
 			std::string result = "[";
 			if (!elements.empty())
 			{
-				for (const auto& e : elements)
+				for (const auto &e : elements)
 					result += e->Stringify() + ",";
 				result = result.substr(0, result.size() - 1);
 			}
@@ -90,7 +90,7 @@ namespace lwScript
 		}
 		ObjectType Type() override { return ObjectType::ARRAY; }
 
-		std::vector<Object*> elements;
+		std::vector<Object *> elements;
 	};
 
 	struct FunctionObject : public Object
@@ -99,7 +99,7 @@ namespace lwScript
 		FunctionObject(int64_t frameIndex) : frameIndex(frameIndex) {}
 		~FunctionObject() {}
 
-		std::string Stringify() override { return "function:" +std::to_string(frameIndex); }
+		std::string Stringify() override { return "function:" + std::to_string(frameIndex); }
 		ObjectType Type() override { return ObjectType::FUNCTION; }
 
 		int64_t frameIndex;
@@ -108,18 +108,33 @@ namespace lwScript
 	struct NativeFunctionObject : public Object
 	{
 		NativeFunctionObject() {}
-		NativeFunctionObject(std::string_view name,std::function<Object*(std::vector<Object*>)> function) :name(name), function(function) {}
+		NativeFunctionObject(std::string_view name, std::function<Object *(std::vector<Object *>)> function) : name(name), function(function) {}
 		~NativeFunctionObject() {}
 
-		std::string Stringify() override { return "native function:"+name; }
+		std::string Stringify() override { return "native function:" + name; }
 		ObjectType Type() override { return ObjectType::NATIVEFUNCTION; }
 
 		std::string name;
-		std::function<Object*(std::vector<Object*>)> function;
+		std::function<Object *(std::vector<Object *>)> function;
 	};
 
+	static BoolObject *trueObject = new BoolObject(true);
+	static BoolObject *falseObject = new BoolObject(false);
+	static NilObject *nilObject = new NilObject();
 
-	 static BoolObject *trueObject = new BoolObject(true);
-    static BoolObject *falseObject = new BoolObject(false);
-    static NilObject *nilObject = new NilObject();
+#define TO_NUM_OBJ(obj) ((NumObject *)obj)
+#define TO_STR_OBJ(obj) ((StrObject *)obj)
+#define TO_NIL_OBJ(obj) ((NilObject *)obj)
+#define TO_BOOL_OBJ(obj) ((BoolObject *)obj)
+#define TO_ARRAY_OBJ(obj) ((ArrayObject *)obj)
+#define TO_FUNCTION_OBJ(obj) ((FunctionObject *)obj)
+#define TO_NATIVE_FUNCTION_OBJ(obj) ((NativeFunctionObject *)obj)
+
+#define IS_NUM_OBJ(obj) (obj->Type() == ObjectType::NUM)
+#define IS_STR_OBJ(obj) (obj->Type() == ObjectType::STR)
+#define IS_BOOL_OBJ(obj) (obj->Type() == ObjectType::BOOL)
+#define IS_NIL_OBJ(obj) (obj->Type() == ObjectType::NIL)
+#define IS_ARRAY_OBJ(obj) (obj->Type() == ObjectType::ARRAY)
+#define IS_FUNCTION_OBJ(obj) (obj->Type() == ObjectType::FUNCTION)
+#define IS_NATIVE_FUNCTION_OBJ(obj) (obj->Type() == ObjectType::NATIVEFUNCTION)
 }

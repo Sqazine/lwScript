@@ -5,11 +5,11 @@
 void Repl()
 {
 	std::string line;
-	lwScript::Lexer lexer;
-	lwScript::Parser parser;
-	lwScript::Compiler compiler;
-	lwScript::VM vm;
-	lwScript::Frame frame;
+	lws::Lexer lexer;
+	lws::Parser parser;
+	lws::Compiler compiler;
+	lws::VM vm;
+	lws::Frame frame;
 	std::cout << "> ";
 	while (getline(std::cin, line))
 	{
@@ -39,12 +39,12 @@ void Repl()
 
 void RunFile(std::string path)
 {
-	std::string content = lwScript::ReadFile(path);
-	lwScript::Lexer lexer;
-	lwScript::Parser parser;
-	lwScript::Compiler compiler;
-	lwScript::VM vm;
-	lwScript::Frame frame;
+	std::string content = lws::ReadFile(path);
+	lws::Lexer lexer;
+	lws::Parser parser;
+	lws::Compiler compiler;
+	lws::VM vm;
+	lws::Frame frame;
 
 	auto tokens = lexer.ScanTokens(content);
 #ifdef _DEBUG

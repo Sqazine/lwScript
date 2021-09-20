@@ -6,7 +6,7 @@
 #include <unordered_map>
 #include "Token.h"
 #include "Utils.h"
-namespace lwScript
+namespace lws
 {
 	class Lexer
 	{

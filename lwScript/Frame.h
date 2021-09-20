@@ -6,7 +6,7 @@
 #include <sstream>
 #include <iomanip>
 #include "Object.h"
-namespace lwScript
+namespace lws
 {
 	enum OpCode
 	{
@@ -18,18 +18,18 @@ namespace lwScript
 		OP_SUB,
 		OP_MUL,
 		OP_DIV,
-		OP_GREATER,
-		OP_LESS,
-		OP_GREATER_EQUAL,
-		OP_LESS_EQUAL,
-		OP_EQUAL,
-		OP_NEQUAL,
-		OP_LOGIC_OR,
-		OP_LOGIC_AND,
+		OP_GT,
+		OP_LE,
+		OP_GTEQ,
+		OP_LEEQ,
+		OP_EQ,
+		OP_NEQ,
+		OP_OR,
+		OP_AND,
 		OP_GET_VAR,
 		OP_SET_VAR,
 		OP_DEFINE_VAR,
-		OP_ARRAY,
+		OP_DEFINE_ARRAY,
 		OP_GET_INDEX_VAR,
 		OP_SET_INDEX_VAR,
 		OP_ENTER_SCOPE,
@@ -151,26 +151,26 @@ namespace lwScript
 			case OP_DIV:
 				SINGLE_INSTR_STRINGIFY(OP_DIV);
 				break;
-			case OP_GREATER:
-				SINGLE_INSTR_STRINGIFY(OP_GREATER);
+			case OP_GT:
+				SINGLE_INSTR_STRINGIFY(OP_GT);
 				break;
-			case OP_LESS:
-				SINGLE_INSTR_STRINGIFY(OP_LESS);
+			case OP_LE:
+				SINGLE_INSTR_STRINGIFY(OP_LE);
 				break;
-			case OP_GREATER_EQUAL:
-				SINGLE_INSTR_STRINGIFY(OP_GREATER_EQUAL);
+			case OP_GTEQ:
+				SINGLE_INSTR_STRINGIFY(OP_GTEQ);
 				break;
-			case OP_LESS_EQUAL:
-				SINGLE_INSTR_STRINGIFY(OP_LESS_EQUAL);
+			case OP_LEEQ:
+				SINGLE_INSTR_STRINGIFY(OP_LEEQ);
 				break;
-			case OP_EQUAL:
-				SINGLE_INSTR_STRINGIFY(OP_EQUAL);
+			case OP_EQ:
+				SINGLE_INSTR_STRINGIFY(OP_EQ);
 				break;
-			case OP_LOGIC_AND:
-				SINGLE_INSTR_STRINGIFY(OP_LOGIC_AND);
+			case OP_AND:
+				SINGLE_INSTR_STRINGIFY(OP_AND);
 				break;
-			case OP_LOGIC_OR:
-				SINGLE_INSTR_STRINGIFY(OP_LOGIC_OR);
+			case OP_OR:
+				SINGLE_INSTR_STRINGIFY(OP_OR);
 				break;
 			case OP_GET_VAR:
 				SINGLE_INSTR_STRINGIFY(OP_GET_VAR);
@@ -181,8 +181,8 @@ namespace lwScript
 			case OP_SET_VAR:
 				SINGLE_INSTR_STRINGIFY(OP_SET_VAR);
 				break;
-			case OP_ARRAY:
-				SINGLE_INSTR_STRINGIFY(OP_ARRAY);
+			case OP_DEFINE_ARRAY:
+				SINGLE_INSTR_STRINGIFY(OP_DEFINE_ARRAY);
 				break;
 			case OP_GET_INDEX_VAR:
 				SINGLE_INSTR_STRINGIFY(OP_GET_INDEX_VAR);

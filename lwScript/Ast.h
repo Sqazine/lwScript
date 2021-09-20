@@ -4,7 +4,7 @@
 #include <unordered_map>
 #include <vector>
 #include <memory>
-namespace lwScript
+namespace lws
 {
 	enum class AstType
 	{
@@ -66,7 +66,7 @@ namespace lwScript
 		StrExpr() {}
 		StrExpr(std::string_view str) : value(str) {}
 
-		std::string Stringify() override { return "\""+value+"\""; }
+		std::string Stringify() override { return "\"" + value + "\""; }
 		AstType Type() override { return AstType::STR; }
 
 		std::string value;
@@ -83,8 +83,8 @@ namespace lwScript
 
 	struct BoolExpr : public Expr
 	{
-		BoolExpr():value(false) {}
-		BoolExpr(bool value):value(value) {}
+		BoolExpr() : value(false) {}
+		BoolExpr(bool value) : value(value) {}
 		~BoolExpr() {}
 
 		std::string Stringify() override { return value ? "true" : "false"; }
@@ -181,7 +181,6 @@ namespace lwScript
 		Expr *right;
 	};
 
-
 	struct IndexExpr : public Expr
 	{
 		IndexExpr() {}
@@ -204,7 +203,7 @@ namespace lwScript
 	struct FunctionCallExpr : public Expr
 	{
 		FunctionCallExpr() {}
-		FunctionCallExpr(IdentifierExpr*name, std::vector<Expr *> arguments) : name(name), arguments(arguments) {}
+		FunctionCallExpr(IdentifierExpr *name, std::vector<Expr *> arguments) : name(name), arguments(arguments) {}
 		~FunctionCallExpr() {}
 
 		std::string Stringify() override
@@ -314,7 +313,7 @@ namespace lwScript
 			std::string result;
 			result = "if(" + condition->Stringify() + ")" + thenBranch->Stringify();
 			if (elseBranch != nullptr)
-				result +="else"+ elseBranch->Stringify();
+				result += "else" + elseBranch->Stringify();
 			return result;
 		}
 		AstType Type() override { return AstType::IF; }
@@ -417,8 +416,7 @@ namespace lwScript
 		std::vector<Stmt *> stmts;
 	};
 
-
-	    static NilExpr *nilExpr = new NilExpr();
-    static BoolExpr *trueExpr = new BoolExpr(true);
-    static BoolExpr *falseExpr = new BoolExpr(false);
+	static NilExpr *nilExpr = new NilExpr();
+	static BoolExpr *trueExpr = new BoolExpr(true);
+	static BoolExpr *falseExpr = new BoolExpr(false);
 }

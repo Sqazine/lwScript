@@ -4,7 +4,7 @@
 #include "Ast.h"
 #include "Frame.h"
 #include "Object.h"
-namespace lwScript
+namespace lws
 {
 	enum ObjectState
 	{
@@ -277,7 +277,7 @@ namespace lwScript
 		frame.AddOpCode(OP_PUSH);
 		uint8_t offset = frame.AddObject(new NumObject((double)expr->elements.size()));
 		frame.AddOpCode(offset);
-		frame.AddOpCode(OP_ARRAY);
+		frame.AddOpCode(OP_DEFINE_ARRAY);
 	}
 
 	void Compiler::CompileIndexExpr(IndexExpr *expr, Frame &frame, ObjectState state)
@@ -338,21 +338,21 @@ namespace lwScript
 			else if (expr->op == "/")
 				frame.AddOpCode(OP_DIV);
 			else if (expr->op == "&&")
-				frame.AddOpCode(OP_LOGIC_AND);
+				frame.AddOpCode(OP_AND);
 			else if (expr->op == "||")
-				frame.AddOpCode(OP_LOGIC_OR);
+				frame.AddOpCode(OP_OR);
 			else if (expr->op == ">")
-				frame.AddOpCode(OP_GREATER);
+				frame.AddOpCode(OP_GT);
 			else if (expr->op == "<")
-				frame.AddOpCode(OP_LESS);
+				frame.AddOpCode(OP_LE);
 			else if (expr->op == ">=")
-				frame.AddOpCode(OP_GREATER_EQUAL);
+				frame.AddOpCode(OP_GTEQ);
 			else if (expr->op == "<=")
-				frame.AddOpCode(OP_LESS_EQUAL);
+				frame.AddOpCode(OP_LEEQ);
 			else if (expr->op == "==")
-				frame.AddOpCode(OP_EQUAL);
+				frame.AddOpCode(OP_EQ);
 			else if (expr->op == "!=")
-				frame.AddOpCode(OP_NEQUAL);
+				frame.AddOpCode(OP_NEQ);
 			else
 				Assert( "Unknown binary op:" + expr->op);
 		}

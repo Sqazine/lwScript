@@ -6,7 +6,7 @@
 #include "Token.h"
 #include "Ast.h"
 #include "Utils.h"
-namespace lwScript
+namespace lws
 {
 
 	enum class Precedence
