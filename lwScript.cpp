@@ -69,6 +69,7 @@ int main(int argc, char **argv)
 	else if (argc == 1)
 		Repl();
 	else
-		std::cout << "Usage: repl [filepath]" << std::endl;
+		std::cout << "Usage: lwScript [filepath]" << std::endl;
+
 	return 0;
 }

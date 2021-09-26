@@ -18,21 +18,28 @@ namespace lws
 
 	struct Object
 	{
-		Object() {}
+		Object() : marked(false), next(nullptr) {}
 		virtual ~Object() {}
 
 		virtual std::string Stringify() = 0;
 		virtual ObjectType Type() = 0;
+		virtual void Mark() = 0;
+		virtual void UnMark() = 0;
+
+		bool marked;
+		Object *next;
 	};
 
 	struct NumObject : public Object
 	{
-		NumObject() {}
+		NumObject() : value(0.0) {}
 		NumObject(double value) : value(value) {}
 		~NumObject() {}
 
 		std::string Stringify() override { return std::to_string(value); }
 		ObjectType Type() override { return ObjectType::NUM; }
+		void Mark() override { marked = true; }
+		void UnMark() override { marked = false; }
 
 		double value;
 	};
@@ -45,18 +52,22 @@ namespace lws
 
 		std::string Stringify() override { return value; }
 		ObjectType Type() override { return ObjectType::STR; }
+		void Mark() override { marked = true; }
+		void UnMark() override { marked = false; }
 
 		std::string value;
 	};
 
 	struct BoolObject : public Object
 	{
-		BoolObject() {}
+		BoolObject() : value(false) {}
 		BoolObject(bool value) : value(value) {}
 		~BoolObject() {}
 
 		std::string Stringify() override { return value ? "true" : "false"; }
 		ObjectType Type() override { return ObjectType::BOOL; }
+		void Mark() override { marked = true; }
+		void UnMark() override { marked = false; }
 
 		bool value;
 	};
@@ -68,6 +79,8 @@ namespace lws
 
 		std::string Stringify() override { return "nil"; }
 		ObjectType Type() override { return ObjectType::NIL; }
+		void Mark() override { marked = true; }
+		void UnMark() override { marked = false; }
 	};
 
 	struct ArrayObject : public Object
@@ -89,18 +102,38 @@ namespace lws
 			return result;
 		}
 		ObjectType Type() override { return ObjectType::ARRAY; }
+		void Mark() override
+		{
+			if (marked)
+				return;
+			marked = true;
+
+			for (const auto &e : elements)
+				e->Mark();
+		}
+		void UnMark() override
+		{
+			if (!marked)
+				return;
+			marked = false;
+
+			for (const auto &e : elements)
+				e->UnMark();
+		}
 
 		std::vector<Object *> elements;
 	};
 
 	struct FunctionObject : public Object
 	{
-		FunctionObject() {}
+		FunctionObject() : frameIndex(0) {}
 		FunctionObject(int64_t frameIndex) : frameIndex(frameIndex) {}
 		~FunctionObject() {}
 
 		std::string Stringify() override { return "function:" + std::to_string(frameIndex); }
 		ObjectType Type() override { return ObjectType::FUNCTION; }
+		void Mark() override { marked = true; }
+		void UnMark() override { marked = false; }
 
 		int64_t frameIndex;
 	};
@@ -113,14 +146,12 @@ namespace lws
 
 		std::string Stringify() override { return "native function:" + name; }
 		ObjectType Type() override { return ObjectType::NATIVEFUNCTION; }
+		void Mark() override { marked = true; }
+		void UnMark() override { marked = false; }
 
 		std::string name;
 		std::function<Object *(std::vector<Object *>)> function;
 	};
-
-	static BoolObject *trueObject = new BoolObject(true);
-	static BoolObject *falseObject = new BoolObject(false);
-	static NilObject *nilObject = new NilObject();
 
 #define TO_NUM_OBJ(obj) ((NumObject *)obj)
 #define TO_STR_OBJ(obj) ((StrObject *)obj)

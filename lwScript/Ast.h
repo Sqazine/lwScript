@@ -313,7 +313,7 @@ namespace lws
 			std::string result;
 			result = "if(" + condition->Stringify() + ")" + thenBranch->Stringify();
 			if (elseBranch != nullptr)
-				result += "else" + elseBranch->Stringify();
+				result += "else " + elseBranch->Stringify();
 			return result;
 		}
 		AstType Type() override { return AstType::IF; }
