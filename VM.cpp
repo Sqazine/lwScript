@@ -158,21 +158,6 @@ FunctionObject *VM::CreateFunctionObject(int64_t frameIndex)
 
 	return object;
 }
-NativeFunctionObject *VM::CreateNativeFunctionObject(std::string_view name, const std::function<Object *(std::vector<Object *>)> &function)
-{
-	if (curObjCount == maxObjCount)
-		Gc();
-
-	NativeFunctionObject *object = new NativeFunctionObject(name, function);
-	object->marked = false;
-
-	object->next = firstObject;
-	firstObject = object;
-
-	curObjCount++;
-
-	return object;
-}
 
 Object *VM::Execute(const Frame &frame)
 {

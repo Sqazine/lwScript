@@ -28,7 +28,6 @@ public:
 	NilObject *CreateNilObject();
 	ArrayObject *CreateArrayObject(const std::vector<Object *> &elements = {});
 	FunctionObject *CreateFunctionObject(int64_t frameIndex = 0);
-	NativeFunctionObject *CreateNativeFunctionObject(std::string_view name = "", const std::function<Object *(std::vector<Object *>)> &function = nullptr);
 
 	void Gc();
 
