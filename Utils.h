@@ -3,8 +3,7 @@
 #include <fstream>
 #include <sstream>
 #include <string_view>
-namespace lws
-{
+
     inline void Assert(std::string_view msg)
     {
         std::cout << msg << std::endl;
@@ -22,4 +21,3 @@ namespace lws
         sstream << file.rdbuf();
         return sstream.str();
     }
-}

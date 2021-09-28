@@ -1,15 +1,23 @@
 #include <string>
 #include <string_view>
-#include "lwScript/lwScript.h"
+
+#include "Ast.h"
+#include "Object.h"
+#include "Token.h"
+#include "Lexer.h"
+#include "Parser.h"
+#include "Compiler.h"
+#include "VM.h"
+#include "Utils.h"
 
 void Repl()
 {
 	std::string line;
-	lws::Lexer lexer;
-	lws::Parser parser;
-	lws::Compiler compiler;
-	lws::VM vm;
-	lws::Frame frame;
+	Lexer lexer;
+	Parser parser;
+	Compiler compiler;
+	VM vm;
+	Frame frame;
 	std::cout << "> ";
 	while (getline(std::cin, line))
 	{
@@ -39,12 +47,12 @@ void Repl()
 
 void RunFile(std::string path)
 {
-	std::string content = lws::ReadFile(path);
-	lws::Lexer lexer;
-	lws::Parser parser;
-	lws::Compiler compiler;
-	lws::VM vm;
-	lws::Frame frame;
+	std::string content = ReadFile(path);
+	Lexer lexer;
+	Parser parser;
+	Compiler compiler;
+	VM vm;
+	Frame frame;
 
 	auto tokens = lexer.ScanTokens(content);
 #ifdef _DEBUG
