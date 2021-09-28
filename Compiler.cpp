@@ -183,9 +183,10 @@ void Compiler::CompileStrExpr(StrExpr *expr, Frame &frame)
 
 void Compiler::CompileBoolExpr(BoolExpr *expr, Frame &frame)
 {
-	frame.AddOpCode(OP_BOOL);
-	uint8_t offset = frame.AddBoolean(expr->value);
-	frame.AddOpCode(offset);
+	if (expr->value)
+		frame.AddOpCode(OP_TRUE);
+	else
+		frame.AddOpCode(OP_FALSE);
 }
 
 void Compiler::CompileNilExpr(NilExpr *expr, Frame &frame)
@@ -215,10 +216,9 @@ void Compiler::CompileArrayExpr(ArrayExpr *expr, Frame &frame)
 	for (const auto &e : expr->elements)
 		CompileExpr(e, frame);
 
-	frame.AddOpCode(OP_NUM);
+	frame.AddOpCode(OP_DEFINE_ARRAY);
 	uint8_t offset = frame.AddNumber((double)expr->elements.size());
 	frame.AddOpCode(offset);
-	frame.AddOpCode(OP_DEFINE_ARRAY);
 }
 
 void Compiler::CompileIndexExpr(IndexExpr *expr, Frame &frame, ObjectState state)

@@ -22,12 +22,6 @@ uint8_t Frame::AddString(std::string_view value)
     return m_Strings.size() - 1;
 }
 
-uint8_t Frame::AddBoolean(bool value)
-{
-    m_Booleans.emplace_back(value);
-    return m_Booleans.size() - 1;
-}
-
 std::vector<double> &Frame::GetNumbers()
 {
     return m_Numbers;
@@ -79,8 +73,11 @@ std::string Frame::Stringify(int depth)
         case OP_STR:
             CONSTANT_INSTR_STRINGIFY(OP_STR, m_Strings);
             break;
-        case OP_BOOL:
-            CONSTANT_INSTR_STRINGIFY(OP_BOOL, m_Booleans);
+        case OP_TRUE:
+            SINGLE_INSTR_STRINGIFY(OP_TRUE);
+            break;
+        case OP_FALSE:
+            SINGLE_INSTR_STRINGIFY(OP_FALSE);
             break;
         case OP_NIL:
             SINGLE_INSTR_STRINGIFY(OP_NIL);
@@ -134,7 +131,7 @@ std::string Frame::Stringify(int depth)
             CONSTANT_INSTR_STRINGIFY(OP_SET_VAR, m_Strings);
             break;
         case OP_DEFINE_ARRAY:
-            SINGLE_INSTR_STRINGIFY(OP_DEFINE_ARRAY);
+            CONSTANT_INSTR_STRINGIFY(OP_DEFINE_ARRAY,m_Numbers);
             break;
         case OP_GET_INDEX_VAR:
             SINGLE_INSTR_STRINGIFY(OP_GET_INDEX_VAR);
@@ -170,6 +167,5 @@ void Frame::Clear()
     std::vector<uint8_t>().swap(m_Codes);
     std::vector<double>().swap(m_Numbers);
     std::vector<std::string>().swap(m_Strings);
-    std::deque<bool>().swap(m_Booleans);
     std::vector<Frame>().swap(m_FunctionFrames);
 }

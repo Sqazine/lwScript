@@ -12,7 +12,8 @@ enum OpCode
 {
 	OP_NUM,
 	OP_STR,
-	OP_BOOL,
+	OP_TRUE,
+	OP_FALSE,
 	OP_NIL,
 	OP_FUNCTION,
 	OP_NEG,
@@ -50,7 +51,6 @@ public:
 
 	uint8_t AddNumber(double value);
 	uint8_t AddString(std::string_view value);
-	uint8_t AddBoolean(bool value);
 
 	std::vector<double> &GetNumbers();
 
@@ -68,7 +68,6 @@ private:
 
 	std::vector<double> m_Numbers;
 	std::vector<std::string> m_Strings;
-	std::deque<bool> m_Booleans; //避免std::vector<bool>
 
 	std::vector<Frame> m_FunctionFrames;
 };

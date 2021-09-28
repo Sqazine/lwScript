@@ -229,8 +229,11 @@ Object *VM::Execute(const Frame &frame)
 		case OP_STR:
 			Push(CreateStrObject(frame.m_Strings[frame.m_Codes[++ip]]));
 			break;
-		case OP_BOOL:
-			Push(CreateBoolObject(frame.m_Booleans[frame.m_Codes[++ip]]));
+		case OP_TRUE:
+			Push(CreateBoolObject(true));
+			break;
+		case OP_FALSE:
+			Push(CreateBoolObject(false));
 			break;
 		case OP_NIL:
 			Push(CreateNilObject());
@@ -305,7 +308,7 @@ Object *VM::Execute(const Frame &frame)
 			//not variable
 			if (IS_NIL_OBJ(variableObject))
 			{
-				//search native xfunction
+				//search native function
 				variableObject = GetNativeFnObject(name);
 				if (IS_NIL_OBJ(variableObject))
 					Assert("No variable or function:" + std::string(name));
@@ -315,11 +318,11 @@ Object *VM::Execute(const Frame &frame)
 		}
 		case OP_DEFINE_ARRAY:
 		{
-			ArrayObject *arrayObject = new ArrayObject();
-			NumObject *arraySize = TO_NUM_OBJ(Pop());
-			for (int64_t i = 0; i < (int64_t)arraySize->value; ++i)
-				arrayObject->elements.insert(arrayObject->elements.begin(), Pop());
-			Push(arrayObject);
+			std::vector<Object *> elements;
+			int64_t arraySize = (int64_t)frame.m_Numbers[frame.m_Codes[++ip]];
+			for (int64_t i = 0; i < arraySize; ++i)
+				elements.insert(elements.begin(), Pop());
+			Push(CreateArrayObject(elements));
 			break;
 		}
 		case OP_GET_INDEX_VAR:
