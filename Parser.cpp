@@ -124,23 +124,13 @@ Stmt *Parser::ParseLetStmt()
 {
     Consume(TokenType::LET, "Expect 'let' key word");
     auto letStmt = new LetStmt();
-
-    //the first variable
+    
     auto identifier = new IdentifierExpr(Consume(TokenType::IDENTIFIER, "Expect valid identifier").literal);
     Expr *value = nilExpr;
     if (IsMatchCurTokenAndStepOnce(TokenType::EQUAL))
         value = ParseExpr();
-    letStmt->variables[identifier] = value;
-
-    //other variable
-    while (IsMatchCurTokenAndStepOnce(TokenType::COMMA))
-    {
-        identifier = new IdentifierExpr(Consume(TokenType::IDENTIFIER, "Expect valid identifier").literal);
-        Expr *value = nilExpr;
-        if (IsMatchCurTokenAndStepOnce(TokenType::EQUAL))
-            value = ParseExpr();
-        letStmt->variables[identifier] = value;
-    }
+    letStmt->name=identifier;
+    letStmt->initValue=value;
 
     Consume(TokenType::SEMICOLON, "Expect ';' after let stmt.");
 

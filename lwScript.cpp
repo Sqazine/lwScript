@@ -63,7 +63,7 @@ void RunFile(std::string path)
 #ifdef _DEBUG
 	std::cout << stmt->Stringify() << std::endl;
 #endif
-	frame = compiler.Compile(stmt);
+	stmt = nullptr;
 #ifdef _DEBUG
 	std::cout << frame.Stringify() << std::endl;
 #endif

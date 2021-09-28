@@ -66,11 +66,8 @@ void Compiler::CompileExprStmt(ExprStmt *stmt, Frame &frame)
 
 void Compiler::CompileLetStmt(LetStmt *stmt, Frame &frame)
 {
-	for (const auto &[key, value] : stmt->variables)
-	{
-		CompileExpr(value, frame);
-		CompileExpr(key, frame, INIT);
-	}
+	CompileExpr(stmt->initValue, frame);
+	CompileExpr(stmt->name, frame, INIT);
 }
 
 void Compiler::CompileScopeStmt(ScopeStmt *stmt, Frame &frame)
