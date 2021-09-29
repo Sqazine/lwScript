@@ -108,8 +108,10 @@ Stmt *Parser::ParseStmt()
         return ParseScopeStmt();
     else if (IsMatchCurToken(TokenType::WHILE))
         return ParseWhileStmt();
-    else if(IsMatchCurToken(TokenType::FUNCTION))
+    else if (IsMatchCurToken(TokenType::FUNCTION))
         return ParseFunctionStmt();
+    else if (IsMatchCurToken(TokenType::STRUCT))
+        return ParseStructStmt();
     else
         return ParseExprStmt();
 }
@@ -215,11 +217,28 @@ Stmt *Parser::ParseFunctionStmt()
             funcStmt->parameters.emplace_back(idenExpr);
         }
     }
-    Consume(TokenType::RPAREN, "Expect ')' after function expr's '('");
+    Consume(TokenType::RPAREN, "Expect ')' after function stmt's '('");
 
     funcStmt->body = (ScopeStmt *)ParseScopeStmt();
 
     return funcStmt;
+}
+
+Stmt* Parser::ParseStructStmt()
+{
+	Consume(TokenType::STRUCT, "Expect 'struct' keyword");
+
+	auto structStmt = new StructStmt();
+    structStmt->name = ((IdentifierExpr*)ParseIdentifierExpr())->literal;
+
+	Consume(TokenType::LBRACE, "Expect '{' after 'struct' keyword");
+
+	while (!IsMatchCurToken(TokenType::RBRACE))
+        structStmt->letStmts.emplace_back((LetStmt*)ParseLetStmt());
+
+	Consume(TokenType::RBRACE, "Expect '}' after struct stmt's '{'");
+
+	return structStmt;
 }
 
 Expr *Parser::ParseExpr(Precedence precedence)

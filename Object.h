@@ -3,6 +3,7 @@
 #include <string_view>
 #include <unordered_map>
 #include <functional>
+#include "Environment.h"
 
 enum class ObjectType
 {
@@ -11,6 +12,7 @@ enum class ObjectType
 	BOOL,
 	NIL,
 	ARRAY,
+	STRUCT
 };
 
 struct Object
@@ -24,7 +26,7 @@ struct Object
 	virtual void UnMark() = 0;
 
 	bool marked;
-	Object *next;
+	Object* next;
 };
 
 struct NumObject : public Object
@@ -83,7 +85,7 @@ struct NilObject : public Object
 struct ArrayObject : public Object
 {
 	ArrayObject() {}
-	ArrayObject(const std::vector<Object *> &elements) : elements(elements) {}
+	ArrayObject(const std::vector<Object*>& elements) : elements(elements) {}
 	~ArrayObject() {}
 
 	std::string Stringify() override
@@ -91,7 +93,7 @@ struct ArrayObject : public Object
 		std::string result = "[";
 		if (!elements.empty())
 		{
-			for (const auto &e : elements)
+			for (const auto& e : elements)
 				result += e->Stringify() + ",";
 			result = result.substr(0, result.size() - 1);
 		}
@@ -105,7 +107,7 @@ struct ArrayObject : public Object
 			return;
 		marked = true;
 
-		for (const auto &e : elements)
+		for (const auto& e : elements)
 			e->Mark();
 	}
 	void UnMark() override
@@ -114,11 +116,33 @@ struct ArrayObject : public Object
 			return;
 		marked = false;
 
-		for (const auto &e : elements)
+		for (const auto& e : elements)
 			e->UnMark();
 	}
 
-	std::vector<Object *> elements;
+	std::vector<Object*> elements;
+};
+
+struct StructObject :public Object
+{
+	StructObject() {}
+	StructObject(Environment* environment) : environment(environment) {}
+	~StructObject() {}
+
+	std::string Stringify() override
+	{
+		std::string result = "struct{";
+		if (!environment->m_Values.empty())
+			for (const auto& [key, value] : environment->m_Values)
+				result += key + "=" + value->Stringify() + "\n";
+		result += "}";
+		return result;
+	}
+	ObjectType Type() override { return ObjectType::STRUCT; }
+	void Mark() override { marked = true; }
+	void UnMark() override { marked = false; }
+
+	Environment* environment;
 };
 
 #define TO_NUM_OBJ(obj) ((NumObject *)obj)
@@ -126,9 +150,11 @@ struct ArrayObject : public Object
 #define TO_NIL_OBJ(obj) ((NilObject *)obj)
 #define TO_BOOL_OBJ(obj) ((BoolObject *)obj)
 #define TO_ARRAY_OBJ(obj) ((ArrayObject *)obj)
+#define TO_STRUCT_OBJ(obj) ((StructObject *)obj)
 
 #define IS_NUM_OBJ(obj) (obj->Type() == ObjectType::NUM)
 #define IS_STR_OBJ(obj) (obj->Type() == ObjectType::STR)
 #define IS_BOOL_OBJ(obj) (obj->Type() == ObjectType::BOOL)
 #define IS_NIL_OBJ(obj) (obj->Type() == ObjectType::NIL)
 #define IS_ARRAY_OBJ(obj) (obj->Type() == ObjectType::ARRAY)
+#define IS_STRUCT_OBJ(obj) (obj->Type() == ObjectType::STRUCT)

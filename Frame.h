@@ -33,6 +33,8 @@ enum OpCode
 	OP_SET_VAR,
 	OP_DEFINE_VAR,
 	OP_DEFINE_ARRAY,
+	OP_START_DEFINE_STRUCT,
+	OP_END_DEFINE_STRUCT,
 	OP_GET_INDEX_VAR,
 	OP_SET_INDEX_VAR,
 	OP_ENTER_SCOPE,
@@ -54,8 +56,8 @@ public:
 	std::vector<double> &GetNumbers();
 
 	void AddFunctionFrame(std::string_view name, const Frame &frame);
-	const Frame& GetFunrcionFrame(std::string_view name);
-	bool HasFunrcionFrame(std::string_view name);
+	const Frame& GetFunctionFrame(std::string_view name);
+	bool HasFunctionFrame(std::string_view name);
 
 	std::string Stringify(int depth = 0);
 

@@ -124,6 +124,22 @@ ArrayObject *VM::CreateArrayObject(const std::vector<Object *> &elements)
 	return object;
 }
 
+StructObject* VM::CreateStructObject(Environment* environment)
+{
+	if (curObjCount == maxObjCount)
+		Gc();
+
+	StructObject* object = new StructObject(environment);
+	object->marked = false;
+
+	object->next = firstObject;
+	firstObject = object;
+
+	curObjCount++;
+
+	return object;
+}
+
 Object *VM::Execute(Frame frame)
 {
 	// + - * /
@@ -262,6 +278,21 @@ Object *VM::Execute(Frame frame)
 			for (int64_t i = 0; i < arraySize; ++i)
 				elements.insert(elements.begin(), Pop());
 			Push(CreateArrayObject(elements));
+			break;
+		}
+		case OP_START_DEFINE_STRUCT:
+		{
+			m_Environment = new Environment(this, m_Environment);
+			break;
+		}
+		case OP_END_DEFINE_STRUCT:
+		{
+			Environment* tmp = m_Environment;
+			m_Environment = m_Environment->GetUpEnvironment();
+			tmp->m_UpEnvironment = nullptr;//avoid environment conflict
+			StructObject* structObject = CreateStructObject(tmp);
+			std::string structName = frame.m_Strings[frame.m_Codes[++ip]];
+			m_Environment->DefineVariable(structName, structObject);
 			break;
 		}
 		case OP_GET_INDEX_VAR:

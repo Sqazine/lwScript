@@ -27,6 +27,7 @@ enum class AstType
 	SCOPE,
 	WHILE,
 	FUNCTION,
+	STRUCT,
 	ASTSTMTS,
 };
 
@@ -373,6 +374,32 @@ struct FunctionStmt : public Stmt
 		std::vector<IdentifierExpr*> parameters;
 		ScopeStmt* body;
 	};
+struct StructStmt :public Stmt
+{
+	StructStmt() {}
+	StructStmt(std::string name, std::vector<LetStmt*> letStmts) : name(name),letStmts(letStmts) {}
+	~StructStmt()
+	{
+		std::vector<LetStmt*>().swap(letStmts);
+
+	}
+
+	std::string Stringify() override
+	{
+		std::string result = "struct " + name+"{\n";
+		if (!letStmts.empty())
+		{
+			for (auto letStmt : letStmts)
+				result += letStmt->Stringify() + "\n";
+			result = result.substr(0, result.size() - 1);
+		}
+		return result+"\n}";
+	}
+	AstType Type() override { return AstType::STRUCT; }
+
+	std::string name;
+	std::vector<LetStmt*> letStmts;
+};
 
 struct WhileStmt : public Stmt
 {

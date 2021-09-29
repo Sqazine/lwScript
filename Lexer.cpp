@@ -10,6 +10,7 @@ static std::unordered_map<std::string, TokenType> keywords =
         {"nil", TokenType::NIL},
         {"while", TokenType::WHILE},
         {"fn", TokenType::FUNCTION},
+        {"struct", TokenType::STRUCT},
         {"return", TokenType::RETURN},
 };
 
@@ -58,6 +59,9 @@ void Lexer::ScanToken()
         break;
     case '}':
         AddToken(TokenType::RBRACE);
+        break;
+    case '.':
+        AddToken(TokenType::DOT);
         break;
     case ',':
         AddToken(TokenType::COMMA);

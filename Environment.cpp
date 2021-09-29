@@ -1,6 +1,7 @@
 #include "Environment.h"
 #include "Utils.h"
 #include "VM.h"
+#include "Object.h"
 
 Environment::Environment(VM *vm) : m_VMHandle(vm), m_UpEnvironment(nullptr) {}
 Environment::Environment(VM *vm, Environment *upEnvironment) : m_VMHandle(vm), m_UpEnvironment(upEnvironment) {}

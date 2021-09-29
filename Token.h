@@ -9,6 +9,7 @@ enum class TokenType
 	NUMBER = 0,
 	STRING,
 	IDENTIFIER,
+	DOT,// .
 	COMMA,	   // ,
 	COLON,	   // :
 	SEMICOLON, // ;
@@ -39,6 +40,7 @@ enum class TokenType
 	NIL,	   // nil
 	WHILE,	   // while
 	FUNCTION,  // fn
+	STRUCT,// struct
 	RETURN,	   // return
 
 	UNKNOWN,
@@ -54,7 +56,7 @@ struct Token
 	uint64_t line;
 };
 
-inline std::ostream &operator<<(std::ostream &stream, const Token &token)
+inline std::ostream& operator<<(std::ostream& stream, const Token& token)
 {
 	return stream << token.literal << "," << token.line;
 }

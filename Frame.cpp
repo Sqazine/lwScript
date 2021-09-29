@@ -37,7 +37,7 @@ void Frame::AddFunctionFrame(std::string_view name, const Frame &frame)
     m_FunctionFrames[name.data()] = frame;
 }
 
-const Frame& Frame::GetFunrcionFrame(std::string_view name)
+const Frame& Frame::GetFunctionFrame(std::string_view name)
 {
     auto iter = m_FunctionFrames.find(name.data());
     if (iter != m_FunctionFrames.end())
@@ -45,7 +45,7 @@ const Frame& Frame::GetFunrcionFrame(std::string_view name)
     Assert(std::string("No function:") + name.data());
 }
 
-bool Frame::HasFunrcionFrame(std::string_view name)
+bool Frame::HasFunctionFrame(std::string_view name)
 {
 	auto iter = m_FunctionFrames.find(name.data());
     if (iter != m_FunctionFrames.end())
@@ -145,6 +145,12 @@ std::string Frame::Stringify(int depth)
             break;
         case OP_DEFINE_ARRAY:
             CONSTANT_INSTR_STRINGIFY(OP_DEFINE_ARRAY, m_Numbers);
+            break;
+        case OP_START_DEFINE_STRUCT:
+            SINGLE_INSTR_STRINGIFY(OP_START_DEFINE_STRUCT);
+            break;
+        case OP_END_DEFINE_STRUCT:
+            CONSTANT_INSTR_STRINGIFY(OP_END_DEFINE_STRUCT,m_Strings);
             break;
         case OP_GET_INDEX_VAR:
             SINGLE_INSTR_STRINGIFY(OP_GET_INDEX_VAR);

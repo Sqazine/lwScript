@@ -31,6 +31,7 @@ private:
 	void CompileIfStmt(IfStmt *stmt, Frame &frame);
 	void CompileWhileStmt(WhileStmt *stmt, Frame &frame);
 	void CompileFunctionStmt(FunctionStmt *stmt, Frame &frame);
+	void CompileStructStmt(StructStmt *stmt, Frame &frame);
 
 	void CompileExpr(Expr *expr, Frame &frame, ObjectState state = READ);
 	void CompileNumExpr(NumExpr *expr, Frame &frame);

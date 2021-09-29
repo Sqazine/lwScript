@@ -47,8 +47,11 @@ void Compiler::CompileStmt(Stmt *stmt, Frame &frame)
 	case AstType::WHILE:
 		CompileWhileStmt((WhileStmt *)stmt, frame);
 		break;
-			case AstType::FUNCTION:
+	case AstType::FUNCTION:
 		CompileFunctionStmt((FunctionStmt *)stmt, frame);
+		break;
+	case AstType::STRUCT:
+		CompileStructStmt((StructStmt*)stmt, frame);
 		break;
 	default:
 		break;
@@ -136,6 +139,19 @@ void Compiler::CompileFunctionStmt(FunctionStmt *stmt, Frame &frame)
 	functionFrame.AddOpCode(OP_EXIT_SCOPE);
 
 	frame.AddFunctionFrame(stmt->name,functionFrame);
+}
+
+void Compiler::CompileStructStmt(StructStmt* stmt, Frame& frame)
+{
+	frame.AddOpCode(OP_START_DEFINE_STRUCT);
+
+	for (const auto letStmt : stmt->letStmts)
+		CompileLetStmt(letStmt,frame);
+
+	frame.AddOpCode(OP_END_DEFINE_STRUCT);
+	uint8_t offset = frame.AddString(stmt->name);
+	frame.AddOpCode(offset);
+
 }
 
 void Compiler::CompileExpr(Expr *expr, Frame &frame, ObjectState state)
