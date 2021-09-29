@@ -19,6 +19,7 @@ enum class Precedence
 	MUL_DIV,	   // * /
 	INDEX,		   // []
 	FUNCTION_CALL, // ()
+	STRUCT_CALL,   // .
 
 };
 
@@ -46,6 +47,7 @@ private:
 	Stmt *ParseIfStmt();
 	Stmt *ParseScopeStmt();
 	Stmt *ParseWhileStmt();
+	Stmt *ParseFunctionStmt();
 
 	Expr *ParseExpr(Precedence precedence = Precedence::LOWEST);
 	Expr *ParseIdentifierExpr();
@@ -55,7 +57,6 @@ private:
 	Expr *ParseTrueExpr();
 	Expr *ParseFalseExpr();
 	Expr *ParseGroupExpr();
-	Expr *ParseFunctionExpr();
 	Expr *ParseArrayExpr();
 	Expr *ParsePrefixExpr();
 	Expr *ParseInfixExpr(Expr *prefixExpr);

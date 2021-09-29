@@ -2,6 +2,10 @@
 #include <array>
 #include <cstdint>
 #include <stack>
+#include <functional>
+#include <unordered_map>
+#include <string>
+#include <string_view>
 #include "Frame.h"
 #include "Object.h"
 #include "Utils.h"
@@ -17,32 +21,32 @@ public:
 	~VM();
 
 	void ResetStatus();
-	Object *Execute(const Frame &frame);
+	Object* Execute(Frame frame);
 
-	void AddNativeFnObject(NativeFunctionObject *fn);
-	Object *GetNativeFnObject(std::string_view fnName);
+	void AddNativeFunction(std::string_view name, std::function<Object* (std::vector<Object*> args)> fn);
+	std::function<Object* (std::vector<Object*> args)> GetNativeFunction(std::string_view fnName);
+	bool HasNativeFunction(std::string_view name);
 
-	NumObject *CreateNumObject(double value = 0.0);
-	StrObject *CreateStrObject(std::string_view value = "");
-	BoolObject *CreateBoolObject(bool value = false);
-	NilObject *CreateNilObject();
-	ArrayObject *CreateArrayObject(const std::vector<Object *> &elements = {});
-	FunctionObject *CreateFunctionObject(int64_t frameIndex = 0);
+	NumObject* CreateNumObject(double value = 0.0);
+	StrObject* CreateStrObject(std::string_view value = "");
+	BoolObject* CreateBoolObject(bool value = false);
+	NilObject* CreateNilObject();
+	ArrayObject* CreateArrayObject(const std::vector<Object*>& elements = {});
 
 	void Gc();
 
 private:
-	void Push(Object *object);
-	Object *Pop();
+	void Push(Object* object);
+	Object* Pop();
 
 	uint8_t sp;
-	std::array<Object *, STACK_MAX> m_Stack;
+	std::array<Object*, STACK_MAX> m_Stack;
 
-	Object *firstObject;
+	Object* firstObject;
 	int curObjCount;
 	int maxObjCount;
 
-	Environment *m_Environment;
+	Environment* m_Environment;
 
-	std::vector<NativeFunctionObject *> m_NativeFunctions;
+	std::unordered_map<std::string, std::function<Object* (std::vector<Object*>)>> m_NativeFunctions;
 };

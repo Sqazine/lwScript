@@ -1,5 +1,5 @@
 #include "Frame.h"
-
+#include "Utils.h"
 void Frame::AddOpCode(uint8_t code)
 {
     m_Codes.emplace_back(code);
@@ -27,14 +27,30 @@ std::vector<double> &Frame::GetNumbers()
     return m_Numbers;
 }
 
-void Frame::AddFunctionFrame(const Frame &frame)
+void Frame::AddFunctionFrame(std::string_view name, const Frame &frame)
 {
-    m_FunctionFrames.emplace_back(frame);
+    auto iter = m_FunctionFrames.find(name.data());
+
+    if (iter != m_FunctionFrames.end())
+        Assert(std::string("Redefinition function:") + name.data());
+
+    m_FunctionFrames[name.data()] = frame;
 }
 
-size_t Frame::GetFunctionFrameSize() const
+const Frame& Frame::GetFunrcionFrame(std::string_view name)
 {
-    return m_FunctionFrames.size();
+    auto iter = m_FunctionFrames.find(name.data());
+    if (iter != m_FunctionFrames.end())
+        return iter->second;
+    Assert(std::string("No function:") + name.data());
+}
+
+bool Frame::HasFunrcionFrame(std::string_view name)
+{
+	auto iter = m_FunctionFrames.find(name.data());
+    if (iter != m_FunctionFrames.end())
+        return true;
+    return false;
 }
 
 std::string Frame::Stringify(int depth)
@@ -51,10 +67,10 @@ std::string Frame::Stringify(int depth)
 
     std::stringstream result;
 
-    for (size_t i = 0; i < m_FunctionFrames.size(); ++i)
+    for (auto [key, value] : m_FunctionFrames)
     {
-        result << interval << "Frame " << i << ":\n";
-        result << m_FunctionFrames[i].Stringify(depth + 1);
+        result << interval << "Frame " << key << ":\n";
+        result << value.Stringify(depth + 1);
     }
 
     result << interval << "Frame root:\n"
@@ -81,9 +97,6 @@ std::string Frame::Stringify(int depth)
             break;
         case OP_NIL:
             SINGLE_INSTR_STRINGIFY(OP_NIL);
-            break;
-        case OP_FUNCTION:
-            CONSTANT_INSTR_STRINGIFY(OP_FUNCTION, m_Numbers);
             break;
         case OP_NEG:
             SINGLE_INSTR_STRINGIFY(OP_NEG);
@@ -131,7 +144,7 @@ std::string Frame::Stringify(int depth)
             CONSTANT_INSTR_STRINGIFY(OP_SET_VAR, m_Strings);
             break;
         case OP_DEFINE_ARRAY:
-            CONSTANT_INSTR_STRINGIFY(OP_DEFINE_ARRAY,m_Numbers);
+            CONSTANT_INSTR_STRINGIFY(OP_DEFINE_ARRAY, m_Numbers);
             break;
         case OP_GET_INDEX_VAR:
             SINGLE_INSTR_STRINGIFY(OP_GET_INDEX_VAR);
@@ -152,7 +165,7 @@ std::string Frame::Stringify(int depth)
             CONSTANT_INSTR_STRINGIFY(OP_JUMP_IF_FALSE, m_Numbers);
             break;
         case OP_FUNCTION_CALL:
-            SINGLE_INSTR_STRINGIFY(OP_FUNCTION_CALL);
+            CONSTANT_INSTR_STRINGIFY(OP_FUNCTION_CALL,m_Strings);
             break;
         default:
             SINGLE_INSTR_STRINGIFY(UNKNOWN);
@@ -167,5 +180,5 @@ void Frame::Clear()
     std::vector<uint8_t>().swap(m_Codes);
     std::vector<double>().swap(m_Numbers);
     std::vector<std::string>().swap(m_Strings);
-    std::vector<Frame>().swap(m_FunctionFrames);
+    std::unordered_map<std::string, Frame>().swap(m_FunctionFrames);
 }

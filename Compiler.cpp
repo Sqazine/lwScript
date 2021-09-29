@@ -47,6 +47,9 @@ void Compiler::CompileStmt(Stmt *stmt, Frame &frame)
 	case AstType::WHILE:
 		CompileWhileStmt((WhileStmt *)stmt, frame);
 		break;
+			case AstType::FUNCTION:
+		CompileFunctionStmt((FunctionStmt *)stmt, frame);
+		break;
 	default:
 		break;
 	}
@@ -119,6 +122,22 @@ void Compiler::CompileWhileStmt(WhileStmt *stmt, Frame &frame)
 	frame.GetNumbers()[jmpIfFalseOffset] = (double)frame.GetOpCodeSize() - 1.0;
 }
 
+void Compiler::CompileFunctionStmt(FunctionStmt *stmt, Frame &frame)
+{
+	Frame functionFrame;
+
+	functionFrame.AddOpCode(OP_ENTER_SCOPE);
+
+	for (int64_t i = stmt->parameters.size() - 1; i >= 0; --i)
+		CompileIdentifierExpr(stmt->parameters[i], functionFrame, INIT);
+
+	CompileScopeStmt(stmt->body, functionFrame);
+
+	functionFrame.AddOpCode(OP_EXIT_SCOPE);
+
+	frame.AddFunctionFrame(stmt->name,functionFrame);
+}
+
 void Compiler::CompileExpr(Expr *expr, Frame &frame, ObjectState state)
 {
 	switch (expr->Type())
@@ -146,9 +165,6 @@ void Compiler::CompileExpr(Expr *expr, Frame &frame, ObjectState state)
 		break;
 	case AstType::INDEX:
 		CompileIndexExpr((IndexExpr *)expr, frame, state);
-		break;
-	case AstType::FUNCTION:
-		CompileFunctionExpr((FunctionExpr *)expr, frame);
 		break;
 	case AstType::PREFIX:
 		CompilePrefixExpr((PrefixExpr *)expr, frame);
@@ -228,26 +244,6 @@ void Compiler::CompileIndexExpr(IndexExpr *expr, Frame &frame, ObjectState state
 		frame.AddOpCode(OP_SET_INDEX_VAR);
 }
 
-void Compiler::CompileFunctionExpr(FunctionExpr *expr, Frame &frame)
-{
-	Frame functionFrame;
-
-	functionFrame.AddOpCode(OP_ENTER_SCOPE);
-
-	for (int64_t i = expr->parameters.size() - 1; i >= 0; --i)
-		CompileIdentifierExpr(expr->parameters[i], functionFrame, INIT);
-
-	CompileScopeStmt(expr->body, functionFrame);
-
-	functionFrame.AddOpCode(OP_EXIT_SCOPE);
-
-	frame.AddFunctionFrame(functionFrame);
-
-	frame.AddOpCode(OP_FUNCTION);
-	uint8_t offset = frame.AddNumber((double)frame.GetFunctionFrameSize() - 1.0);
-	frame.AddOpCode(offset);
-}
-
 void Compiler::CompilePrefixExpr(PrefixExpr *expr, Frame &frame)
 {
 	CompileExpr(expr->right, frame);
@@ -300,7 +296,6 @@ void Compiler::CompileFunctionCallExpr(FunctionCallExpr *expr, Frame &frame)
 {
 	for (const auto &arg : expr->arguments)
 		CompileExpr(arg, frame);
-	CompileExpr(expr->name, frame);
 
 	//argument count
 	frame.AddOpCode(OP_NUM);
@@ -308,4 +303,6 @@ void Compiler::CompileFunctionCallExpr(FunctionCallExpr *expr, Frame &frame)
 	frame.AddOpCode(offset);
 
 	frame.AddOpCode(OP_FUNCTION_CALL);
+	offset = frame.AddString(expr->name);
+	frame.AddOpCode(offset);
 }

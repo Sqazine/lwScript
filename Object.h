@@ -11,8 +11,6 @@ enum class ObjectType
 	BOOL,
 	NIL,
 	ARRAY,
-	FUNCTION,
-	NATIVEFUNCTION,
 };
 
 struct Object
@@ -123,47 +121,14 @@ struct ArrayObject : public Object
 	std::vector<Object *> elements;
 };
 
-struct FunctionObject : public Object
-{
-	FunctionObject() : frameIndex(0) {}
-	FunctionObject(int64_t frameIndex) : frameIndex(frameIndex) {}
-	~FunctionObject() {}
-
-	std::string Stringify() override { return "function:" + std::to_string(frameIndex); }
-	ObjectType Type() override { return ObjectType::FUNCTION; }
-	void Mark() override { marked = true; }
-	void UnMark() override { marked = false; }
-
-	int64_t frameIndex;
-};
-
-struct NativeFunctionObject : public Object
-{
-	NativeFunctionObject() {}
-	NativeFunctionObject(std::string_view name, std::function<Object *(std::vector<Object *>)> function) : name(name), function(function) {}
-	~NativeFunctionObject() {}
-
-	std::string Stringify() override { return "native function:" + name; }
-	ObjectType Type() override { return ObjectType::NATIVEFUNCTION; }
-	void Mark() override { marked = true; }
-	void UnMark() override { marked = false; }
-
-	std::string name;
-	std::function<Object *(std::vector<Object *>)> function;
-};
-
 #define TO_NUM_OBJ(obj) ((NumObject *)obj)
 #define TO_STR_OBJ(obj) ((StrObject *)obj)
 #define TO_NIL_OBJ(obj) ((NilObject *)obj)
 #define TO_BOOL_OBJ(obj) ((BoolObject *)obj)
 #define TO_ARRAY_OBJ(obj) ((ArrayObject *)obj)
-#define TO_FUNCTION_OBJ(obj) ((FunctionObject *)obj)
-#define TO_NATIVE_FUNCTION_OBJ(obj) ((NativeFunctionObject *)obj)
 
 #define IS_NUM_OBJ(obj) (obj->Type() == ObjectType::NUM)
 #define IS_STR_OBJ(obj) (obj->Type() == ObjectType::STR)
 #define IS_BOOL_OBJ(obj) (obj->Type() == ObjectType::BOOL)
 #define IS_NIL_OBJ(obj) (obj->Type() == ObjectType::NIL)
 #define IS_ARRAY_OBJ(obj) (obj->Type() == ObjectType::ARRAY)
-#define IS_FUNCTION_OBJ(obj) (obj->Type() == ObjectType::FUNCTION)
-#define IS_NATIVE_FUNCTION_OBJ(obj) (obj->Type() == ObjectType::NATIVEFUNCTION)

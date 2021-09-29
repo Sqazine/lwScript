@@ -14,7 +14,6 @@ enum class AstType
 	BOOL,
 	IDENTIFIER,
 	GROUP,
-	FUNCTION,
 	ARRAY,
 	PREFIX,
 	INFIX,
@@ -27,6 +26,7 @@ enum class AstType
 	IF,
 	SCOPE,
 	WHILE,
+	FUNCTION,
 	ASTSTMTS,
 };
 
@@ -202,12 +202,12 @@ struct IndexExpr : public Expr
 struct FunctionCallExpr : public Expr
 {
 	FunctionCallExpr() {}
-	FunctionCallExpr(IdentifierExpr *name, std::vector<Expr *> arguments) : name(name), arguments(arguments) {}
+	FunctionCallExpr(std::string name, std::vector<Expr *> arguments) : name(name), arguments(arguments) {}
 	~FunctionCallExpr() {}
 
 	std::string Stringify() override
 	{
-		std::string result = name->Stringify() + "(";
+		std::string result = name+ "(";
 
 		if (!arguments.empty())
 		{
@@ -220,7 +220,7 @@ struct FunctionCallExpr : public Expr
 	}
 	AstType Type() override { return AstType::FUNCTION_CALL; }
 
-	Expr *name;
+	std::string name;
 	std::vector<Expr *> arguments;
 };
 
@@ -342,35 +342,37 @@ struct ScopeStmt : public Stmt
 	std::vector<Stmt *> stmts;
 };
 
-struct FunctionExpr : public Expr
-{
-	FunctionExpr() : body(nullptr) {}
-	FunctionExpr(std::vector<IdentifierExpr *> parameters, ScopeStmt *body) : parameters(parameters), body(body) {}
-	~FunctionExpr()
+struct FunctionStmt : public Stmt
 	{
-		std::vector<IdentifierExpr *>().swap(parameters);
-		delete body;
-		body = nullptr;
-	}
-
-	std::string Stringify() override
-	{
-		std::string result = "fn(";
-		if (!parameters.empty())
+		FunctionStmt() : body(nullptr) {}
+		FunctionStmt(std::string name, std::vector<IdentifierExpr*> parameters, ScopeStmt* body) : name(name), parameters(parameters), body(body) {}
+		~FunctionStmt()
 		{
-			for (auto param : parameters)
-				result += param->Stringify() + ",";
-			result = result.substr(0, result.size() - 1);
-		}
-		result += ")";
-		result += body->Stringify();
-		return result;
-	}
-	AstType Type() override { return AstType::FUNCTION; }
+			std::vector<IdentifierExpr*>().swap(parameters);
 
-	std::vector<IdentifierExpr *> parameters;
-	ScopeStmt *body;
-};
+			delete body;
+			body = nullptr;
+		}
+
+		std::string Stringify() override
+		{
+			std::string result = "function " + name + "(";
+			if (!parameters.empty())
+			{
+				for (auto param : parameters)
+					result += param->Stringify() + ",";
+				result = result.substr(0, result.size() - 1);
+			}
+			result += ")";
+			result += body->Stringify();
+			return result;
+		}
+		AstType Type() override { return AstType::FUNCTION; }
+
+		std::string name;
+		std::vector<IdentifierExpr*> parameters;
+		ScopeStmt* body;
+	};
 
 struct WhileStmt : public Stmt
 {

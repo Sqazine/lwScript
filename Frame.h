@@ -15,7 +15,6 @@ enum OpCode
 	OP_TRUE,
 	OP_FALSE,
 	OP_NIL,
-	OP_FUNCTION,
 	OP_NEG,
 	OP_RETURN,
 	OP_ADD,
@@ -54,8 +53,9 @@ public:
 
 	std::vector<double> &GetNumbers();
 
-	void AddFunctionFrame(const Frame &frame);
-	size_t GetFunctionFrameSize() const;
+	void AddFunctionFrame(std::string_view name, const Frame &frame);
+	const Frame& GetFunrcionFrame(std::string_view name);
+	bool HasFunrcionFrame(std::string_view name);
 
 	std::string Stringify(int depth = 0);
 
@@ -69,5 +69,5 @@ private:
 	std::vector<double> m_Numbers;
 	std::vector<std::string> m_Strings;
 
-	std::vector<Frame> m_FunctionFrames;
+	std::unordered_map<std::string,Frame> m_FunctionFrames;
 };

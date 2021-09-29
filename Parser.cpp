@@ -13,7 +13,6 @@ Parser::Parser()
             {TokenType::FALSE, &Parser::ParseFalseExpr},
             {TokenType::MINUS, &Parser::ParsePrefixExpr},
             {TokenType::LPAREN, &Parser::ParseGroupExpr},
-            {TokenType::FUNCTION, &Parser::ParseFunctionExpr},
             {TokenType::LBRACKET, &Parser::ParseArrayExpr},
 
         };
@@ -109,6 +108,8 @@ Stmt *Parser::ParseStmt()
         return ParseScopeStmt();
     else if (IsMatchCurToken(TokenType::WHILE))
         return ParseWhileStmt();
+    else if(IsMatchCurToken(TokenType::FUNCTION))
+        return ParseFunctionStmt();
     else
         return ParseExprStmt();
 }
@@ -195,6 +196,32 @@ Stmt *Parser::ParseWhileStmt()
     return whileStmt;
 }
 
+Stmt *Parser::ParseFunctionStmt()
+{
+    Consume(TokenType::FUNCTION, "Expect 'fn' keyword");
+    
+    auto funcStmt = new FunctionStmt();
+    funcStmt->name = ((IdentifierExpr *)ParseIdentifierExpr())->literal;
+
+    Consume(TokenType::LPAREN, "Expect '(' after 'fn' keyword");
+
+    if (!IsMatchCurToken(TokenType::RPAREN)) //has parameter
+    {
+        IdentifierExpr *idenExpr = (IdentifierExpr *)ParseIdentifierExpr();
+        funcStmt->parameters.emplace_back(idenExpr);
+        while (IsMatchCurTokenAndStepOnce(TokenType::COMMA))
+        {
+            idenExpr = (IdentifierExpr *)ParseIdentifierExpr();
+            funcStmt->parameters.emplace_back(idenExpr);
+        }
+    }
+    Consume(TokenType::RPAREN, "Expect ')' after function expr's '('");
+
+    funcStmt->body = (ScopeStmt *)ParseScopeStmt();
+
+    return funcStmt;
+}
+
 Expr *Parser::ParseExpr(Precedence precedence)
 {
     if (m_PrefixFunctions.find(GetCurToken().type) == m_PrefixFunctions.end())
@@ -260,29 +287,6 @@ Expr *Parser::ParseGroupExpr()
     return groupExpr;
 }
 
-Expr *Parser::ParseFunctionExpr()
-{
-    Consume(TokenType::FUNCTION, "Expect 'function' keyword");
-    Consume(TokenType::LPAREN, "Expect '(' after 'function' keyword");
-    auto funcExpr = new FunctionExpr();
-
-    if (!IsMatchCurToken(TokenType::RPAREN)) //has parameter
-    {
-        IdentifierExpr *idenExpr = (IdentifierExpr *)ParseIdentifierExpr();
-        funcExpr->parameters.emplace_back(idenExpr);
-        while (IsMatchCurTokenAndStepOnce(TokenType::COMMA))
-        {
-            idenExpr = (IdentifierExpr *)ParseIdentifierExpr();
-            funcExpr->parameters.emplace_back(idenExpr);
-        }
-    }
-    Consume(TokenType::RPAREN, "Expect ')' after function expr's '('");
-
-    funcExpr->body = (ScopeStmt *)ParseScopeStmt();
-
-    return funcExpr;
-}
-
 Expr *Parser::ParseArrayExpr()
 {
     Consume(TokenType::LBRACKET, "Expect '['.");
@@ -332,7 +336,7 @@ Expr *Parser::ParseFunctionCallExpr(Expr *prefixExpr)
 {
     auto funcCallExpr = new FunctionCallExpr();
 
-    funcCallExpr->name = prefixExpr;
+    funcCallExpr->name = ((IdentifierExpr*)prefixExpr)->literal;
     Consume(TokenType::LPAREN, "Expect '('.");
     if (!IsMatchCurToken(TokenType::RPAREN)) //has arguments
     {

@@ -5,37 +5,35 @@ VM::VM()
 {
 	ResetStatus();
 
-	m_NativeFunctions =
+	m_NativeFunctions["println"] =
+		[this](std::vector<Object*> args) -> Object*
+	{
+		if (args.empty())
+			return CreateNilObject();
+
+		if (args[0]->Type() != ObjectType::STR)
+			Assert("Invalid argument:The first argument of native print fn must be string type.");
+		if (args.size() == 1)
+			std::cout << args[0]->Stringify() << std::endl;
+		else //formatting output
 		{
-			new NativeFunctionObject("println", [this](std::vector<Object *> args) -> Object *
-									 {
-										 if (args.empty())
-											 return CreateNilObject();
+			std::string content = TO_STR_OBJ(args[0])->value;
 
-										 if (args[0]->Type() != ObjectType::STR)
-											 Assert("Invalid argument:The first argument of native print fn must be string type.");
-										 if (args.size() == 1)
-											 std::cout << args[0]->Stringify() << std::endl;
-										 else //formatting output
-										 {
-											 std::string content = TO_STR_OBJ(args[0])->value;
+			int32_t pos = content.find("{}");
+			int32_t argpos = 1;
+			while (pos != std::string::npos)
+			{
+				if (argpos < args.size())
+					content.replace(pos, 2, args[argpos++]->Stringify());
+				else
+					content.replace(pos, 2, "nil");
+				pos = content.find("{}");
+			}
 
-											 int32_t pos = content.find("{}");
-											 int32_t argpos = 1;
-											 while (pos != std::string::npos)
-											 {
-												 if (argpos < args.size())
-													 content.replace(pos, 2, args[argpos++]->Stringify());
-												 else
-													 content.replace(pos, 2, "nil");
-												 pos = content.find("{}");
-											 }
-
-											 std::cout << content << std::endl;
-										 }
-										 return CreateNilObject();
-									 }),
-		};
+			std::cout << content << std::endl;
+		}
+		return CreateNilObject();
+	};
 }
 VM::~VM()
 {
@@ -46,23 +44,6 @@ VM::~VM()
 	}
 	sp = 0;
 	Gc();
-}
-
-void VM::AddNativeFnObject(NativeFunctionObject *fn)
-{
-	for (const auto &f : m_NativeFunctions)
-		if (f->name == fn->name)
-			std::cout << "Redefinite native function:" << fn->name;
-	m_NativeFunctions.emplace_back(fn);
-}
-
-Object *VM::GetNativeFnObject(std::string_view fnName)
-{
-	for (const auto &fnObj : m_NativeFunctions)
-		if (fnObj->name == fnName)
-			return fnObj;
-
-	return CreateNilObject();
 }
 
 NumObject *VM::CreateNumObject(double value)
@@ -143,23 +124,7 @@ ArrayObject *VM::CreateArrayObject(const std::vector<Object *> &elements)
 	return object;
 }
 
-FunctionObject *VM::CreateFunctionObject(int64_t frameIndex)
-{
-	if (curObjCount == maxObjCount)
-		Gc();
-
-	FunctionObject *object = new FunctionObject(frameIndex);
-	object->marked = false;
-
-	object->next = firstObject;
-	firstObject = object;
-
-	curObjCount++;
-
-	return object;
-}
-
-Object *VM::Execute(const Frame &frame)
+Object *VM::Execute(Frame frame)
 {
 	// + - * /
 #define COMMON_BINARY(op)                                                                  \
@@ -222,9 +187,6 @@ Object *VM::Execute(const Frame &frame)
 			break;
 		case OP_NIL:
 			Push(CreateNilObject());
-			break;
-		case OP_FUNCTION:
-			Push(CreateFunctionObject(frame.m_Numbers[frame.m_Codes[++ip]]));
 			break;
 		case OP_NEG:
 		{
@@ -290,14 +252,6 @@ Object *VM::Execute(const Frame &frame)
 		{
 			std::string name = frame.m_Strings[frame.m_Codes[++ip]];
 			Object *variableObject = m_Environment->GetVariable(name);
-			//not variable
-			if (IS_NIL_OBJ(variableObject))
-			{
-				//search native function
-				variableObject = GetNativeFnObject(name);
-				if (IS_NIL_OBJ(variableObject))
-					Assert("No variable or function:" + std::string(name));
-			}
 			Push(variableObject);
 			break;
 		}
@@ -384,27 +338,20 @@ Object *VM::Execute(const Frame &frame)
 		case OP_FUNCTION_CALL:
 		{
 			NumObject *argCount = TO_NUM_OBJ(Pop());
-			Object *fn = Pop();
-			if (IS_STR_OBJ(fn))
-				fn = m_Environment->GetVariable(TO_STR_OBJ(fn)->value);
 
-			if (IS_FUNCTION_OBJ(fn))
-				Push(Execute(frame.m_FunctionFrames[TO_FUNCTION_OBJ(fn)->frameIndex]));
-			else if (IS_NATIVE_FUNCTION_OBJ(fn))
+			std::string fnName = frame.m_Strings[frame.m_Codes[++ip]];
+
+			if (frame.HasFunrcionFrame(fnName))
+				Push(Execute(frame.GetFunrcionFrame(fnName)));
+			else if (HasNativeFunction(fnName))
 			{
-				std::vector<Object *> args;
+				std::vector<Object*> args;
 				for (size_t i = 0; i < argCount->value; ++i)
 					args.insert(args.begin(), Pop());
-
-				Object *natFnObj = GetNativeFnObject(TO_STR_OBJ(fn)->value);
-
-				if (IS_NIL_OBJ(natFnObj))
-					Assert("No native function:" + TO_STR_OBJ(fn)->value);
-
-				Push(TO_NATIVE_FUNCTION_OBJ(natFnObj)->function(args));
+				Push(GetNativeFunction(fnName)(args));
 			}
 			else
-				Assert("No function:" + fn->Stringify());
+				Assert("No function:" + fnName);
 			break;
 		}
 		default:
@@ -413,6 +360,27 @@ Object *VM::Execute(const Frame &frame)
 	}
 
 	return CreateNilObject();
+}
+void VM::AddNativeFunction(std::string_view name, std::function<Object* (std::vector<Object*>args)> fn)
+{
+	auto iter = m_NativeFunctions.find(name.data());
+	if (iter != m_NativeFunctions.end())
+		Assert(std::string("Already exists native function:") + name.data());
+	m_NativeFunctions[name.data()] = fn;
+}
+std::function<Object* (std::vector<Object*>args)> VM::GetNativeFunction(std::string_view fnName)
+{
+	auto iter = m_NativeFunctions.find(fnName.data());
+	if (iter != m_NativeFunctions.end())
+		return iter->second;
+	Assert(std::string("No native function:") + fnName.data());
+}
+bool VM::HasNativeFunction(std::string_view name)
+{
+	auto iter = m_NativeFunctions.find(name.data());
+	if (iter != m_NativeFunctions.end())
+		return true;
+	return false;
 }
 void VM::ResetStatus()
 {
