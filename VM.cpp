@@ -341,8 +341,8 @@ Object *VM::Execute(Frame frame)
 
 			std::string fnName = frame.m_Strings[frame.m_Codes[++ip]];
 
-			if (frame.HasFunrcionFrame(fnName))
-				Push(Execute(frame.GetFunrcionFrame(fnName)));
+			if (frame.HasFunctionFrame(fnName))
+				Push(Execute(frame.GetFunctionFrame(fnName)));
 			else if (HasNativeFunction(fnName))
 			{
 				std::vector<Object*> args;
