@@ -143,14 +143,18 @@ void Compiler::CompileFunctionStmt(FunctionStmt *stmt, Frame &frame)
 
 void Compiler::CompileStructStmt(StructStmt* stmt, Frame& frame)
 {
-	frame.AddOpCode(OP_START_DEFINE_STRUCT);
+	Frame structFrame;
+
+	structFrame.AddOpCode(OP_ENTER_SCOPE);
 
 	for (const auto letStmt : stmt->letStmts)
-		CompileLetStmt(letStmt,frame);
+		CompileLetStmt(letStmt, structFrame);
 
-	frame.AddOpCode(OP_END_DEFINE_STRUCT);
-	uint8_t offset = frame.AddString(stmt->name);
-	frame.AddOpCode(offset);
+	structFrame.AddOpCode(OP_DEFINE_STRUCT);
+
+	structFrame.AddOpCode(OP_RETURN);
+
+	frame.AddStructFrame(stmt->name, structFrame);
 
 }
 

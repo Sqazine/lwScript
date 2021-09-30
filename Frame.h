@@ -33,8 +33,7 @@ enum OpCode
 	OP_SET_VAR,
 	OP_DEFINE_VAR,
 	OP_DEFINE_ARRAY,
-	OP_START_DEFINE_STRUCT,
-	OP_END_DEFINE_STRUCT,
+	OP_DEFINE_STRUCT,
 	OP_GET_INDEX_VAR,
 	OP_SET_INDEX_VAR,
 	OP_ENTER_SCOPE,
@@ -59,6 +58,10 @@ public:
 	const Frame& GetFunctionFrame(std::string_view name);
 	bool HasFunctionFrame(std::string_view name);
 
+	void AddStructFrame(std::string_view name, const Frame& frame);
+	const Frame& GetStructFrame(std::string_view name);
+	bool HasStructFrame(std::string_view name);
+
 	std::string Stringify(int depth = 0);
 
 	void Clear();
@@ -72,4 +75,5 @@ private:
 	std::vector<std::string> m_Strings;
 
 	std::unordered_map<std::string,Frame> m_FunctionFrames;
+	std::unordered_map<std::string,Frame> m_StructFrames;
 };

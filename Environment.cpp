@@ -49,7 +49,7 @@ Object *Environment::GetVariable(std::string_view name)
     if (m_UpEnvironment != nullptr)
         return m_UpEnvironment->GetVariable(name);
 
-    return m_VMHandle->CreateNilObject();
+    return nullptr;
 }
 
 Environment *Environment::GetUpEnvironment()

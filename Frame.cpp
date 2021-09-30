@@ -53,6 +53,33 @@ bool Frame::HasFunctionFrame(std::string_view name)
     return false;
 }
 
+void Frame::AddStructFrame(std::string_view name, const Frame& frame)
+{
+	auto iter = m_StructFrames.find(name.data());
+
+	if (iter != m_StructFrames.end())
+		Assert(std::string("Redefinition struct:") + name.data());
+
+    m_StructFrames[name.data()] = frame;
+}
+
+const Frame& Frame::GetStructFrame(std::string_view name)
+{
+	auto iter = m_StructFrames.find(name.data());
+	if (iter != m_StructFrames.end())
+		return iter->second;
+	Assert(std::string("No function:") + name.data());
+}
+
+bool Frame::HasStructFrame(std::string_view name)
+{
+	auto iter = m_StructFrames.find(name.data());
+	if (iter != m_StructFrames.end())
+		return true;
+	return false;
+}
+
+
 std::string Frame::Stringify(int depth)
 {
     std::string interval;
@@ -66,6 +93,12 @@ std::string Frame::Stringify(int depth)
     result << interval << "\t" << std::setfill('0') << std::setw(8) << i << "     " << (#op) << "     " << std::to_string(m_Codes[++i]) << "    " << vec[m_Codes[i]] << "\n"
 
     std::stringstream result;
+
+	for (auto [key, value] : m_StructFrames)
+	{
+		result << interval << "Frame " << key << ":\n";
+		result << value.Stringify(depth + 1);
+	}
 
     for (auto [key, value] : m_FunctionFrames)
     {
@@ -146,11 +179,8 @@ std::string Frame::Stringify(int depth)
         case OP_DEFINE_ARRAY:
             CONSTANT_INSTR_STRINGIFY(OP_DEFINE_ARRAY, m_Numbers);
             break;
-        case OP_START_DEFINE_STRUCT:
-            SINGLE_INSTR_STRINGIFY(OP_START_DEFINE_STRUCT);
-            break;
-        case OP_END_DEFINE_STRUCT:
-            CONSTANT_INSTR_STRINGIFY(OP_END_DEFINE_STRUCT,m_Strings);
+        case OP_DEFINE_STRUCT:
+            SINGLE_INSTR_STRINGIFY(OP_DEFINE_STRUCT);
             break;
         case OP_GET_INDEX_VAR:
             SINGLE_INSTR_STRINGIFY(OP_GET_INDEX_VAR);
