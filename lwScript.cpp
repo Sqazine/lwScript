@@ -68,14 +68,12 @@ void RunFile(std::string path)
 
 int main(int argc, char** argv)
  {
-	// if (argc == 2)
-	// 	RunFile(argv[1]);
-	// else if (argc == 1)
-	// 	Repl();
-	// else
-	// 	std::cout << "Usage: lwScript [filepath]" << std::endl;
-
-RunFile("C:\\Users\\Sqazi\\Desktop\\.sc\\lwScript\\examples\\linkedlist.lws");
+	if (argc == 2)
+		RunFile(argv[1]);
+	else if (argc == 1)
+		Repl();
+	else
+		std::cout << "Usage: lwScript [filepath]" << std::endl;
 
 	return 0;
 }
