@@ -3,9 +3,3 @@ let b=a;
 b=20;
 println("{}",a);
 println("{}",b);
-
-a=fn(){
-
-};
-println("{}",a);
-println("{}",b);

@@ -1,0 +1,24 @@
+struct Vec2
+{
+    let x=0;
+    let y=0;
+}
+
+struct Vec3
+{
+    let vec2=Vec2;
+    let z=0;
+}
+
+struct Vec4
+{
+    let vec3=Vec3;
+    let w=0;
+}
+
+let a=Vec4;
+
+a.vec3.vec2.x=1000;
+
+println("{}",a);
+println("{}",a.vec3.vec2.x);
