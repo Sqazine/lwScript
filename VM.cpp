@@ -5,11 +5,10 @@ VM::VM()
 {
 	ResetStatus();
 
-	m_NativeFunctions["println"] =
-		[this](std::vector<Object*> args) -> Object*
+	m_NativeFunctions["println"] = [this](std::vector<Object *> args) -> Object *
 	{
 		if (args.empty())
-			return CreateNilObject();
+			return nullptr;
 
 		if (args[0]->Type() != ObjectType::STR)
 			Assert("Invalid argument:The first argument of native print fn must be string type.");
@@ -32,7 +31,18 @@ VM::VM()
 
 			std::cout << content << std::endl;
 		}
-		return CreateNilObject();
+		return nullptr;
+	};
+
+	m_NativeFunctions["sizeof"] = [this](std::vector<Object *> args) -> Object *
+	{
+		if (args.empty() || args.size() > 1)
+			Assert("Expect a array argument.");
+
+		if (!IS_ARRAY_OBJ(args[0]))
+			Assert("Not a array object.");
+
+		return CreateNumObject(TO_ARRAY_OBJ(args[0])->elements.size());
 	};
 }
 VM::~VM()
@@ -124,12 +134,12 @@ ArrayObject *VM::CreateArrayObject(const std::vector<Object *> &elements)
 	return object;
 }
 
-StructObject* VM::CreateStructObject(Environment* environment)
+StructObject *VM::CreateStructObject(Environment *environment)
 {
 	if (curObjCount == maxObjCount)
 		Gc();
 
-	StructObject* object = new StructObject(environment);
+	StructObject *object = new StructObject(environment);
 	object->marked = false;
 
 	object->next = firstObject;
@@ -140,7 +150,7 @@ StructObject* VM::CreateStructObject(Environment* environment)
 	return object;
 }
 
-Object *VM::Execute(Frame* frame)
+Object *VM::Execute(Frame *frame)
 {
 	// + - * /
 #define COMMON_BINARY(op)                                                                  \
@@ -269,7 +279,7 @@ Object *VM::Execute(Frame* frame)
 			Object *variableObject = m_Environment->GetVariable(name);
 
 			//no variable
-			if (variableObject==nullptr)
+			if (variableObject == nullptr)
 			{
 				if (frame->HasStructFrame(name))
 					variableObject = Execute(frame->GetStructFrame(name));
@@ -291,9 +301,9 @@ Object *VM::Execute(Frame* frame)
 		}
 		case OP_DEFINE_STRUCT:
 		{
-			Environment* tmp = m_Environment;
+			Environment *tmp = m_Environment;
 			m_Environment = m_Environment->GetUpEnvironment();
-			tmp->m_UpEnvironment = nullptr;//avoid environment conflict
+			tmp->m_UpEnvironment = nullptr; //avoid environment conflict
 			Push(CreateStructObject(tmp));
 			break;
 		}
@@ -344,11 +354,11 @@ Object *VM::Execute(Frame* frame)
 		case OP_GET_STRUCT:
 		{
 			std::string structName = frame->m_Strings[frame->m_Codes[++ip]];
-			Object* obj = m_Environment->GetVariable(structName);
+			Object *obj = m_Environment->GetVariable(structName);
 			if (!IS_STRUCT_OBJ(obj))
 				Assert("Not a struct object:" + structName);
 
-			StructObject* structObject = TO_STRUCT_OBJ(obj);
+			StructObject *structObject = TO_STRUCT_OBJ(obj);
 			structObject->environment->SetUpEnvironment(m_Environment);
 			m_Environment = structObject->environment;
 			break;
@@ -395,10 +405,13 @@ Object *VM::Execute(Frame* frame)
 				Push(Execute(frame->GetFunctionFrame(fnName)));
 			else if (HasNativeFunction(fnName))
 			{
-				std::vector<Object*> args;
+				std::vector<Object *> args;
 				for (size_t i = 0; i < argCount->value; ++i)
 					args.insert(args.begin(), Pop());
-				Push(GetNativeFunction(fnName)(args));
+
+				Object *returnResult = GetNativeFunction(fnName)(args);
+				if (returnResult != nullptr)
+					Push(returnResult);
 			}
 			else
 				Assert("No function:" + fnName);
@@ -411,14 +424,14 @@ Object *VM::Execute(Frame* frame)
 
 	return CreateNilObject();
 }
-void VM::AddNativeFunction(std::string_view name, std::function<Object* (std::vector<Object*>args)> fn)
+void VM::AddNativeFunction(std::string_view name, std::function<Object *(std::vector<Object *> args)> fn)
 {
 	auto iter = m_NativeFunctions.find(name.data());
 	if (iter != m_NativeFunctions.end())
 		Assert(std::string("Already exists native function:") + name.data());
 	m_NativeFunctions[name.data()] = fn;
 }
-std::function<Object* (std::vector<Object*>args)> VM::GetNativeFunction(std::string_view fnName)
+std::function<Object *(std::vector<Object *> args)> VM::GetNativeFunction(std::string_view fnName)
 {
 	auto iter = m_NativeFunctions.find(fnName.data());
 	if (iter != m_NativeFunctions.end())

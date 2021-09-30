@@ -11,7 +11,6 @@ enum ObjectState
 	READ,
 	WRITE,
 	STRUCT_READ,
-	STRUCT_WRITE,
 };
 class Compiler
 {

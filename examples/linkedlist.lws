@@ -1,0 +1,23 @@
+struct Node
+{
+    let v=0;
+    let next=nil;
+}
+
+let head=Node;
+
+let e=head;
+let i=1;
+while(i<10)
+{
+    let e2=Node;
+    e2.v=i;
+
+    e.next=e2;
+
+    e=e.next;
+
+    i=i+1;
+}
+
+println("{}",head);

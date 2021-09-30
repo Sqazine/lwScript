@@ -111,7 +111,7 @@ std::string Frame::Stringify(int depth)
     result << interval << "\t" << std::setfill('0') << std::setw(8) << i << "     " << (#op) << "\n"
 
 #define CONSTANT_INSTR_STRINGIFY(op, vec) \
-    result << interval << "\t" << std::setfill('0') << std::setw(8) << i << "     " << (#op) << "     " << std::to_string(m_Codes[++i]) << "    " << vec[m_Codes[i]] << "\n"
+    result << interval << "\t" << std::setfill('0') << std::setw(8) << i << "     " << (#op) << "     " << vec[m_Codes[++i]] << "\n"
 
 	std::stringstream result;
 

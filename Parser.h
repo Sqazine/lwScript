@@ -10,7 +10,7 @@
 enum class Precedence
 {
 	LOWEST = 0,
-	ASSIGN,		   // = += -= *= /=
+	ASSIGN,		   // =
 	OR,			   // ||
 	AND,		   // &&
 	EQUAL,		   // == !=

@@ -254,7 +254,7 @@ Expr *Parser::ParseExpr(Precedence precedence)
 
     auto leftExpr = (this->*prefixFn)();
 
-    while (!IsMatchCurToken(TokenType::SEMICOLON) && precedence <= GetCurTokenPrecedence())
+    while (!IsMatchCurToken(TokenType::SEMICOLON) &&  precedence <= GetCurTokenPrecedence())
     {
         if (m_InfixFunctions.find(GetCurToken().type) == m_InfixFunctions.end())
             return leftExpr;
@@ -338,8 +338,11 @@ Expr *Parser::ParseInfixExpr(Expr *prefixExpr)
 {
     auto infixExpr = new InfixExpr();
     infixExpr->left = prefixExpr;
+
+    Precedence opPrece=GetCurTokenPrecedence();
+
     infixExpr->op = GetCurTokenAndStepOnce().literal;
-    infixExpr->right = ParseExpr(GetCurTokenPrecedence());
+    infixExpr->right = ParseExpr(opPrece);
     return infixExpr;
 }
 
