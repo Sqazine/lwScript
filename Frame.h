@@ -29,23 +29,29 @@ enum OpCode
 	OP_NEQ,
 	OP_OR,
 	OP_AND,
+	OP_DEFINE_VAR,
 	OP_GET_VAR,
 	OP_SET_VAR,
-	OP_DEFINE_VAR,
 	OP_DEFINE_ARRAY,
-	OP_DEFINE_STRUCT,
 	OP_GET_INDEX_VAR,
 	OP_SET_INDEX_VAR,
+	OP_DEFINE_STRUCT,
 	OP_ENTER_SCOPE,
 	OP_EXIT_SCOPE,
 	OP_JUMP,
 	OP_JUMP_IF_FALSE,
 	OP_FUNCTION_CALL,
+	OP_GET_STRUCT,
+	OP_END_GET_STRUCT
 };
 
 class Frame
 {
 public:
+	Frame();
+	Frame(Frame* parentFrame);
+	~Frame();
+
 	void AddOpCode(uint8_t code);
 	size_t GetOpCodeSize() const;
 
@@ -54,12 +60,12 @@ public:
 
 	std::vector<double> &GetNumbers();
 
-	void AddFunctionFrame(std::string_view name, const Frame &frame);
-	const Frame& GetFunctionFrame(std::string_view name);
+	void AddFunctionFrame(std::string_view name, Frame* frame);
+	Frame* GetFunctionFrame(std::string_view name);
 	bool HasFunctionFrame(std::string_view name);
 
-	void AddStructFrame(std::string_view name, const Frame& frame);
-	const Frame& GetStructFrame(std::string_view name);
+	void AddStructFrame(std::string_view name,  Frame* frame);
+	Frame* GetStructFrame(std::string_view name);
 	bool HasStructFrame(std::string_view name);
 
 	std::string Stringify(int depth = 0);
@@ -74,6 +80,8 @@ private:
 	std::vector<double> m_Numbers;
 	std::vector<std::string> m_Strings;
 
-	std::unordered_map<std::string,Frame> m_FunctionFrames;
-	std::unordered_map<std::string,Frame> m_StructFrames;
+	std::unordered_map<std::string,Frame*> m_FunctionFrames;
+	std::unordered_map<std::string,Frame*> m_StructFrames;
+
+	Frame* m_ParentFrame;
 };

@@ -34,6 +34,7 @@ Parser::Parser()
             {TokenType::SLASH, &Parser::ParseInfixExpr},
             {TokenType::LPAREN, &Parser::ParseFunctionCallExpr},
             {TokenType::LBRACKET, &Parser::ParseIndexExpr},
+            {TokenType::DOT,&Parser::ParseStructCallExpr}
         };
 
     m_Precedence =
@@ -54,6 +55,7 @@ Parser::Parser()
             {TokenType::SLASH, Precedence::MUL_DIV},
             {TokenType::LBRACKET, Precedence::INDEX},
             {TokenType::LPAREN, Precedence::FUNCTION_CALL},
+            {TokenType::DOT,Precedence::STRUCT_CALL}
         };
 }
 Parser::~Parser()
@@ -252,7 +254,7 @@ Expr *Parser::ParseExpr(Precedence precedence)
 
     auto leftExpr = (this->*prefixFn)();
 
-    while (!IsMatchCurToken(TokenType::SEMICOLON) && precedence < GetCurTokenPrecedence())
+    while (!IsMatchCurToken(TokenType::SEMICOLON) && precedence <= GetCurTokenPrecedence())
     {
         if (m_InfixFunctions.find(GetCurToken().type) == m_InfixFunctions.end())
             return leftExpr;
@@ -366,6 +368,15 @@ Expr *Parser::ParseFunctionCallExpr(Expr *prefixExpr)
     Consume(TokenType::RPAREN, "Expect ')'.");
 
     return funcCallExpr;
+}
+
+Expr* Parser::ParseStructCallExpr(Expr* prefixExpr)
+{
+    Consume(TokenType::DOT, "Expect '.'.");
+    auto structCallExpr = new StructCallExpr();
+    structCallExpr->callee = prefixExpr;
+    structCallExpr->callMember = ParseExpr(Precedence::STRUCT_CALL);
+    return structCallExpr;
 }
 
 Token Parser::GetCurToken()

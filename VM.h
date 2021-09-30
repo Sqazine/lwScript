@@ -21,7 +21,7 @@ public:
 	~VM();
 
 	void ResetStatus();
-	Object* Execute(Frame frame);
+	Object* Execute(Frame* frame);
 
 	void AddNativeFunction(std::string_view name, std::function<Object* (std::vector<Object*> args)> fn);
 	std::function<Object* (std::vector<Object*> args)> GetNativeFunction(std::string_view fnName);

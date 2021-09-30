@@ -14,6 +14,7 @@ public:
     void AssignVariable(std::string_view name, struct Object *value);
    struct Object *GetVariable(std::string_view name);
     Environment *GetUpEnvironment();
+    void SetUpEnvironment(Environment* env);
 
 private:
     friend class VM;

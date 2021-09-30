@@ -56,3 +56,8 @@ Environment *Environment::GetUpEnvironment()
 {
     return m_UpEnvironment;
 }
+
+void Environment::SetUpEnvironment(Environment* env)
+{
+    m_UpEnvironment = env;
+}

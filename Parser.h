@@ -63,6 +63,7 @@ private:
 	Expr *ParseInfixExpr(Expr *prefixExpr);
 	Expr *ParseIndexExpr(Expr *prefixExpr);
 	Expr *ParseFunctionCallExpr(Expr *prefixExpr);
+	Expr *ParseStructCallExpr(Expr *prefixExpr);
 
 	Token GetCurToken();
 	Token GetCurTokenAndStepOnce();

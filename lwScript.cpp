@@ -17,30 +17,26 @@ void Repl()
 	Parser parser;
 	Compiler compiler;
 	VM vm;
-	Frame frame;
+	Frame* frame;
 	std::cout << "> ";
 	while (getline(std::cin, line))
 	{
-		if (line == "clear")
-			compiler.ResetStatus();
-		else
-		{
-			auto tokens = lexer.ScanTokens(line);
+		auto tokens = lexer.ScanTokens(line);
 #ifdef _DEBUG
-			for (const auto &token : tokens)
-				std::cout << token << std::endl;
+		for (const auto& token : tokens)
+			std::cout << token << std::endl;
 #endif
-			auto stmt = parser.Parse(tokens);
+		auto stmt = parser.Parse(tokens);
 #ifdef _DEBUG
-			std::cout << stmt->Stringify() << std::endl;
+		std::cout << stmt->Stringify() << std::endl;
 #endif
-			frame = compiler.Compile(stmt);
+		frame = compiler.Compile(stmt);
 #ifdef _DEBUG
-			std::cout << frame.Stringify() << std::endl;
+		std::cout << frame->Stringify() << std::endl;
 #endif
-			vm.ResetStatus();
-			vm.Execute(frame);
-		}
+		vm.ResetStatus();
+		vm.Execute(frame);
+
 		std::cout << "> ";
 	}
 }
@@ -52,25 +48,25 @@ void RunFile(std::string path)
 	Parser parser;
 	Compiler compiler;
 	VM vm;
-	Frame frame;
+	Frame* frame;
 
 	auto tokens = lexer.ScanTokens(content);
 #ifdef _DEBUG
-	for (const auto &token : tokens)
+	for (const auto& token : tokens)
 		std::cout << token << std::endl;
 #endif
 	auto stmt = parser.Parse(tokens);
 #ifdef _DEBUG
 	std::cout << stmt->Stringify() << std::endl;
 #endif
-
+	frame = compiler.Compile(stmt);
 #ifdef _DEBUG
-	std::cout << frame.Stringify() << std::endl;
+	std::cout << frame->Stringify() << std::endl;
 #endif
 	vm.Execute(frame);
 }
 
-int main(int argc, char **argv)
+int main(int argc, char** argv)
 {
 	if (argc == 2)
 		RunFile(argv[1]);

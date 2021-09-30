@@ -19,6 +19,7 @@ enum class AstType
 	INFIX,
 	INDEX,
 	FUNCTION_CALL,
+	STRUCT_CALL,
 	//stmt
 	LET,
 	EXPR,
@@ -223,6 +224,19 @@ struct FunctionCallExpr : public Expr
 
 	std::string name;
 	std::vector<Expr *> arguments;
+};
+
+struct StructCallExpr :public Expr
+{
+	StructCallExpr():callee(nullptr),callMember(nullptr) {}
+	StructCallExpr(Expr* callee, Expr* callMember) : callee(callee), callMember(callMember) {}
+	~StructCallExpr() {}
+
+	std::string Stringify() override { return callee->Stringify() + "." + callMember->Stringify(); }
+	AstType Type() override { return AstType::STRUCT_CALL; }
+
+	Expr* callee;
+	Expr* callMember;
 };
 
 struct Stmt : public AstNode

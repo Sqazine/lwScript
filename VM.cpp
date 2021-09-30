@@ -140,7 +140,7 @@ StructObject* VM::CreateStructObject(Environment* environment)
 	return object;
 }
 
-Object *VM::Execute(Frame frame)
+Object *VM::Execute(Frame* frame)
 {
 	// + - * /
 #define COMMON_BINARY(op)                                                                  \
@@ -181,19 +181,19 @@ Object *VM::Execute(Frame frame)
 			Assert("Invalid op:" + left->Stringify() + (#op) + right->Stringify());                                              \
 	} while (0);
 
-	for (size_t ip = 0; ip < frame.m_Codes.size(); ++ip)
+	for (size_t ip = 0; ip < frame->m_Codes.size(); ++ip)
 	{
-		uint8_t instruction = frame.m_Codes[ip];
+		uint8_t instruction = frame->m_Codes[ip];
 		switch (instruction)
 		{
 		case OP_RETURN:
 			return Pop();
 			break;
 		case OP_NUM:
-			Push(CreateNumObject(frame.m_Numbers[frame.m_Codes[++ip]]));
+			Push(CreateNumObject(frame->m_Numbers[frame->m_Codes[++ip]]));
 			break;
 		case OP_STR:
-			Push(CreateStrObject(frame.m_Strings[frame.m_Codes[++ip]]));
+			Push(CreateStrObject(frame->m_Strings[frame->m_Codes[++ip]]));
 			break;
 		case OP_TRUE:
 			Push(CreateBoolObject(true));
@@ -253,27 +253,26 @@ Object *VM::Execute(Frame frame)
 		case OP_DEFINE_VAR:
 		{
 			Object *value = Pop();
-			m_Environment->DefineVariable(frame.m_Strings[frame.m_Codes[++ip]], value);
+			m_Environment->DefineVariable(frame->m_Strings[frame->m_Codes[++ip]], value);
 			break;
 		}
 		case OP_SET_VAR:
 		{
-			std::string name = frame.m_Strings[frame.m_Codes[++ip]];
+			std::string name = frame->m_Strings[frame->m_Codes[++ip]];
 			Object *value = Pop();
-			Object *variableObject = m_Environment->GetVariable(name);
 			m_Environment->AssignVariable(name, value);
 			break;
 		}
 		case OP_GET_VAR:
 		{
-			std::string name = frame.m_Strings[frame.m_Codes[++ip]];
+			std::string name = frame->m_Strings[frame->m_Codes[++ip]];
 			Object *variableObject = m_Environment->GetVariable(name);
 
 			//no variable
 			if (variableObject==nullptr)
 			{
-				if (frame.HasStructFrame(name))
-					variableObject = Execute(frame.GetStructFrame(name));
+				if (frame->HasStructFrame(name))
+					variableObject = Execute(frame->GetStructFrame(name));
 				else
 					Assert("No variable:" + name);
 			}
@@ -284,7 +283,7 @@ Object *VM::Execute(Frame frame)
 		case OP_DEFINE_ARRAY:
 		{
 			std::vector<Object *> elements;
-			int64_t arraySize = (int64_t)frame.m_Numbers[frame.m_Codes[++ip]];
+			int64_t arraySize = (int64_t)frame->m_Numbers[frame->m_Codes[++ip]];
 			for (int64_t i = 0; i < arraySize; ++i)
 				elements.insert(elements.begin(), Pop());
 			Push(CreateArrayObject(elements));
@@ -342,6 +341,23 @@ Object *VM::Execute(Frame frame)
 				Assert("Invalid index op.The indexed object isn't a array object or a table object:" + object->Stringify());
 			break;
 		}
+		case OP_GET_STRUCT:
+		{
+			std::string structName = frame->m_Strings[frame->m_Codes[++ip]];
+			Object* obj = m_Environment->GetVariable(structName);
+			if (!IS_STRUCT_OBJ(obj))
+				Assert("Not a struct object:" + structName);
+
+			StructObject* structObject = TO_STRUCT_OBJ(obj);
+			structObject->environment->SetUpEnvironment(m_Environment);
+			m_Environment = structObject->environment;
+			break;
+		}
+		case OP_END_GET_STRUCT:
+		{
+			m_Environment = m_Environment->GetUpEnvironment();
+			break;
+		}
 		case OP_ENTER_SCOPE:
 		{
 			m_Environment = new Environment(this, m_Environment);
@@ -357,7 +373,7 @@ Object *VM::Execute(Frame frame)
 		case OP_JUMP_IF_FALSE:
 		{
 			bool isJump = !TO_BOOL_OBJ(Pop())->value;
-			uint64_t address = (uint64_t)(frame.m_Numbers[frame.m_Codes[++ip]]);
+			uint64_t address = (uint64_t)(frame->m_Numbers[frame->m_Codes[++ip]]);
 
 			if (isJump)
 				ip = address;
@@ -365,7 +381,7 @@ Object *VM::Execute(Frame frame)
 		}
 		case OP_JUMP:
 		{
-			uint64_t address = (uint64_t)(frame.m_Numbers[frame.m_Codes[++ip]]);
+			uint64_t address = (uint64_t)(frame->m_Numbers[frame->m_Codes[++ip]]);
 			ip = address;
 			break;
 		}
@@ -373,10 +389,10 @@ Object *VM::Execute(Frame frame)
 		{
 			NumObject *argCount = TO_NUM_OBJ(Pop());
 
-			std::string fnName = frame.m_Strings[frame.m_Codes[++ip]];
+			std::string fnName = frame->m_Strings[frame->m_Codes[++ip]];
 
-			if (frame.HasFunctionFrame(fnName))
-				Push(Execute(frame.GetFunctionFrame(fnName)));
+			if (frame->HasFunctionFrame(fnName))
+				Push(Execute(frame->GetFunctionFrame(fnName)));
 			else if (HasNativeFunction(fnName))
 			{
 				std::vector<Object*> args;
