@@ -5,8 +5,8 @@
 class Environment
 {
 public:
-    Environment(class VM *vm);
-    Environment(class VM *vm, Environment *upEnvironment);
+    Environment();
+    Environment(Environment *upEnvironment);
     ~Environment();
 
     void DefineVariable(std::string_view name, struct Object *value);
@@ -23,5 +23,4 @@ private:
     std::unordered_map<std::string, struct Object *> m_Values;
     Environment *m_UpEnvironment;
 
-    class VM *m_VMHandle;
 };

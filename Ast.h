@@ -274,7 +274,7 @@ struct LetStmt : public Stmt
 		name = nullptr;
 
 		delete initValue;
-		initValue;
+		initValue=nullptr;
 	}
 
 	std::string Stringify() override

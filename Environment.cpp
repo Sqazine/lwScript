@@ -3,11 +3,9 @@
 #include "VM.h"
 #include "Object.h"
 
-Environment::Environment(VM *vm) : m_VMHandle(vm), m_UpEnvironment(nullptr) {}
-Environment::Environment(VM *vm, Environment *upEnvironment) : m_VMHandle(vm), m_UpEnvironment(upEnvironment) {}
-Environment::~Environment()
-{
-}
+Environment::Environment() : m_UpEnvironment(nullptr) {}
+Environment::Environment(Environment *upEnvironment): m_UpEnvironment(upEnvironment) {}
+Environment::~Environment() {}
 
 void Environment::DefineVariable(std::string_view name, Object *value)
 {
@@ -47,7 +45,7 @@ Environment *Environment::GetUpEnvironment()
     return m_UpEnvironment;
 }
 
-void Environment::SetUpEnvironment(Environment* env)
+void Environment::SetUpEnvironment(Environment *env)
 {
     m_UpEnvironment = env;
 }
