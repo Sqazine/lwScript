@@ -1,5 +1,7 @@
 let a=10;
 let b=a;
+let c;
 b=20;
-println("{}",a);
-println("{}",b);
+println("{}",a);#10
+println("{}",b);#20
+println("{}",c);#"nil"

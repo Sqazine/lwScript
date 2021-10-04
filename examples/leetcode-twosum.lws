@@ -22,4 +22,4 @@ fn twosum(nums,target)
     }
 }
 
-println("{}",twosum(nums,target));
+println("{}",twosum(nums,target));#[0.000000,1.000000]

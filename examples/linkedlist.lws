@@ -21,3 +21,44 @@ while(i<10)
 }
 
 println("{}",head);
+
+#struct{
+#    v=0.000000
+#    next=struct
+#        {
+#            v=1.000000
+#            next=struct
+#                {
+#                    v=2.000000
+#                    next=struct
+#                        {
+#                            v=3.000000
+#                            next=struct
+#                                {
+#                                    v=4.000000
+#                                    next=struct
+#                                        {
+#                                            v=5.000000
+#                                            next=struct
+#                                                {
+#                                                    v=6.000000
+#                                                    next=struct
+#                                                        {
+#                                                            v=7.000000
+#                                                            next=struct
+#                                                                {
+#                                                                    v=8.000000
+#                                                                    next=struct
+#                                                                        {
+#                                                                            v=9.000000
+#                                                                            next=nil
+#                                                                        }
+#                                                                }
+#                                                        }
+#                                                }
+#                                        }
+#                                }
+#                        }
+#                }
+#        }
+#}
