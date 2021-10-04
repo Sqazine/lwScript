@@ -370,7 +370,7 @@ Object *VM::Execute(Frame *frame)
 		}
 		case OP_ENTER_SCOPE:
 		{
-			m_Environment = new Environment(this, m_Environment);
+			m_Environment = new Environment(m_Environment);
 			break;
 		}
 		case OP_EXIT_SCOPE:
@@ -459,7 +459,7 @@ void VM::ResetStatus()
 		delete m_Environment;
 		m_Environment = nullptr;
 	}
-	m_Environment = new Environment(this);
+	m_Environment = new Environment();
 }
 void VM::Push(Object *object)
 {
