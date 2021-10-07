@@ -182,6 +182,9 @@ void Compiler::CompileExpr(Expr* expr, Frame* frame, ObjectState state)
 	case AstType::ARRAY:
 		CompileArrayExpr((ArrayExpr*)expr, frame);
 		break;
+	case AstType::TABLE:
+		CompileTableExpr((TableExpr*)expr, frame);
+		break;
 	case AstType::INDEX:
 		CompileIndexExpr((IndexExpr*)expr, frame, state);
 		break;
@@ -254,6 +257,18 @@ void Compiler::CompileArrayExpr(ArrayExpr* expr, Frame* frame)
 		CompileExpr(e, frame);
 
 	frame->AddOpCode(OP_DEFINE_ARRAY);
+	uint8_t offset = frame->AddNumber((double)expr->elements.size());
+	frame->AddOpCode(offset);
+}
+
+void Compiler::CompileTableExpr(TableExpr* expr, Frame* frame)
+{
+	for (auto [key, value] : expr->elements)
+	{
+		CompileExpr(value, frame);
+		CompileExpr(key, frame);
+	}
+	frame->AddOpCode(OP_DEFINE_TABLE);
 	uint8_t offset = frame->AddNumber((double)expr->elements.size());
 	frame->AddOpCode(offset);
 }

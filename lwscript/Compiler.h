@@ -40,6 +40,7 @@ private:
 	void CompileIdentifierExpr(IdentifierExpr* expr, Frame* frame, ObjectState state = READ);
 	void CompileGroupExpr(GroupExpr* expr, Frame* frame);
 	void CompileArrayExpr(ArrayExpr* expr, Frame* frame);
+	void CompileTableExpr(TableExpr* expr, Frame* frame);
 	void CompileIndexExpr(IndexExpr* expr, Frame* frame, ObjectState state = READ);
 	void CompilePrefixExpr(PrefixExpr* expr, Frame* frame);
 	void CompileInfixExpr(InfixExpr* expr, Frame* frame);

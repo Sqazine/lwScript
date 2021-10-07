@@ -32,6 +32,7 @@ public:
 	BoolObject* CreateBoolObject(bool value = false);
 	NilObject* CreateNilObject();
 	ArrayObject* CreateArrayObject(const std::vector<Object*>& elements = {});
+	TableObject* CreateTableObject(const std::unordered_map<Object*, Object*>& elements = {});
 	StructObject* CreateStructObject(Environment* environment);
 
 	void Gc();

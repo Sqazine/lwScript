@@ -199,6 +199,9 @@ std::string Frame::Stringify(int depth)
 		case OP_DEFINE_ARRAY:
 			CONSTANT_INSTR_STRINGIFY(OP_DEFINE_ARRAY, m_Numbers);
 			break;
+		case OP_DEFINE_TABLE:
+			CONSTANT_INSTR_STRINGIFY(OP_DEFINE_TABLE, m_Numbers);
+			break;
 		case OP_DEFINE_STRUCT:
 			SINGLE_INSTR_STRINGIFY(OP_DEFINE_STRUCT);
 			break;

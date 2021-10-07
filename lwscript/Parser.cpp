@@ -14,7 +14,7 @@ Parser::Parser()
             {TokenType::MINUS, &Parser::ParsePrefixExpr},
             {TokenType::LPAREN, &Parser::ParseGroupExpr},
             {TokenType::LBRACKET, &Parser::ParseArrayExpr},
-
+            {TokenType::LBRACE,&Parser::ParseTableExpr}
         };
 
     m_InfixFunctions =
@@ -331,6 +331,29 @@ Expr *Parser::ParseArrayExpr()
     Consume(TokenType::RBRACKET, "Expect ']'.");
 
     return arrayExpr;
+}
+
+Expr* Parser::ParseTableExpr()
+{
+    Consume(TokenType::LBRACE, "Expect '{'.");
+
+    std::unordered_map<Expr*, Expr*> elements;
+
+    if (!IsMatchCurToken(TokenType::RBRACE)) {
+        Expr* key = ParseExpr();
+        Consume(TokenType::COLON, "Expect ':' after table key.");
+        Expr* value = ParseExpr();
+        elements[key] = value;
+        while (IsMatchCurTokenAndStepOnce(TokenType::COMMA))
+        {
+			Expr* key = ParseExpr();
+			Consume(TokenType::COLON, "Expect ':' after table key.");
+			Expr* value = ParseExpr();
+			elements[key] = value;
+        }
+    }
+    Consume(TokenType::RBRACE, "Expect '}' after table.");
+    return new TableExpr(elements);
 }
 
 Expr *Parser::ParsePrefixExpr()

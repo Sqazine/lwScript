@@ -5,6 +5,22 @@
 #include <functional>
 #include "Environment.h"
 
+#define TO_NUM_OBJ(obj) ((NumObject *)obj)
+#define TO_STR_OBJ(obj) ((StrObject *)obj)
+#define TO_NIL_OBJ(obj) ((NilObject *)obj)
+#define TO_BOOL_OBJ(obj) ((BoolObject *)obj)
+#define TO_ARRAY_OBJ(obj) ((ArrayObject *)obj)
+#define TO_TABLE_OBJ(obj) ((TableObject *)obj)
+#define TO_STRUCT_OBJ(obj) ((StructObject *)obj)
+
+#define IS_NUM_OBJ(obj) (obj->Type() == ObjectType::NUM)
+#define IS_STR_OBJ(obj) (obj->Type() == ObjectType::STR)
+#define IS_BOOL_OBJ(obj) (obj->Type() == ObjectType::BOOL)
+#define IS_NIL_OBJ(obj) (obj->Type() == ObjectType::NIL)
+#define IS_ARRAY_OBJ(obj) (obj->Type() == ObjectType::ARRAY)
+#define IS_TABLE_OBJ(obj) (obj->Type() == ObjectType::TABLE)
+#define IS_STRUCT_OBJ(obj) (obj->Type() == ObjectType::STRUCT)
+
 enum class ObjectType
 {
 	NUM,
@@ -12,6 +28,7 @@ enum class ObjectType
 	BOOL,
 	NIL,
 	ARRAY,
+	TABLE,
 	STRUCT
 };
 
@@ -123,6 +140,53 @@ struct ArrayObject : public Object
 	std::vector<Object*> elements;
 };
 
+struct TableObject : public Object
+{
+	TableObject() {}
+	TableObject(const std::unordered_map<Object*, Object*>& elements) : elements(elements) {}
+	~TableObject() { std::unordered_map<Object*, Object*>().swap(elements); }
+
+	std::string Stringify() override
+	{
+		std::string result = "{";
+		if (!elements.empty())
+		{
+			for (auto [key,value] : elements)
+				result += key->Stringify() + ":"+value->Stringify();
+			result = result.substr(0, result.size() - 1);
+		}
+		result += "}";
+		return result;
+	}
+	ObjectType Type() override { return ObjectType::TABLE; }
+	void Mark() override
+	{
+		if (marked)
+			return;
+		marked = true;
+
+		for (auto [key, value] : elements)
+		{
+			key->Mark();
+			value->Mark();
+		}
+	}
+	void UnMark() override
+	{
+		if (!marked)
+			return;
+		marked = false;
+
+		for (auto [key, value] : elements)
+		{
+			key->UnMark();
+			value->UnMark();
+		}
+	}
+
+	std::unordered_map<Object*,Object*> elements;
+};
+
 struct StructObject :public Object
 {
 	StructObject() {}
@@ -144,17 +208,3 @@ struct StructObject :public Object
 
 	Environment* environment;
 };
-
-#define TO_NUM_OBJ(obj) ((NumObject *)obj)
-#define TO_STR_OBJ(obj) ((StrObject *)obj)
-#define TO_NIL_OBJ(obj) ((NilObject *)obj)
-#define TO_BOOL_OBJ(obj) ((BoolObject *)obj)
-#define TO_ARRAY_OBJ(obj) ((ArrayObject *)obj)
-#define TO_STRUCT_OBJ(obj) ((StructObject *)obj)
-
-#define IS_NUM_OBJ(obj) (obj->Type() == ObjectType::NUM)
-#define IS_STR_OBJ(obj) (obj->Type() == ObjectType::STR)
-#define IS_BOOL_OBJ(obj) (obj->Type() == ObjectType::BOOL)
-#define IS_NIL_OBJ(obj) (obj->Type() == ObjectType::NIL)
-#define IS_ARRAY_OBJ(obj) (obj->Type() == ObjectType::ARRAY)
-#define IS_STRUCT_OBJ(obj) (obj->Type() == ObjectType::STRUCT)

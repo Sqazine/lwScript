@@ -134,6 +134,22 @@ ArrayObject *VM::CreateArrayObject(const std::vector<Object *> &elements)
 	return object;
 }
 
+TableObject* VM::CreateTableObject(const std::unordered_map<Object*, Object*>& elements)
+{
+	if (curObjCount == maxObjCount)
+		Gc();
+
+	TableObject* object = new TableObject(elements);
+	object->marked = false;
+
+	object->next = firstObject;
+	firstObject = object;
+
+	curObjCount++;
+
+	return object;
+}
+
 StructObject *VM::CreateStructObject(Environment *environment)
 {
 	if (curObjCount == maxObjCount)
@@ -297,6 +313,19 @@ Object *VM::Execute(Frame *frame)
 			for (int64_t i = 0; i < arraySize; ++i)
 				elements.insert(elements.begin(), Pop());
 			Push(CreateArrayObject(elements));
+			break;
+		}
+		case OP_DEFINE_TABLE:
+		{
+			std::unordered_map<Object*,Object*> elements;
+			int64_t tableSize = (int64_t)frame->m_Numbers[frame->m_Codes[++ip]];
+			for (int64_t i = 0; i < tableSize; ++i)
+			{
+				Object* key = Pop();
+				Object* value = Pop();
+				elements[key] = value;
+			}
+			Push(CreateTableObject(elements));
 			break;
 		}
 		case OP_DEFINE_STRUCT:

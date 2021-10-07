@@ -15,6 +15,7 @@ enum class AstType
 	IDENTIFIER,
 	GROUP,
 	ARRAY,
+	TABLE,
 	PREFIX,
 	INFIX,
 	INDEX,
@@ -130,6 +131,33 @@ struct ArrayExpr : public Expr
 	AstType Type() override { return AstType::ARRAY; }
 
 	std::vector<Expr *> elements;
+};
+
+struct TableExpr :public Expr
+{
+	TableExpr() {}
+	TableExpr(std::unordered_map<Expr*, Expr*> elements) : elements(elements) {}
+	~TableExpr()
+	{
+		std::unordered_map<Expr*, Expr*>().swap(elements);
+	}
+
+	std::string Stringify() override
+	{
+		std::string result = "{";
+
+		if (!elements.empty())
+		{
+			for (auto [key,value] : elements)
+				result += key->Stringify() + ":"+value->Stringify();
+			result = result.substr(0, result.size() - 1);
+		}
+		result += "}";
+		return result;
+	}
+	AstType Type() override { return AstType::TABLE; }
+
+	std::unordered_map<Expr*,Expr*> elements;
 };
 
 struct GroupExpr : public Expr
