@@ -1,14 +1,7 @@
 #include <string>
 #include <string_view>
 
-#include "Ast.h"
-#include "Object.h"
-#include "Token.h"
-#include "Lexer.h"
-#include "Parser.h"
-#include "Compiler.h"
-#include "VM.h"
-#include "Utils.h"
+#include "lwScript/lwScript.h"
 
 void Repl()
 {

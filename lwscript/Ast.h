@@ -209,7 +209,7 @@ struct FunctionCallExpr : public Expr
 
 	std::string Stringify() override
 	{
-		std::string result = name+ "(";
+		std::string result = name + "(";
 
 		if (!arguments.empty())
 		{
@@ -226,17 +226,17 @@ struct FunctionCallExpr : public Expr
 	std::vector<Expr *> arguments;
 };
 
-struct StructCallExpr :public Expr
+struct StructCallExpr : public Expr
 {
-	StructCallExpr():callee(nullptr),callMember(nullptr) {}
-	StructCallExpr(Expr* callee, Expr* callMember) : callee(callee), callMember(callMember) {}
+	StructCallExpr() : callee(nullptr), callMember(nullptr) {}
+	StructCallExpr(Expr *callee, Expr *callMember) : callee(callee), callMember(callMember) {}
 	~StructCallExpr() {}
 
 	std::string Stringify() override { return callee->Stringify() + "." + callMember->Stringify(); }
 	AstType Type() override { return AstType::STRUCT_CALL; }
 
-	Expr* callee;
-	Expr* callMember;
+	Expr *callee;
+	Expr *callMember;
 };
 
 struct Stmt : public AstNode
@@ -274,7 +274,7 @@ struct LetStmt : public Stmt
 		name = nullptr;
 
 		delete initValue;
-		initValue=nullptr;
+		initValue = nullptr;
 	}
 
 	std::string Stringify() override
@@ -358,71 +358,63 @@ struct ScopeStmt : public Stmt
 };
 
 struct FunctionStmt : public Stmt
-	{
-		FunctionStmt() : body(nullptr) {}
-		FunctionStmt(std::string name, std::vector<IdentifierExpr*> parameters, ScopeStmt* body) : name(name), parameters(parameters), body(body) {}
-		~FunctionStmt()
-		{
-			std::vector<IdentifierExpr*>().swap(parameters);
-
-			delete body;
-			body = nullptr;
-		}
-
-		std::string Stringify() override
-		{
-			std::string result = "function " + name + "(";
-			if (!parameters.empty())
-			{
-				for (auto param : parameters)
-					result += param->Stringify() + ",";
-				result = result.substr(0, result.size() - 1);
-			}
-			result += ")";
-			result += body->Stringify();
-			return result;
-		}
-		AstType Type() override { return AstType::FUNCTION; }
-
-		std::string name;
-		std::vector<IdentifierExpr*> parameters;
-		ScopeStmt* body;
-	};
-struct StructStmt :public Stmt
 {
-	StructStmt() {}
-	StructStmt(std::string name, std::vector<LetStmt*> letStmts) : name(name),letStmts(letStmts) {}
-	~StructStmt()
+	FunctionStmt() : body(nullptr) {}
+	FunctionStmt(std::string name, std::vector<IdentifierExpr *> parameters, ScopeStmt *body) : name(name), parameters(parameters), body(body) {}
+	~FunctionStmt()
 	{
-		std::vector<LetStmt*>().swap(letStmts);
+		std::vector<IdentifierExpr *>().swap(parameters);
 
+		delete body;
+		body = nullptr;
 	}
 
 	std::string Stringify() override
 	{
-		std::string result = "struct " + name+"{\n";
+		std::string result = "function " + name + "(";
+		if (!parameters.empty())
+		{
+			for (auto param : parameters)
+				result += param->Stringify() + ",";
+			result = result.substr(0, result.size() - 1);
+		}
+		result += ")";
+		result += body->Stringify();
+		return result;
+	}
+	AstType Type() override { return AstType::FUNCTION; }
+
+	std::string name;
+	std::vector<IdentifierExpr *> parameters;
+	ScopeStmt *body;
+};
+struct StructStmt : public Stmt
+{
+	StructStmt() {}
+	StructStmt(std::string name, std::vector<LetStmt *> letStmts) : name(name), letStmts(letStmts) {}
+	~StructStmt() { std::vector<LetStmt *>().swap(letStmts); }
+
+	std::string Stringify() override
+	{
+		std::string result = "struct " + name + "{\n";
 		if (!letStmts.empty())
 		{
 			for (auto letStmt : letStmts)
 				result += letStmt->Stringify() + "\n";
 			result = result.substr(0, result.size() - 1);
 		}
-		return result+"\n}";
+		return result + "\n}";
 	}
 	AstType Type() override { return AstType::STRUCT; }
 
 	std::string name;
-	std::vector<LetStmt*> letStmts;
+	std::vector<LetStmt *> letStmts;
 };
 
 struct WhileStmt : public Stmt
 {
 	WhileStmt() : condition(nullptr), body(nullptr) {}
-	WhileStmt(Expr *condition, Stmt *body)
-		: condition(condition),
-		  body(body)
-	{
-	}
+	WhileStmt(Expr *condition, Stmt *body) : condition(condition), body(body) {}
 	~WhileStmt()
 	{
 		delete condition;
