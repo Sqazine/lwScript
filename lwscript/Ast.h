@@ -266,26 +266,25 @@ struct ExprStmt : public Stmt
 
 struct LetStmt : public Stmt
 {
-	LetStmt() : name(nullptr), initValue(nullptr) {}
-	LetStmt(IdentifierExpr *name, Expr *initValue) : name(name), initValue(initValue) {}
-	~LetStmt()
-	{
-		delete name;
-		name = nullptr;
-
-		delete initValue;
-		initValue = nullptr;
-	}
+	LetStmt() {}
+	LetStmt(const std::unordered_map<IdentifierExpr*, Expr *> &variables) : variables(variables) {}
+	~LetStmt(){std::unordered_map<IdentifierExpr*, Expr *>().swap(variables);}
 
 	std::string Stringify() override
 	{
-		return "let " + name->Stringify() + "=" + initValue->Stringify() + ";";
+		std::string result = "let ";
+		if (!variables.empty())
+		{
+			for (auto [key, value] : variables)
+				result += key->Stringify() + "=" + value->Stringify() + ",";
+			result = result.substr(0, result.size() - 1);
+		}
+		return result;
 	}
 
 	AstType Type() override { return AstType::LET; }
 
-	IdentifierExpr *name;
-	Expr *initValue;
+	std::unordered_map<IdentifierExpr*, Expr *> variables;
 };
 
 struct ReturnStmt : public Stmt

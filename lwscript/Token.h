@@ -39,7 +39,7 @@ enum class TokenType
 	FALSE,	   // false
 	NIL,	   // nil
 	WHILE,	   // while
-	FUNCTION,  // fn
+	FUNCTION,  // function
 	STRUCT,	   // struct
 	RETURN,	   // return
 

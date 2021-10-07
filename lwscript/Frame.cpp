@@ -127,8 +127,7 @@ std::string Frame::Stringify(int depth)
 		result << value->Stringify(depth + 1);
 	}
 
-	result << interval << "Frame root:\n"
-		<< interval << "OpCodes:\n";
+	result << interval << "OpCodes:\n";
 
 	for (size_t i = 0; i < m_Codes.size(); ++i)
 	{

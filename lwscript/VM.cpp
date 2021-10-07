@@ -11,7 +11,7 @@ VM::VM()
 			return nullptr;
 
 		if (args[0]->Type() != ObjectType::STR)
-			Assert("Invalid argument:The first argument of native print fn must be string type.");
+			Assert("Invalid argument:The first argument of native print function must be string type.");
 		if (args.size() == 1)
 			std::cout << args[0]->Stringify() << std::endl;
 		else //formatting output

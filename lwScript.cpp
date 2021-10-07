@@ -10,7 +10,6 @@ void Repl()
 	Parser parser;
 	Compiler compiler;
 	VM vm;
-	Frame* frame;
 	std::cout << "> ";
 	while (getline(std::cin, line))
 	{
@@ -23,7 +22,7 @@ void Repl()
 #ifdef _DEBUG
 		std::cout << stmt->Stringify() << std::endl;
 #endif
-		frame = compiler.Compile(stmt);
+		Frame* frame = compiler.Compile(stmt);
 #ifdef _DEBUG
 		std::cout << frame->Stringify() << std::endl;
 #endif
@@ -41,7 +40,6 @@ void RunFile(std::string path)
 	Parser parser;
 	Compiler compiler;
 	VM vm;
-	Frame* frame;
 
 	auto tokens = lexer.ScanTokens(content);
 #ifdef _DEBUG
@@ -52,7 +50,7 @@ void RunFile(std::string path)
 #ifdef _DEBUG
 	std::cout << stmt->Stringify() << std::endl;
 #endif
-	frame = compiler.Compile(stmt);
+	Frame* frame = compiler.Compile(stmt);
 #ifdef _DEBUG
 	std::cout << frame->Stringify() << std::endl;
 #endif

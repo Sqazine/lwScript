@@ -9,7 +9,7 @@ static std::unordered_map<std::string, TokenType> keywords =
         {"false", TokenType::FALSE},
         {"nil", TokenType::NIL},
         {"while", TokenType::WHILE},
-        {"fn", TokenType::FUNCTION},
+        {"function", TokenType::FUNCTION},
         {"struct", TokenType::STRUCT},
         {"return", TokenType::RETURN},
 };

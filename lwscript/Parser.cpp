@@ -34,8 +34,7 @@ Parser::Parser()
             {TokenType::SLASH, &Parser::ParseInfixExpr},
             {TokenType::LPAREN, &Parser::ParseFunctionCallExpr},
             {TokenType::LBRACKET, &Parser::ParseIndexExpr},
-            {TokenType::DOT,&Parser::ParseStructCallExpr}
-        };
+            {TokenType::DOT, &Parser::ParseStructCallExpr}};
 
     m_Precedence =
         {
@@ -55,8 +54,7 @@ Parser::Parser()
             {TokenType::SLASH, Precedence::MUL_DIV},
             {TokenType::LBRACKET, Precedence::INDEX},
             {TokenType::LPAREN, Precedence::FUNCTION_CALL},
-            {TokenType::DOT,Precedence::STRUCT_CALL}
-        };
+            {TokenType::DOT, Precedence::STRUCT_CALL}};
 }
 Parser::~Parser()
 {
@@ -128,18 +126,27 @@ Stmt *Parser::ParseExprStmt()
 Stmt *Parser::ParseLetStmt()
 {
     Consume(TokenType::LET, "Expect 'let' key word");
-    auto letStmt = new LetStmt();
-    
-    auto identifier = new IdentifierExpr(Consume(TokenType::IDENTIFIER, "Expect valid identifier").literal);
+
+    std::unordered_map<IdentifierExpr*, Expr *> variables;
+
+    auto name = (IdentifierExpr*)ParseIdentifierExpr();
     Expr *value = nilExpr;
     if (IsMatchCurTokenAndStepOnce(TokenType::EQUAL))
         value = ParseExpr();
-    letStmt->name=identifier;
-    letStmt->initValue=value;
+    variables[name] = value;
+
+    while (IsMatchCurTokenAndStepOnce(TokenType::COMMA))
+    {
+		auto name = (IdentifierExpr*)ParseIdentifierExpr();
+		Expr* value = nilExpr;
+		if (IsMatchCurTokenAndStepOnce(TokenType::EQUAL))
+			value = ParseExpr();
+        variables[name] = value;
+    }
 
     Consume(TokenType::SEMICOLON, "Expect ';' after let stmt.");
 
-    return letStmt;
+    return new LetStmt(variables);
 }
 
 Stmt *Parser::ParseReturnStmt()
@@ -202,12 +209,12 @@ Stmt *Parser::ParseWhileStmt()
 
 Stmt *Parser::ParseFunctionStmt()
 {
-    Consume(TokenType::FUNCTION, "Expect 'fn' keyword");
-    
+    Consume(TokenType::FUNCTION, "Expect 'function' keyword");
+
     auto funcStmt = new FunctionStmt();
     funcStmt->name = ((IdentifierExpr *)ParseIdentifierExpr())->literal;
 
-    Consume(TokenType::LPAREN, "Expect '(' after 'fn' keyword");
+    Consume(TokenType::LPAREN, "Expect '(' after 'function' keyword");
 
     if (!IsMatchCurToken(TokenType::RPAREN)) //has parameter
     {
@@ -226,21 +233,21 @@ Stmt *Parser::ParseFunctionStmt()
     return funcStmt;
 }
 
-Stmt* Parser::ParseStructStmt()
+Stmt *Parser::ParseStructStmt()
 {
-	Consume(TokenType::STRUCT, "Expect 'struct' keyword");
+    Consume(TokenType::STRUCT, "Expect 'struct' keyword");
 
-	auto structStmt = new StructStmt();
-    structStmt->name = ((IdentifierExpr*)ParseIdentifierExpr())->literal;
+    auto structStmt = new StructStmt();
+    structStmt->name = ((IdentifierExpr *)ParseIdentifierExpr())->literal;
 
-	Consume(TokenType::LBRACE, "Expect '{' after 'struct' keyword");
+    Consume(TokenType::LBRACE, "Expect '{' after 'struct' keyword");
 
-	while (!IsMatchCurToken(TokenType::RBRACE))
-        structStmt->letStmts.emplace_back((LetStmt*)ParseLetStmt());
+    while (!IsMatchCurToken(TokenType::RBRACE))
+        structStmt->letStmts.emplace_back((LetStmt *)ParseLetStmt());
 
-	Consume(TokenType::RBRACE, "Expect '}' after struct stmt's '{'");
+    Consume(TokenType::RBRACE, "Expect '}' after struct stmt's '{'");
 
-	return structStmt;
+    return structStmt;
 }
 
 Expr *Parser::ParseExpr(Precedence precedence)
@@ -254,7 +261,7 @@ Expr *Parser::ParseExpr(Precedence precedence)
 
     auto leftExpr = (this->*prefixFn)();
 
-    while (!IsMatchCurToken(TokenType::SEMICOLON) &&  precedence <= GetCurTokenPrecedence())
+    while (!IsMatchCurToken(TokenType::SEMICOLON) && precedence <= GetCurTokenPrecedence())
     {
         if (m_InfixFunctions.find(GetCurToken().type) == m_InfixFunctions.end())
             return leftExpr;
@@ -339,7 +346,7 @@ Expr *Parser::ParseInfixExpr(Expr *prefixExpr)
     auto infixExpr = new InfixExpr();
     infixExpr->left = prefixExpr;
 
-    Precedence opPrece=GetCurTokenPrecedence();
+    Precedence opPrece = GetCurTokenPrecedence();
 
     infixExpr->op = GetCurTokenAndStepOnce().literal;
     infixExpr->right = ParseExpr(opPrece);
@@ -360,7 +367,7 @@ Expr *Parser::ParseFunctionCallExpr(Expr *prefixExpr)
 {
     auto funcCallExpr = new FunctionCallExpr();
 
-    funcCallExpr->name = ((IdentifierExpr*)prefixExpr)->literal;
+    funcCallExpr->name = ((IdentifierExpr *)prefixExpr)->literal;
     Consume(TokenType::LPAREN, "Expect '('.");
     if (!IsMatchCurToken(TokenType::RPAREN)) //has arguments
     {
@@ -373,7 +380,7 @@ Expr *Parser::ParseFunctionCallExpr(Expr *prefixExpr)
     return funcCallExpr;
 }
 
-Expr* Parser::ParseStructCallExpr(Expr* prefixExpr)
+Expr *Parser::ParseStructCallExpr(Expr *prefixExpr)
 {
     Consume(TokenType::DOT, "Expect '.'.");
     auto structCallExpr = new StructCallExpr();

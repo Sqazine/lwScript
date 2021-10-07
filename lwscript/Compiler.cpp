@@ -8,43 +8,43 @@ Compiler::~Compiler()
 {
 }
 
-Frame *Compiler::Compile(Stmt *stmt)
+Frame* Compiler::Compile(Stmt* stmt)
 {
 	Frame* frame = new Frame();
-	CompileAstStmts((AstStmts *)stmt, frame);
+	CompileAstStmts((AstStmts*)stmt, frame);
 	return frame;
 }
 
-void Compiler::CompileAstStmts(AstStmts *stmt, Frame *frame)
+void Compiler::CompileAstStmts(AstStmts* stmt, Frame* frame)
 {
-	for (const auto &s : stmt->stmts)
+	for (const auto& s : stmt->stmts)
 		CompileStmt(s, frame);
 }
 
-void Compiler::CompileStmt(Stmt *stmt, Frame *frame)
+void Compiler::CompileStmt(Stmt* stmt, Frame* frame)
 {
 	switch (stmt->Type())
 	{
 	case AstType::RETURN:
-		CompileReturnStmt((ReturnStmt *)stmt, frame);
+		CompileReturnStmt((ReturnStmt*)stmt, frame);
 		break;
 	case AstType::EXPR:
-		CompileExprStmt((ExprStmt *)stmt, frame);
+		CompileExprStmt((ExprStmt*)stmt, frame);
 		break;
 	case AstType::LET:
-		CompileLetStmt((LetStmt *)stmt, frame);
+		CompileLetStmt((LetStmt*)stmt, frame);
 		break;
 	case AstType::SCOPE:
-		CompileScopeStmt((ScopeStmt *)stmt, frame);
+		CompileScopeStmt((ScopeStmt*)stmt, frame);
 		break;
 	case AstType::IF:
-		CompileIfStmt((IfStmt *)stmt, frame);
+		CompileIfStmt((IfStmt*)stmt, frame);
 		break;
 	case AstType::WHILE:
-		CompileWhileStmt((WhileStmt *)stmt, frame);
+		CompileWhileStmt((WhileStmt*)stmt, frame);
 		break;
 	case AstType::FUNCTION:
-		CompileFunctionStmt((FunctionStmt *)stmt, frame);
+		CompileFunctionStmt((FunctionStmt*)stmt, frame);
 		break;
 	case AstType::STRUCT:
 		CompileStructStmt((StructStmt*)stmt, frame);
@@ -53,7 +53,7 @@ void Compiler::CompileStmt(Stmt *stmt, Frame *frame)
 		break;
 	}
 }
-void Compiler::CompileReturnStmt(ReturnStmt *stmt, Frame *frame)
+void Compiler::CompileReturnStmt(ReturnStmt* stmt, Frame* frame)
 {
 	if (stmt->expr)
 		CompileExpr(stmt->expr, frame);
@@ -61,28 +61,31 @@ void Compiler::CompileReturnStmt(ReturnStmt *stmt, Frame *frame)
 	frame->AddOpCode(OP_RETURN);
 }
 
-void Compiler::CompileExprStmt(ExprStmt *stmt, Frame *frame)
+void Compiler::CompileExprStmt(ExprStmt* stmt, Frame* frame)
 {
 	CompileExpr(stmt->expr, frame);
 }
 
-void Compiler::CompileLetStmt(LetStmt *stmt, Frame *frame)
+void Compiler::CompileLetStmt(LetStmt* stmt, Frame* frame)
 {
-	CompileExpr(stmt->initValue, frame);
-	CompileExpr(stmt->name, frame, INIT);
+	for (auto [key, value] : stmt->variables)
+	{
+		CompileExpr(value, frame);
+		CompileExpr(key, frame, INIT);
+	}
 }
 
-void Compiler::CompileScopeStmt(ScopeStmt *stmt, Frame *frame)
+void Compiler::CompileScopeStmt(ScopeStmt* stmt, Frame* frame)
 {
 	frame->AddOpCode(OP_ENTER_SCOPE);
 
-	for (const auto &s : stmt->stmts)
+	for (const auto& s : stmt->stmts)
 		CompileStmt(s, frame);
 
 	frame->AddOpCode(OP_EXIT_SCOPE);
 }
 
-void Compiler::CompileIfStmt(IfStmt *stmt, Frame *frame)
+void Compiler::CompileIfStmt(IfStmt* stmt, Frame* frame)
 {
 	CompileExpr(stmt->condition, frame);
 
@@ -103,7 +106,7 @@ void Compiler::CompileIfStmt(IfStmt *stmt, Frame *frame)
 
 	frame->GetNumbers()[jmpOffset] = (double)frame->GetOpCodeSize() - 1.0;
 }
-void Compiler::CompileWhileStmt(WhileStmt *stmt, Frame *frame)
+void Compiler::CompileWhileStmt(WhileStmt* stmt, Frame* frame)
 {
 	uint8_t jmpAddress = (double)frame->GetOpCodeSize() - 1.0;
 	CompileExpr(stmt->condition, frame);
@@ -121,9 +124,9 @@ void Compiler::CompileWhileStmt(WhileStmt *stmt, Frame *frame)
 	frame->GetNumbers()[jmpIfFalseOffset] = (double)frame->GetOpCodeSize() - 1.0;
 }
 
-void Compiler::CompileFunctionStmt(FunctionStmt *stmt, Frame *frame)
+void Compiler::CompileFunctionStmt(FunctionStmt* stmt, Frame* frame)
 {
-	Frame* functionFrame=new Frame(frame);
+	Frame* functionFrame = new Frame(frame);
 
 	functionFrame->AddOpCode(OP_ENTER_SCOPE);
 
@@ -134,12 +137,12 @@ void Compiler::CompileFunctionStmt(FunctionStmt *stmt, Frame *frame)
 
 	functionFrame->AddOpCode(OP_EXIT_SCOPE);
 
-	frame->AddFunctionFrame(stmt->name,functionFrame);
+	frame->AddFunctionFrame(stmt->name, functionFrame);
 }
 
-void Compiler::CompileStructStmt(StructStmt* stmt, Frame * frame)
+void Compiler::CompileStructStmt(StructStmt* stmt, Frame* frame)
 {
-	Frame* structFrame=new Frame(frame);
+	Frame* structFrame = new Frame(frame);
 
 	structFrame->AddOpCode(OP_ENTER_SCOPE);
 
@@ -154,66 +157,66 @@ void Compiler::CompileStructStmt(StructStmt* stmt, Frame * frame)
 
 }
 
-void Compiler::CompileExpr(Expr *expr, Frame *frame, ObjectState state)
+void Compiler::CompileExpr(Expr* expr, Frame* frame, ObjectState state)
 {
 	switch (expr->Type())
 	{
 	case AstType::NUM:
-		CompileNumExpr((NumExpr *)expr, frame);
+		CompileNumExpr((NumExpr*)expr, frame);
 		break;
 	case AstType::STR:
-		CompileStrExpr((StrExpr *)expr, frame);
+		CompileStrExpr((StrExpr*)expr, frame);
 		break;
 	case AstType::BOOL:
-		CompileBoolExpr((BoolExpr *)expr, frame);
+		CompileBoolExpr((BoolExpr*)expr, frame);
 		break;
 	case AstType::NIL:
-		CompileNilExpr((NilExpr *)expr, frame);
+		CompileNilExpr((NilExpr*)expr, frame);
 		break;
 	case AstType::IDENTIFIER:
-		CompileIdentifierExpr((IdentifierExpr *)expr, frame, state);
+		CompileIdentifierExpr((IdentifierExpr*)expr, frame, state);
 		break;
 	case AstType::GROUP:
-		CompileGroupExpr((GroupExpr *)expr, frame);
+		CompileGroupExpr((GroupExpr*)expr, frame);
 		break;
 	case AstType::ARRAY:
-		CompileArrayExpr((ArrayExpr *)expr, frame);
+		CompileArrayExpr((ArrayExpr*)expr, frame);
 		break;
 	case AstType::INDEX:
-		CompileIndexExpr((IndexExpr *)expr, frame, state);
+		CompileIndexExpr((IndexExpr*)expr, frame, state);
 		break;
 	case AstType::PREFIX:
-		CompilePrefixExpr((PrefixExpr *)expr, frame);
+		CompilePrefixExpr((PrefixExpr*)expr, frame);
 		break;
 	case AstType::INFIX:
-		CompileInfixExpr((InfixExpr *)expr, frame);
+		CompileInfixExpr((InfixExpr*)expr, frame);
 		break;
 	case AstType::FUNCTION_CALL:
-		CompileFunctionCallExpr((FunctionCallExpr *)expr, frame);
+		CompileFunctionCallExpr((FunctionCallExpr*)expr, frame);
 		break;
 	case AstType::STRUCT_CALL:
-		CompileStructCallExpr((StructCallExpr*)expr, frame,state);
+		CompileStructCallExpr((StructCallExpr*)expr, frame, state);
 		break;
 	default:
 		break;
 	}
 }
 
-void Compiler::CompileNumExpr(NumExpr *expr, Frame *frame)
+void Compiler::CompileNumExpr(NumExpr* expr, Frame* frame)
 {
 	frame->AddOpCode(OP_NUM);
 	uint8_t offset = frame->AddNumber(expr->value);
 	frame->AddOpCode(offset);
 }
 
-void Compiler::CompileStrExpr(StrExpr *expr, Frame *frame)
+void Compiler::CompileStrExpr(StrExpr* expr, Frame* frame)
 {
 	frame->AddOpCode(OP_STR);
 	uint8_t offset = frame->AddString(expr->value);
 	frame->AddOpCode(offset);
 }
 
-void Compiler::CompileBoolExpr(BoolExpr *expr, Frame *frame)
+void Compiler::CompileBoolExpr(BoolExpr* expr, Frame* frame)
 {
 	if (expr->value)
 		frame->AddOpCode(OP_TRUE);
@@ -221,12 +224,12 @@ void Compiler::CompileBoolExpr(BoolExpr *expr, Frame *frame)
 		frame->AddOpCode(OP_FALSE);
 }
 
-void Compiler::CompileNilExpr(NilExpr *expr, Frame *frame)
+void Compiler::CompileNilExpr(NilExpr* expr, Frame* frame)
 {
 	frame->AddOpCode(OP_NIL);
 }
 
-void Compiler::CompileIdentifierExpr(IdentifierExpr *expr, Frame *frame, ObjectState state)
+void Compiler::CompileIdentifierExpr(IdentifierExpr* expr, Frame* frame, ObjectState state)
 {
 	if (state == READ)
 		frame->AddOpCode(OP_GET_VAR);
@@ -240,14 +243,14 @@ void Compiler::CompileIdentifierExpr(IdentifierExpr *expr, Frame *frame, ObjectS
 	frame->AddOpCode(offset);
 }
 
-void Compiler::CompileGroupExpr(GroupExpr *expr, Frame *frame)
+void Compiler::CompileGroupExpr(GroupExpr* expr, Frame* frame)
 {
 	CompileExpr(expr->expr, frame);
 }
 
-void Compiler::CompileArrayExpr(ArrayExpr *expr, Frame *frame)
+void Compiler::CompileArrayExpr(ArrayExpr* expr, Frame* frame)
 {
-	for (const auto &e : expr->elements)
+	for (const auto& e : expr->elements)
 		CompileExpr(e, frame);
 
 	frame->AddOpCode(OP_DEFINE_ARRAY);
@@ -255,7 +258,7 @@ void Compiler::CompileArrayExpr(ArrayExpr *expr, Frame *frame)
 	frame->AddOpCode(offset);
 }
 
-void Compiler::CompileIndexExpr(IndexExpr *expr, Frame *frame, ObjectState state)
+void Compiler::CompileIndexExpr(IndexExpr* expr, Frame* frame, ObjectState state)
 {
 	CompileExpr(expr->index, frame);
 	CompileExpr(expr->array, frame);
@@ -265,14 +268,14 @@ void Compiler::CompileIndexExpr(IndexExpr *expr, Frame *frame, ObjectState state
 		frame->AddOpCode(OP_SET_INDEX_VAR);
 }
 
-void Compiler::CompilePrefixExpr(PrefixExpr *expr, Frame *frame)
+void Compiler::CompilePrefixExpr(PrefixExpr* expr, Frame* frame)
 {
 	CompileExpr(expr->right, frame);
 	if (expr->op == "-")
 		frame->AddOpCode(OP_NEG);
 }
 
-void Compiler::CompileInfixExpr(InfixExpr *expr, Frame *frame)
+void Compiler::CompileInfixExpr(InfixExpr* expr, Frame* frame)
 {
 	if (expr->op == "=")
 	{
@@ -313,9 +316,9 @@ void Compiler::CompileInfixExpr(InfixExpr *expr, Frame *frame)
 	}
 }
 
-void Compiler::CompileFunctionCallExpr(FunctionCallExpr *expr, Frame *frame)
+void Compiler::CompileFunctionCallExpr(FunctionCallExpr* expr, Frame* frame)
 {
-	for (const auto &arg : expr->arguments)
+	for (const auto& arg : expr->arguments)
 		CompileExpr(arg, frame);
 
 	//argument count
@@ -328,10 +331,10 @@ void Compiler::CompileFunctionCallExpr(FunctionCallExpr *expr, Frame *frame)
 	frame->AddOpCode(offset);
 }
 
-void Compiler::CompileStructCallExpr(StructCallExpr* expr, Frame * frame, ObjectState state)
+void Compiler::CompileStructCallExpr(StructCallExpr* expr, Frame* frame, ObjectState state)
 {
-	CompileExpr(expr->callee, frame,STRUCT_READ);
-	CompileExpr(expr->callMember, frame,state);
+	CompileExpr(expr->callee, frame, STRUCT_READ);
+	CompileExpr(expr->callMember, frame, state);
 
 	frame->AddOpCode(OP_END_GET_STRUCT);
 }
