@@ -41,6 +41,7 @@ struct Object
 	virtual ObjectType Type() = 0;
 	virtual void Mark() = 0;
 	virtual void UnMark() = 0;
+	virtual bool IsEqualTo(Object* other) = 0;
 
 	bool marked;
 	Object* next;
@@ -56,6 +57,12 @@ struct NumObject : public Object
 	ObjectType Type() override { return ObjectType::NUM; }
 	void Mark() override { marked = true; }
 	void UnMark() override { marked = false; }
+	bool IsEqualTo(Object* other) override 
+	{
+		if (!IS_NUM_OBJ(other))
+			return false;
+		return value == TO_NUM_OBJ(other)->value;
+	}
 
 	double value;
 };
@@ -70,6 +77,12 @@ struct StrObject : public Object
 	ObjectType Type() override { return ObjectType::STR; }
 	void Mark() override { marked = true; }
 	void UnMark() override { marked = false; }
+	bool IsEqualTo(Object* other) override
+	{
+		if (!IS_STR_OBJ(other))
+			return false;
+		return value == TO_STR_OBJ(other)->value;
+	}
 
 	std::string value;
 };
@@ -84,6 +97,12 @@ struct BoolObject : public Object
 	ObjectType Type() override { return ObjectType::BOOL; }
 	void Mark() override { marked = true; }
 	void UnMark() override { marked = false; }
+	bool IsEqualTo(Object* other) override
+	{
+		if (!IS_BOOL_OBJ(other))
+			return false;
+		return value == TO_BOOL_OBJ(other)->value;
+	}
 
 	bool value;
 };
@@ -97,6 +116,12 @@ struct NilObject : public Object
 	ObjectType Type() override { return ObjectType::NIL; }
 	void Mark() override { marked = true; }
 	void UnMark() override { marked = false; }
+	bool IsEqualTo(Object* other) override
+	{
+		if (!IS_NIL_OBJ(other))
+			return false;
+		return true;
+	}
 };
 
 struct ArrayObject : public Object
@@ -114,7 +139,7 @@ struct ArrayObject : public Object
 				result += e->Stringify() + ",";
 			result = result.substr(0, result.size() - 1);
 		}
-		result += "]";
+		result += "]"; 
 		return result;
 	}
 	ObjectType Type() override { return ObjectType::ARRAY; }
@@ -137,6 +162,23 @@ struct ArrayObject : public Object
 			e->UnMark();
 	}
 
+	bool IsEqualTo(Object* other) override
+	{
+		if (!IS_ARRAY_OBJ(other))
+			return false;
+		
+		ArrayObject* arrayOther = TO_ARRAY_OBJ(other);
+
+		if (arrayOther->elements.size() != elements.size())
+			return false;
+
+		for (size_t i = 0; i < elements.size(); ++i)
+			if (elements[i] != arrayOther->elements[i])
+				return false;
+
+		return true;
+	}
+
 	std::vector<Object*> elements;
 };
 
@@ -152,7 +194,7 @@ struct TableObject : public Object
 		if (!elements.empty())
 		{
 			for (auto [key,value] : elements)
-				result += key->Stringify() + ":"+value->Stringify();
+				result += key->Stringify() + ":"+value->Stringify()+",";
 			result = result.substr(0, result.size() - 1);
 		}
 		result += "}";
@@ -184,6 +226,25 @@ struct TableObject : public Object
 		}
 	}
 
+	bool IsEqualTo(Object* other) override
+	{
+		if (!IS_TABLE_OBJ(other))
+			return false;
+
+		TableObject* tableOther = TO_TABLE_OBJ(other);
+
+		if (tableOther->elements.size() != elements.size())
+			return false;
+
+		for (auto [key1, value1] : elements)
+			for (auto [key2, value2] : tableOther->elements)
+				if (!key1->IsEqualTo(key2)||!value1->IsEqualTo(value2))
+					return false;
+	
+
+		return true;
+	}
+
 	std::unordered_map<Object*,Object*> elements;
 };
 
@@ -205,6 +266,12 @@ struct StructObject :public Object
 	ObjectType Type() override { return ObjectType::STRUCT; }
 	void Mark() override { marked = true; }
 	void UnMark() override { marked = false; }
+	bool IsEqualTo(Object* other) override
+	{
+		if (!IS_STRUCT_OBJ(other))
+			return false;
+		return environment->IsEqualTo(TO_STRUCT_OBJ(other)->environment);
+	}
 
 	Environment* environment;
 };

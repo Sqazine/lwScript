@@ -353,6 +353,23 @@ Object *VM::Execute(Frame *frame)
 
 				Push(arrayObject->elements[iIndex]);
 			}
+			else if (IS_TABLE_OBJ(object))
+			{
+				TableObject* tableObject = TO_TABLE_OBJ(object);
+
+
+				bool hasValue = false;
+				for(const auto [key,value]:tableObject->elements)
+					if (key->IsEqualTo(index))
+					{
+						Push(value);
+						hasValue = true;
+						break;
+					}
+				if (!hasValue)
+					Push(CreateNilObject());
+
+			}
 			else
 				Assert("Invalid index op.The indexed object isn't a array object or a table object:" + object->Stringify());
 			break;
@@ -375,6 +392,11 @@ Object *VM::Execute(Frame *frame)
 					Assert("Index out of array range,array size:" + std::to_string(arrayObject->elements.size()) + ",index:" + std::to_string(iIndex));
 
 				arrayObject->elements[iIndex] = assigner;
+			}
+			else if (IS_TABLE_OBJ(object))
+			{
+				TableObject* tableObject = TO_TABLE_OBJ(object);
+				tableObject->elements[index] = assigner;
 			}
 			else
 				Assert("Invalid index op.The indexed object isn't a array object or a table object:" + object->Stringify());

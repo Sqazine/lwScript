@@ -49,3 +49,16 @@ void Environment::SetUpEnvironment(Environment *env)
 {
     m_UpEnvironment = env;
 }
+
+bool Environment::IsEqualTo(Environment* env)
+{
+    for (auto [key1, value1] : m_Values)
+        for (auto [key2, value2] : env->m_Values)
+            if (key1 != key2 || !value1->IsEqualTo(value2))
+                return false;
+
+    if (!m_UpEnvironment->IsEqualTo(env->m_UpEnvironment))
+        return false;
+
+    return true;
+}

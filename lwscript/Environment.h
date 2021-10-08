@@ -16,6 +16,8 @@ public:
     Environment *GetUpEnvironment();
     void SetUpEnvironment(Environment* env);
 
+    bool IsEqualTo(Environment* env);
+
 private:
     friend class VM;
     friend struct StructObject;
