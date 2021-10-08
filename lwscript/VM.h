@@ -27,7 +27,8 @@ public:
 	std::function<Object* (std::vector<Object*> args)> GetNativeFunction(std::string_view fnName);
 	bool HasNativeFunction(std::string_view name);
 
-	NumObject* CreateNumObject(double value = 0.0);
+	FloatingObject* CreateFloatingObject(double value = 0.0);
+	IntegerObject* CreateIntegerObject(int64_t value = 0.0);
 	StrObject* CreateStrObject(std::string_view value = "");
 	BoolObject* CreateBoolObject(bool value = false);
 	NilObject* CreateNilObject();

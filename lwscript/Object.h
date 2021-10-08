@@ -5,7 +5,8 @@
 #include <functional>
 #include "Environment.h"
 
-#define TO_NUM_OBJ(obj) ((NumObject *)obj)
+#define TO_INTEGER_OBJ(obj) ((IntegerObject *)obj)
+#define TO_FLOATING_OBJ(obj) ((FloatingObject *)obj)
 #define TO_STR_OBJ(obj) ((StrObject *)obj)
 #define TO_NIL_OBJ(obj) ((NilObject *)obj)
 #define TO_BOOL_OBJ(obj) ((BoolObject *)obj)
@@ -13,7 +14,8 @@
 #define TO_TABLE_OBJ(obj) ((TableObject *)obj)
 #define TO_STRUCT_OBJ(obj) ((StructObject *)obj)
 
-#define IS_NUM_OBJ(obj) (obj->Type() == ObjectType::NUM)
+#define IS_INTEGER_OBJ(obj) (obj->Type() == ObjectType::INTEGER)
+#define IS_FLOATING_OBJ(obj) (obj->Type() == ObjectType::FLOATING)
 #define IS_STR_OBJ(obj) (obj->Type() == ObjectType::STR)
 #define IS_BOOL_OBJ(obj) (obj->Type() == ObjectType::BOOL)
 #define IS_NIL_OBJ(obj) (obj->Type() == ObjectType::NIL)
@@ -23,7 +25,8 @@
 
 enum class ObjectType
 {
-	NUM,
+	INTEGER,
+	FLOATING,
 	STR,
 	BOOL,
 	NIL,
@@ -47,21 +50,41 @@ struct Object
 	Object* next;
 };
 
-struct NumObject : public Object
+struct IntegerObject : public Object
 {
-	NumObject() : value(0.0) {}
-	NumObject(double value) : value(value) {}
-	~NumObject() {}
+	IntegerObject() : value(0.0) {}
+	IntegerObject(int64_t value) : value(value) {}
+	~IntegerObject() {}
 
 	std::string Stringify() override { return std::to_string(value); }
-	ObjectType Type() override { return ObjectType::NUM; }
+	ObjectType Type() override { return ObjectType::INTEGER; }
 	void Mark() override { marked = true; }
 	void UnMark() override { marked = false; }
 	bool IsEqualTo(Object* other) override 
 	{
-		if (!IS_NUM_OBJ(other))
+		if (!IS_INTEGER_OBJ(other))
 			return false;
-		return value == TO_NUM_OBJ(other)->value;
+		return value == TO_INTEGER_OBJ(other)->value;
+	}
+
+	int64_t value;
+};
+
+struct FloatingObject : public Object
+{
+	FloatingObject() : value(0.0) {}
+	FloatingObject(double value) : value(value) {}
+	~FloatingObject() {}
+
+	std::string Stringify() override { return std::to_string(value); }
+	ObjectType Type() override { return ObjectType::FLOATING; }
+	void Mark() override { marked = true; }
+	void UnMark() override { marked = false; }
+	bool IsEqualTo(Object* other) override
+	{
+		if (!IS_FLOATING_OBJ(other))
+			return false;
+		return value == TO_FLOATING_OBJ(other)->value;
 	}
 
 	double value;

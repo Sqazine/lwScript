@@ -22,21 +22,32 @@ size_t Frame::GetOpCodeSize() const
 	return m_Codes.size();
 }
 
-uint8_t Frame::AddNumber(double value)
+size_t Frame::AddFloatingNum(double value)
 {
-	m_Numbers.emplace_back(value);
-	return m_Numbers.size() - 1;
+	m_FloatingNums.emplace_back(value);
+	return m_FloatingNums.size() - 1;
 }
 
-uint8_t Frame::AddString(std::string_view value)
+size_t Frame::AddIntegerNum(int64_t value)
+{
+	m_IntegerNums.emplace_back(value);
+	return m_IntegerNums.size() - 1;
+}
+
+size_t Frame::AddString(std::string_view value)
 {
 	m_Strings.emplace_back(value);
 	return m_Strings.size() - 1;
 }
 
-std::vector<double>& Frame::GetNumbers()
+std::vector<double>& Frame::GetFloatingNums()
 {
-	return m_Numbers;
+	return m_FloatingNums;
+}
+
+std::vector<int64_t>& Frame::GetIntegerNums()
+{
+	return m_IntegerNums;
 }
 
 void Frame::AddFunctionFrame(std::string_view name, Frame* frame)
@@ -136,8 +147,11 @@ std::string Frame::Stringify(int depth)
 		case OP_RETURN:
 			SINGLE_INSTR_STRINGIFY(OP_RETURN);
 			break;
-		case OP_NUM:
-			CONSTANT_INSTR_STRINGIFY(OP_NUM, m_Numbers);
+		case OP_FLOATING:
+			CONSTANT_INSTR_STRINGIFY(OP_FLOATING, m_FloatingNums);
+			break;
+		case OP_INTEGER:
+			CONSTANT_INSTR_STRINGIFY(OP_INTEGER, m_IntegerNums);
 			break;
 		case OP_STR:
 			CONSTANT_INSTR_STRINGIFY(OP_STR, m_Strings);
@@ -197,10 +211,10 @@ std::string Frame::Stringify(int depth)
 			CONSTANT_INSTR_STRINGIFY(OP_SET_VAR, m_Strings);
 			break;
 		case OP_DEFINE_ARRAY:
-			CONSTANT_INSTR_STRINGIFY(OP_DEFINE_ARRAY, m_Numbers);
+			CONSTANT_INSTR_STRINGIFY(OP_DEFINE_ARRAY, m_IntegerNums);
 			break;
 		case OP_DEFINE_TABLE:
-			CONSTANT_INSTR_STRINGIFY(OP_DEFINE_TABLE, m_Numbers);
+			CONSTANT_INSTR_STRINGIFY(OP_DEFINE_TABLE, m_IntegerNums);
 			break;
 		case OP_DEFINE_STRUCT:
 			SINGLE_INSTR_STRINGIFY(OP_DEFINE_STRUCT);
@@ -224,10 +238,10 @@ std::string Frame::Stringify(int depth)
 			SINGLE_INSTR_STRINGIFY(OP_EXIT_SCOPE);
 			break;
 		case OP_JUMP:
-			CONSTANT_INSTR_STRINGIFY(OP_JUMP, m_Numbers);
+			CONSTANT_INSTR_STRINGIFY(OP_JUMP, m_IntegerNums);
 			break;
 		case OP_JUMP_IF_FALSE:
-			CONSTANT_INSTR_STRINGIFY(OP_JUMP_IF_FALSE, m_Numbers);
+			CONSTANT_INSTR_STRINGIFY(OP_JUMP_IF_FALSE, m_IntegerNums);
 			break;
 		case OP_FUNCTION_CALL:
 			CONSTANT_INSTR_STRINGIFY(OP_FUNCTION_CALL, m_Strings);
@@ -243,7 +257,8 @@ std::string Frame::Stringify(int depth)
 void Frame::Clear()
 {
 	std::vector<uint8_t>().swap(m_Codes);
-	std::vector<double>().swap(m_Numbers);
+	std::vector<double>().swap(m_FloatingNums);
+	std::vector<int64_t>().swap(m_IntegerNums);
 	std::vector<std::string>().swap(m_Strings);
 
 	for (auto [key, value] : m_FunctionFrames)

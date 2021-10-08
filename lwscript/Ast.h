@@ -8,7 +8,8 @@
 enum class AstType
 {
 	//expr
-	NUM,
+	INTEGER,
+	FLOATING,
 	STR,
 	NIL,
 	BOOL,
@@ -51,14 +52,26 @@ struct Expr
 	virtual AstType Type() = 0;
 };
 
-struct NumExpr : public Expr
+struct IntegerExpr : public Expr
 {
-	NumExpr() : value(0.0) {}
-	NumExpr(double value) : value(value) {}
-	~NumExpr() {}
+	IntegerExpr() : value(0.0) {}
+	IntegerExpr(double value) : value(value) {}
+	~IntegerExpr() {}
 
 	std::string Stringify() override { return std::to_string(value); }
-	AstType Type() override { return AstType::NUM; }
+	AstType Type() override { return AstType::INTEGER; }
+
+	int64_t value;
+};
+
+struct FloatingExpr : public Expr
+{
+	FloatingExpr() : value(0.0) {}
+	FloatingExpr(double value) : value(value) {}
+	~FloatingExpr() {}
+
+	std::string Stringify() override { return std::to_string(value); }
+	AstType Type() override { return AstType::FLOATING; }
 
 	double value;
 };

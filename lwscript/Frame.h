@@ -10,7 +10,8 @@
 
 enum OpCode
 {
-	OP_NUM,
+	OP_FLOATING,
+	OP_INTEGER,
 	OP_STR,
 	OP_TRUE,
 	OP_FALSE,
@@ -56,10 +57,12 @@ public:
 	void AddOpCode(uint8_t code);
 	size_t GetOpCodeSize() const;
 
-	uint8_t AddNumber(double value);
-	uint8_t AddString(std::string_view value);
+	size_t AddFloatingNum(double value);
+	size_t AddIntegerNum(int64_t value);
+	size_t AddString(std::string_view value);
 
-	std::vector<double> &GetNumbers();
+	std::vector<double> &GetFloatingNums();
+	std::vector<int64_t> &GetIntegerNums();
 
 	void AddFunctionFrame(std::string_view name, Frame* frame);
 	Frame* GetFunctionFrame(std::string_view name);
@@ -78,7 +81,8 @@ private:
 
 	std::vector<uint8_t> m_Codes;
 
-	std::vector<double> m_Numbers;
+	std::vector<double> m_FloatingNums;
+	std::vector<int64_t> m_IntegerNums;
 	std::vector<std::string> m_Strings;
 
 	std::unordered_map<std::string,Frame*> m_FunctionFrames;

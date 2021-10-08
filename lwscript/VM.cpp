@@ -5,7 +5,7 @@ VM::VM()
 {
 	ResetStatus();
 
-	m_NativeFunctions["println"] = [this](std::vector<Object *> args) -> Object *
+	m_NativeFunctions["println"] = [this](std::vector<Object*> args) -> Object*
 	{
 		if (args.empty())
 			return nullptr;
@@ -34,7 +34,7 @@ VM::VM()
 		return nullptr;
 	};
 
-	m_NativeFunctions["sizeof"] = [this](std::vector<Object *> args) -> Object *
+	m_NativeFunctions["sizeof"] = [this](std::vector<Object*> args) -> Object*
 	{
 		if (args.empty() || args.size() > 1)
 			Assert("Expect a array argument.");
@@ -42,7 +42,7 @@ VM::VM()
 		if (!IS_ARRAY_OBJ(args[0]))
 			Assert("Not a array object.");
 
-		return CreateNumObject(TO_ARRAY_OBJ(args[0])->elements.size());
+		return CreateIntegerObject(TO_ARRAY_OBJ(args[0])->elements.size());
 	};
 }
 VM::~VM()
@@ -56,12 +56,12 @@ VM::~VM()
 	Gc();
 }
 
-NumObject *VM::CreateNumObject(double value)
+FloatingObject* VM::CreateFloatingObject(double value)
 {
 	if (curObjCount == maxObjCount)
 		Gc();
 
-	NumObject *object = new NumObject(value);
+	FloatingObject* object = new FloatingObject(value);
 	object->marked = false;
 
 	object->next = firstObject;
@@ -72,27 +72,12 @@ NumObject *VM::CreateNumObject(double value)
 	return object;
 }
 
-StrObject *VM::CreateStrObject(std::string_view value)
+IntegerObject* VM::CreateIntegerObject(int64_t value)
 {
 	if (curObjCount == maxObjCount)
 		Gc();
 
-	StrObject *object = new StrObject(value);
-	object->marked = false;
-
-	object->next = firstObject;
-	firstObject = object;
-
-	curObjCount++;
-
-	return object;
-}
-BoolObject *VM::CreateBoolObject(bool value)
-{
-	if (curObjCount == maxObjCount)
-		Gc();
-
-	BoolObject *object = new BoolObject(value);
+	IntegerObject* object = new IntegerObject(value);
 	object->marked = false;
 
 	object->next = firstObject;
@@ -103,12 +88,12 @@ BoolObject *VM::CreateBoolObject(bool value)
 	return object;
 }
 
-NilObject *VM::CreateNilObject()
+StrObject* VM::CreateStrObject(std::string_view value)
 {
 	if (curObjCount == maxObjCount)
 		Gc();
 
-	NilObject *object = new NilObject();
+	StrObject* object = new StrObject(value);
 	object->marked = false;
 
 	object->next = firstObject;
@@ -118,12 +103,43 @@ NilObject *VM::CreateNilObject()
 
 	return object;
 }
-ArrayObject *VM::CreateArrayObject(const std::vector<Object *> &elements)
+BoolObject* VM::CreateBoolObject(bool value)
 {
 	if (curObjCount == maxObjCount)
 		Gc();
 
-	ArrayObject *object = new ArrayObject(elements);
+	BoolObject* object = new BoolObject(value);
+	object->marked = false;
+
+	object->next = firstObject;
+	firstObject = object;
+
+	curObjCount++;
+
+	return object;
+}
+
+NilObject* VM::CreateNilObject()
+{
+	if (curObjCount == maxObjCount)
+		Gc();
+
+	NilObject* object = new NilObject();
+	object->marked = false;
+
+	object->next = firstObject;
+	firstObject = object;
+
+	curObjCount++;
+
+	return object;
+}
+ArrayObject* VM::CreateArrayObject(const std::vector<Object*>& elements)
+{
+	if (curObjCount == maxObjCount)
+		Gc();
+
+	ArrayObject* object = new ArrayObject(elements);
 	object->marked = false;
 
 	object->next = firstObject;
@@ -150,12 +166,12 @@ TableObject* VM::CreateTableObject(const std::unordered_map<Object*, Object*>& e
 	return object;
 }
 
-StructObject *VM::CreateStructObject(Environment *environment)
+StructObject* VM::CreateStructObject(Environment* environment)
 {
 	if (curObjCount == maxObjCount)
 		Gc();
 
-	StructObject *object = new StructObject(environment);
+	StructObject* object = new StructObject(environment);
 	object->marked = false;
 
 	object->next = firstObject;
@@ -166,7 +182,7 @@ StructObject *VM::CreateStructObject(Environment *environment)
 	return object;
 }
 
-Object *VM::Execute(Frame *frame)
+Object* VM::Execute(Frame* frame)
 {
 	// + - * /
 #define COMMON_BINARY(op)                                                                  \
@@ -174,8 +190,14 @@ Object *VM::Execute(Frame *frame)
 	{                                                                                      \
 		Object *left = Pop();                                                              \
 		Object *right = Pop();                                                             \
-		if (IS_NUM_OBJ(right) && IS_NUM_OBJ(left))                                         \
-			Push(CreateNumObject(TO_NUM_OBJ(left)->value op TO_NUM_OBJ(right)->value));    \
+		if (IS_INTEGER_OBJ(right) && IS_INTEGER_OBJ(left))                                         \
+			Push(CreateIntegerObject(TO_INTEGER_OBJ(left)->value op TO_INTEGER_OBJ(right)->value));    \
+		else if(IS_INTEGER_OBJ(right)&&IS_FLOATING_OBJ(left))\
+			Push(CreateFloatingObject(TO_FLOATING_OBJ(left)->value op TO_INTEGER_OBJ(right)->value));    \
+		else if(IS_FLOATING_OBJ(right)&&IS_INTEGER_OBJ(left))\
+			Push(CreateFloatingObject(TO_INTEGER_OBJ(left)->value op TO_FLOATING_OBJ(right)->value));    \
+		else if(IS_FLOATING_OBJ(right)&&IS_FLOATING_OBJ(left))\
+			Push(CreateFloatingObject(TO_FLOATING_OBJ(left)->value op TO_FLOATING_OBJ(right)->value));    \
 		else                                                                               \
 			Assert("Invalid binary op:" + left->Stringify() + (#op) + right->Stringify()); \
 	} while (0);
@@ -186,8 +208,14 @@ Object *VM::Execute(Frame *frame)
 	{                                                                                                                       \
 		Object *left = Pop();                                                                                               \
 		Object *right = Pop();                                                                                              \
-		if (IS_NUM_OBJ(right) && IS_NUM_OBJ(left))                                                                          \
-			Push(TO_NUM_OBJ(left)->value op TO_NUM_OBJ(right)->value ? CreateBoolObject(true) : CreateBoolObject(false));   \
+		if (IS_INTEGER_OBJ(right) && IS_INTEGER_OBJ(left))                                                                          \
+			Push(TO_INTEGER_OBJ(left)->value op TO_INTEGER_OBJ(right)->value ? CreateBoolObject(true) : CreateBoolObject(false));   \
+	else if (IS_INTEGER_OBJ(right) && IS_FLOATING_OBJ(left))                                                                          \
+			Push(TO_FLOATING_OBJ(left)->value op TO_INTEGER_OBJ(right)->value ? CreateBoolObject(true) : CreateBoolObject(false));   \
+	else if (IS_FLOATING_OBJ(right) && IS_INTEGER_OBJ(left))                                                                          \
+			Push(TO_INTEGER_OBJ(left)->value op TO_FLOATING_OBJ(right)->value ? CreateBoolObject(true) : CreateBoolObject(false));   \
+	else if (IS_FLOATING_OBJ(right) && IS_FLOATING_OBJ(left))                                                                          \
+			Push(TO_FLOATING_OBJ(left)->value op TO_FLOATING_OBJ(right)->value ? CreateBoolObject(true) : CreateBoolObject(false));   \
 		else if (IS_BOOL_OBJ(right) && IS_BOOL_OBJ(left))                                                                   \
 			Push(TO_BOOL_OBJ(left)->value op TO_BOOL_OBJ(right)->value ? CreateBoolObject(true) : CreateBoolObject(false)); \
 		else if (IS_NIL_OBJ(right) && IS_NIL_OBJ(left))                                                                     \
@@ -215,8 +243,11 @@ Object *VM::Execute(Frame *frame)
 		case OP_RETURN:
 			return Pop();
 			break;
-		case OP_NUM:
-			Push(CreateNumObject(frame->m_Numbers[frame->m_Codes[++ip]]));
+		case OP_FLOATING:
+			Push(CreateFloatingObject(frame->m_FloatingNums[frame->m_Codes[++ip]]));
+			break;
+		case OP_INTEGER:
+			Push(CreateIntegerObject(frame->m_IntegerNums[frame->m_Codes[++ip]]));
 			break;
 		case OP_STR:
 			Push(CreateStrObject(frame->m_Strings[frame->m_Codes[++ip]]));
@@ -232,13 +263,11 @@ Object *VM::Execute(Frame *frame)
 			break;
 		case OP_NEG:
 		{
-			Object *object = Pop();
-			if (IS_NUM_OBJ(object))
-			{
-				auto t = TO_NUM_OBJ(object);
-				t->value *= -1.0;
-				Push(t);
-			}
+			Object* object = Pop();
+			if (IS_FLOATING_OBJ(object))
+				Push(CreateFloatingObject(-TO_FLOATING_OBJ(object)->value));
+			else if (IS_INTEGER_OBJ(object))
+				Push(CreateIntegerObject(-TO_INTEGER_OBJ(object)->value));
 			else
 				Assert("Invalid op:'-'" + object->Stringify());
 			break;
@@ -256,43 +285,43 @@ Object *VM::Execute(Frame *frame)
 			COMMON_BINARY(*);
 			break;
 		case OP_GT:
-			COMPARE_BINARY(>);
+			COMPARE_BINARY(> );
 			break;
 		case OP_LE:
-			COMPARE_BINARY(<);
+			COMPARE_BINARY(< );
 			break;
 		case OP_GTEQ:
-			COMPARE_BINARY(>=);
+			COMPARE_BINARY(>= );
 			break;
 		case OP_LEEQ:
-			COMPARE_BINARY(<=);
+			COMPARE_BINARY(<= );
 			break;
 		case OP_EQ:
-			COMPARE_BINARY(==);
+			COMPARE_BINARY(== );
 			break;
 		case OP_AND:
 			LOGIC_BINARY(&&);
 			break;
 		case OP_OR:
-			LOGIC_BINARY(||);
+			LOGIC_BINARY(|| );
 			break;
 		case OP_DEFINE_VAR:
 		{
-			Object *value = Pop();
+			Object* value = Pop();
 			m_Environment->DefineVariable(frame->m_Strings[frame->m_Codes[++ip]], value);
 			break;
 		}
 		case OP_SET_VAR:
 		{
 			std::string name = frame->m_Strings[frame->m_Codes[++ip]];
-			Object *value = Pop();
+			Object* value = Pop();
 			m_Environment->AssignVariable(name, value);
 			break;
 		}
 		case OP_GET_VAR:
 		{
 			std::string name = frame->m_Strings[frame->m_Codes[++ip]];
-			Object *variableObject = m_Environment->GetVariable(name);
+			Object* variableObject = m_Environment->GetVariable(name);
 
 			//no variable
 			if (variableObject == nullptr)
@@ -308,8 +337,8 @@ Object *VM::Execute(Frame *frame)
 		}
 		case OP_DEFINE_ARRAY:
 		{
-			std::vector<Object *> elements;
-			int64_t arraySize = (int64_t)frame->m_Numbers[frame->m_Codes[++ip]];
+			std::vector<Object*> elements;
+			int64_t arraySize = (int64_t)frame->m_FloatingNums[frame->m_Codes[++ip]];
 			for (int64_t i = 0; i < arraySize; ++i)
 				elements.insert(elements.begin(), Pop());
 			Push(CreateArrayObject(elements));
@@ -317,8 +346,8 @@ Object *VM::Execute(Frame *frame)
 		}
 		case OP_DEFINE_TABLE:
 		{
-			std::unordered_map<Object*,Object*> elements;
-			int64_t tableSize = (int64_t)frame->m_Numbers[frame->m_Codes[++ip]];
+			std::unordered_map<Object*, Object*> elements;
+			int64_t tableSize = (int64_t)frame->m_FloatingNums[frame->m_Codes[++ip]];
 			for (int64_t i = 0; i < tableSize; ++i)
 			{
 				Object* key = Pop();
@@ -330,7 +359,7 @@ Object *VM::Execute(Frame *frame)
 		}
 		case OP_DEFINE_STRUCT:
 		{
-			Environment *tmp = m_Environment;
+			Environment* tmp = m_Environment;
 			m_Environment = m_Environment->GetUpEnvironment();
 			tmp->m_UpEnvironment = nullptr; //avoid environment conflict
 			Push(CreateStructObject(tmp));
@@ -338,15 +367,15 @@ Object *VM::Execute(Frame *frame)
 		}
 		case OP_GET_INDEX_VAR:
 		{
-			Object *object = Pop();
-			Object *index = Pop();
+			Object* object = Pop();
+			Object* index = Pop();
 			if (IS_ARRAY_OBJ(object))
 			{
-				ArrayObject *arrayObject = TO_ARRAY_OBJ(object);
-				if (!IS_NUM_OBJ(index))
+				ArrayObject* arrayObject = TO_ARRAY_OBJ(object);
+				if (!IS_INTEGER_OBJ(index))
 					Assert("Invalid index op.The index type of the array object must ba a int num type,but got:" + index->Stringify());
 
-				int64_t iIndex = (int64_t)TO_NUM_OBJ(index)->value;
+				int64_t iIndex = (int64_t)TO_INTEGER_OBJ(index)->value;
 
 				if (iIndex < 0 || iIndex >= (int64_t)arrayObject->elements.size())
 					Assert("Index out of array range,array size:" + std::to_string(arrayObject->elements.size()) + ",index:" + std::to_string(iIndex));
@@ -359,7 +388,7 @@ Object *VM::Execute(Frame *frame)
 
 
 				bool hasValue = false;
-				for(const auto [key,value]:tableObject->elements)
+				for (const auto [key, value] : tableObject->elements)
 					if (key->IsEqualTo(index))
 					{
 						Push(value);
@@ -376,17 +405,17 @@ Object *VM::Execute(Frame *frame)
 		}
 		case OP_SET_INDEX_VAR:
 		{
-			Object *object = Pop();
-			Object *index = Pop();
-			Object *assigner = Pop();
+			Object* object = Pop();
+			Object* index = Pop();
+			Object* assigner = Pop();
 
 			if (IS_ARRAY_OBJ(object))
 			{
-				ArrayObject *arrayObject = TO_ARRAY_OBJ(object);
-				if (!IS_NUM_OBJ(index))
+				ArrayObject* arrayObject = TO_ARRAY_OBJ(object);
+				if (!IS_INTEGER_OBJ(index))
 					Assert("Invalid index op.The index type of the array object must ba a int num type,but got:" + index->Stringify());
 
-				int64_t iIndex = (int64_t)TO_NUM_OBJ(index)->value;
+				int64_t iIndex = TO_INTEGER_OBJ(index)->value;
 
 				if (iIndex < 0 || iIndex >= (int64_t)arrayObject->elements.size())
 					Assert("Index out of array range,array size:" + std::to_string(arrayObject->elements.size()) + ",index:" + std::to_string(iIndex));
@@ -405,11 +434,11 @@ Object *VM::Execute(Frame *frame)
 		case OP_GET_STRUCT:
 		{
 			std::string structName = frame->m_Strings[frame->m_Codes[++ip]];
-			Object *obj = m_Environment->GetVariable(structName);
+			Object* obj = m_Environment->GetVariable(structName);
 			if (!IS_STRUCT_OBJ(obj))
 				Assert("Not a struct object:" + structName);
 
-			StructObject *structObject = TO_STRUCT_OBJ(obj);
+			StructObject* structObject = TO_STRUCT_OBJ(obj);
 			structObject->environment->SetUpEnvironment(m_Environment);
 			m_Environment = structObject->environment;
 			break;
@@ -426,7 +455,7 @@ Object *VM::Execute(Frame *frame)
 		}
 		case OP_EXIT_SCOPE:
 		{
-			Environment *tmp = m_Environment->GetUpEnvironment();
+			Environment* tmp = m_Environment->GetUpEnvironment();
 			delete m_Environment;
 			m_Environment = tmp;
 			break;
@@ -434,7 +463,7 @@ Object *VM::Execute(Frame *frame)
 		case OP_JUMP_IF_FALSE:
 		{
 			bool isJump = !TO_BOOL_OBJ(Pop())->value;
-			uint64_t address = (uint64_t)(frame->m_Numbers[frame->m_Codes[++ip]]);
+			uint64_t address = (uint64_t)(frame->m_FloatingNums[frame->m_Codes[++ip]]);
 
 			if (isJump)
 				ip = address;
@@ -442,13 +471,13 @@ Object *VM::Execute(Frame *frame)
 		}
 		case OP_JUMP:
 		{
-			uint64_t address = (uint64_t)(frame->m_Numbers[frame->m_Codes[++ip]]);
+			uint64_t address = (uint64_t)(frame->m_FloatingNums[frame->m_Codes[++ip]]);
 			ip = address;
 			break;
 		}
 		case OP_FUNCTION_CALL:
 		{
-			NumObject *argCount = TO_NUM_OBJ(Pop());
+			IntegerObject* argCount = TO_INTEGER_OBJ(Pop());
 
 			std::string fnName = frame->m_Strings[frame->m_Codes[++ip]];
 
@@ -456,11 +485,11 @@ Object *VM::Execute(Frame *frame)
 				Push(Execute(frame->GetFunctionFrame(fnName)));
 			else if (HasNativeFunction(fnName))
 			{
-				std::vector<Object *> args;
+				std::vector<Object*> args;
 				for (size_t i = 0; i < argCount->value; ++i)
 					args.insert(args.begin(), Pop());
 
-				Object *returnResult = GetNativeFunction(fnName)(args);
+				Object* returnResult = GetNativeFunction(fnName)(args);
 				if (returnResult != nullptr)
 					Push(returnResult);
 			}
@@ -475,14 +504,14 @@ Object *VM::Execute(Frame *frame)
 
 	return CreateNilObject();
 }
-void VM::AddNativeFunction(std::string_view name, std::function<Object *(std::vector<Object *> args)> fn)
+void VM::AddNativeFunction(std::string_view name, std::function<Object* (std::vector<Object*> args)> fn)
 {
 	auto iter = m_NativeFunctions.find(name.data());
 	if (iter != m_NativeFunctions.end())
 		Assert(std::string("Already exists native function:") + name.data());
 	m_NativeFunctions[name.data()] = fn;
 }
-std::function<Object *(std::vector<Object *> args)> VM::GetNativeFunction(std::string_view fnName)
+std::function<Object* (std::vector<Object*> args)> VM::GetNativeFunction(std::string_view fnName)
 {
 	auto iter = m_NativeFunctions.find(fnName.data());
 	if (iter != m_NativeFunctions.end())
@@ -503,7 +532,7 @@ void VM::ResetStatus()
 	curObjCount = 0;
 	maxObjCount = INIT_OBJ_NUM_MAX;
 
-	std::array<Object *, STACK_MAX>().swap(m_Stack);
+	std::array<Object*, STACK_MAX>().swap(m_Stack);
 
 	if (m_Environment != nullptr)
 	{
@@ -512,11 +541,11 @@ void VM::ResetStatus()
 	}
 	m_Environment = new Environment();
 }
-void VM::Push(Object *object)
+void VM::Push(Object* object)
 {
 	m_Stack[sp++] = object;
 }
-Object *VM::Pop()
+Object* VM::Pop()
 {
 	return m_Stack[--sp];
 }
@@ -530,12 +559,12 @@ void VM::Gc()
 		m_Stack[i]->Mark();
 
 	//sweep objects which is not reachable
-	Object **object = &firstObject;
+	Object** object = &firstObject;
 	while (*object)
 	{
 		if (!((*object)->marked))
 		{
-			Object *unreached = *object;
+			Object* unreached = *object;
 			*object = unreached->next;
 
 			delete unreached;

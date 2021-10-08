@@ -33,7 +33,8 @@ private:
 	void CompileStructStmt(StructStmt* stmt, Frame* frame);
 
 	void CompileExpr(Expr* expr, Frame* frame, ObjectState state = READ);
-	void CompileNumExpr(NumExpr* expr, Frame* frame);
+	void CompileIntegerExpr(IntegerExpr* expr,Frame* frame);
+	void CompileFloatingExpr(FloatingExpr* expr, Frame* frame);
 	void CompileStrExpr(StrExpr* expr, Frame* frame);
 	void CompileBoolExpr(BoolExpr* expr, Frame* frame);
 	void CompileNilExpr(NilExpr* expr, Frame* frame);
