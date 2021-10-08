@@ -143,6 +143,9 @@ void Lexer::ScanToken()
         else
             AddToken(TokenType::EQUAL);
         break;
+    case '?':
+        AddToken(TokenType::QUESTION);
+        break;
     default:
         if (IsNumber(c))
             Number();

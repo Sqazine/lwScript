@@ -526,6 +526,19 @@ do                                                                              
 				Assert("No function:" + fnName);
 			break;
 		}
+		case OP_CONDITION:
+		{
+			Object* condition = Pop();
+			Object* trueBranch = Pop();
+			Object* falseBranch = Pop();
+
+			if (!IS_BOOL_OBJ(condition))
+				Assert("Not a bool expr of condition expr's '?'.");
+			if (TO_BOOL_OBJ(condition)->value)
+				Push(trueBranch);
+			else Push(falseBranch);
+			break;
+		}
 		default:
 			break;
 		}

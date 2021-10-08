@@ -197,6 +197,9 @@ void Compiler::CompileExpr(Expr* expr, Frame* frame, ObjectState state)
 	case AstType::INFIX:
 		CompileInfixExpr((InfixExpr*)expr, frame);
 		break;
+	case AstType::CONDITION:
+		CompileConditionExpr((ConditionExpr*)expr,frame);
+		break;
 	case AstType::FUNCTION_CALL:
 		CompileFunctionCallExpr((FunctionCallExpr*)expr, frame);
 		break;
@@ -347,6 +350,14 @@ void Compiler::CompileInfixExpr(InfixExpr* expr, Frame* frame)
 		else
 			Assert("Unknown binary op:" + expr->op);
 	}
+}
+
+void Compiler::CompileConditionExpr(ConditionExpr* expr, Frame* frame)
+{
+	CompileExpr(expr->falseBranch, frame);
+	CompileExpr(expr->trueBranch, frame);
+	CompileExpr(expr->condition, frame);
+	frame->AddOpCode(OP_CONDITION);
 }
 
 void Compiler::CompileFunctionCallExpr(FunctionCallExpr* expr, Frame* frame)

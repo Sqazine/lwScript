@@ -38,7 +38,9 @@ Parser::Parser()
 		{TokenType::BIT_OR,&Parser::ParseInfixExpr},
 		{TokenType::LPAREN, &Parser::ParseFunctionCallExpr},
 		{TokenType::LBRACKET, &Parser::ParseIndexExpr},
-		{TokenType::DOT, &Parser::ParseStructCallExpr} };
+		{TokenType::DOT, &Parser::ParseStructCallExpr},
+		{TokenType::QUESTION,&Parser::ParseConditionExpr},
+	};
 
 	m_Precedence =
 	{
@@ -62,7 +64,9 @@ Parser::Parser()
 		{TokenType::MOD, Precedence::MUL_DIV_MOD},
 		{TokenType::LBRACKET, Precedence::INDEX},
 		{TokenType::LPAREN, Precedence::FUNCTION_CALL},
-		{TokenType::DOT, Precedence::STRUCT_CALL} };
+		{TokenType::DOT, Precedence::STRUCT_CALL} ,
+		{TokenType::QUESTION,Precedence::CONDITION},
+	};
 }
 Parser::~Parser()
 {
@@ -383,6 +387,20 @@ Expr* Parser::ParseInfixExpr(Expr* prefixExpr)
 	infixExpr->op = GetCurTokenAndStepOnce().literal;
 	infixExpr->right = ParseExpr(opPrece);
 	return infixExpr;
+}
+
+Expr* Parser::ParseConditionExpr(Expr* prefixExpr)
+{
+	ConditionExpr* conditionExpr = new ConditionExpr();
+	conditionExpr->condition = prefixExpr;
+
+	Consume(TokenType::QUESTION, "Expect '?'.");
+
+	conditionExpr->trueBranch = ParseExpr(Precedence::CONDITION);
+	Consume(TokenType::COLON,"Expect ':' in condition expr");
+	conditionExpr->falseBranch = ParseExpr(Precedence::CONDITION);
+
+	return conditionExpr;
 }
 
 Expr* Parser::ParseIndexExpr(Expr* prefixExpr)
