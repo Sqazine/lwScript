@@ -11,12 +11,16 @@ enum class Precedence
 {
 	LOWEST = 0,
 	ASSIGN,		   // =
+	CONDITION,// ?
 	OR,			   // ||
 	AND,		   // &&
+	BIT_OR,// |
+	BIT_NOT,// ~
+	BIT_AND,// &
 	EQUAL,		   // == !=
 	COMPARE,	   // < <= > >=
 	ADD_PLUS,	   // + -
-	MUL_DIV,	   // * /
+	MUL_DIV_MOD,	   // * / %
 	INDEX,		   // []
 	FUNCTION_CALL, // ()
 	STRUCT_CALL,   // .

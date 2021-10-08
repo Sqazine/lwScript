@@ -298,6 +298,8 @@ void Compiler::CompilePrefixExpr(PrefixExpr* expr, Frame* frame)
 	CompileExpr(expr->right, frame);
 	if (expr->op == "-")
 		frame->AddOpCode(OP_NEG);
+	else if (expr->op == "~")
+		frame->AddOpCode(OP_BIT_NOT);
 }
 
 void Compiler::CompileInfixExpr(InfixExpr* expr, Frame* frame)
@@ -320,6 +322,12 @@ void Compiler::CompileInfixExpr(InfixExpr* expr, Frame* frame)
 			frame->AddOpCode(OP_MUL);
 		else if (expr->op == "/")
 			frame->AddOpCode(OP_DIV);
+		else if (expr->op == "%")
+			frame->AddOpCode(OP_MOD);
+		else if (expr->op == "&")
+			frame->AddOpCode(OP_BIT_AND);
+		else if (expr->op == "|")
+			frame->AddOpCode(OP_BIT_OR);
 		else if (expr->op == "&&")
 			frame->AddOpCode(OP_AND);
 		else if (expr->op == "||")

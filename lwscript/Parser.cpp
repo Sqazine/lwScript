@@ -12,6 +12,7 @@ Parser::Parser()
 		{TokenType::TRUE, &Parser::ParseTrueExpr},
 		{TokenType::FALSE, &Parser::ParseFalseExpr},
 		{TokenType::MINUS, &Parser::ParsePrefixExpr},
+		{TokenType::BIT_NOT,&Parser::ParsePrefixExpr},
 		{TokenType::LPAREN, &Parser::ParseGroupExpr},
 		{TokenType::LBRACKET, &Parser::ParseArrayExpr},
 		{TokenType::LBRACE,&Parser::ParseTableExpr}
@@ -32,6 +33,9 @@ Parser::Parser()
 		{TokenType::MINUS, &Parser::ParseInfixExpr},
 		{TokenType::ASTERISK, &Parser::ParseInfixExpr},
 		{TokenType::SLASH, &Parser::ParseInfixExpr},
+		{TokenType::MOD,&Parser::ParseInfixExpr},
+		{TokenType::BIT_AND,&Parser::ParseInfixExpr},
+		{TokenType::BIT_OR,&Parser::ParseInfixExpr},
 		{TokenType::LPAREN, &Parser::ParseFunctionCallExpr},
 		{TokenType::LBRACKET, &Parser::ParseIndexExpr},
 		{TokenType::DOT, &Parser::ParseStructCallExpr} };
@@ -40,6 +44,9 @@ Parser::Parser()
 	{
 
 		{TokenType::EQUAL, Precedence::ASSIGN},
+		{TokenType::BIT_OR,Precedence::BIT_OR},
+		{TokenType::BIT_NOT,Precedence::BIT_NOT},
+		{TokenType::BIT_AND,Precedence::BIT_AND},
 		{TokenType::OR, Precedence::OR},
 		{TokenType::AND, Precedence::AND},
 		{TokenType::EEQUAL, Precedence::EQUAL},
@@ -50,8 +57,9 @@ Parser::Parser()
 		{TokenType::GEQUAL, Precedence::COMPARE},
 		{TokenType::PLUS, Precedence::ADD_PLUS},
 		{TokenType::MINUS, Precedence::ADD_PLUS},
-		{TokenType::ASTERISK, Precedence::MUL_DIV},
-		{TokenType::SLASH, Precedence::MUL_DIV},
+		{TokenType::ASTERISK, Precedence::MUL_DIV_MOD},
+		{TokenType::SLASH, Precedence::MUL_DIV_MOD},
+		{TokenType::MOD, Precedence::MUL_DIV_MOD},
 		{TokenType::LBRACKET, Precedence::INDEX},
 		{TokenType::LPAREN, Precedence::FUNCTION_CALL},
 		{TokenType::DOT, Precedence::STRUCT_CALL} };

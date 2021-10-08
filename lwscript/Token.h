@@ -23,9 +23,14 @@ enum class TokenType
 	MINUS,	   // -
 	ASTERISK,  // *
 	SLASH,	   // /
+	MOD,   // %
 	EQUAL,	   // =
 	LESS,	   // <
 	GREATER,   // >
+	BIT_AND, // &
+	BIT_OR,      // |
+	BIT_NOT,	   // ~
+	QUESTION,  // ?
 	EEQUAL,	   // ==
 	LEQUAL,	   // <=
 	GEQUAL,	   // >=

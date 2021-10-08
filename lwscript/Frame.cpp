@@ -180,6 +180,18 @@ std::string Frame::Stringify(int depth)
 		case OP_DIV:
 			SINGLE_INSTR_STRINGIFY(OP_DIV);
 			break;
+		case OP_MOD:
+			SINGLE_INSTR_STRINGIFY(OP_MOD);
+			break;
+		case OP_BIT_AND:
+			SINGLE_INSTR_STRINGIFY(OP_BIT_AND);
+			break;
+		case OP_BIT_OR:
+			SINGLE_INSTR_STRINGIFY(OP_BIT_OR);
+			break;
+		case OP_BIT_NOT:
+			SINGLE_INSTR_STRINGIFY(OP_BIT_NOT);
+			break;
 		case OP_GT:
 			SINGLE_INSTR_STRINGIFY(OP_GT);
 			break;

@@ -101,6 +101,12 @@ void Lexer::ScanToken()
     case '/':
         AddToken(TokenType::SLASH);
         break;
+    case '%':
+        AddToken(TokenType::MOD);
+        break;
+    case '~':
+        AddToken(TokenType::BIT_NOT);
+        break;
     case '!':
         if (IsMatchCurCharAndStepOnce('='))
             AddToken(TokenType::BEQUAL);
@@ -111,13 +117,13 @@ void Lexer::ScanToken()
         if (IsMatchCurCharAndStepOnce('&'))
             AddToken(TokenType::AND);
         else
-            AddToken(TokenType::UNKNOWN);
+            AddToken(TokenType::BIT_AND);
         break;
     case '|':
         if (IsMatchCurCharAndStepOnce('|'))
             AddToken(TokenType::OR);
         else
-            AddToken(TokenType::UNKNOWN);
+            AddToken(TokenType::BIT_OR);
         break;
     case '<':
         if (IsMatchCurCharAndStepOnce('='))

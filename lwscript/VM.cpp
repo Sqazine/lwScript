@@ -201,6 +201,17 @@ Object* VM::Execute(Frame* frame)
 		else                                                                               \
 			Assert("Invalid binary op:" + left->Stringify() + (#op) + right->Stringify()); \
 	} while (0);
+// & | %
+#define INTEGER_BINARY(op) \
+do                                                                                     \
+	{                                                                                      \
+		Object *left = Pop();                                                              \
+		Object *right = Pop();                                                             \
+		if (IS_INTEGER_OBJ(right) && IS_INTEGER_OBJ(left))                                         \
+			Push(CreateIntegerObject(TO_INTEGER_OBJ(left)->value op TO_INTEGER_OBJ(right)->value));    \
+		else                                                                               \
+			Assert("Invalid binary op:" + left->Stringify() + (#op) + right->Stringify()); \
+	} while (0);
 
 // > >= < <= == !=
 #define COMPARE_BINARY(op)                                                                                                  \
@@ -282,8 +293,26 @@ Object* VM::Execute(Frame* frame)
 			COMMON_BINARY(*);
 			break;
 		case OP_DIV:
-			COMMON_BINARY(*);
+			COMMON_BINARY(/);
 			break;
+		case OP_MOD:
+			INTEGER_BINARY(%);
+			break;
+		case OP_BIT_AND:
+			INTEGER_BINARY(&);
+			break;
+		case OP_BIT_OR:
+			INTEGER_BINARY(|);
+			break;
+		case OP_BIT_NOT:
+		{
+			Object* object = Pop();
+			if (IS_INTEGER_OBJ(object))
+				Push(CreateIntegerObject(-TO_INTEGER_OBJ(object)->value));
+			else
+				Assert("Invalid op:'-'" + object->Stringify());
+			break;
+		}
 		case OP_GT:
 			COMPARE_BINARY(> );
 			break;
