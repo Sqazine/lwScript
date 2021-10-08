@@ -44,7 +44,6 @@ Parser::Parser()
 
 	m_Precedence =
 	{
-
 		{TokenType::EQUAL, Precedence::ASSIGN},
 		{TokenType::BIT_OR,Precedence::BIT_OR},
 		{TokenType::BIT_NOT,Precedence::BIT_NOT},

@@ -72,13 +72,6 @@ void Lexer::ScanToken()
     case ';':
         AddToken(TokenType::SEMICOLON);
         break;
-    case '#':
-    {
-        while (!IsMatchCurChar('\n') && !IsAtEnd())
-            GetCurCharAndStepOnce();
-        m_Line++;
-        break;
-    }
     case '\"':
         String();
         break;
@@ -99,7 +92,26 @@ void Lexer::ScanToken()
         AddToken(TokenType::ASTERISK);
         break;
     case '/':
-        AddToken(TokenType::SLASH);
+        if (IsMatchCurCharAndStepOnce('/'))
+        {
+			while (!IsMatchCurChar('\n') && !IsAtEnd())
+				GetCurCharAndStepOnce();
+			m_Line++;
+			break;
+        }
+        else if (IsMatchCurCharAndStepOnce('*'))
+        {
+            while (!IsMatchCurChar('*') && !IsMatchNextChar('/')&&!IsAtEnd())
+            {
+                if (IsMatchCurChar('\n'))
+                    m_Line++;
+                GetCurCharAndStepOnce();
+            }
+            GetCurCharAndStepOnce();//eat '*'
+            GetCurCharAndStepOnce();// eat '/'
+        }
+        else
+            AddToken(TokenType::SLASH);
         break;
     case '%':
         AddToken(TokenType::MOD);
@@ -133,7 +145,7 @@ void Lexer::ScanToken()
         break;
     case '>':
         if (IsMatchCurCharAndStepOnce('='))
-            AddToken(TokenType::GEQUAL);
+           AddToken(TokenType::GEQUAL);
         else
             AddToken(TokenType::GREATER);
         break;
