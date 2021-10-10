@@ -201,7 +201,7 @@ Object* VM::Execute(Frame* frame)
 		else                                                                               \
 			Assert("Invalid binary op:" + left->Stringify() + (#op) + right->Stringify()); \
 	} while (0);
-// & | %
+// & | % << >>
 #define INTEGER_BINARY(op) \
 do                                                                                     \
 	{                                                                                      \
@@ -283,6 +283,15 @@ do                                                                              
 				Assert("Invalid op:'-'" + object->Stringify());
 			break;
 		}
+		case OP_NOT:
+		{
+			Object* object = Pop();
+			if (IS_BOOL_OBJ(object))
+				Push(CreateBoolObject(!TO_BOOL_OBJ(object)->value));
+			else
+				Assert("Invalid op:'!'" + object->Stringify());
+			break;
+		}
 		case OP_ADD:
 			COMMON_BINARY(+);
 			break;
@@ -304,30 +313,42 @@ do                                                                              
 		case OP_BIT_OR:
 			INTEGER_BINARY(|);
 			break;
+		case OP_BIT_XOR:
+			INTEGER_BINARY(^);
+			break;
 		case OP_BIT_NOT:
 		{
 			Object* object = Pop();
 			if (IS_INTEGER_OBJ(object))
-				Push(CreateIntegerObject(-TO_INTEGER_OBJ(object)->value));
+				Push(CreateIntegerObject(~TO_INTEGER_OBJ(object)->value));
 			else
-				Assert("Invalid op:'-'" + object->Stringify());
+				Assert("Invalid op:'~'" + object->Stringify());
 			break;
 		}
-		case OP_GT:
+		case OP_BIT_LEFT_SHIFT:
+			INTEGER_BINARY(<<);
+			break;
+		case OP_BIT_RIGHT_SHIFT:
+			INTEGER_BINARY(>>);
+			break;
+		case OP_GREATER:
 			COMPARE_BINARY(> );
 			break;
-		case OP_LE:
+		case OP_LESS:
 			COMPARE_BINARY(< );
 			break;
-		case OP_GTEQ:
+		case OP_GREATER_EQUAL:
 			COMPARE_BINARY(>= );
 			break;
-		case OP_LEEQ:
+		case OP_LESS_EQUAL:
 			COMPARE_BINARY(<= );
 			break;
-		case OP_EQ:
+		case OP_EQUAL:
 			COMPARE_BINARY(== );
 			break;
+		case OP_NOT_EQUAL:
+				COMPARE_BINARY(!= );
+				break;
 		case OP_AND:
 			LOGIC_BINARY(&&);
 			break;

@@ -303,6 +303,8 @@ void Compiler::CompilePrefixExpr(PrefixExpr* expr, Frame* frame)
 		frame->AddOpCode(OP_NEG);
 	else if (expr->op == "~")
 		frame->AddOpCode(OP_BIT_NOT);
+	else if (expr->op == "!")
+		frame->AddOpCode(OP_NOT);
 }
 
 void Compiler::CompileInfixExpr(InfixExpr* expr, Frame* frame)
@@ -331,22 +333,73 @@ void Compiler::CompileInfixExpr(InfixExpr* expr, Frame* frame)
 			frame->AddOpCode(OP_BIT_AND);
 		else if (expr->op == "|")
 			frame->AddOpCode(OP_BIT_OR);
+		else if (expr->op == "^")
+			frame->AddOpCode(OP_BIT_XOR);
 		else if (expr->op == "&&")
 			frame->AddOpCode(OP_AND);
 		else if (expr->op == "||")
 			frame->AddOpCode(OP_OR);
 		else if (expr->op == ">")
-			frame->AddOpCode(OP_GT);
+			frame->AddOpCode(OP_GREATER);
 		else if (expr->op == "<")
-			frame->AddOpCode(OP_LE);
+			frame->AddOpCode(OP_LESS);
 		else if (expr->op == ">=")
-			frame->AddOpCode(OP_GTEQ);
+			frame->AddOpCode(OP_GREATER_EQUAL);
 		else if (expr->op == "<=")
-			frame->AddOpCode(OP_LEEQ);
+			frame->AddOpCode(OP_LESS_EQUAL);
 		else if (expr->op == "==")
-			frame->AddOpCode(OP_EQ);
+			frame->AddOpCode(OP_EQUAL);
 		else if (expr->op == "!=")
-			frame->AddOpCode(OP_NEQ);
+			frame->AddOpCode(OP_NOT_EQUAL);
+		else if (expr->op == "<<")
+			frame->AddOpCode(OP_BIT_LEFT_SHIFT);
+		else if (expr->op == ">>")
+			frame->AddOpCode(OP_BIT_RIGHT_SHIFT);
+		else if (expr->op == "+=")
+		{
+			frame->AddOpCode(OP_ADD);
+			CompileExpr(expr->left, frame, WRITE);
+		}
+		else if (expr->op == "-=")
+		{
+			frame->AddOpCode(OP_SUB);
+			CompileExpr(expr->left, frame, WRITE);
+		}
+		else if (expr->op == "*=")
+		{
+			frame->AddOpCode(OP_MUL);
+			CompileExpr(expr->left, frame, WRITE);
+		}
+		else if (expr->op == "/=")
+		{
+			frame->AddOpCode(OP_DIV);
+			CompileExpr(expr->left, frame, WRITE);
+		}
+		else if (expr->op == "&=")
+		{
+			frame->AddOpCode(OP_BIT_AND);
+			CompileExpr(expr->left, frame, WRITE);
+		}
+		else if (expr->op == "|=")
+		{
+			frame->AddOpCode(OP_BIT_OR);
+			CompileExpr(expr->left, frame, WRITE);
+		}
+		else if (expr->op == "^=")
+		{
+			frame->AddOpCode(OP_BIT_XOR);
+			CompileExpr(expr->left, frame, WRITE);
+		}
+		else if (expr->op == "<<=")
+		{
+			frame->AddOpCode(OP_BIT_LEFT_SHIFT);
+			CompileExpr(expr->left, frame, WRITE);
+		}
+		else if (expr->op == ">>=")
+		{
+			frame->AddOpCode(OP_BIT_RIGHT_SHIFT);
+			CompileExpr(expr->left, frame, WRITE);
+		}
 		else
 			Assert("Unknown binary op:" + expr->op);
 	}

@@ -10,21 +10,20 @@
 enum class Precedence
 {
 	LOWEST = 0,
-	ASSIGN,		   // =
-	CONDITION,// ?
-	OR,			   // ||
-	AND,		   // &&
-	BIT_OR,// |
-	BIT_NOT,// ~
-	BIT_AND,// &
-	EQUAL,		   // == !=
-	COMPARE,	   // < <= > >=
-	ADD_PLUS,	   // + -
-	MUL_DIV_MOD,	   // * / %
-	INDEX,		   // []
-	FUNCTION_CALL, // ()
-	STRUCT_CALL,   // .
-
+	ASSIGN,		 // = += -= *= /= %= &= |= ^= <<= >>=
+	CONDITION,	 // ?
+	OR,			 // ||
+	AND,		 // &&
+	BIT_OR,		 // |
+	BIT_XOR,	 // ^
+	BIT_AND,	 // &
+	EQUAL,		 // == !=
+	COMPARE,	 // < <= > >=
+	BIT_SHIFT,	 // >> <<
+	ADD_PLUS,	 // + -
+	MUL_DIV_MOD, // * / %
+	UNARY,		 // ++ -- ! ~ - ref
+	POSTFIX,	 // [] () . ++ --
 };
 
 class Parser;

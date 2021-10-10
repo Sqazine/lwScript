@@ -13,6 +13,7 @@ Parser::Parser()
 		{TokenType::FALSE, &Parser::ParseFalseExpr},
 		{TokenType::MINUS, &Parser::ParsePrefixExpr},
 		{TokenType::BIT_NOT,&Parser::ParsePrefixExpr},
+		{TokenType::BANG,&Parser::ParsePrefixExpr},
 		{TokenType::LPAREN, &Parser::ParseGroupExpr},
 		{TokenType::LBRACKET, &Parser::ParseArrayExpr},
 		{TokenType::LBRACE,&Parser::ParseTableExpr}
@@ -21,8 +22,24 @@ Parser::Parser()
 	m_InfixFunctions =
 	{
 		{TokenType::EQUAL, &Parser::ParseInfixExpr},
+		{TokenType::PLUS_EQUAL,&Parser::ParseInfixExpr},
+		{TokenType::MINUS_EQUAL,&Parser::ParseInfixExpr},
+		{TokenType::ASTERISK_EQUAL,&Parser::ParseInfixExpr},
+		{TokenType::SLASH_EQUAL,&Parser::ParseInfixExpr},
+		{TokenType::MOD_EQUAL,&Parser::ParseInfixExpr},
+		{TokenType::BIT_AND_EQUAL,&Parser::ParseInfixExpr},
+		{TokenType::BIT_OR_EQUAL,&Parser::ParseInfixExpr},
+		{TokenType::BIT_XOR_EQUAL,&Parser::ParseInfixExpr},
+		{TokenType::BIT_LEFT_SHIFT_EQUAL,&Parser::ParseInfixExpr},
+		{TokenType::BIT_RIGHT_SHIFT_EQUAL,&Parser::ParseInfixExpr},
+		{TokenType::QUESTION,&Parser::ParseConditionExpr},
 		{TokenType::OR, &Parser::ParseInfixExpr},
 		{TokenType::AND, &Parser::ParseInfixExpr},
+		{TokenType::BIT_OR,&Parser::ParseInfixExpr},
+		{TokenType::BIT_XOR,&Parser::ParseInfixExpr},
+		{TokenType::BIT_AND,&Parser::ParseInfixExpr},
+		{TokenType::BIT_LEFT_SHIFT,&Parser::ParseInfixExpr},
+		{TokenType::BIT_RIGHT_SHIFT,&Parser::ParseInfixExpr},
 		{TokenType::EEQUAL, &Parser::ParseInfixExpr},
 		{TokenType::BEQUAL, &Parser::ParseInfixExpr},
 		{TokenType::LESS, &Parser::ParseInfixExpr},
@@ -34,37 +51,46 @@ Parser::Parser()
 		{TokenType::ASTERISK, &Parser::ParseInfixExpr},
 		{TokenType::SLASH, &Parser::ParseInfixExpr},
 		{TokenType::MOD,&Parser::ParseInfixExpr},
-		{TokenType::BIT_AND,&Parser::ParseInfixExpr},
-		{TokenType::BIT_OR,&Parser::ParseInfixExpr},
 		{TokenType::LPAREN, &Parser::ParseFunctionCallExpr},
 		{TokenType::LBRACKET, &Parser::ParseIndexExpr},
 		{TokenType::DOT, &Parser::ParseStructCallExpr},
-		{TokenType::QUESTION,&Parser::ParseConditionExpr},
 	};
 
 	m_Precedence =
 	{
 		{TokenType::EQUAL, Precedence::ASSIGN},
-		{TokenType::BIT_OR,Precedence::BIT_OR},
-		{TokenType::BIT_NOT,Precedence::BIT_NOT},
-		{TokenType::BIT_AND,Precedence::BIT_AND},
+		{TokenType::PLUS_EQUAL,Precedence::ASSIGN},
+		{TokenType::MINUS_EQUAL,Precedence::ASSIGN},
+		{TokenType::ASTERISK_EQUAL,Precedence::ASSIGN},
+		{TokenType::SLASH_EQUAL,Precedence::ASSIGN},
+		{TokenType::MOD_EQUAL,Precedence::ASSIGN},
+		{TokenType::BIT_AND_EQUAL,Precedence::ASSIGN},
+		{TokenType::BIT_OR_EQUAL,Precedence::ASSIGN},
+		{TokenType::BIT_XOR_EQUAL,Precedence::ASSIGN},
+		{TokenType::BIT_LEFT_SHIFT_EQUAL,Precedence::ASSIGN},
+		{TokenType::BIT_RIGHT_SHIFT_EQUAL,Precedence::ASSIGN},
 		{TokenType::OR, Precedence::OR},
 		{TokenType::AND, Precedence::AND},
+		{TokenType::QUESTION,Precedence::CONDITION},
+		{TokenType::BIT_OR,Precedence::BIT_OR},
+		{TokenType::BIT_XOR,Precedence::BIT_XOR},
+		{TokenType::BIT_AND,Precedence::BIT_AND},
 		{TokenType::EEQUAL, Precedence::EQUAL},
 		{TokenType::BEQUAL, Precedence::EQUAL},
 		{TokenType::LESS, Precedence::COMPARE},
 		{TokenType::LEQUAL, Precedence::COMPARE},
 		{TokenType::GREATER, Precedence::COMPARE},
 		{TokenType::GEQUAL, Precedence::COMPARE},
+		{TokenType::BIT_LEFT_SHIFT,Precedence::BIT_SHIFT},
+		{TokenType::BIT_RIGHT_SHIFT,Precedence::BIT_SHIFT},
 		{TokenType::PLUS, Precedence::ADD_PLUS},
 		{TokenType::MINUS, Precedence::ADD_PLUS},
 		{TokenType::ASTERISK, Precedence::MUL_DIV_MOD},
 		{TokenType::SLASH, Precedence::MUL_DIV_MOD},
 		{TokenType::MOD, Precedence::MUL_DIV_MOD},
-		{TokenType::LBRACKET, Precedence::INDEX},
-		{TokenType::LPAREN, Precedence::FUNCTION_CALL},
-		{TokenType::DOT, Precedence::STRUCT_CALL} ,
-		{TokenType::QUESTION,Precedence::CONDITION},
+		{TokenType::LBRACKET, Precedence::POSTFIX},
+		{TokenType::LPAREN, Precedence::POSTFIX},
+		{TokenType::DOT, Precedence::POSTFIX} ,
 	};
 }
 Parser::~Parser()
@@ -434,7 +460,7 @@ Expr* Parser::ParseStructCallExpr(Expr* prefixExpr)
 	Consume(TokenType::DOT, "Expect '.'.");
 	auto structCallExpr = new StructCallExpr();
 	structCallExpr->callee = prefixExpr;
-	structCallExpr->callMember = ParseExpr(Precedence::STRUCT_CALL);
+	structCallExpr->callMember = ParseExpr(Precedence::POSTFIX);
 	return structCallExpr;
 }
 

@@ -13,6 +13,7 @@ enum class AstType
 	STR,
 	NIL,
 	BOOL,
+	NOT,
 	IDENTIFIER,
 	GROUP,
 	ARRAY,
@@ -345,7 +346,7 @@ struct LetStmt : public Stmt
 				result += key->Stringify() + "=" + value->Stringify() + ",";
 			result = result.substr(0, result.size() - 1);
 		}
-		return result;
+		return result+";";
 	}
 
 	AstType Type() override { return AstType::LET; }
