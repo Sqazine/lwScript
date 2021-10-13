@@ -89,7 +89,7 @@ public:
 private:
 	friend class VM;
 
-	std::vector<uint8_t> m_Codes;
+	std::vector<uint64_t> m_Codes;
 
 	std::vector<double> m_FloatingNums;
 	std::vector<int64_t> m_IntegerNums;

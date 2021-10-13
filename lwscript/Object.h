@@ -3,7 +3,7 @@
 #include <string_view>
 #include <unordered_map>
 #include <functional>
-#include "Environment.h"
+#include "Context.h"
 
 #define TO_INTEGER_OBJ(obj) ((IntegerObject *)obj)
 #define TO_FLOATING_OBJ(obj) ((FloatingObject *)obj)
@@ -275,15 +275,15 @@ struct TableObject : public Object
 
 struct StructObject :public Object
 {
-	StructObject() :environment(nullptr) {}
-	StructObject(Environment* environment) : environment(environment) {}
+	StructObject() :context(nullptr) {}
+	StructObject(Context* context) : context(context) {}
 	~StructObject() {}
 
 	std::string Stringify() override
 	{
 		std::string result = "struct{";
-		if (!environment->m_Values.empty())
-			for (const auto& [key, value] : environment->m_Values)
+		if (!context->m_Values.empty())
+			for (const auto& [key, value] : context->m_Values)
 				result += key + "=" + value->Stringify() + "\n";
 		result += "}";
 		return result;
@@ -295,10 +295,10 @@ struct StructObject :public Object
 	{
 		if (!IS_STRUCT_OBJ(other))
 			return false;
-		return environment->IsEqualTo(TO_STRUCT_OBJ(other)->environment);
+		return context->IsEqualTo(TO_STRUCT_OBJ(other)->context);
 	}
 
-	Environment* environment;
+	Context* context;
 };
 
 struct RefObject :public Object

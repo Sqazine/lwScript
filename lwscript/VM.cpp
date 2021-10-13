@@ -1,7 +1,7 @@
 #include "VM.h"
 
 VM::VM()
-	: m_Environment(nullptr)
+	: m_Context(nullptr)
 {
 	ResetStatus();
 
@@ -18,7 +18,7 @@ VM::VM()
 		{
 			std::string content = TO_STR_OBJ(args[0])->value;
 
-			int32_t pos = content.find("{}");
+			int32_t pos = (int32_t)content.find("{}");
 			int32_t argpos = 1;
 			while (pos != std::string::npos)
 			{
@@ -47,10 +47,10 @@ VM::VM()
 }
 VM::~VM()
 {
-	if (m_Environment)
+	if (m_Context)
 	{
-		delete m_Environment;
-		m_Environment = nullptr;
+		delete m_Context;
+		m_Context = nullptr;
 	}
 	sp = 0;
 	Gc();
@@ -166,12 +166,12 @@ TableObject* VM::CreateTableObject(const std::unordered_map<Object*, Object*>& e
 	return object;
 }
 
-StructObject* VM::CreateStructObject(Environment* environment)
+StructObject* VM::CreateStructObject(Context* context)
 {
 	if (curObjCount == maxObjCount)
 		Gc();
 
-	StructObject* object = new StructObject(environment);
+	StructObject* object = new StructObject(context);
 	object->marked = false;
 
 	object->next = firstObject;
@@ -374,7 +374,7 @@ do                                                                              
 		case OP_DEFINE_VAR:
 		{
 			Object* value = Pop();
-			m_Environment->DefineVariable(frame->m_Strings[frame->m_Codes[++ip]], value);
+			m_Context->DefineVariable(frame->m_Strings[frame->m_Codes[++ip]], value);
 			break;
 		}
 		case OP_SET_VAR:
@@ -382,18 +382,18 @@ do                                                                              
 			std::string name = frame->m_Strings[frame->m_Codes[++ip]];
 			Object* value = Pop();
 
-			Object* variable = m_Environment->GetVariable(name);
+			Object* variable = m_Context->GetVariable(name);
 
 			if (IS_REF_OBJ(variable))
 				name = TO_REF_OBJ(variable)->refObjName;
 
-			m_Environment->AssignVariable(name, value);
+			m_Context->AssignVariable(name, value);
 			break;
 		}
 		case OP_GET_VAR:
 		{
 			std::string name = frame->m_Strings[frame->m_Codes[++ip]];
-			Object* variableObject = m_Environment->GetVariable(name);
+			Object* variableObject = m_Context->GetVariable(name);
 
 			//no variable
 			if (variableObject == nullptr)
@@ -406,7 +406,7 @@ do                                                                              
 			else if (IS_REF_OBJ(variableObject))
 			{
 				std::string refName = TO_REF_OBJ(variableObject)->refObjName;
-				variableObject = m_Environment->GetVariable(refName);
+				variableObject = m_Context->GetVariable(refName);
 			}
 
 			Push(variableObject);
@@ -436,9 +436,9 @@ do                                                                              
 		}
 		case OP_DEFINE_STRUCT:
 		{
-			Environment* tmp = m_Environment;
-			m_Environment = m_Environment->GetUpEnvironment();
-			tmp->m_UpEnvironment = nullptr; //avoid environment conflict
+			Context* tmp = m_Context;
+			m_Context = m_Context->GetUpContext();
+			tmp->m_UpContext = nullptr; //avoid context conflict
 			Push(CreateStructObject(tmp));
 			break;
 		}
@@ -511,30 +511,30 @@ do                                                                              
 		case OP_GET_STRUCT:
 		{
 			std::string structName = frame->m_Strings[frame->m_Codes[++ip]];
-			Object* obj = m_Environment->GetVariable(structName);
+			Object* obj = m_Context->GetVariable(structName);
 			if (!IS_STRUCT_OBJ(obj))
 				Assert("Not a struct object:" + structName);
 
 			StructObject* structObject = TO_STRUCT_OBJ(obj);
-			structObject->environment->SetUpEnvironment(m_Environment);
-			m_Environment = structObject->environment;
+			structObject->context->SetUpContext(m_Context);
+			m_Context = structObject->context;
 			break;
 		}
 		case OP_END_GET_STRUCT:
 		{
-			m_Environment = m_Environment->GetUpEnvironment();
+			m_Context = m_Context->GetUpContext();
 			break;
 		}
 		case OP_ENTER_SCOPE:
 		{
-			m_Environment = new Environment(m_Environment);
+			m_Context = new Context(m_Context);
 			break;
 		}
 		case OP_EXIT_SCOPE:
 		{
-			Environment* tmp = m_Environment->GetUpEnvironment();
-			delete m_Environment;
-			m_Environment = tmp;
+			Context* tmp = m_Context->GetUpContext();
+			delete m_Context;
+			m_Context = tmp;
 			break;
 		}
 		case OP_JUMP_IF_FALSE:
@@ -563,7 +563,7 @@ do                                                                              
 			else if (HasNativeFunction(fnName))
 			{
 				std::vector<Object*> args;
-				for (size_t i = 0; i < argCount->value; ++i)
+				for (int64_t i = 0; i < argCount->value; ++i)
 					args.insert(args.begin(), Pop());
 
 				Object* returnResult = GetNativeFunction(fnName)(args);
@@ -612,6 +612,8 @@ std::function<Object* (std::vector<Object*> args)> VM::GetNativeFunction(std::st
 	if (iter != m_NativeFunctions.end())
 		return iter->second;
 	Assert(std::string("No native function:") + fnName.data());
+
+	return nullptr;
 }
 bool VM::HasNativeFunction(std::string_view name)
 {
@@ -629,12 +631,12 @@ void VM::ResetStatus()
 
 	std::array<Object*, STACK_MAX>().swap(m_Stack);
 
-	if (m_Environment != nullptr)
+	if (m_Context != nullptr)
 	{
-		delete m_Environment;
-		m_Environment = nullptr;
+		delete m_Context;
+		m_Context = nullptr;
 	}
-	m_Environment = new Environment();
+	m_Context = new Context();
 }
 void VM::Push(Object* object)
 {

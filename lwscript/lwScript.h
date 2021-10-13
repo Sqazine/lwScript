@@ -2,7 +2,7 @@
 
 #include "Ast.h"
 #include "Compiler.h"
-#include "Environment.h"
+#include "Context.h"
 #include "Frame.h"
 #include "Lexer.h"
 #include "Object.h"

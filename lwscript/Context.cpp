@@ -1,13 +1,13 @@
-#include "Environment.h"
+#include "Context.h"
 #include "Utils.h"
 #include "VM.h"
 #include "Object.h"
 
-Environment::Environment() : m_UpEnvironment(nullptr) {}
-Environment::Environment(Environment *upEnvironment): m_UpEnvironment(upEnvironment) {}
-Environment::~Environment() {}
+Context::Context() : m_UpContext(nullptr) {}
+Context::Context(Context *upContext): m_UpContext(upContext) {}
+Context::~Context() {}
 
-void Environment::DefineVariable(std::string_view name, Object *value)
+void Context::DefineVariable(std::string_view name, Object *value)
 {
     auto iter = m_Values.find(name.data());
     if (iter != m_Values.end())
@@ -16,48 +16,48 @@ void Environment::DefineVariable(std::string_view name, Object *value)
         m_Values[name.data()] = value;
 }
 
-void Environment::AssignVariable(std::string_view name, Object *value)
+void Context::AssignVariable(std::string_view name, Object *value)
 {
     auto iter = m_Values.find(name.data());
     if (iter != m_Values.end())
         m_Values[name.data()] = value;
-    else if (m_UpEnvironment != nullptr)
-        m_UpEnvironment->AssignVariable(name, value);
+    else if (m_UpContext != nullptr)
+        m_UpContext->AssignVariable(name, value);
     else
         Assert("Undefine variable:" + std::string(name) + " in current context");
 }
 
-Object *Environment::GetVariable(std::string_view name)
+Object *Context::GetVariable(std::string_view name)
 {
     auto iter = m_Values.find(name.data());
 
     if (iter != m_Values.end())
         return iter->second;
 
-    if (m_UpEnvironment != nullptr)
-        return m_UpEnvironment->GetVariable(name);
+    if (m_UpContext != nullptr)
+        return m_UpContext->GetVariable(name);
 
     return nullptr;
 }
 
-Environment *Environment::GetUpEnvironment()
+Context *Context::GetUpContext()
 {
-    return m_UpEnvironment;
+    return m_UpContext;
 }
 
-void Environment::SetUpEnvironment(Environment *env)
+void Context::SetUpContext(Context *env)
 {
-    m_UpEnvironment = env;
+    m_UpContext = env;
 }
 
-bool Environment::IsEqualTo(Environment* env)
+bool Context::IsEqualTo(Context* env)
 {
     for (auto [key1, value1] : m_Values)
         for (auto [key2, value2] : env->m_Values)
             if (key1 != key2 || !value1->IsEqualTo(value2))
                 return false;
 
-    if (!m_UpEnvironment->IsEqualTo(env->m_UpEnvironment))
+    if (!m_UpContext->IsEqualTo(env->m_UpContext))
         return false;
 
     return true;

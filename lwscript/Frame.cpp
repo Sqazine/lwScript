@@ -69,6 +69,8 @@ Frame* Frame::GetFunctionFrame(std::string_view name)
 		return m_ParentFrame->GetFunctionFrame(name);
 	else
 		Assert(std::string("No function:") + name.data());
+
+	return nullptr;
 }
 
 bool Frame::HasFunctionFrame(std::string_view name)
@@ -99,6 +101,8 @@ Frame* Frame::GetStructFrame(std::string_view name)
 	else if (m_ParentFrame != nullptr)
 		return m_ParentFrame->GetStructFrame(name);
 	Assert(std::string("No function:") + name.data());
+
+	return nullptr;
 }
 
 bool Frame::HasStructFrame(std::string_view name)
@@ -289,7 +293,7 @@ std::string Frame::Stringify(int depth)
 }
 void Frame::Clear()
 {
-	std::vector<uint8_t>().swap(m_Codes);
+	std::vector<uint64_t>().swap(m_Codes);
 	std::vector<double>().swap(m_FloatingNums);
 	std::vector<int64_t>().swap(m_IntegerNums);
 	std::vector<std::string>().swap(m_Strings);

@@ -9,7 +9,7 @@
 #include "Frame.h"
 #include "Object.h"
 #include "Utils.h"
-#include "Environment.h"
+#include "Context.h"
 
 #define STACK_MAX 2048
 #define INIT_OBJ_NUM_MAX 2048
@@ -34,7 +34,7 @@ public:
 	NilObject* CreateNilObject();
 	ArrayObject* CreateArrayObject(const std::vector<Object*>& elements = {});
 	TableObject* CreateTableObject(const std::unordered_map<Object*, Object*>& elements = {});
-	StructObject* CreateStructObject(Environment* environment);
+	StructObject* CreateStructObject(Context* context);
 	RefObject* CreateRefObject(std::string_view refName);
 
 	void Gc();
@@ -50,7 +50,7 @@ private:
 	int curObjCount;
 	int maxObjCount;
 
-	Environment* m_Environment;
+	Context* m_Context;
 
 	std::unordered_map<std::string, std::function<Object* (std::vector<Object*>)>> m_NativeFunctions;
 };
