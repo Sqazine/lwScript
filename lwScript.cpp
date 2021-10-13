@@ -6,10 +6,10 @@
 void Repl()
 {
 	std::string line;
-	Lexer lexer;
-	Parser parser;
-	Compiler compiler;
-	VM vm;
+	lws::Lexer lexer;
+	lws::Parser parser;
+	lws::Compiler compiler;
+	lws::VM vm;
 	std::cout << "> ";
 	while (getline(std::cin, line))
 	{
@@ -22,7 +22,7 @@ void Repl()
 #ifdef _DEBUG
 		std::cout << stmt->Stringify() << std::endl;
 #endif
-		Frame* frame = compiler.Compile(stmt);
+		lws::Frame* frame = compiler.Compile(stmt);
 #ifdef _DEBUG
 		std::cout << frame->Stringify() << std::endl;
 #endif
@@ -35,11 +35,11 @@ void Repl()
 
 void RunFile(std::string path)
 {
-	std::string content = ReadFile(path);
-	Lexer lexer;
-	Parser parser;
-	Compiler compiler;
-	VM vm;
+	std::string content = lws::ReadFile(path);
+	lws::Lexer lexer;
+	lws::Parser parser;
+	lws::Compiler compiler;
+	lws::VM vm;
 
 	auto tokens = lexer.ScanTokens(content);
 #ifdef _DEBUG
@@ -50,7 +50,7 @@ void RunFile(std::string path)
 #ifdef _DEBUG
 	std::cout << stmt->Stringify() << std::endl;
 #endif
-	Frame* frame = compiler.Compile(stmt);
+	lws::Frame* frame = compiler.Compile(stmt);
 #ifdef _DEBUG
 	std::cout << frame->Stringify() << std::endl;
 #endif

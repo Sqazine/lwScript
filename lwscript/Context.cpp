@@ -2,63 +2,66 @@
 #include "Utils.h"
 #include "VM.h"
 #include "Object.h"
-
-Context::Context() : m_UpContext(nullptr) {}
-Context::Context(Context *upContext): m_UpContext(upContext) {}
-Context::~Context() {}
-
-void Context::DefineVariable(std::string_view name, Object *value)
+namespace lws
 {
-    auto iter = m_Values.find(name.data());
-    if (iter != m_Values.end())
-        Assert("Redefined variable:" + std::string(name) + " in current context.");
-    else
-        m_Values[name.data()] = value;
-}
+    Context::Context() : m_UpContext(nullptr) {}
+    Context::Context(Context *upContext) : m_UpContext(upContext) {}
+    Context::~Context() {}
 
-void Context::AssignVariable(std::string_view name, Object *value)
-{
-    auto iter = m_Values.find(name.data());
-    if (iter != m_Values.end())
-        m_Values[name.data()] = value;
-    else if (m_UpContext != nullptr)
-        m_UpContext->AssignVariable(name, value);
-    else
-        Assert("Undefine variable:" + std::string(name) + " in current context");
-}
+    void Context::DefineVariable(std::string_view name, Object *value)
+    {
+        auto iter = m_Values.find(name.data());
+        if (iter != m_Values.end())
+            Assert("Redefined variable:" + std::string(name) + " in current context.");
+        else
+            m_Values[name.data()] = value;
+    }
 
-Object *Context::GetVariable(std::string_view name)
-{
-    auto iter = m_Values.find(name.data());
+    void Context::AssignVariable(std::string_view name, Object *value)
+    {
+        auto iter = m_Values.find(name.data());
+        if (iter != m_Values.end())
+            m_Values[name.data()] = value;
+        else if (m_UpContext != nullptr)
+            m_UpContext->AssignVariable(name, value);
+        else
+            Assert("Undefine variable:" + std::string(name) + " in current context");
+    }
 
-    if (iter != m_Values.end())
-        return iter->second;
+    Object *Context::GetVariable(std::string_view name)
+    {
+        auto iter = m_Values.find(name.data());
 
-    if (m_UpContext != nullptr)
-        return m_UpContext->GetVariable(name);
+        if (iter != m_Values.end())
+            return iter->second;
 
-    return nullptr;
-}
+        if (m_UpContext != nullptr)
+            return m_UpContext->GetVariable(name);
 
-Context *Context::GetUpContext()
-{
-    return m_UpContext;
-}
+        return nullptr;
+    }
 
-void Context::SetUpContext(Context *env)
-{
-    m_UpContext = env;
-}
+    Context *Context::GetUpContext()
+    {
+        return m_UpContext;
+    }
 
-bool Context::IsEqualTo(Context* env)
-{
-    for (auto [key1, value1] : m_Values)
-        for (auto [key2, value2] : env->m_Values)
-            if (key1 != key2 || !value1->IsEqualTo(value2))
-                return false;
+    void Context::SetUpContext(Context *env)
+    {
+        m_UpContext = env;
+    }
 
-    if (!m_UpContext->IsEqualTo(env->m_UpContext))
-        return false;
+    bool Context::IsEqualTo(Context *env)
+    {
+        for (auto [key1, value1] : m_Values)
+            for (auto [key2, value2] : env->m_Values)
+                if (key1 != key2 || !value1->IsEqualTo(value2))
+                    return false;
 
-    return true;
+        if (!m_UpContext->IsEqualTo(env->m_UpContext))
+            return false;
+
+        return true;
+    }
+
 }

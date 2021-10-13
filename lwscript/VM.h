@@ -10,47 +10,49 @@
 #include "Object.h"
 #include "Utils.h"
 #include "Context.h"
-
+#include "Library.h"
+namespace lws
+{
 #define STACK_MAX 2048
 #define INIT_OBJ_NUM_MAX 2048
 
-class VM
-{
-public:
-	VM();
-	~VM();
+	class VM
+	{
+	public:
+		VM();
+		~VM();
 
-	void ResetStatus();
-	Object* Execute(Frame* frame);
+		void ResetStatus();
+		Object *Execute(Frame *frame);
 
-	void AddNativeFunction(std::string_view name, std::function<Object* (std::vector<Object*> args)> fn);
-	std::function<Object* (std::vector<Object*> args)> GetNativeFunction(std::string_view fnName);
-	bool HasNativeFunction(std::string_view name);
+		FloatingObject *CreateFloatingObject(double value = 0.0);
+		IntegerObject *CreateIntegerObject(int64_t value = 0.0);
+		StrObject *CreateStrObject(std::string_view value = "");
+		BoolObject *CreateBoolObject(bool value = false);
+		NilObject *CreateNilObject();
+		ArrayObject *CreateArrayObject(const std::vector<Object *> &elements = {});
+		TableObject *CreateTableObject(const std::unordered_map<Object *, Object *> &elements = {});
+		StructObject *CreateStructObject(Context *context);
+		RefObject *CreateRefObject(std::string_view refName);
 
-	FloatingObject* CreateFloatingObject(double value = 0.0);
-	IntegerObject* CreateIntegerObject(int64_t value = 0.0);
-	StrObject* CreateStrObject(std::string_view value = "");
-	BoolObject* CreateBoolObject(bool value = false);
-	NilObject* CreateNilObject();
-	ArrayObject* CreateArrayObject(const std::vector<Object*>& elements = {});
-	TableObject* CreateTableObject(const std::unordered_map<Object*, Object*>& elements = {});
-	StructObject* CreateStructObject(Context* context);
-	RefObject* CreateRefObject(std::string_view refName);
+		void Gc();
 
-	void Gc();
+	private:
+		std::function<Object *(std::vector<Object *>)> GetNativeFunction(std::string_view fnName);
+        bool HasNativeFunction(std::string_view name);
 
-private:
-	void Push(Object* object);
-	Object* Pop();
+		void Push(Object *object);
+		Object *Pop();
 
-	uint8_t sp;
-	std::array<Object*, STACK_MAX> m_Stack;
+		uint8_t sp;
+		std::array<Object *, STACK_MAX> m_Stack;
 
-	Object* firstObject;
-	int curObjCount;
-	int maxObjCount;
+		Object *firstObject;
+		int curObjCount;
+		int maxObjCount;
 
-	Context* m_Context;
+		Context *m_Context;
 
-	std::unordered_map<std::string, std::function<Object* (std::vector<Object*>)>> m_NativeFunctions;
-};
+		std::unordered_map<std::string,Library*> m_Libraries;
+	};
+}
