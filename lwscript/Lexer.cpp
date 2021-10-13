@@ -12,7 +12,6 @@ static std::unordered_map<std::string, TokenType> keywords =
         {"function", TokenType::FUNCTION},
         {"struct", TokenType::STRUCT},
         {"return", TokenType::RETURN},
-        {"ref",TokenType::REF},
 };
 
 Lexer::Lexer()
@@ -127,69 +126,69 @@ void Lexer::ScanToken()
         break;
     case '%':
 		if (IsMatchCurCharAndStepOnce('='))
-			AddToken(TokenType::MOD_EQUAL);
-        AddToken(TokenType::MOD);
+			AddToken(TokenType::PERCENT_EQUAL);
+        AddToken(TokenType::PERCENT);
         break;
     case '~':
-        AddToken(TokenType::BIT_NOT);
+        AddToken(TokenType::TILDE);
         break;
     case '!':
         if (IsMatchCurCharAndStepOnce('='))
-            AddToken(TokenType::BEQUAL);
+            AddToken(TokenType::BANG_EQUAL);
         else
             AddToken(TokenType::BANG);
         break;
     case '&':
         if (IsMatchCurCharAndStepOnce('&'))
-            AddToken(TokenType::AND);
+            AddToken(TokenType::AMPERSAND_AMPERSAND);
         else if (IsMatchCurCharAndStepOnce('='))
-            AddToken(TokenType::BIT_AND_EQUAL);
+            AddToken(TokenType::AMPERSAND_EQUAL);
         else
-            AddToken(TokenType::BIT_AND);
+            AddToken(TokenType::AMPERSAND);
         break;
     case '|':
         if (IsMatchCurCharAndStepOnce('|'))
-            AddToken(TokenType::OR);
+            AddToken(TokenType::VBAR_VBAR);
 		else if (IsMatchCurCharAndStepOnce('='))
-			AddToken(TokenType::BIT_OR_EQUAL);
+			AddToken(TokenType::VBAR_EQUAL);
         else
-            AddToken(TokenType::BIT_OR);
+            AddToken(TokenType::VBAR);
         break;
     case '^':
 		if (IsMatchCurCharAndStepOnce('='))
-			AddToken(TokenType::BIT_XOR_EQUAL);
+			AddToken(TokenType::CARET_EQUAL);
 		else
-			AddToken(TokenType::BIT_XOR);
+			AddToken(TokenType::CARET);
 		break;
     case '<':
         if (IsMatchCurCharAndStepOnce('='))
-            AddToken(TokenType::LEQUAL);
+            AddToken(TokenType::LESS_EQUAL);
         else if (IsMatchCurCharAndStepOnce('<'))
         {
             if (IsMatchCurCharAndStepOnce('='))
-                AddToken(TokenType::BIT_LEFT_SHIFT_EQUAL);
+                AddToken(TokenType::LESS_LESS_EQUAL);
             else
-            AddToken(TokenType::BIT_LEFT_SHIFT);
+            AddToken(TokenType::LESS_LESS);
         }
         else
             AddToken(TokenType::LESS);
         break;
     case '>':
         if (IsMatchCurCharAndStepOnce('='))
-            AddToken(TokenType::GEQUAL);
+            AddToken(TokenType::GREATER_EQUAL);
         else if (IsMatchCurCharAndStepOnce('>'))
 		{
 			if (IsMatchCurCharAndStepOnce('='))
-				AddToken(TokenType::BIT_RIGHT_SHIFT_EQUAL);
+				AddToken(TokenType::GREATER_GREATER_EQUAL);
 			else
-				AddToken(TokenType::BIT_RIGHT_SHIFT);
+				AddToken(TokenType::GREATER_GREATER);
 		}
         else
             AddToken(TokenType::GREATER);
         break;
     case '=':
         if (IsMatchCurCharAndStepOnce('='))
-            AddToken(TokenType::EEQUAL);
+            AddToken(TokenType::EQUAL_EQUAL);
         else
             AddToken(TokenType::EQUAL);
         break;

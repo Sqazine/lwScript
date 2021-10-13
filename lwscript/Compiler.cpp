@@ -90,13 +90,13 @@ void Compiler::CompileIfStmt(IfStmt* stmt, Frame* frame)
 	CompileExpr(stmt->condition, frame);
 
 	frame->AddOpCode(OP_JUMP_IF_FALSE);
-	uint8_t jmpIfFalseOffset = frame->AddIntegerNum(0);
+	uint64_t jmpIfFalseOffset = frame->AddIntegerNum(0);
 	frame->AddOpCode(jmpIfFalseOffset);
 
 	CompileStmt(stmt->thenBranch, frame);
 
 	frame->AddOpCode(OP_JUMP);
-	uint8_t jmpOffset = frame->AddIntegerNum(0);
+	uint64_t jmpOffset = frame->AddIntegerNum(0);
 	frame->AddOpCode(jmpOffset);
 
 	frame->GetFloatingNums()[jmpIfFalseOffset] = (double)frame->GetOpCodeSize() - 1.0;
@@ -108,17 +108,17 @@ void Compiler::CompileIfStmt(IfStmt* stmt, Frame* frame)
 }
 void Compiler::CompileWhileStmt(WhileStmt* stmt, Frame* frame)
 {
-	uint8_t jmpAddress = (double)frame->GetOpCodeSize() - 1.0;
+	uint64_t jmpAddress = frame->GetOpCodeSize() - 1;
 	CompileExpr(stmt->condition, frame);
 
 	frame->AddOpCode(OP_JUMP_IF_FALSE);
-	uint8_t jmpIfFalseOffset = frame->AddIntegerNum(0);
+	uint64_t jmpIfFalseOffset = frame->AddIntegerNum(0);
 	frame->AddOpCode(jmpIfFalseOffset);
 
 	CompileStmt(stmt->body, frame);
 
 	frame->AddOpCode(OP_JUMP);
-	uint8_t offset = frame->AddIntegerNum(jmpAddress);
+	uint64_t offset = frame->AddIntegerNum(jmpAddress);
 	frame->AddOpCode(offset);
 
 	frame->GetFloatingNums()[jmpIfFalseOffset] = (double)frame->GetOpCodeSize() - 1.0;
@@ -206,6 +206,9 @@ void Compiler::CompileExpr(Expr* expr, Frame* frame, ObjectState state)
 	case AstType::STRUCT_CALL:
 		CompileStructCallExpr((StructCallExpr*)expr, frame, state);
 		break;
+	case AstType::REF:
+		CompileRefExpr((RefExpr*)expr,frame);
+		break;
 	default:
 		break;
 	}
@@ -255,7 +258,7 @@ void Compiler::CompileIdentifierExpr(IdentifierExpr* expr, Frame* frame, ObjectS
 		frame->AddOpCode(OP_DEFINE_VAR);
 	else if (state == STRUCT_READ)
 		frame->AddOpCode(OP_GET_STRUCT);
-	uint8_t offset = frame->AddString(expr->literal);
+	uint64_t offset = frame->AddString(expr->literal);
 	frame->AddOpCode(offset);
 }
 
@@ -270,7 +273,7 @@ void Compiler::CompileArrayExpr(ArrayExpr* expr, Frame* frame)
 		CompileExpr(e, frame);
 
 	frame->AddOpCode(OP_DEFINE_ARRAY);
-	size_t offset = frame->AddIntegerNum((double)expr->elements.size());
+	size_t offset = frame->AddIntegerNum((int64_t)expr->elements.size());
 	frame->AddOpCode(offset);
 }
 
@@ -282,7 +285,7 @@ void Compiler::CompileTableExpr(TableExpr* expr, Frame* frame)
 		CompileExpr(key, frame);
 	}
 	frame->AddOpCode(OP_DEFINE_TABLE);
-	uint8_t offset = frame->AddIntegerNum((double)expr->elements.size());
+	uint64_t offset = frame->AddIntegerNum((int64_t)expr->elements.size());
 	frame->AddOpCode(offset);
 }
 
@@ -405,6 +408,13 @@ void Compiler::CompileInfixExpr(InfixExpr* expr, Frame* frame)
 	}
 }
 
+void Compiler::CompileRefExpr(RefExpr* expr, Frame* frame)
+{
+	frame->AddOpCode(OP_REF);
+	uint64_t offset = frame->AddString(expr->refName);
+	frame->AddOpCode(offset);
+}
+
 void Compiler::CompileConditionExpr(ConditionExpr* expr, Frame* frame)
 {
 	CompileExpr(expr->falseBranch, frame);
@@ -420,7 +430,7 @@ void Compiler::CompileFunctionCallExpr(FunctionCallExpr* expr, Frame* frame)
 
 	//argument count
 	frame->AddOpCode(OP_INTEGER);
-	uint8_t offset = frame->AddIntegerNum((double)expr->arguments.size());
+	uint64_t offset = frame->AddIntegerNum((int64_t)expr->arguments.size());
 	frame->AddOpCode(offset);
 
 	frame->AddOpCode(OP_FUNCTION_CALL);

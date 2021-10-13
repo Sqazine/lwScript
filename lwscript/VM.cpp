@@ -182,6 +182,22 @@ StructObject* VM::CreateStructObject(Environment* environment)
 	return object;
 }
 
+RefObject* VM::CreateRefObject(std::string_view refName)
+{
+	if (curObjCount == maxObjCount)
+		Gc();
+
+	RefObject* refObject = new RefObject(refName);
+	refObject->marked = false;
+
+	refObject->next = firstObject;
+	firstObject = refObject;
+
+	curObjCount++;
+
+	return refObject;
+}
+
 Object* VM::Execute(Frame* frame)
 {
 	// + - * /
@@ -365,6 +381,12 @@ do                                                                              
 		{
 			std::string name = frame->m_Strings[frame->m_Codes[++ip]];
 			Object* value = Pop();
+
+			Object* variable = m_Environment->GetVariable(name);
+
+			if (IS_REF_OBJ(variable))
+				name = TO_REF_OBJ(variable)->refObjName;
+
 			m_Environment->AssignVariable(name, value);
 			break;
 		}
@@ -381,6 +403,11 @@ do                                                                              
 				else
 					Assert("No variable:" + name);
 			}
+			else if (IS_REF_OBJ(variableObject))
+			{
+				std::string refName = TO_REF_OBJ(variableObject)->refObjName;
+				variableObject = m_Environment->GetVariable(refName);
+			}
 
 			Push(variableObject);
 			break;
@@ -388,7 +415,7 @@ do                                                                              
 		case OP_DEFINE_ARRAY:
 		{
 			std::vector<Object*> elements;
-			int64_t arraySize = (int64_t)frame->m_FloatingNums[frame->m_Codes[++ip]];
+			int64_t arraySize = (int64_t)frame->m_IntegerNums[frame->m_Codes[++ip]];
 			for (int64_t i = 0; i < arraySize; ++i)
 				elements.insert(elements.begin(), Pop());
 			Push(CreateArrayObject(elements));
@@ -397,7 +424,7 @@ do                                                                              
 		case OP_DEFINE_TABLE:
 		{
 			std::unordered_map<Object*, Object*> elements;
-			int64_t tableSize = (int64_t)frame->m_FloatingNums[frame->m_Codes[++ip]];
+			int64_t tableSize = (int64_t)frame->m_IntegerNums[frame->m_Codes[++ip]];
 			for (int64_t i = 0; i < tableSize; ++i)
 			{
 				Object* key = Pop();
@@ -558,6 +585,11 @@ do                                                                              
 			if (TO_BOOL_OBJ(condition)->value)
 				Push(trueBranch);
 			else Push(falseBranch);
+			break;
+		}
+		case OP_REF:
+		{
+			Push(CreateRefObject(frame->m_Strings[frame->m_Codes[++ip]]));
 			break;
 		}
 		default:

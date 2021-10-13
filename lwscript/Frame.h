@@ -54,6 +54,7 @@ enum OpCode
 	OP_GET_STRUCT,
 	OP_END_GET_STRUCT,
 	OP_CONDITION,
+	OP_REF,
 };
 
 class Frame
@@ -63,12 +64,12 @@ public:
 	Frame(Frame* parentFrame);
 	~Frame();
 
-	void AddOpCode(uint8_t code);
-	size_t GetOpCodeSize() const;
+	void AddOpCode(uint64_t code);
+	uint64_t GetOpCodeSize() const;
 
-	size_t AddFloatingNum(double value);
-	size_t AddIntegerNum(int64_t value);
-	size_t AddString(std::string_view value);
+	uint64_t AddFloatingNum(double value);
+	uint64_t AddIntegerNum(int64_t value);
+	uint64_t AddString(std::string_view value);
 
 	std::vector<double> &GetFloatingNums();
 	std::vector<int64_t> &GetIntegerNums();

@@ -12,29 +12,29 @@ Frame::~Frame()
 {
 	Clear();
 }
-void Frame::AddOpCode(uint8_t code)
+void Frame::AddOpCode(uint64_t code)
 {
 	m_Codes.emplace_back(code);
 }
 
-size_t Frame::GetOpCodeSize() const
+uint64_t Frame::GetOpCodeSize() const
 {
 	return m_Codes.size();
 }
 
-size_t Frame::AddFloatingNum(double value)
+uint64_t Frame::AddFloatingNum(double value)
 {
 	m_FloatingNums.emplace_back(value);
 	return m_FloatingNums.size() - 1;
 }
 
-size_t Frame::AddIntegerNum(int64_t value)
+uint64_t Frame::AddIntegerNum(int64_t value)
 {
 	m_IntegerNums.emplace_back(value);
 	return m_IntegerNums.size() - 1;
 }
 
-size_t Frame::AddString(std::string_view value)
+uint64_t Frame::AddString(std::string_view value)
 {
 	m_Strings.emplace_back(value);
 	return m_Strings.size() - 1;
@@ -275,6 +275,9 @@ std::string Frame::Stringify(int depth)
 			break;
 		case OP_CONDITION:
 			SINGLE_INSTR_STRINGIFY(OP_CONDITION);
+			break;
+		case OP_REF:
+			CONSTANT_INSTR_STRINGIFY(OP_REF,m_Strings);
 			break;
 		default:
 			SINGLE_INSTR_STRINGIFY(UNKNOWN);

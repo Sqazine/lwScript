@@ -22,6 +22,7 @@ enum class AstType
 	INFIX,
 	CONDITION,
 	INDEX,
+	REF,
 	FUNCTION_CALL,
 	STRUCT_CALL,
 	//stmt
@@ -56,8 +57,8 @@ struct Expr
 
 struct IntegerExpr : public Expr
 {
-	IntegerExpr() : value(0.0) {}
-	IntegerExpr(double value) : value(value) {}
+	IntegerExpr() : value(0) {}
+	IntegerExpr(int64_t value) : value(value) {}
 	~IntegerExpr() {}
 
 	std::string Stringify() override { return std::to_string(value); }
@@ -177,7 +178,7 @@ struct TableExpr :public Expr
 
 struct GroupExpr : public Expr
 {
-	GroupExpr() {}
+	GroupExpr():expr(nullptr) {}
 	GroupExpr(Expr* expr) : expr(expr) {}
 	~GroupExpr() {}
 
@@ -251,7 +252,7 @@ struct ConditionExpr :public Expr
 
 struct IndexExpr : public Expr
 {
-	IndexExpr() {}
+	IndexExpr():array(nullptr),index(nullptr) {}
 	IndexExpr(Expr* array, Expr* index) : array(array), index(index) {}
 	~IndexExpr()
 	{
@@ -266,6 +267,19 @@ struct IndexExpr : public Expr
 
 	Expr* array;
 	Expr* index;
+};
+
+struct RefExpr :public Expr
+{
+	RefExpr(){}
+	RefExpr(std::string_view refName) :refName(refName) {};
+	~RefExpr() {}
+
+	std::string Stringify() override { return "ref "+ refName; }
+
+	AstType Type() override { return AstType::REF; }
+
+	std::string refName;
 };
 
 struct FunctionCallExpr : public Expr

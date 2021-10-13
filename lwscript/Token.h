@@ -23,34 +23,34 @@ enum class TokenType
 	MINUS,				   // -
 	ASTERISK,			   // *
 	SLASH,				   // /
-	MOD,				   // %
+	PERCENT,				   // %
 	EQUAL,				   // =
 	LESS,				   // <
 	GREATER,			   // >
-	BIT_AND,			   // &
-	BIT_OR,				   // |
-	BIT_XOR,			   // ^
-	BIT_NOT,			   // ~
+	AMPERSAND,			   // &
+	VBAR,				   // |
+	CARET,			   // ^
+	TILDE,			   // ~
 	QUESTION,			   // ?
 	BANG,				   // !
-	BIT_LEFT_SHIFT,		   // <<
-	BIT_RIGHT_SHIFT,	   // >>
+	LESS_LESS,		   // <<
+	GREATER_GREATER,	   // >>
 	PLUS_EQUAL,			   // +=
 	MINUS_EQUAL,		   // -=
 	ASTERISK_EQUAL,		   // *=
 	SLASH_EQUAL,		   // /=
-	MOD_EQUAL,			   // %=
-	BIT_AND_EQUAL,		   // &=
-	BIT_OR_EQUAL,		   // |=
-	BIT_XOR_EQUAL,		   // ^=
-	BIT_LEFT_SHIFT_EQUAL,  // <<=
-	BIT_RIGHT_SHIFT_EQUAL, // >>
-	EEQUAL,				   // ==
-	LEQUAL,				   // <=
-	GEQUAL,				   // >=
-	BEQUAL,				   // !=
-	AND,				   // &&
-	OR,					   // ||
+	PERCENT_EQUAL,			   // %=
+	AMPERSAND_EQUAL,		   // &=
+	VBAR_EQUAL,		   // |=
+	CARET_EQUAL,		   // ^=
+	LESS_LESS_EQUAL,  // <<=
+	GREATER_GREATER_EQUAL, // >>
+	EQUAL_EQUAL,				   // ==
+	LESS_EQUAL,				   // <=
+	GREATER_EQUAL,				   // >=
+	BANG_EQUAL,				   // !=
+	AMPERSAND_AMPERSAND,				   // &&
+	VBAR_VBAR,					   // ||
 	LET,				   // let
 	IF,					   // if
 	ELSE,				   // else
@@ -61,7 +61,6 @@ enum class TokenType
 	FUNCTION,			   // function
 	STRUCT,				   // struct
 	RETURN,				   // return
-	REF,				   // ref
 
 	UNKNOWN,
 	END

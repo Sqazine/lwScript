@@ -45,6 +45,7 @@ private:
 	void CompileIndexExpr(IndexExpr* expr, Frame* frame, ObjectState state = READ);
 	void CompilePrefixExpr(PrefixExpr* expr, Frame* frame);
 	void CompileInfixExpr(InfixExpr* expr, Frame* frame);
+	void CompileRefExpr(RefExpr* expr, Frame* frame);
 	void CompileConditionExpr(ConditionExpr* expr, Frame* frame);
 	void CompileFunctionCallExpr(FunctionCallExpr* expr, Frame* frame);
 	void CompileStructCallExpr(StructCallExpr* expr, Frame* frame, ObjectState state = READ);

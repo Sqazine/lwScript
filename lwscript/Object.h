@@ -13,6 +13,7 @@
 #define TO_ARRAY_OBJ(obj) ((ArrayObject *)obj)
 #define TO_TABLE_OBJ(obj) ((TableObject *)obj)
 #define TO_STRUCT_OBJ(obj) ((StructObject *)obj)
+#define TO_REF_OBJ(obj) ((RefObject *)obj)
 
 #define IS_INTEGER_OBJ(obj) (obj->Type() == ObjectType::INTEGER)
 #define IS_FLOATING_OBJ(obj) (obj->Type() == ObjectType::FLOATING)
@@ -22,6 +23,7 @@
 #define IS_ARRAY_OBJ(obj) (obj->Type() == ObjectType::ARRAY)
 #define IS_TABLE_OBJ(obj) (obj->Type() == ObjectType::TABLE)
 #define IS_STRUCT_OBJ(obj) (obj->Type() == ObjectType::STRUCT)
+#define IS_REF_OBJ(obj) (obj->Type() == ObjectType::REF)
 
 enum class ObjectType
 {
@@ -32,7 +34,8 @@ enum class ObjectType
 	NIL,
 	ARRAY,
 	TABLE,
-	STRUCT
+	STRUCT,
+	REF
 };
 
 struct Object
@@ -52,7 +55,7 @@ struct Object
 
 struct IntegerObject : public Object
 {
-	IntegerObject() : value(0.0) {}
+	IntegerObject() : value(0) {}
 	IntegerObject(int64_t value) : value(value) {}
 	~IntegerObject() {}
 
@@ -60,7 +63,7 @@ struct IntegerObject : public Object
 	ObjectType Type() override { return ObjectType::INTEGER; }
 	void Mark() override { marked = true; }
 	void UnMark() override { marked = false; }
-	bool IsEqualTo(Object* other) override 
+	bool IsEqualTo(Object* other) override
 	{
 		if (!IS_INTEGER_OBJ(other))
 			return false;
@@ -162,7 +165,7 @@ struct ArrayObject : public Object
 				result += e->Stringify() + ",";
 			result = result.substr(0, result.size() - 1);
 		}
-		result += "]"; 
+		result += "]";
 		return result;
 	}
 	ObjectType Type() override { return ObjectType::ARRAY; }
@@ -189,7 +192,7 @@ struct ArrayObject : public Object
 	{
 		if (!IS_ARRAY_OBJ(other))
 			return false;
-		
+
 		ArrayObject* arrayOther = TO_ARRAY_OBJ(other);
 
 		if (arrayOther->elements.size() != elements.size())
@@ -216,8 +219,8 @@ struct TableObject : public Object
 		std::string result = "{";
 		if (!elements.empty())
 		{
-			for (auto [key,value] : elements)
-				result += key->Stringify() + ":"+value->Stringify()+",";
+			for (auto [key, value] : elements)
+				result += key->Stringify() + ":" + value->Stringify() + ",";
 			result = result.substr(0, result.size() - 1);
 		}
 		result += "}";
@@ -261,19 +264,18 @@ struct TableObject : public Object
 
 		for (auto [key1, value1] : elements)
 			for (auto [key2, value2] : tableOther->elements)
-				if (!key1->IsEqualTo(key2)||!value1->IsEqualTo(value2))
+				if (!key1->IsEqualTo(key2) || !value1->IsEqualTo(value2))
 					return false;
-	
 
 		return true;
 	}
 
-	std::unordered_map<Object*,Object*> elements;
+	std::unordered_map<Object*, Object*> elements;
 };
 
 struct StructObject :public Object
 {
-	StructObject() {}
+	StructObject() :environment(nullptr) {}
 	StructObject(Environment* environment) : environment(environment) {}
 	~StructObject() {}
 
@@ -297,4 +299,23 @@ struct StructObject :public Object
 	}
 
 	Environment* environment;
+};
+
+struct RefObject :public Object
+{
+	RefObject(std::string_view refObjName) :refObjName(refObjName) {}
+	~RefObject() {}
+
+	std::string Stringify() override { return "ref " + refObjName; }
+	ObjectType Type() override { return ObjectType::REF; }
+	void Mark() override { marked = true; }
+	void UnMark() override { marked = false; }
+	bool IsEqualTo(Object* other) override
+	{
+		if (!IS_REF_OBJ(other))
+			return false;
+		return refObjName==TO_REF_OBJ(other)->refObjName;
+	}
+
+	std::string refObjName;
 };

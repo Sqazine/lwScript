@@ -11,8 +11,8 @@
 #include "Utils.h"
 #include "Environment.h"
 
-#define STACK_MAX 256
-#define INIT_OBJ_NUM_MAX 128
+#define STACK_MAX 2048
+#define INIT_OBJ_NUM_MAX 2048
 
 class VM
 {
@@ -35,6 +35,7 @@ public:
 	ArrayObject* CreateArrayObject(const std::vector<Object*>& elements = {});
 	TableObject* CreateTableObject(const std::unordered_map<Object*, Object*>& elements = {});
 	StructObject* CreateStructObject(Environment* environment);
+	RefObject* CreateRefObject(std::string_view refName);
 
 	void Gc();
 
