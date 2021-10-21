@@ -46,7 +46,7 @@ namespace lws
 				return nullptr;
 
 			if (args[0]->Type() != ObjectType::STR)
-				Assert("[native function 'println']:Invalid argument:The first argument must be string type.");
+				Assert("[native function 'print']:Invalid argument:The first argument must be string type.");
 
 
 			std::string content = TO_STR_OBJ(args[0])->value;
@@ -90,6 +90,59 @@ namespace lws
 			}
 
             std::cout << content;
+			return nullptr;
+		};
+
+		m_NativeFunctions["println"] = [this](std::vector<Object*> args) -> Object*
+		{
+			if (args.empty())
+				return nullptr;
+
+			if (args[0]->Type() != ObjectType::STR)
+				Assert("[native function 'println']:Invalid argument:The first argument must be string type.");
+
+
+			std::string content = TO_STR_OBJ(args[0])->value;
+
+			if (args.size() != 1)//formatting output
+			{
+				int32_t pos = (int32_t)content.find("{}");
+				int32_t argpos = 1;
+				while (pos != std::string::npos)
+				{
+					if (argpos < args.size())
+						content.replace(pos, 2, args[argpos++]->Stringify());
+					else
+						content.replace(pos, 2, "nil");
+					pos = content.find("{}");
+				}
+			}
+
+			int32_t pos = (int32_t)content.find("\\n");
+			while (pos != std::string::npos)
+			{
+				content[pos] = '\n';
+				content.replace(pos + 1, 1, "");//erase a char
+				pos = content.find("\\n");
+			}
+
+			pos = (int32_t)content.find("\\t");
+			while (pos != std::string::npos)
+			{
+				content[pos] = '\t';
+				content.replace(pos + 1, 1, "");//erase a char
+				pos = content.find("\\t");
+			}
+
+			pos = (int32_t)content.find("\\r");
+			while (pos != std::string::npos)
+			{
+				content[pos] = '\r';
+				content.replace(pos + 1, 1, "");//erase a char
+				pos = content.find("\\r");
+			}
+
+			std::cout << content;
 			return nullptr;
 		};
     }

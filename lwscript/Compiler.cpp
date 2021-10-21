@@ -3,17 +3,27 @@
 namespace lws
 {
 	Compiler::Compiler()
+		:m_RootFrame(new Frame())
 	{
 	}
 	Compiler::~Compiler()
 	{
+		if (m_RootFrame)
+		{
+			delete m_RootFrame;
+			m_RootFrame = nullptr;
+		}
 	}
 
 	Frame *Compiler::Compile(Stmt *stmt)
 	{
-		Frame *frame = new Frame();
-		CompileAstStmts((AstStmts *)stmt, frame);
-		return frame;
+		CompileAstStmts((AstStmts *)stmt, m_RootFrame);
+		return m_RootFrame;
+	}
+
+	void Compiler::ResetStatus()
+	{
+		m_RootFrame->Clear();
 	}
 
 	void Compiler::CompileAstStmts(AstStmts *stmt, Frame *frame)

@@ -21,6 +21,7 @@ namespace lws
 
 		Frame *Compile(Stmt *stmt);
 
+		void ResetStatus();
 	private:
 		void CompileAstStmts(AstStmts *stmt, Frame *frame);
 		void CompileStmt(Stmt *stmt, Frame *frame);
@@ -50,5 +51,7 @@ namespace lws
 		void CompileConditionExpr(ConditionExpr *expr, Frame *frame);
 		void CompileFunctionCallExpr(FunctionCallExpr *expr, Frame *frame);
 		void CompileStructCallExpr(StructCallExpr *expr, Frame *frame, ObjectState state = READ);
+
+		Frame* m_RootFrame;
 	};
 }
