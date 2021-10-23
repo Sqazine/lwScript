@@ -69,7 +69,7 @@ println("{}",c);#"nil"
 ```
 2. 函数
 ```sh
-fn add(x,y){
+function add(x,y){
     return x+y;
 }
 
@@ -85,11 +85,11 @@ sizeof(a);#获取数组个数
 3. 数组
 ```sh
 
-fn add(vec1,vec2){
+function add(vec1,vec2){
     return [vec1[0]+vec2[0],vec1[1]+vec2[1]];
 }
 
-fn sub(vec1,vec2){
+function sub(vec1,vec2){
     return [vec1[0]-vec2[0],vec1[1]-vec2[1]];
 }
 
@@ -267,7 +267,7 @@ println("{}",head);
 let nums=[2,7,11,15];
 let target=9;
 
-fn twosum(nums,target)
+function twosum(nums,target)
 {
     let i=0;
     let j=i+1;
@@ -309,7 +309,7 @@ let a;#a默认赋nil值
 
 4.关键字:
 let: 声明变量
-fn: 声明函数
+function: 声明函数
 struct: 声明结构体
 if: 条件语句
 else: 条件语句否定分支(与if一起用,不可单独使用)
@@ -414,7 +414,7 @@ while(true)
 
 7. 函数
 ```sh
-fn add(x,y)
+function add(x,y)
 {
     return x+y;
 }

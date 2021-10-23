@@ -1,7 +1,7 @@
 let nums=[2,7,11,15];
 let target=9;
 
-fn twosum(nums,target)
+function twosum(nums,target)
 {
     let i=0;
     let j=i+1;
