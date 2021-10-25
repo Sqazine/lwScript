@@ -6,7 +6,7 @@
 #include <sstream>
 #include <iomanip>
 #include <deque>
-#include "Object.h"
+#include <unordered_map>
 namespace lws
 {
 	enum OpCode

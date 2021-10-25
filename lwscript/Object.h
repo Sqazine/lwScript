@@ -320,5 +320,4 @@ namespace lws
 
 		std::string refObjName;
 	};
-
 }

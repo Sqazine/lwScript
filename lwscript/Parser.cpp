@@ -282,7 +282,13 @@ namespace lws
 		Consume(TokenType::LBRACE, "Expect '{' after 'struct' keyword");
 
 		while (!IsMatchCurToken(TokenType::RBRACE))
-			structStmt->letStmts.emplace_back((LetStmt *)ParseLetStmt());
+		{
+			if (IsMatchCurToken(TokenType::LET))
+				structStmt->letStmts.emplace_back((LetStmt*)ParseLetStmt());
+			else if (IsMatchCurToken(TokenType::FUNCTION))
+				structStmt->functionStmts.emplace_back((FunctionStmt*)ParseFunctionStmt());
+			else Consume({ TokenType::LET,TokenType::FUNCTION }, "Only variable or function is availanble in struct scope");
+		}
 
 		Consume(TokenType::RBRACE, "Expect '}' after struct stmt's '{'");
 
@@ -546,6 +552,16 @@ namespace lws
 
 	Token Parser::Consume(TokenType type, std::string_view errMsg)
 	{
+		if (IsMatchCurToken(type))
+			return GetCurTokenAndStepOnce();
+		Assert("[line " + std::to_string(GetCurToken().line) + "]:" + std::string(errMsg));
+		//avoid warning
+		return Token(TokenType::END, "", 0);
+	}
+
+	Token Parser::Consume(const std::vector<TokenType>& types, std::string_view errMsg)
+	{
+		for(const auto& type:types)
 		if (IsMatchCurToken(type))
 			return GetCurTokenAndStepOnce();
 		Assert("[line " + std::to_string(GetCurToken().line) + "]:" + std::string(errMsg));

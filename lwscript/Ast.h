@@ -126,10 +126,10 @@ namespace lws
 	struct ArrayExpr : public Expr
 	{
 		ArrayExpr() {}
-		ArrayExpr(std::vector<Expr *> elements) : elements(elements) {}
+		ArrayExpr(std::vector<Expr*> elements) : elements(elements) {}
 		~ArrayExpr()
 		{
-			std::vector<Expr *>().swap(elements);
+			std::vector<Expr*>().swap(elements);
 		}
 
 		std::string Stringify() override
@@ -147,16 +147,16 @@ namespace lws
 		}
 		AstType Type() override { return AstType::ARRAY; }
 
-		std::vector<Expr *> elements;
+		std::vector<Expr*> elements;
 	};
 
 	struct TableExpr : public Expr
 	{
 		TableExpr() {}
-		TableExpr(std::unordered_map<Expr *, Expr *> elements) : elements(elements) {}
+		TableExpr(std::unordered_map<Expr*, Expr*> elements) : elements(elements) {}
 		~TableExpr()
 		{
-			std::unordered_map<Expr *, Expr *>().swap(elements);
+			std::unordered_map<Expr*, Expr*>().swap(elements);
 		}
 
 		std::string Stringify() override
@@ -174,25 +174,25 @@ namespace lws
 		}
 		AstType Type() override { return AstType::TABLE; }
 
-		std::unordered_map<Expr *, Expr *> elements;
+		std::unordered_map<Expr*, Expr*> elements;
 	};
 
 	struct GroupExpr : public Expr
 	{
 		GroupExpr() : expr(nullptr) {}
-		GroupExpr(Expr *expr) : expr(expr) {}
+		GroupExpr(Expr* expr) : expr(expr) {}
 		~GroupExpr() {}
 
 		std::string Stringify() override { return "(" + expr->Stringify() + ")"; }
 		AstType Type() override { return AstType::GROUP; }
 
-		Expr *expr;
+		Expr* expr;
 	};
 
 	struct PrefixExpr : public Expr
 	{
 		PrefixExpr() : right(nullptr) {}
-		PrefixExpr(std::string_view op, Expr *right) : op(op), right(right) {}
+		PrefixExpr(std::string_view op, Expr* right) : op(op), right(right) {}
 		~PrefixExpr()
 		{
 			delete right;
@@ -203,13 +203,13 @@ namespace lws
 		AstType Type() override { return AstType::PREFIX; }
 
 		std::string op;
-		Expr *right;
+		Expr* right;
 	};
 
 	struct InfixExpr : public Expr
 	{
 		InfixExpr() : left(nullptr), right(nullptr) {}
-		InfixExpr(std::string_view op, Expr *left, Expr *right) : op(op), left(left), right(right) {}
+		InfixExpr(std::string_view op, Expr* left, Expr* right) : op(op), left(left), right(right) {}
 		~InfixExpr()
 		{
 			delete left;
@@ -223,14 +223,14 @@ namespace lws
 		AstType Type() override { return AstType::INFIX; }
 
 		std::string op;
-		Expr *left;
-		Expr *right;
+		Expr* left;
+		Expr* right;
 	};
 
 	struct ConditionExpr : public Expr
 	{
 		ConditionExpr() : condition(nullptr), trueBranch(nullptr), falseBranch(nullptr) {}
-		ConditionExpr(Expr *condition, Expr *left, Expr *right) : condition(condition), trueBranch(trueBranch), falseBranch(falseBranch) {}
+		ConditionExpr(Expr* condition, Expr* left, Expr* right) : condition(condition), trueBranch(trueBranch), falseBranch(falseBranch) {}
 		~ConditionExpr()
 		{
 			delete condition;
@@ -246,15 +246,15 @@ namespace lws
 		std::string Stringify() override { return condition->Stringify() + "?" + trueBranch->Stringify() + ":" + falseBranch->Stringify(); }
 		AstType Type() override { return AstType::CONDITION; }
 
-		Expr *condition;
-		Expr *trueBranch;
-		Expr *falseBranch;
+		Expr* condition;
+		Expr* trueBranch;
+		Expr* falseBranch;
 	};
 
 	struct IndexExpr : public Expr
 	{
 		IndexExpr() : array(nullptr), index(nullptr) {}
-		IndexExpr(Expr *array, Expr *index) : array(array), index(index) {}
+		IndexExpr(Expr* array, Expr* index) : array(array), index(index) {}
 		~IndexExpr()
 		{
 			delete array;
@@ -266,14 +266,14 @@ namespace lws
 
 		AstType Type() override { return AstType::INDEX; }
 
-		Expr *array;
-		Expr *index;
+		Expr* array;
+		Expr* index;
 	};
 
 	struct RefExpr : public Expr
 	{
 		RefExpr() {}
-		RefExpr(std::string_view refName) : refName(refName){};
+		RefExpr(std::string_view refName) : refName(refName) {};
 		~RefExpr() {}
 
 		std::string Stringify() override { return "ref " + refName; }
@@ -286,7 +286,7 @@ namespace lws
 	struct FunctionCallExpr : public Expr
 	{
 		FunctionCallExpr() {}
-		FunctionCallExpr(std::string name, std::vector<Expr *> arguments) : name(name), arguments(arguments) {}
+		FunctionCallExpr(std::string name, std::vector<Expr*> arguments) : name(name), arguments(arguments) {}
 		~FunctionCallExpr() {}
 
 		std::string Stringify() override
@@ -295,7 +295,7 @@ namespace lws
 
 			if (!arguments.empty())
 			{
-				for (const auto &arg : arguments)
+				for (const auto& arg : arguments)
 					result += arg->Stringify() + ",";
 				result = result.substr(0, result.size() - 1);
 			}
@@ -305,20 +305,20 @@ namespace lws
 		AstType Type() override { return AstType::FUNCTION_CALL; }
 
 		std::string name;
-		std::vector<Expr *> arguments;
+		std::vector<Expr*> arguments;
 	};
 
 	struct StructCallExpr : public Expr
 	{
 		StructCallExpr() : callee(nullptr), callMember(nullptr) {}
-		StructCallExpr(Expr *callee, Expr *callMember) : callee(callee), callMember(callMember) {}
+		StructCallExpr(Expr* callee, Expr* callMember) : callee(callee), callMember(callMember) {}
 		~StructCallExpr() {}
 
 		std::string Stringify() override { return callee->Stringify() + "." + callMember->Stringify(); }
 		AstType Type() override { return AstType::STRUCT_CALL; }
 
-		Expr *callee;
-		Expr *callMember;
+		Expr* callee;
+		Expr* callMember;
 	};
 
 	struct Stmt : public AstNode
@@ -333,7 +333,7 @@ namespace lws
 	struct ExprStmt : public Stmt
 	{
 		ExprStmt() : expr(nullptr) {}
-		ExprStmt(Expr *expr) : expr(expr) {}
+		ExprStmt(Expr* expr) : expr(expr) {}
 		~ExprStmt()
 		{
 			delete expr;
@@ -343,14 +343,14 @@ namespace lws
 		std::string Stringify() override { return expr->Stringify() + ";"; }
 		AstType Type() override { return AstType::EXPR; }
 
-		Expr *expr;
+		Expr* expr;
 	};
 
 	struct LetStmt : public Stmt
 	{
 		LetStmt() {}
-		LetStmt(const std::unordered_map<IdentifierExpr *, Expr *> &variables) : variables(variables) {}
-		~LetStmt() { std::unordered_map<IdentifierExpr *, Expr *>().swap(variables); }
+		LetStmt(const std::unordered_map<IdentifierExpr*, Expr*>& variables) : variables(variables) {}
+		~LetStmt() { std::unordered_map<IdentifierExpr*, Expr*>().swap(variables); }
 
 		std::string Stringify() override
 		{
@@ -366,13 +366,13 @@ namespace lws
 
 		AstType Type() override { return AstType::LET; }
 
-		std::unordered_map<IdentifierExpr *, Expr *> variables;
+		std::unordered_map<IdentifierExpr*, Expr*> variables;
 	};
 
 	struct ReturnStmt : public Stmt
 	{
 		ReturnStmt() : expr(nullptr) {}
-		ReturnStmt(Expr *expr) : expr(expr) {}
+		ReturnStmt(Expr* expr) : expr(expr) {}
 		~ReturnStmt()
 		{
 			delete expr;
@@ -382,16 +382,16 @@ namespace lws
 		std::string Stringify() override { return "return " + expr->Stringify() + ";"; }
 		AstType Type() override { return AstType::RETURN; }
 
-		Expr *expr;
+		Expr* expr;
 	};
 
 	struct IfStmt : public Stmt
 	{
 		IfStmt() : condition(nullptr), thenBranch(nullptr), elseBranch(nullptr) {}
-		IfStmt(Expr *condition, Stmt *thenBranch, Stmt *elseBranch)
+		IfStmt(Expr* condition, Stmt* thenBranch, Stmt* elseBranch)
 			: condition(condition),
-			  thenBranch(thenBranch),
-			  elseBranch(elseBranch)
+			thenBranch(thenBranch),
+			elseBranch(elseBranch)
 		{
 		}
 		~IfStmt()
@@ -414,37 +414,37 @@ namespace lws
 		}
 		AstType Type() override { return AstType::IF; }
 
-		Expr *condition;
-		Stmt *thenBranch;
-		Stmt *elseBranch;
+		Expr* condition;
+		Stmt* thenBranch;
+		Stmt* elseBranch;
 	};
 
 	struct ScopeStmt : public Stmt
 	{
 		ScopeStmt() {}
-		ScopeStmt(std::vector<Stmt *> stmts) : stmts(stmts) {}
-		~ScopeStmt() { std::vector<Stmt *>().swap(stmts); }
+		ScopeStmt(std::vector<Stmt*> stmts) : stmts(stmts) {}
+		~ScopeStmt() { std::vector<Stmt*>().swap(stmts); }
 
 		std::string Stringify() override
 		{
 			std::string result = "{";
-			for (const auto &stmt : stmts)
+			for (const auto& stmt : stmts)
 				result += stmt->Stringify();
 			result += "}";
 			return result;
 		}
 
 		AstType Type() override { return AstType::SCOPE; }
-		std::vector<Stmt *> stmts;
+		std::vector<Stmt*> stmts;
 	};
 
 	struct FunctionStmt : public Stmt
 	{
 		FunctionStmt() : body(nullptr) {}
-		FunctionStmt(std::string name, std::vector<IdentifierExpr *> parameters, ScopeStmt *body) : name(name), parameters(parameters), body(body) {}
+		FunctionStmt(std::string name, std::vector<IdentifierExpr*> parameters, ScopeStmt* body) : name(name), parameters(parameters), body(body) {}
 		~FunctionStmt()
 		{
-			std::vector<IdentifierExpr *>().swap(parameters);
+			std::vector<IdentifierExpr*>().swap(parameters);
 
 			delete body;
 			body = nullptr;
@@ -466,20 +466,22 @@ namespace lws
 		AstType Type() override { return AstType::FUNCTION; }
 
 		std::string name;
-		std::vector<IdentifierExpr *> parameters;
-		ScopeStmt *body;
+		std::vector<IdentifierExpr*> parameters;
+		ScopeStmt* body;
 	};
 	struct StructStmt : public Stmt
 	{
 		StructStmt() {}
-		StructStmt(std::string name, std::vector<LetStmt *> letStmts) : name(name), letStmts(letStmts) {}
-		~StructStmt() { std::vector<LetStmt *>().swap(letStmts); }
+		StructStmt(std::string name, std::vector<LetStmt*> letStmts, std::vector<FunctionStmt*> functionStmts) : name(name), letStmts(letStmts), functionStmts(functionStmts) {}
+		~StructStmt() { std::vector<LetStmt*>().swap(letStmts); }
 
 		std::string Stringify() override
 		{
 			std::string result = "struct " + name + "{\n";
 			if (!letStmts.empty())
 			{
+				for (auto fnStmt : functionStmts)
+					result += fnStmt->Stringify() + "\n";
 				for (auto letStmt : letStmts)
 					result += letStmt->Stringify() + "\n";
 				result = result.substr(0, result.size() - 1);
@@ -489,13 +491,14 @@ namespace lws
 		AstType Type() override { return AstType::STRUCT; }
 
 		std::string name;
-		std::vector<LetStmt *> letStmts;
+		std::vector<LetStmt*> letStmts;
+		std::vector<FunctionStmt*> functionStmts;
 	};
 
 	struct WhileStmt : public Stmt
 	{
 		WhileStmt() : condition(nullptr), body(nullptr) {}
-		WhileStmt(Expr *condition, Stmt *body) : condition(condition), body(body) {}
+		WhileStmt(Expr* condition, Stmt* body) : condition(condition), body(body) {}
 		~WhileStmt()
 		{
 			delete condition;
@@ -510,29 +513,29 @@ namespace lws
 		}
 		AstType Type() override { return AstType::WHILE; }
 
-		Expr *condition;
-		Stmt *body;
+		Expr* condition;
+		Stmt* body;
 	};
 
 	struct AstStmts : public Stmt
 	{
 		AstStmts() {}
-		AstStmts(std::vector<Stmt *> stmts) : stmts(stmts) {}
-		~AstStmts() { std::vector<Stmt *>().swap(stmts); }
+		AstStmts(std::vector<Stmt*> stmts) : stmts(stmts) {}
+		~AstStmts() { std::vector<Stmt*>().swap(stmts); }
 
 		std::string Stringify() override
 		{
 			std::string result;
-			for (const auto &stmt : stmts)
+			for (const auto& stmt : stmts)
 				result += stmt->Stringify();
 			return result;
 		}
 		AstType Type() override { return AstType::ASTSTMTS; }
 
-		std::vector<Stmt *> stmts;
+		std::vector<Stmt*> stmts;
 	};
 
-	static NilExpr *nilExpr = new NilExpr();
-	static BoolExpr *trueExpr = new BoolExpr(true);
-	static BoolExpr *falseExpr = new BoolExpr(false);
+	static NilExpr* nilExpr = new NilExpr();
+	static BoolExpr* trueExpr = new BoolExpr(true);
+	static BoolExpr* falseExpr = new BoolExpr(false);
 }
