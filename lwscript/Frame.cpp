@@ -310,9 +310,6 @@ namespace lws
 		std::unordered_map<std::string, Frame *>().swap(m_FunctionFrames);
 		std::unordered_map<std::string, Frame *>().swap(m_StructFrames);
 		if (m_ParentFrame)
-		{
-			delete m_ParentFrame;
 			m_ParentFrame = nullptr;
-		}
 	}
 }

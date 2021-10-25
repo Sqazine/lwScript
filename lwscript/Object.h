@@ -282,11 +282,11 @@ namespace lws
 
 		std::string Stringify() override
 		{
-			std::string result = "struct{";
+			std::string result = "struct{\n";
 			if (!context->m_Values.empty())
 				for (const auto &[key, value] : context->m_Values)
 					result += key + "=" + value->Stringify() + "\n";
-			result += "}";
+			result += "}\n";
 			return result;
 		}
 		ObjectType Type() override { return ObjectType::STRUCT; }

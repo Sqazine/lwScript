@@ -142,7 +142,7 @@ namespace lws
 				pos = content.find("\\r");
 			}
 
-			std::cout << content;
+			std::cout << content<<std::endl;
 			return nullptr;
 		};
     }
