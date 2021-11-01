@@ -11,7 +11,7 @@ namespace lws
             {"nil", TokenType::NIL},
             {"while", TokenType::WHILE},
             {"function", TokenType::FUNCTION},
-            {"struct", TokenType::STRUCT},
+            {"class", TokenType::CLASS},
             {"return", TokenType::RETURN},
     };
 

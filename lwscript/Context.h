@@ -21,7 +21,7 @@ namespace lws
 
     private:
         friend class VM;
-        friend struct StructObject;
+        friend struct ClassObject;
 
         std::unordered_map<std::string, struct Object *> m_Values;
         Context *m_UpContext;

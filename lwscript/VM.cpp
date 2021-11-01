@@ -129,12 +129,12 @@ namespace lws
 		return object;
 	}
 
-	StructObject *VM::CreateStructObject(Context *context)
+	ClassObject *VM::CreateClassObject(Context *context)
 	{
 		if (curObjCount == maxObjCount)
 			Gc();
 
-		StructObject *object = new StructObject(context);
+		ClassObject *object = new ClassObject(context);
 		object->marked = false;
 
 		object->next = firstObject;
@@ -397,12 +397,12 @@ namespace lws
 				Push(CreateTableObject(elements));
 				break;
 			}
-			case OP_DEFINE_STRUCT:
+			case OP_DEFINE_CLASS:
 			{
 				Context *tmp = m_Context;
 				m_Context = m_Context->GetUpContext();
 				tmp->m_UpContext = nullptr; //avoid context conflict
-				Push(CreateStructObject(tmp));
+				Push(CreateClassObject(tmp));
 				break;
 			}
 			case OP_GET_INDEX_VAR:
@@ -469,19 +469,19 @@ namespace lws
 					Assert("Invalid index op.The indexed object isn't a array object or a table object:" + object->Stringify());
 				break;
 			}
-			case OP_GET_STRUCT:
+			case OP_GET_CLASS:
 			{
 				std::string structName = frame->m_Strings[frame->m_Codes[++ip]];
 				Object *obj = m_Context->GetVariable(structName);
-				if (!IS_STRUCT_OBJ(obj))
+				if (!IS_CLASS_OBJ(obj))
 					Assert("Not a struct object:" + structName);
 
-				StructObject *structObject = TO_STRUCT_OBJ(obj);
+				ClassObject *structObject = TO_CLASS_OBJ(obj);
 				structObject->context->SetUpContext(m_Context);
 				m_Context = structObject->context;
 				break;
 			}
-			case OP_END_GET_STRUCT:
+			case OP_END_GET_CLASS:
 			{
 				m_Context = m_Context->GetUpContext();
 				break;

@@ -25,7 +25,7 @@ namespace lws
 		INDEX,
 		REF,
 		FUNCTION_CALL,
-		STRUCT_CALL,
+		CLASS_CALL,
 		//stmt
 		LET,
 		EXPR,
@@ -34,7 +34,7 @@ namespace lws
 		SCOPE,
 		WHILE,
 		FUNCTION,
-		STRUCT,
+		CLASS,
 		ASTSTMTS,
 	};
 
@@ -315,7 +315,7 @@ namespace lws
 		~StructCallExpr() {}
 
 		std::string Stringify() override { return callee->Stringify() + "." + callMember->Stringify(); }
-		AstType Type() override { return AstType::STRUCT_CALL; }
+		AstType Type() override { return AstType::CLASS_CALL; }
 
 		Expr* callee;
 		Expr* callMember;
@@ -469,30 +469,27 @@ namespace lws
 		std::vector<IdentifierExpr*> parameters;
 		ScopeStmt* body;
 	};
-	struct StructStmt : public Stmt
+	struct ClassStmt : public Stmt
 	{
-		StructStmt() {}
-		StructStmt(std::string name, std::vector<LetStmt*> letStmts, std::vector<FunctionStmt*> functionStmts) : name(name), letStmts(letStmts), functionStmts(functionStmts) {}
-		~StructStmt() { std::vector<LetStmt*>().swap(letStmts); }
+		ClassStmt() {}
+		ClassStmt(std::string name, std::vector<LetStmt*> letStmts) : name(name), letStmts(letStmts) {}
+		~ClassStmt() { std::vector<LetStmt*>().swap(letStmts); }
 
 		std::string Stringify() override
 		{
 			std::string result = "struct " + name + "{\n";
 			if (!letStmts.empty())
 			{
-				for (auto fnStmt : functionStmts)
-					result += fnStmt->Stringify() + "\n";
 				for (auto letStmt : letStmts)
 					result += letStmt->Stringify() + "\n";
 				result = result.substr(0, result.size() - 1);
 			}
 			return result + "\n}";
 		}
-		AstType Type() override { return AstType::STRUCT; }
+		AstType Type() override { return AstType::CLASS; }
 
 		std::string name;
 		std::vector<LetStmt*> letStmts;
-		std::vector<FunctionStmt*> functionStmts;
 	};
 
 	struct WhileStmt : public Stmt

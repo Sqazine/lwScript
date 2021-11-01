@@ -149,8 +149,8 @@ namespace lws
 			return ParseWhileStmt();
 		else if (IsMatchCurToken(TokenType::FUNCTION))
 			return ParseFunctionStmt();
-		else if (IsMatchCurToken(TokenType::STRUCT))
-			return ParseStructStmt();
+		else if (IsMatchCurToken(TokenType::CLASS))
+			return ParseClassStmt();
 		else
 			return ParseExprStmt();
 	}
@@ -272,25 +272,23 @@ namespace lws
 		return funcStmt;
 	}
 
-	Stmt *Parser::ParseStructStmt()
+	Stmt *Parser::ParseClassStmt()
 	{
-		Consume(TokenType::STRUCT, "Expect 'struct' keyword");
+		Consume(TokenType::CLASS, "Expect 'class' keyword");
 
-		auto structStmt = new StructStmt();
+		auto structStmt = new ClassStmt();
 		structStmt->name = ((IdentifierExpr *)ParseIdentifierExpr())->literal;
 
-		Consume(TokenType::LBRACE, "Expect '{' after 'struct' keyword");
+		Consume(TokenType::LBRACE, "Expect '{' after 'class' keyword");
 
 		while (!IsMatchCurToken(TokenType::RBRACE))
 		{
 			if (IsMatchCurToken(TokenType::LET))
 				structStmt->letStmts.emplace_back((LetStmt*)ParseLetStmt());
-			else if (IsMatchCurToken(TokenType::FUNCTION))
-				structStmt->functionStmts.emplace_back((FunctionStmt*)ParseFunctionStmt());
-			else Consume({ TokenType::LET,TokenType::FUNCTION }, "Only variable or function is availanble in struct scope");
+			else Consume(TokenType::LET, "UnExpect identifier '"+GetCurToken().literal+"'.");
 		}
 
-		Consume(TokenType::RBRACE, "Expect '}' after struct stmt's '{'");
+		Consume(TokenType::RBRACE, "Expect '}' after class stmt's '{'");
 
 		return structStmt;
 	}
@@ -321,7 +319,7 @@ namespace lws
 
 	Expr *Parser::ParseIdentifierExpr()
 	{
-		return new IdentifierExpr(Consume(TokenType::IDENTIFIER, "Expect a identifier.").literal);
+		return new IdentifierExpr(Consume(TokenType::IDENTIFIER, "Unexpect Identifier'"+GetCurToken().literal+"'.").literal);
 	}
 
 	Expr *Parser::ParseNumExpr()

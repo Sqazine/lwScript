@@ -57,8 +57,8 @@ namespace lws
 		case AstType::FUNCTION:
 			CompileFunctionStmt((FunctionStmt *)stmt, frame);
 			break;
-		case AstType::STRUCT:
-			CompileStructStmt((StructStmt *)stmt, frame);
+		case AstType::CLASS:
+			CompileClassStmt((ClassStmt *)stmt, frame);
 			break;
 		default:
 			break;
@@ -151,20 +151,20 @@ namespace lws
 		frame->AddFunctionFrame(stmt->name, functionFrame);
 	}
 
-	void Compiler::CompileStructStmt(StructStmt *stmt, Frame *frame)
+	void Compiler::CompileClassStmt(ClassStmt *stmt, Frame *frame)
 	{
-		Frame *structFrame = new Frame(frame);
+		Frame *classFrame = new Frame(frame);
 
-		structFrame->AddOpCode(OP_ENTER_SCOPE);
+		classFrame->AddOpCode(OP_ENTER_SCOPE);
 
 		for (const auto letStmt : stmt->letStmts)
-			CompileLetStmt(letStmt, structFrame);
+			CompileLetStmt(letStmt, classFrame);
 
-		structFrame->AddOpCode(OP_DEFINE_STRUCT);
+		classFrame->AddOpCode(OP_DEFINE_CLASS);
 
-		structFrame->AddOpCode(OP_RETURN);
+		classFrame->AddOpCode(OP_RETURN);
 
-		frame->AddStructFrame(stmt->name, structFrame);
+		frame->AddStructFrame(stmt->name, classFrame);
 	}
 
 	void Compiler::CompileExpr(Expr *expr, Frame *frame, ObjectState state)
@@ -213,7 +213,7 @@ namespace lws
 		case AstType::FUNCTION_CALL:
 			CompileFunctionCallExpr((FunctionCallExpr *)expr, frame);
 			break;
-		case AstType::STRUCT_CALL:
+		case AstType::CLASS_CALL:
 			CompileStructCallExpr((StructCallExpr *)expr, frame, state);
 			break;
 		case AstType::REF:
@@ -266,8 +266,8 @@ namespace lws
 			frame->AddOpCode(OP_SET_VAR);
 		else if (state == INIT)
 			frame->AddOpCode(OP_DEFINE_VAR);
-		else if (state == STRUCT_READ)
-			frame->AddOpCode(OP_GET_STRUCT);
+		else if (state == CLASS_READ)
+			frame->AddOpCode(OP_GET_CLASS);
 		uint64_t offset = frame->AddString(expr->literal);
 		frame->AddOpCode(offset);
 	}
@@ -450,9 +450,9 @@ namespace lws
 
 	void Compiler::CompileStructCallExpr(StructCallExpr *expr, Frame *frame, ObjectState state)
 	{
-		CompileExpr(expr->callee, frame, STRUCT_READ);
+		CompileExpr(expr->callee, frame, CLASS_READ);
 		CompileExpr(expr->callMember, frame, state);
 
-		frame->AddOpCode(OP_END_GET_STRUCT);
+		frame->AddOpCode(OP_END_GET_CLASS);
 	}
 }

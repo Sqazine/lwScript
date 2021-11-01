@@ -13,7 +13,7 @@ namespace lws
 #define TO_BOOL_OBJ(obj) ((BoolObject *)obj)
 #define TO_ARRAY_OBJ(obj) ((ArrayObject *)obj)
 #define TO_TABLE_OBJ(obj) ((TableObject *)obj)
-#define TO_STRUCT_OBJ(obj) ((StructObject *)obj)
+#define TO_CLASS_OBJ(obj) ((ClassObject *)obj)
 #define TO_REF_OBJ(obj) ((RefObject *)obj)
 
 #define IS_INTEGER_OBJ(obj) (obj->Type() == ObjectType::INTEGER)
@@ -23,7 +23,7 @@ namespace lws
 #define IS_NIL_OBJ(obj) (obj->Type() == ObjectType::NIL)
 #define IS_ARRAY_OBJ(obj) (obj->Type() == ObjectType::ARRAY)
 #define IS_TABLE_OBJ(obj) (obj->Type() == ObjectType::TABLE)
-#define IS_STRUCT_OBJ(obj) (obj->Type() == ObjectType::STRUCT)
+#define IS_CLASS_OBJ(obj) (obj->Type() == ObjectType::CLASS)
 #define IS_REF_OBJ(obj) (obj->Type() == ObjectType::REF)
 
 	enum class ObjectType
@@ -35,7 +35,7 @@ namespace lws
 		NIL,
 		ARRAY,
 		TABLE,
-		STRUCT,
+		CLASS,
 		REF
 	};
 
@@ -274,29 +274,29 @@ namespace lws
 		std::unordered_map<Object *, Object *> elements;
 	};
 
-	struct StructObject : public Object
+	struct ClassObject : public Object
 	{
-		StructObject() : context(nullptr) {}
-		StructObject(Context *context) : context(context) {}
-		~StructObject() {}
+		ClassObject() : context(nullptr) {}
+		ClassObject(Context *context) : context(context) {}
+		~ClassObject() {}
 
 		std::string Stringify() override
 		{
-			std::string result = "struct{\n";
+			std::string result = "class{\n";
 			if (!context->m_Values.empty())
 				for (const auto &[key, value] : context->m_Values)
 					result += key + "=" + value->Stringify() + "\n";
 			result += "}\n";
 			return result;
 		}
-		ObjectType Type() override { return ObjectType::STRUCT; }
+		ObjectType Type() override { return ObjectType::CLASS; }
 		void Mark() override { marked = true; }
 		void UnMark() override { marked = false; }
 		bool IsEqualTo(Object *other) override
 		{
-			if (!IS_STRUCT_OBJ(other))
+			if (!IS_CLASS_OBJ(other))
 				return false;
-			return context->IsEqualTo(TO_STRUCT_OBJ(other)->context);
+			return context->IsEqualTo(TO_CLASS_OBJ(other)->context);
 		}
 
 		Context *context;

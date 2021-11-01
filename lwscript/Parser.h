@@ -52,7 +52,7 @@ namespace lws
 		Stmt *ParseScopeStmt();
 		Stmt *ParseWhileStmt();
 		Stmt *ParseFunctionStmt();
-		Stmt *ParseStructStmt();
+		Stmt *ParseClassStmt();
 
 		Expr *ParseExpr(Precedence precedence = Precedence::LOWEST);
 		Expr *ParseIdentifierExpr();

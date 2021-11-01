@@ -32,7 +32,7 @@ namespace lws
 		NilObject *CreateNilObject();
 		ArrayObject *CreateArrayObject(const std::vector<Object *> &elements = {});
 		TableObject *CreateTableObject(const std::unordered_map<Object *, Object *> &elements = {});
-		StructObject *CreateStructObject(Context *context);
+		ClassObject *CreateClassObject(Context *context);
 		RefObject *CreateRefObject(std::string_view refName);
 
 		void Gc();

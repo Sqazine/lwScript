@@ -60,7 +60,7 @@ namespace lws
 		NIL,				   // nil
 		WHILE,				   // while
 		FUNCTION,			   // function
-		STRUCT,				   // struct
+		CLASS,				   // class
 		RETURN,				   // return
 
 		UNKNOWN,

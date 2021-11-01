@@ -11,7 +11,7 @@ namespace lws
 		INIT,
 		READ,
 		WRITE,
-		STRUCT_READ,
+		CLASS_READ,
 	};
 	class Compiler
 	{
@@ -32,7 +32,7 @@ namespace lws
 		void CompileIfStmt(IfStmt *stmt, Frame *frame);
 		void CompileWhileStmt(WhileStmt *stmt, Frame *frame);
 		void CompileFunctionStmt(FunctionStmt *stmt, Frame *frame);
-		void CompileStructStmt(StructStmt *stmt, Frame *frame);
+		void CompileClassStmt(ClassStmt *stmt, Frame *frame);
 
 		void CompileExpr(Expr *expr, Frame *frame, ObjectState state = READ);
 		void CompileIntegerExpr(IntegerExpr *expr, Frame *frame);
