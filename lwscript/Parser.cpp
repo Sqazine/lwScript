@@ -19,6 +19,7 @@ namespace lws
 				{TokenType::LBRACKET, &Parser::ParseArrayExpr},
 				{TokenType::LBRACE, &Parser::ParseTableExpr},
 				{TokenType::AMPERSAND, &Parser::ParseRefExpr},
+				{TokenType::FUNCTION,&Parser::ParseFunctionExpr},
 			};
 
 		m_InfixFunctions =
@@ -147,8 +148,6 @@ namespace lws
 			return ParseScopeStmt();
 		else if (IsMatchCurToken(TokenType::WHILE))
 			return ParseWhileStmt();
-		else if (IsMatchCurToken(TokenType::FUNCTION))
-			return ParseFunctionStmt();
 		else if (IsMatchCurToken(TokenType::CLASS))
 			return ParseClassStmt();
 		else
@@ -246,30 +245,29 @@ namespace lws
 		return whileStmt;
 	}
 
-	Stmt *Parser::ParseFunctionStmt()
+	Expr *Parser::ParseFunctionExpr()
 	{
 		Consume(TokenType::FUNCTION, "Expect 'function' keyword");
 
-		auto funcStmt = new FunctionStmt();
-		funcStmt->name = ((IdentifierExpr *)ParseIdentifierExpr())->literal;
+		auto funcExpr = new FunctionExpr();
 
 		Consume(TokenType::LPAREN, "Expect '(' after 'function' keyword");
 
 		if (!IsMatchCurToken(TokenType::RPAREN)) //has parameter
 		{
 			IdentifierExpr *idenExpr = (IdentifierExpr *)ParseIdentifierExpr();
-			funcStmt->parameters.emplace_back(idenExpr);
+			funcExpr->parameters.emplace_back(idenExpr);
 			while (IsMatchCurTokenAndStepOnce(TokenType::COMMA))
 			{
 				idenExpr = (IdentifierExpr *)ParseIdentifierExpr();
-				funcStmt->parameters.emplace_back(idenExpr);
+				funcExpr->parameters.emplace_back(idenExpr);
 			}
 		}
 		Consume(TokenType::RPAREN, "Expect ')' after function stmt's '('");
 
-		funcStmt->body = (ScopeStmt *)ParseScopeStmt();
+		funcExpr->body = (ScopeStmt *)ParseScopeStmt();
 
-		return funcStmt;
+		return funcExpr;
 	}
 
 	Stmt *Parser::ParseClassStmt()

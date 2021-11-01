@@ -11,12 +11,17 @@ namespace lws
 {
 	enum OpCode
 	{
-		OP_FLOATING,
-		OP_INTEGER,
-		OP_STR,
-		OP_TRUE,
-		OP_FALSE,
-		OP_NIL,
+		OP_DEFINE_FLOATING,
+		OP_DEFINE_INTEGER,
+		OP_DEFINE_STR,
+		OP_DEFINE_TRUE,
+		OP_DEFINE_FALSE,
+		OP_DEFINE_NIL,
+		OP_DEFINE_VAR,
+		OP_DEFINE_ARRAY,
+		OP_DEFINE_TABLE,
+		OP_DEFINE_FUNCTION,
+		OP_DEFINE_CLASS,
 		OP_NEG,
 		OP_RETURN,
 		OP_ADD,
@@ -39,14 +44,10 @@ namespace lws
 		OP_NOT,
 		OP_OR,
 		OP_AND,
-		OP_DEFINE_VAR,
 		OP_GET_VAR,
 		OP_SET_VAR,
-		OP_DEFINE_ARRAY,
-		OP_DEFINE_TABLE,
 		OP_GET_INDEX_VAR,
 		OP_SET_INDEX_VAR,
-		OP_DEFINE_CLASS,
 		OP_ENTER_SCOPE,
 		OP_EXIT_SCOPE,
 		OP_JUMP,
@@ -75,13 +76,13 @@ namespace lws
 		std::vector<double> &GetFloatingNums();
 		std::vector<int64_t> &GetIntegerNums();
 
-		void AddFunctionFrame(std::string_view name, Frame *frame);
-		Frame *GetFunctionFrame(std::string_view name);
-		bool HasFunctionFrame(std::string_view name);
+		uint64_t AddFunctionFrame(Frame *frame);
+		Frame *GetFunctionFrame(uint64_t idx);
+		bool HasFunctionFrame(uint64_t idx);
 
-		void AddStructFrame(std::string_view name, Frame *frame);
-		Frame *GetStructFrame(std::string_view name);
-		bool HasStructFrame(std::string_view name);
+		void AddClassFrame(std::string_view name, Frame *frame);
+		Frame *GetClassFrame(std::string_view name);
+		bool HasClassFrame(std::string_view name);
 
 		std::string Stringify(int depth = 0);
 
@@ -96,8 +97,8 @@ namespace lws
 		std::vector<int64_t> m_IntegerNums;
 		std::vector<std::string> m_Strings;
 
-		std::unordered_map<std::string, Frame *> m_FunctionFrames;
-		std::unordered_map<std::string, Frame *> m_StructFrames;
+		std::vector<Frame *> m_FunctionFrames;
+		std::unordered_map<std::string, Frame *> m_ClassFrames;
 
 		Frame *m_ParentFrame;
 	};

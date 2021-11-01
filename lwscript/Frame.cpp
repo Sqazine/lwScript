@@ -54,68 +54,61 @@ namespace lws
 		return m_IntegerNums;
 	}
 
-	void Frame::AddFunctionFrame(std::string_view name, Frame *frame)
+	uint64_t Frame::AddFunctionFrame(Frame* frame)
 	{
-		auto iter = m_FunctionFrames.find(name.data());
-
-		if (iter != m_FunctionFrames.end())
-			Assert(std::string("Redefinition function:") + name.data());
-
-		m_FunctionFrames[name.data()] = frame;
+		m_FunctionFrames.emplace_back(frame);
+		return m_FunctionFrames.size() - 1;
 	}
 
-	Frame *Frame::GetFunctionFrame(std::string_view name)
+	Frame* Frame::GetFunctionFrame(uint64_t idx)
 	{
-		auto iter = m_FunctionFrames.find(name.data());
-		if (iter != m_FunctionFrames.end())
-			return iter->second;
-		else if (m_ParentFrame != nullptr)
-			return m_ParentFrame->GetFunctionFrame(name);
+		if (idx >= 0 || idx < m_FunctionFrames.size())
+			return m_FunctionFrames[idx];
+		else if (m_ParentFrame)
+			return m_ParentFrame->GetFunctionFrame(idx);
 		else
-			Assert(std::string("No function:") + name.data());
-
-		return nullptr;
+			return nullptr;
 	}
 
-	bool Frame::HasFunctionFrame(std::string_view name)
+	bool Frame::HasFunctionFrame(uint64_t idx)
 	{
-		auto iter = m_FunctionFrames.find(name.data());
-		if (iter != m_FunctionFrames.end())
+		if (idx >= 0 || idx < m_FunctionFrames.size())
 			return true;
-		else if (m_ParentFrame != nullptr)
-			return m_ParentFrame->HasFunctionFrame(name);
+		else if (m_ParentFrame)
+			return m_ParentFrame->HasFunctionFrame(idx);
+		else
 		return false;
 	}
 
-	void Frame::AddStructFrame(std::string_view name, Frame *frame)
+	void Frame::AddClassFrame(std::string_view name, Frame *frame)
 	{
-		auto iter = m_StructFrames.find(name.data());
+		auto iter = m_ClassFrames.find(name.data());
 
-		if (iter != m_StructFrames.end())
+		if (iter != m_ClassFrames.end())
 			Assert(std::string("Redefinition struct:") + name.data());
 
-		m_StructFrames[name.data()] = frame;
+		m_ClassFrames[name.data()] = frame;
 	}
 
-	Frame *Frame::GetStructFrame(std::string_view name)
+	Frame *Frame::GetClassFrame(std::string_view name)
 	{
-		auto iter = m_StructFrames.find(name.data());
-		if (iter != m_StructFrames.end())
+		auto iter = m_ClassFrames.find(name.data());
+		if (iter != m_ClassFrames.end())
 			return iter->second;
 		else if (m_ParentFrame != nullptr)
-			return m_ParentFrame->GetStructFrame(name);
+			return m_ParentFrame->GetClassFrame(name);
 		Assert(std::string("No function:") + name.data());
 
 		return nullptr;
 	}
 
-	bool Frame::HasStructFrame(std::string_view name)
+	bool Frame::HasClassFrame(std::string_view name)
 	{
-		auto iter = m_StructFrames.find(name.data());
-		if (iter != m_StructFrames.end())
+		auto iter = m_ClassFrames.find(name.data());
+		if (iter != m_ClassFrames.end())
 			return true;
 		else if (m_ParentFrame != nullptr)
-			return m_ParentFrame->HasStructFrame(name);
+			return m_ParentFrame->HasClassFrame(name);
 		return false;
 	}
 
@@ -133,16 +126,16 @@ namespace lws
 
 		std::stringstream result;
 
-		for (auto [key, value] : m_StructFrames)
+		for (auto [key, value] : m_ClassFrames)
 		{
 			result << interval << "Frame " << key << ":\n";
 			result << value->Stringify(depth + 1);
 		}
 
-		for (auto [key, value] : m_FunctionFrames)
+		for (size_t i=0;i<m_FunctionFrames.size();++i)
 		{
-			result << interval << "Frame " << key << ":\n";
-			result << value->Stringify(depth + 1);
+			result << interval << "Frame " << i << ":\n";
+			result << m_FunctionFrames[i]->Stringify(depth + 1);
 		}
 
 		result << interval << "OpCodes:\n";
@@ -154,23 +147,23 @@ namespace lws
 			case OP_RETURN:
 				SINGLE_INSTR_STRINGIFY(OP_RETURN);
 				break;
-			case OP_FLOATING:
-				CONSTANT_INSTR_STRINGIFY(OP_FLOATING, m_FloatingNums);
+			case OP_DEFINE_FLOATING:
+				CONSTANT_INSTR_STRINGIFY(OP_DEFINE_FLOATING, m_FloatingNums);
 				break;
-			case OP_INTEGER:
-				CONSTANT_INSTR_STRINGIFY(OP_INTEGER, m_IntegerNums);
+			case OP_DEFINE_INTEGER:
+				CONSTANT_INSTR_STRINGIFY(OP_DEFINE_INTEGER, m_IntegerNums);
 				break;
-			case OP_STR:
-				CONSTANT_INSTR_STRINGIFY(OP_STR, m_Strings);
+			case OP_DEFINE_STR:
+				CONSTANT_INSTR_STRINGIFY(OP_DEFINE_STR, m_Strings);
 				break;
-			case OP_TRUE:
-				SINGLE_INSTR_STRINGIFY(OP_TRUE);
+			case OP_DEFINE_TRUE:
+				SINGLE_INSTR_STRINGIFY(OP_DEFINE_TRUE);
 				break;
-			case OP_FALSE:
-				SINGLE_INSTR_STRINGIFY(OP_FALSE);
+			case OP_DEFINE_FALSE:
+				SINGLE_INSTR_STRINGIFY(OP_DEFINE_FALSE);
 				break;
-			case OP_NIL:
-				SINGLE_INSTR_STRINGIFY(OP_NIL);
+			case OP_DEFINE_NIL:
+				SINGLE_INSTR_STRINGIFY(OP_DEFINE_NIL);
 				break;
 			case OP_NEG:
 				SINGLE_INSTR_STRINGIFY(OP_NEG);
@@ -286,6 +279,9 @@ namespace lws
 			case OP_REF:
 				CONSTANT_INSTR_STRINGIFY(OP_REF, m_Strings);
 				break;
+			case OP_DEFINE_FUNCTION:
+				CONSTANT_INSTR_STRINGIFY(OP_DEFINE_FUNCTION, m_IntegerNums);
+				break;
 			default:
 				SINGLE_INSTR_STRINGIFY(UNKNOWN);
 				break;
@@ -301,14 +297,14 @@ namespace lws
 		std::vector<int64_t>().swap(m_IntegerNums);
 		std::vector<std::string>().swap(m_Strings);
 
-		for (auto [key, value] : m_FunctionFrames)
+		for (auto funcFrame : m_FunctionFrames)
+			funcFrame->Clear();
+
+		for (auto [key, value] : m_ClassFrames)
 			value->Clear();
 
-		for (auto [key, value] : m_StructFrames)
-			value->Clear();
-
-		std::unordered_map<std::string, Frame *>().swap(m_FunctionFrames);
-		std::unordered_map<std::string, Frame *>().swap(m_StructFrames);
+		std::vector<Frame *>().swap(m_FunctionFrames);
+		std::unordered_map<std::string, Frame *>().swap(m_ClassFrames);
 		if (m_ParentFrame)
 			m_ParentFrame = nullptr;
 	}

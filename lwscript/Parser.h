@@ -29,8 +29,8 @@ namespace lws
 
 	class Parser;
 
-	typedef Expr *(Parser::*PrefixFn)();
-	typedef Expr *(Parser::*InfixFn)(Expr *);
+	typedef Expr* (Parser::* PrefixFn)();
+	typedef Expr* (Parser::* InfixFn)(Expr*);
 
 	class Parser
 	{
@@ -38,39 +38,39 @@ namespace lws
 		Parser();
 		~Parser();
 
-		Stmt *Parse(const std::vector<Token> &tokens);
+		Stmt* Parse(const std::vector<Token>& tokens);
 
 	private:
 		void ResetStatus();
 
-		Stmt *ParseAstStmts();
-		Stmt *ParseStmt();
-		Stmt *ParseExprStmt();
-		Stmt *ParseLetStmt();
-		Stmt *ParseReturnStmt();
-		Stmt *ParseIfStmt();
-		Stmt *ParseScopeStmt();
-		Stmt *ParseWhileStmt();
-		Stmt *ParseFunctionStmt();
-		Stmt *ParseClassStmt();
+		Stmt* ParseAstStmts();
+		Stmt* ParseStmt();
+		Stmt* ParseExprStmt();
+		Stmt* ParseLetStmt();
+		Stmt* ParseReturnStmt();
+		Stmt* ParseIfStmt();
+		Stmt* ParseScopeStmt();
+		Stmt* ParseWhileStmt();
+		Stmt* ParseClassStmt();
 
-		Expr *ParseExpr(Precedence precedence = Precedence::LOWEST);
-		Expr *ParseIdentifierExpr();
-		Expr *ParseNumExpr();
-		Expr *ParseStrExpr();
-		Expr *ParseNilExpr();
-		Expr *ParseTrueExpr();
-		Expr *ParseFalseExpr();
-		Expr *ParseGroupExpr();
-		Expr *ParseArrayExpr();
-		Expr *ParseTableExpr();
-		Expr *ParsePrefixExpr();
-		Expr *ParseRefExpr();
-		Expr *ParseInfixExpr(Expr *prefixExpr);
-		Expr *ParseConditionExpr(Expr *prefixExpr);
-		Expr *ParseIndexExpr(Expr *prefixExpr);
-		Expr *ParseFunctionCallExpr(Expr *prefixExpr);
-		Expr *ParseStructCallExpr(Expr *prefixExpr);
+		Expr* ParseExpr(Precedence precedence = Precedence::LOWEST);
+		Expr* ParseIdentifierExpr();
+		Expr* ParseNumExpr();
+		Expr* ParseStrExpr();
+		Expr* ParseNilExpr();
+		Expr* ParseTrueExpr();
+		Expr* ParseFalseExpr();
+		Expr* ParseGroupExpr();
+		Expr* ParseArrayExpr();
+		Expr* ParseTableExpr();
+		Expr* ParsePrefixExpr();
+		Expr* ParseRefExpr();
+		Expr* ParseFunctionExpr();
+		Expr* ParseInfixExpr(Expr* prefixExpr);
+		Expr* ParseConditionExpr(Expr* prefixExpr);
+		Expr* ParseIndexExpr(Expr* prefixExpr);
+		Expr* ParseFunctionCallExpr(Expr* prefixExpr);
+		Expr* ParseStructCallExpr(Expr* prefixExpr);
 
 		Token GetCurToken();
 		Token GetCurTokenAndStepOnce();
@@ -91,7 +91,7 @@ namespace lws
 		bool IsAtEnd();
 
 		int64_t m_CurPos;
-		AstStmts *m_Stmts;
+		AstStmts* m_Stmts;
 		std::vector<Token> m_Tokens;
 
 		std::unordered_map<TokenType, PrefixFn> m_PrefixFunctions;

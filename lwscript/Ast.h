@@ -438,11 +438,11 @@ namespace lws
 		std::vector<Stmt*> stmts;
 	};
 
-	struct FunctionStmt : public Stmt
+	struct FunctionExpr : public Expr
 	{
-		FunctionStmt() : body(nullptr) {}
-		FunctionStmt(std::string name, std::vector<IdentifierExpr*> parameters, ScopeStmt* body) : name(name), parameters(parameters), body(body) {}
-		~FunctionStmt()
+		FunctionExpr() : body(nullptr) {}
+		FunctionExpr(std::vector<IdentifierExpr*> parameters, ScopeStmt* body) : parameters(parameters), body(body) {}
+		~FunctionExpr()
 		{
 			std::vector<IdentifierExpr*>().swap(parameters);
 
@@ -452,7 +452,7 @@ namespace lws
 
 		std::string Stringify() override
 		{
-			std::string result = "function " + name + "(";
+			std::string result = "function (";
 			if (!parameters.empty())
 			{
 				for (auto param : parameters)
@@ -465,7 +465,6 @@ namespace lws
 		}
 		AstType Type() override { return AstType::FUNCTION; }
 
-		std::string name;
 		std::vector<IdentifierExpr*> parameters;
 		ScopeStmt* body;
 	};

@@ -145,6 +145,22 @@ namespace lws
 		return object;
 	}
 
+	FunctionObject* VM::CreateFunctionObject(int64_t frameIdx)
+	{
+		if (curObjCount == maxObjCount)
+			Gc();
+
+		FunctionObject* object = new FunctionObject(frameIdx);
+		object->marked = false;
+
+		object->next = firstObject;
+		firstObject = object;
+
+		curObjCount++;
+
+		return object;
+	}
+
 	RefObject *VM::CreateRefObject(std::string_view refName)
 	{
 		if (curObjCount == maxObjCount)
@@ -233,22 +249,22 @@ namespace lws
 			case OP_RETURN:
 				return Pop();
 				break;
-			case OP_FLOATING:
+			case OP_DEFINE_FLOATING:
 				Push(CreateFloatingObject(frame->m_FloatingNums[frame->m_Codes[++ip]]));
 				break;
-			case OP_INTEGER:
+			case OP_DEFINE_INTEGER:
 				Push(CreateIntegerObject(frame->m_IntegerNums[frame->m_Codes[++ip]]));
 				break;
-			case OP_STR:
+			case OP_DEFINE_STR:
 				Push(CreateStrObject(frame->m_Strings[frame->m_Codes[++ip]]));
 				break;
-			case OP_TRUE:
+			case OP_DEFINE_TRUE:
 				Push(CreateBoolObject(true));
 				break;
-			case OP_FALSE:
+			case OP_DEFINE_FALSE:
 				Push(CreateBoolObject(false));
 				break;
-			case OP_NIL:
+			case OP_DEFINE_NIL:
 				Push(CreateNilObject());
 				break;
 			case OP_NEG:
@@ -361,8 +377,8 @@ namespace lws
 				//no variable
 				if (variableObject == nullptr)
 				{
-					if (frame->HasStructFrame(name))
-						variableObject = Execute(frame->GetStructFrame(name));
+					if (frame->HasClassFrame(name))
+						variableObject = Execute(frame->GetClassFrame(name));
 					else
 						Assert("No variable:" + name);
 				}
@@ -519,8 +535,16 @@ namespace lws
 
 				std::string fnName = frame->m_Strings[frame->m_Codes[++ip]];
 
-				if (frame->HasFunctionFrame(fnName))
-					Push(Execute(frame->GetFunctionFrame(fnName)));
+				Object* object = m_Context->GetVariable(fnName);
+
+				if (object && IS_FUNCTION_OBJ(object))
+				{
+					FunctionObject* fnObject = TO_FUNCTION_OBJ(object);
+					if(frame->HasFunctionFrame(fnObject->frameIndex))
+						Push(Execute(frame->GetFunctionFrame(fnObject->frameIndex)));
+					else 
+						Assert("No function:" + fnName);
+				}
 				else if (HasNativeFunction(fnName))
 				{
 					std::vector<Object *> args;
@@ -549,6 +573,9 @@ namespace lws
 					Push(falseBranch);
 				break;
 			}
+			case OP_DEFINE_FUNCTION:
+				Push(CreateFunctionObject(frame->m_IntegerNums[frame->m_Codes[++ip]]));
+				break;
 			case OP_REF:
 			{
 				Push(CreateRefObject(frame->m_Strings[frame->m_Codes[++ip]]));

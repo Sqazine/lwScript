@@ -33,6 +33,7 @@ namespace lws
 		ArrayObject *CreateArrayObject(const std::vector<Object *> &elements = {});
 		TableObject *CreateTableObject(const std::unordered_map<Object *, Object *> &elements = {});
 		ClassObject *CreateClassObject(Context *context);
+		FunctionObject* CreateFunctionObject(int64_t frameIdx);
 		RefObject *CreateRefObject(std::string_view refName);
 
 		void Gc();
