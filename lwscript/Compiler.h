@@ -50,7 +50,7 @@ namespace lws
 		void CompileFunctionExpr(FunctionExpr *stmt, Frame *frame);
 		void CompileConditionExpr(ConditionExpr *expr, Frame *frame);
 		void CompileFunctionCallExpr(FunctionCallExpr *expr, Frame *frame);
-		void CompileStructCallExpr(StructCallExpr *expr, Frame *frame, ObjectState state = READ);
+		void CompileClassCallExpr(ClassCallExpr *expr, Frame *frame, ObjectState state = READ);
 
 		Frame* m_RootFrame;
 	};

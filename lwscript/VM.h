@@ -23,37 +23,37 @@ namespace lws
 		~VM();
 
 		void ResetStatus();
-		Object *Execute(Frame *frame);
+		Object* Execute(Frame* frame);
 
-		FloatingObject *CreateFloatingObject(double value = 0.0);
-		IntegerObject *CreateIntegerObject(int64_t value = 0.0);
-		StrObject *CreateStrObject(std::string_view value = "");
-		BoolObject *CreateBoolObject(bool value = false);
-		NilObject *CreateNilObject();
-		ArrayObject *CreateArrayObject(const std::vector<Object *> &elements = {});
-		TableObject *CreateTableObject(const std::unordered_map<Object *, Object *> &elements = {});
-		ClassObject *CreateClassObject(Context *context);
+		FloatingObject* CreateFloatingObject(double value = 0.0);
+		IntegerObject* CreateIntegerObject(int64_t value = 0.0);
+		StrObject* CreateStrObject(std::string_view value = "");
+		BoolObject* CreateBoolObject(bool value = false);
+		NilObject* CreateNilObject();
+		ArrayObject* CreateArrayObject(const std::vector<Object*>& elements = {});
+		TableObject* CreateTableObject(const std::unordered_map<Object*, Object*>& elements = {});
+		ClassObject* CreateClassObject(std::string_view name, const std::unordered_map<std::string, Object*>& members);
 		FunctionObject* CreateFunctionObject(int64_t frameIdx);
-		RefObject *CreateRefObject(std::string_view refName);
+		RefObject* CreateRefObject(std::string_view refName);
 
 		void Gc();
 
 	private:
-		std::function<Object *(std::vector<Object *>)> GetNativeFunction(std::string_view fnName);
-        bool HasNativeFunction(std::string_view name);
+		std::function<Object* (std::vector<Object*>)> GetNativeFunction(std::string_view fnName);
+		bool HasNativeFunction(std::string_view name);
 
-		void Push(Object *object);
-		Object *Pop();
+		void Push(Object* object);
+		Object* Pop();
 
 		uint8_t sp;
-		std::array<Object *, STACK_MAX> m_Stack;
+		std::array<Object*, STACK_MAX> m_Stack;
 
-		Object *firstObject;
+		Object* firstObject;
 		int curObjCount;
 		int maxObjCount;
 
-		Context *m_Context;
+		Context* m_Context;
 
-		std::unordered_map<std::string,Library*> m_Libraries;
+		std::unordered_map<std::string, Library*> m_Libraries;
 	};
 }

@@ -56,7 +56,7 @@ namespace lws
 				{TokenType::PERCENT, &Parser::ParseInfixExpr},
 				{TokenType::LPAREN, &Parser::ParseFunctionCallExpr},
 				{TokenType::LBRACKET, &Parser::ParseIndexExpr},
-				{TokenType::DOT, &Parser::ParseStructCallExpr},
+				{TokenType::DOT, &Parser::ParseClassCallExpr},
 			};
 
 		m_Precedence =
@@ -467,10 +467,10 @@ namespace lws
 		return funcCallExpr;
 	}
 
-	Expr *Parser::ParseStructCallExpr(Expr *prefixExpr)
+	Expr *Parser::ParseClassCallExpr(Expr *prefixExpr)
 	{
 		Consume(TokenType::DOT, "Expect '.'.");
-		auto structCallExpr = new StructCallExpr();
+		auto structCallExpr = new ClassCallExpr();
 		structCallExpr->callee = prefixExpr;
 		structCallExpr->callMember = ParseExpr(Precedence::POSTFIX);
 		return structCallExpr;

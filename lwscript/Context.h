@@ -17,8 +17,7 @@ namespace lws
         Context *GetUpContext();
         void SetUpContext(Context *env);
 
-        bool IsEqualTo(Context *env);
-
+        const std::unordered_map<std::string, struct Object*>& GetValues() const;
     private:
         friend class VM;
         friend struct ClassObject;

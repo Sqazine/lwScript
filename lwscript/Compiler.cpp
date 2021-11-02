@@ -160,6 +160,8 @@ namespace lws
 			CompileLetStmt(letStmt, classFrame);
 
 		classFrame->AddOpCode(OP_DEFINE_CLASS);
+		uint64_t offset = classFrame->AddString(stmt->name);
+		classFrame->AddOpCode(offset);
 
 		classFrame->AddOpCode(OP_RETURN);
 
@@ -216,7 +218,7 @@ namespace lws
 			CompileFunctionCallExpr((FunctionCallExpr *)expr, frame);
 			break;
 		case AstType::CLASS_CALL:
-			CompileStructCallExpr((StructCallExpr *)expr, frame, state);
+			CompileClassCallExpr((ClassCallExpr *)expr, frame, state);
 			break;
 		case AstType::REF:
 			CompileRefExpr((RefExpr *)expr, frame);
@@ -269,7 +271,7 @@ namespace lws
 		else if (state == INIT)
 			frame->AddOpCode(OP_DEFINE_VAR);
 		else if (state == CLASS_READ)
-			frame->AddOpCode(OP_GET_CLASS);
+			frame->AddOpCode(OP_CLASS_CALL);
 		uint64_t offset = frame->AddString(expr->literal);
 		frame->AddOpCode(offset);
 	}
@@ -450,11 +452,9 @@ namespace lws
 		frame->AddOpCode(offset);
 	}
 
-	void Compiler::CompileStructCallExpr(StructCallExpr *expr, Frame *frame, ObjectState state)
+	void Compiler::CompileClassCallExpr(ClassCallExpr *expr, Frame *frame, ObjectState state)
 	{
 		CompileExpr(expr->callee, frame, CLASS_READ);
 		CompileExpr(expr->callMember, frame, state);
-
-		frame->AddOpCode(OP_END_GET_CLASS);
 	}
 }

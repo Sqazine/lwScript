@@ -70,7 +70,7 @@ namespace lws
 		Expr* ParseConditionExpr(Expr* prefixExpr);
 		Expr* ParseIndexExpr(Expr* prefixExpr);
 		Expr* ParseFunctionCallExpr(Expr* prefixExpr);
-		Expr* ParseStructCallExpr(Expr* prefixExpr);
+		Expr* ParseClassCallExpr(Expr* prefixExpr);
 
 		Token GetCurToken();
 		Token GetCurTokenAndStepOnce();

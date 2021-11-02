@@ -50,18 +50,8 @@ namespace lws
     {
         m_UpContext = env;
     }
-
-    bool Context::IsEqualTo(Context *env)
+    const std::unordered_map<std::string, struct Object*>& Context::GetValues() const
     {
-        for (auto [key1, value1] : m_Values)
-            for (auto [key2, value2] : env->m_Values)
-                if (key1 != key2 || !value1->IsEqualTo(value2))
-                    return false;
-
-        if (!m_UpContext->IsEqualTo(env->m_UpContext))
-            return false;
-
-        return true;
+        return m_Values;
     }
-
 }
