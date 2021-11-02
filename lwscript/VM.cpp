@@ -214,22 +214,9 @@ namespace lws
 	{                                                                                                                               \
 		Object *left = Pop();                                                                                                       \
 		Object *right = Pop();                                                                                                      \
-		if (IS_INTEGER_OBJ(right) && IS_INTEGER_OBJ(left))                                                                          \
-			Push(TO_INTEGER_OBJ(left)->value op TO_INTEGER_OBJ(right)->value ? CreateBoolObject(true) : CreateBoolObject(false));   \
-		else if (IS_INTEGER_OBJ(right) && IS_FLOATING_OBJ(left))                                                                    \
-			Push(TO_FLOATING_OBJ(left)->value op TO_INTEGER_OBJ(right)->value ? CreateBoolObject(true) : CreateBoolObject(false));  \
-		else if (IS_FLOATING_OBJ(right) && IS_INTEGER_OBJ(left))                                                                    \
-			Push(TO_INTEGER_OBJ(left)->value op TO_FLOATING_OBJ(right)->value ? CreateBoolObject(true) : CreateBoolObject(false));  \
-		else if (IS_FLOATING_OBJ(right) && IS_FLOATING_OBJ(left))                                                                   \
-			Push(TO_FLOATING_OBJ(left)->value op TO_FLOATING_OBJ(right)->value ? CreateBoolObject(true) : CreateBoolObject(false)); \
-		else if (IS_BOOL_OBJ(right) && IS_BOOL_OBJ(left))                                                                           \
-			Push(TO_BOOL_OBJ(left)->value op TO_BOOL_OBJ(right)->value ? CreateBoolObject(true) : CreateBoolObject(false));         \
-		else if (IS_NIL_OBJ(right) && IS_NIL_OBJ(left))                                                                             \
-			Push(TO_NIL_OBJ(left) op TO_NIL_OBJ(right) ? CreateBoolObject(true) : CreateBoolObject(false));                         \
-		else                                                                                                                        \
-			Push(CreateBoolObject(false));                                                                                          \
+		Push(CreateBoolObject(left->IsEqualTo(right)));                                                                             \
 	} while (0);
-
+//&& || 
 #define LOGIC_BINARY(op)                                                                                                         \
 	do                                                                                                                           \
 	{                                                                                                                            \
