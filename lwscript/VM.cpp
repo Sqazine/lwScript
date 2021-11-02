@@ -183,16 +183,16 @@ namespace lws
 #define COMMON_BINARY(op)                                                                              \
 	do                                                                                                 \
 	{                                                                                                  \
-		Object *left = Pop();                                                                          \
-		Object *right = Pop();                                                                         \
+		Object *left = PopStack();                                                                          \
+		Object *right = PopStack();                                                                         \
 		if (IS_INTEGER_OBJ(right) && IS_INTEGER_OBJ(left))                                             \
-			Push(CreateIntegerObject(TO_INTEGER_OBJ(left)->value op TO_INTEGER_OBJ(right)->value));    \
+			PushStack(CreateIntegerObject(TO_INTEGER_OBJ(left)->value op TO_INTEGER_OBJ(right)->value));    \
 		else if (IS_INTEGER_OBJ(right) && IS_FLOATING_OBJ(left))                                       \
-			Push(CreateFloatingObject(TO_FLOATING_OBJ(left)->value op TO_INTEGER_OBJ(right)->value));  \
+			PushStack(CreateFloatingObject(TO_FLOATING_OBJ(left)->value op TO_INTEGER_OBJ(right)->value));  \
 		else if (IS_FLOATING_OBJ(right) && IS_INTEGER_OBJ(left))                                       \
-			Push(CreateFloatingObject(TO_INTEGER_OBJ(left)->value op TO_FLOATING_OBJ(right)->value));  \
+			PushStack(CreateFloatingObject(TO_INTEGER_OBJ(left)->value op TO_FLOATING_OBJ(right)->value));  \
 		else if (IS_FLOATING_OBJ(right) && IS_FLOATING_OBJ(left))                                      \
-			Push(CreateFloatingObject(TO_FLOATING_OBJ(left)->value op TO_FLOATING_OBJ(right)->value)); \
+			PushStack(CreateFloatingObject(TO_FLOATING_OBJ(left)->value op TO_FLOATING_OBJ(right)->value)); \
 		else                                                                                           \
 			Assert("Invalid binary op:" + left->Stringify() + (#op) + right->Stringify());             \
 	} while (0);
@@ -200,10 +200,10 @@ namespace lws
 #define INTEGER_BINARY(op)                                                                          \
 	do                                                                                              \
 	{                                                                                               \
-		Object *left = Pop();                                                                       \
-		Object *right = Pop();                                                                      \
+		Object *left = PopStack();                                                                       \
+		Object *right = PopStack();                                                                      \
 		if (IS_INTEGER_OBJ(right) && IS_INTEGER_OBJ(left))                                          \
-			Push(CreateIntegerObject(TO_INTEGER_OBJ(left)->value op TO_INTEGER_OBJ(right)->value)); \
+			PushStack(CreateIntegerObject(TO_INTEGER_OBJ(left)->value op TO_INTEGER_OBJ(right)->value)); \
 		else                                                                                        \
 			Assert("Invalid binary op:" + left->Stringify() + (#op) + right->Stringify());          \
 	} while (0);
@@ -212,18 +212,19 @@ namespace lws
 #define COMPARE_BINARY(op)                                                                                                          \
 	do                                                                                                                              \
 	{                                                                                                                               \
-		Object *left = Pop();                                                                                                       \
-		Object *right = Pop();                                                                                                      \
-		Push(CreateBoolObject(left->IsEqualTo(right)));                                                                             \
+		Object *left = PopStack();                                                                                                       \
+		Object *right = PopStack();                                                                                                      \
+		PushStack(CreateBoolObject(left->IsEqualTo(right)));                                                                             \
 	} while (0);
+
 //&& || 
 #define LOGIC_BINARY(op)                                                                                                         \
 	do                                                                                                                           \
 	{                                                                                                                            \
-		Object *left = Pop();                                                                                                    \
-		Object *right = Pop();                                                                                                   \
+		Object *left = PopStack();                                                                                                    \
+		Object *right = PopStack();                                                                                                   \
 		if (IS_BOOL_OBJ(right) && IS_BOOL_OBJ(left))                                                                             \
-			Push(((BoolObject *)left)->value op((BoolObject *)right)->value ? CreateBoolObject(true) : CreateBoolObject(false)); \
+			PushStack(((BoolObject *)left)->value op((BoolObject *)right)->value ? CreateBoolObject(true) : CreateBoolObject(false)); \
 		else                                                                                                                     \
 			Assert("Invalid op:" + left->Stringify() + (#op) + right->Stringify());                                              \
 	} while (0);
@@ -234,42 +235,42 @@ namespace lws
 			switch (instruction)
 			{
 			case OP_RETURN:
-				return Pop();
+				return PopStack();
 				break;
 			case OP_DEFINE_FLOATING:
-				Push(CreateFloatingObject(frame->m_FloatingNums[frame->m_Codes[++ip]]));
+				PushStack(CreateFloatingObject(frame->m_FloatingNums[frame->m_Codes[++ip]]));
 				break;
 			case OP_DEFINE_INTEGER:
-				Push(CreateIntegerObject(frame->m_IntegerNums[frame->m_Codes[++ip]]));
+				PushStack(CreateIntegerObject(frame->m_IntegerNums[frame->m_Codes[++ip]]));
 				break;
 			case OP_DEFINE_STR:
-				Push(CreateStrObject(frame->m_Strings[frame->m_Codes[++ip]]));
+				PushStack(CreateStrObject(frame->m_Strings[frame->m_Codes[++ip]]));
 				break;
 			case OP_DEFINE_TRUE:
-				Push(CreateBoolObject(true));
+				PushStack(CreateBoolObject(true));
 				break;
 			case OP_DEFINE_FALSE:
-				Push(CreateBoolObject(false));
+				PushStack(CreateBoolObject(false));
 				break;
 			case OP_DEFINE_NIL:
-				Push(CreateNilObject());
+				PushStack(CreateNilObject());
 				break;
 			case OP_NEG:
 			{
-				Object* object = Pop();
+				Object* object = PopStack();
 				if (IS_FLOATING_OBJ(object))
-					Push(CreateFloatingObject(-TO_FLOATING_OBJ(object)->value));
+					PushStack(CreateFloatingObject(-TO_FLOATING_OBJ(object)->value));
 				else if (IS_INTEGER_OBJ(object))
-					Push(CreateIntegerObject(-TO_INTEGER_OBJ(object)->value));
+					PushStack(CreateIntegerObject(-TO_INTEGER_OBJ(object)->value));
 				else
 					Assert("Invalid op:'-'" + object->Stringify());
 				break;
 			}
 			case OP_NOT:
 			{
-				Object* object = Pop();
+				Object* object = PopStack();
 				if (IS_BOOL_OBJ(object))
-					Push(CreateBoolObject(!TO_BOOL_OBJ(object)->value));
+					PushStack(CreateBoolObject(!TO_BOOL_OBJ(object)->value));
 				else
 					Assert("Invalid op:'!'" + object->Stringify());
 				break;
@@ -300,9 +301,9 @@ namespace lws
 				break;
 			case OP_BIT_NOT:
 			{
-				Object* object = Pop();
+				Object* object = PopStack();
 				if (IS_INTEGER_OBJ(object))
-					Push(CreateIntegerObject(~TO_INTEGER_OBJ(object)->value));
+					PushStack(CreateIntegerObject(~TO_INTEGER_OBJ(object)->value));
 				else
 					Assert("Invalid op:'~'" + object->Stringify());
 				break;
@@ -339,14 +340,14 @@ namespace lws
 				break;
 			case OP_DEFINE_VAR:
 			{
-				Object* value = Pop();
+				Object* value = PopStack();
 				m_Context->DefineVariable(frame->m_Strings[frame->m_Codes[++ip]], value);
 				break;
 			}
 			case OP_SET_VAR:
 			{
 				std::string name = frame->m_Strings[frame->m_Codes[++ip]];
-				Object* value = Pop();
+				Object* value = PopStack();
 
 				Object* variable = m_Context->GetVariable(name);
 
@@ -359,23 +360,28 @@ namespace lws
 			case OP_GET_VAR:
 			{
 				std::string name = frame->m_Strings[frame->m_Codes[++ip]];
-				Object* variableObject = m_Context->GetVariable(name);
+
+				Object* varObject = nullptr;
+				if (!IsStackEmpty()&& IS_CLASS_OBJ(StackTop()))
+					varObject = TO_CLASS_OBJ(PopStack())->GetMember(name);
+				else
+					varObject = m_Context->GetVariable(name);
 
 				//no variable
-				if (variableObject == nullptr)
+				if (varObject == nullptr)
 				{
 					if (frame->HasClassFrame(name))
-						variableObject = Execute(frame->GetClassFrame(name));
+						varObject = Execute(frame->GetClassFrame(name));
 					else
 						Assert("No variable:" + name);
 				}
-				else if (IS_REF_OBJ(variableObject))
+				else if (IS_REF_OBJ(varObject))
 				{
-					std::string refName = TO_REF_OBJ(variableObject)->refObjName;
-					variableObject = m_Context->GetVariable(refName);
+					std::string refName = TO_REF_OBJ(varObject)->refObjName;
+					varObject = m_Context->GetVariable(refName);
 				}
 
-				Push(variableObject);
+				PushStack(varObject);
 				break;
 			}
 			case OP_DEFINE_ARRAY:
@@ -383,8 +389,8 @@ namespace lws
 				std::vector<Object*> elements;
 				int64_t arraySize = (int64_t)frame->m_IntegerNums[frame->m_Codes[++ip]];
 				for (int64_t i = 0; i < arraySize; ++i)
-					elements.insert(elements.begin(), Pop());
-				Push(CreateArrayObject(elements));
+					elements.insert(elements.begin(), PopStack());
+				PushStack(CreateArrayObject(elements));
 				break;
 			}
 			case OP_DEFINE_TABLE:
@@ -393,16 +399,16 @@ namespace lws
 				int64_t tableSize = (int64_t)frame->m_IntegerNums[frame->m_Codes[++ip]];
 				for (int64_t i = 0; i < tableSize; ++i)
 				{
-					Object* key = Pop();
-					Object* value = Pop();
+					Object* key = PopStack();
+					Object* value = PopStack();
 					elements[key] = value;
 				}
-				Push(CreateTableObject(elements));
+				PushStack(CreateTableObject(elements));
 				break;
 			}
 			case OP_DEFINE_CLASS:
 			{
-				Push(CreateClassObject(frame->m_Strings[frame->m_Codes[++ip]], m_Context->GetValues()));
+				PushStack(CreateClassObject(frame->m_Strings[frame->m_Codes[++ip]], m_Context->GetValues()));
 				Context* up = m_Context->GetUpContext();
 				if (m_Context != nullptr)
 					delete m_Context;
@@ -411,8 +417,8 @@ namespace lws
 			}
 			case OP_GET_INDEX_VAR:
 			{
-				Object* object = Pop();
-				Object* index = Pop();
+				Object* object = PopStack();
+				Object* index = PopStack();
 				if (IS_ARRAY_OBJ(object))
 				{
 					ArrayObject* arrayObject = TO_ARRAY_OBJ(object);
@@ -424,7 +430,7 @@ namespace lws
 					if (iIndex < 0 || iIndex >= (int64_t)arrayObject->elements.size())
 						Assert("Index out of array range,array size:" + std::to_string(arrayObject->elements.size()) + ",index:" + std::to_string(iIndex));
 
-					Push(arrayObject->elements[iIndex]);
+					PushStack(arrayObject->elements[iIndex]);
 				}
 				else if (IS_TABLE_OBJ(object))
 				{
@@ -434,12 +440,12 @@ namespace lws
 					for (const auto [key, value] : tableObject->elements)
 						if (key->IsEqualTo(index))
 						{
-							Push(value);
+							PushStack(value);
 							hasValue = true;
 							break;
 						}
 					if (!hasValue)
-						Push(CreateNilObject());
+						PushStack(CreateNilObject());
 				}
 				else
 					Assert("Invalid index op.The indexed object isn't a array object or a table object:" + object->Stringify());
@@ -447,9 +453,9 @@ namespace lws
 			}
 			case OP_SET_INDEX_VAR:
 			{
-				Object* object = Pop();
-				Object* index = Pop();
-				Object* assigner = Pop();
+				Object* object = PopStack();
+				Object* index = PopStack();
+				Object* assigner = PopStack();
 
 				if (IS_ARRAY_OBJ(object))
 				{
@@ -475,15 +481,24 @@ namespace lws
 			}
 			case OP_CLASS_CALL:
 			{
-				/*std::string className = frame->m_Strings[frame->m_Codes[++ip]];
-				Object *obj = m_Context->GetVariable(className);
-				if (!IS_CLASS_OBJ(obj))
-					Assert("Not a class object:" + className);
-
-				ClassObject *classObject = TO_CLASS_OBJ(obj);
-				structObject->context->SetUpContext(m_Context);
-				m_Context = structObject->context;
-				break;*/
+				std::string className = frame->m_Strings[frame->m_Codes[++ip]];
+				if (IS_CLASS_OBJ(StackTop()))//a.b.x
+				{
+					ClassObject* preClassObject = TO_CLASS_OBJ(PopStack());
+					Object* obj = preClassObject->GetMember(className);
+					if (!IS_CLASS_OBJ(obj))
+						Assert("Not a class object:" + className);
+					PushStack(TO_CLASS_OBJ(obj));
+				}
+				else//a.x
+				{
+					Object* obj = m_Context->GetVariable(className);
+					if (!IS_CLASS_OBJ(obj))
+						Assert("Not a class object:" + className);
+					ClassObject* classObject = TO_CLASS_OBJ(obj);
+					PushStack(classObject);
+				}
+				break;
 			}
 			case OP_ENTER_SCOPE:
 			{
@@ -499,7 +514,7 @@ namespace lws
 			}
 			case OP_JUMP_IF_FALSE:
 			{
-				bool isJump = !TO_BOOL_OBJ(Pop())->value;
+				bool isJump = !TO_BOOL_OBJ(PopStack())->value;
 				uint64_t address = (uint64_t)(frame->m_FloatingNums[frame->m_Codes[++ip]]);
 
 				if (isJump)
@@ -514,7 +529,7 @@ namespace lws
 			}
 			case OP_FUNCTION_CALL:
 			{
-				IntegerObject* argCount = TO_INTEGER_OBJ(Pop());
+				IntegerObject* argCount = TO_INTEGER_OBJ(PopStack());
 
 				std::string fnName = frame->m_Strings[frame->m_Codes[++ip]];
 
@@ -524,7 +539,7 @@ namespace lws
 				{
 					FunctionObject* fnObject = TO_FUNCTION_OBJ(object);
 					if (frame->HasFunctionFrame(fnObject->frameIndex))
-						Push(Execute(frame->GetFunctionFrame(fnObject->frameIndex)));
+						PushStack(Execute(frame->GetFunctionFrame(fnObject->frameIndex)));
 					else
 						Assert("No function:" + fnName);
 				}
@@ -532,11 +547,11 @@ namespace lws
 				{
 					std::vector<Object*> args;
 					for (int64_t i = 0; i < argCount->value; ++i)
-						args.insert(args.begin(), Pop());
+						args.insert(args.begin(), PopStack());
 
 					Object* returnResult = GetNativeFunction(fnName)(args);
 					if (returnResult != nullptr)
-						Push(returnResult);
+						PushStack(returnResult);
 				}
 				else
 					Assert("No function:" + fnName);
@@ -544,24 +559,24 @@ namespace lws
 			}
 			case OP_CONDITION:
 			{
-				Object* condition = Pop();
-				Object* trueBranch = Pop();
-				Object* falseBranch = Pop();
+				Object* condition = PopStack();
+				Object* trueBranch = PopStack();
+				Object* falseBranch = PopStack();
 
 				if (!IS_BOOL_OBJ(condition))
 					Assert("Not a bool expr of condition expr's '?'.");
 				if (TO_BOOL_OBJ(condition)->value)
-					Push(trueBranch);
+					PushStack(trueBranch);
 				else
-					Push(falseBranch);
+					PushStack(falseBranch);
 				break;
 			}
 			case OP_DEFINE_FUNCTION:
-				Push(CreateFunctionObject(frame->m_IntegerNums[frame->m_Codes[++ip]]));
+				PushStack(CreateFunctionObject(frame->m_IntegerNums[frame->m_Codes[++ip]]));
 				break;
 			case OP_REF:
 			{
-				Push(CreateRefObject(frame->m_Strings[frame->m_Codes[++ip]]));
+				PushStack(CreateRefObject(frame->m_Strings[frame->m_Codes[++ip]]));
 				break;
 			}
 			default:
@@ -604,13 +619,26 @@ namespace lws
 		return false;
 	}
 
-	void VM::Push(Object* object)
+	void VM::PushStack(Object* object)
 	{
 		m_Stack[sp++] = object;
 	}
-	Object* VM::Pop()
+	Object* VM::PopStack()
 	{
 		return m_Stack[--sp];
+	}
+
+	Object* VM::StackTop()
+	{
+		return m_Stack[sp - 1];
+	}
+
+	bool VM::IsStackEmpty()
+	{
+		for (const auto& stackObj : m_Stack)
+			if (stackObj != nullptr)
+				return false;
+		return true;
 	}
 
 	void VM::Gc()

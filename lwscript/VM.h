@@ -42,8 +42,10 @@ namespace lws
 		std::function<Object* (std::vector<Object*>)> GetNativeFunction(std::string_view fnName);
 		bool HasNativeFunction(std::string_view name);
 
-		void Push(Object* object);
-		Object* Pop();
+		void PushStack(Object* object);
+		Object* PopStack();
+		Object* StackTop();
+		bool IsStackEmpty();
 
 		uint8_t sp;
 		std::array<Object*, STACK_MAX> m_Stack;
