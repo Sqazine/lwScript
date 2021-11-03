@@ -62,6 +62,7 @@ namespace lws
 		FUNCTION,			   // function
 		CLASS,				   // class
 		RETURN,				   // return
+		NEW,				   // new
 
 		UNKNOWN,
 		END
@@ -76,7 +77,7 @@ namespace lws
 		uint64_t line;
 	};
 
-	inline std::ostream &operator<<(std::ostream &stream, const Token &token)
+	inline std::ostream& operator<<(std::ostream& stream, const Token& token)
 	{
 		return stream << token.literal << "," << token.line;
 	}

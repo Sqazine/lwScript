@@ -145,7 +145,7 @@ namespace lws
 
 		functionFrame->AddOpCode(OP_EXIT_SCOPE);
 
-		frame->AddOpCode(OP_DEFINE_FUNCTION);
+		frame->AddOpCode(OP_NEW_FUNCTION);
 		size_t offset = frame->AddIntegerNum(frame->AddFunctionFrame(functionFrame));
 		frame->AddOpCode(offset);
 	}
@@ -158,12 +158,6 @@ namespace lws
 
 		for (const auto letStmt : stmt->letStmts)
 			CompileLetStmt(letStmt, classFrame);
-
-		classFrame->AddOpCode(OP_DEFINE_CLASS);
-		uint64_t offset = classFrame->AddString(stmt->name);
-		classFrame->AddOpCode(offset);
-
-		classFrame->AddOpCode(OP_RETURN);
 
 		frame->AddClassFrame(stmt->name, classFrame);
 	}
@@ -223,6 +217,9 @@ namespace lws
 		case AstType::REF:
 			CompileRefExpr((RefExpr *)expr, frame);
 			break;
+		case AstType::NEW:
+			CompileNewExpr((NewExpr*)expr, frame);
+			break;
 		default:
 			break;
 		}
@@ -230,21 +227,21 @@ namespace lws
 
 	void Compiler::CompileIntegerExpr(IntegerExpr *expr, Frame *frame)
 	{
-		frame->AddOpCode(OP_DEFINE_INTEGER);
+		frame->AddOpCode(OP_NEW_INTEGER);
 		size_t offset = frame->AddIntegerNum(expr->value);
 		frame->AddOpCode(offset);
 	}
 
 	void Compiler::CompileFloatingExpr(FloatingExpr *expr, Frame *frame)
 	{
-		frame->AddOpCode(OP_DEFINE_FLOATING);
+		frame->AddOpCode(OP_NEW_FLOATING);
 		size_t offset = frame->AddFloatingNum(expr->value);
 		frame->AddOpCode(offset);
 	}
 
 	void Compiler::CompileStrExpr(StrExpr *expr, Frame *frame)
 	{
-		frame->AddOpCode(OP_DEFINE_STR);
+		frame->AddOpCode(OP_NEW_STR);
 		size_t offset = frame->AddString(expr->value);
 		frame->AddOpCode(offset);
 	}
@@ -252,14 +249,14 @@ namespace lws
 	void Compiler::CompileBoolExpr(BoolExpr *expr, Frame *frame)
 	{
 		if (expr->value)
-			frame->AddOpCode(OP_DEFINE_TRUE);
+			frame->AddOpCode(OP_NEW_TRUE);
 		else
-			frame->AddOpCode(OP_DEFINE_FALSE);
+			frame->AddOpCode(OP_NEW_FALSE);
 	}
 
 	void Compiler::CompileNilExpr(NilExpr *expr, Frame *frame)
 	{
-		frame->AddOpCode(OP_DEFINE_NIL);
+		frame->AddOpCode(OP_NEW_NIL);
 	}
 
 	void Compiler::CompileIdentifierExpr(IdentifierExpr *expr, Frame *frame, ObjectState state)
@@ -270,6 +267,8 @@ namespace lws
 			frame->AddOpCode(OP_SET_VAR);
 		else if (state == INIT)
 			frame->AddOpCode(OP_DEFINE_VAR);
+		else if (state == CLASS_INIT)
+			frame->AddOpCode(OP_NEW_CLASS);
 		else if (state == CLASS_READ)
 			frame->AddOpCode(OP_CLASS_CALL);
 		uint64_t offset = frame->AddString(expr->literal);
@@ -286,7 +285,7 @@ namespace lws
 		for (const auto &e : expr->elements)
 			CompileExpr(e, frame);
 
-		frame->AddOpCode(OP_DEFINE_ARRAY);
+		frame->AddOpCode(OP_NEW_ARRAY);
 		size_t offset = frame->AddIntegerNum((int64_t)expr->elements.size());
 		frame->AddOpCode(offset);
 	}
@@ -298,7 +297,7 @@ namespace lws
 			CompileExpr(value, frame);
 			CompileExpr(key, frame);
 		}
-		frame->AddOpCode(OP_DEFINE_TABLE);
+		frame->AddOpCode(OP_NEW_TABLE);
 		uint64_t offset = frame->AddIntegerNum((int64_t)expr->elements.size());
 		frame->AddOpCode(offset);
 	}
@@ -429,6 +428,11 @@ namespace lws
 		frame->AddOpCode(offset);
 	}
 
+	void Compiler::CompileNewExpr(NewExpr* expr, Frame* frame)
+	{
+		CompileIdentifierExpr(expr->callee, frame, CLASS_INIT);
+	}
+
 	void Compiler::CompileConditionExpr(ConditionExpr *expr, Frame *frame)
 	{
 		CompileExpr(expr->falseBranch, frame);
@@ -443,7 +447,7 @@ namespace lws
 			CompileExpr(arg, frame);
 
 		//argument count
-		frame->AddOpCode(OP_DEFINE_INTEGER);
+		frame->AddOpCode(OP_NEW_INTEGER);
 		uint64_t offset = frame->AddIntegerNum((int64_t)expr->arguments.size());
 		frame->AddOpCode(offset);
 

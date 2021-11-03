@@ -237,22 +237,22 @@ namespace lws
 			case OP_RETURN:
 				return PopStack();
 				break;
-			case OP_DEFINE_FLOATING:
+			case OP_NEW_FLOATING:
 				PushStack(CreateFloatingObject(frame->m_FloatingNums[frame->m_Codes[++ip]]));
 				break;
-			case OP_DEFINE_INTEGER:
+			case OP_NEW_INTEGER:
 				PushStack(CreateIntegerObject(frame->m_IntegerNums[frame->m_Codes[++ip]]));
 				break;
-			case OP_DEFINE_STR:
+			case OP_NEW_STR:
 				PushStack(CreateStrObject(frame->m_Strings[frame->m_Codes[++ip]]));
 				break;
-			case OP_DEFINE_TRUE:
+			case OP_NEW_TRUE:
 				PushStack(CreateBoolObject(true));
 				break;
-			case OP_DEFINE_FALSE:
+			case OP_NEW_FALSE:
 				PushStack(CreateBoolObject(false));
 				break;
-			case OP_DEFINE_NIL:
+			case OP_NEW_NIL:
 				PushStack(CreateNilObject());
 				break;
 			case OP_NEG:
@@ -347,14 +347,26 @@ namespace lws
 			case OP_SET_VAR:
 			{
 				std::string name = frame->m_Strings[frame->m_Codes[++ip]];
-				Object* value = PopStack();
+				
+				if (!IsStackEmpty() && IS_CLASS_OBJ(StackTop()))
+				{
+					ClassObject* classInstance= TO_CLASS_OBJ(PopStack());
+					if (classInstance->GetMember(name)==nullptr)
+						Assert("No Variable:"+name+"in class.");
+					classInstance->AssignMember(name, PopStack());
+				}
+				else
+				{
+					Object* value = PopStack();
+					Object* variable = m_Context->GetVariable(name);
+					variable = m_Context->GetVariable(name);
 
-				Object* variable = m_Context->GetVariable(name);
 
-				if (IS_REF_OBJ(variable))
-					name = TO_REF_OBJ(variable)->refObjName;
+					if (IS_REF_OBJ(variable))
+						name = TO_REF_OBJ(variable)->refObjName;
 
-				m_Context->AssignVariable(name, value);
+					m_Context->AssignVariable(name, value);
+				}
 				break;
 			}
 			case OP_GET_VAR:
@@ -362,20 +374,13 @@ namespace lws
 				std::string name = frame->m_Strings[frame->m_Codes[++ip]];
 
 				Object* varObject = nullptr;
-				if (!IsStackEmpty()&& IS_CLASS_OBJ(StackTop()))
+				if (!IsStackEmpty() && IS_CLASS_OBJ(StackTop()))
 					varObject = TO_CLASS_OBJ(PopStack())->GetMember(name);
 				else
 					varObject = m_Context->GetVariable(name);
 
 				//no variable
-				if (varObject == nullptr)
-				{
-					if (frame->HasClassFrame(name))
-						varObject = Execute(frame->GetClassFrame(name));
-					else
-						Assert("No variable:" + name);
-				}
-				else if (IS_REF_OBJ(varObject))
+				if (IS_REF_OBJ(varObject))
 				{
 					std::string refName = TO_REF_OBJ(varObject)->refObjName;
 					varObject = m_Context->GetVariable(refName);
@@ -384,7 +389,7 @@ namespace lws
 				PushStack(varObject);
 				break;
 			}
-			case OP_DEFINE_ARRAY:
+			case OP_NEW_ARRAY:
 			{
 				std::vector<Object*> elements;
 				int64_t arraySize = (int64_t)frame->m_IntegerNums[frame->m_Codes[++ip]];
@@ -393,7 +398,7 @@ namespace lws
 				PushStack(CreateArrayObject(elements));
 				break;
 			}
-			case OP_DEFINE_TABLE:
+			case OP_NEW_TABLE:
 			{
 				std::unordered_map<Object*, Object*> elements;
 				int64_t tableSize = (int64_t)frame->m_IntegerNums[frame->m_Codes[++ip]];
@@ -406,9 +411,16 @@ namespace lws
 				PushStack(CreateTableObject(elements));
 				break;
 			}
-			case OP_DEFINE_CLASS:
+			case OP_NEW_CLASS:
 			{
-				PushStack(CreateClassObject(frame->m_Strings[frame->m_Codes[++ip]], m_Context->GetValues()));
+				std::string name = frame->m_Strings[frame->m_Codes[++ip]];
+				Object* obj;
+				if (frame->HasClassFrame(name))
+					obj = Execute(frame->GetClassFrame(name));
+				else
+					Assert("No class declaration:" + name);
+
+				PushStack(CreateClassObject(name, m_Context->GetValues()));
 				Context* up = m_Context->GetUpContext();
 				if (m_Context != nullptr)
 					delete m_Context;
@@ -571,7 +583,7 @@ namespace lws
 					PushStack(falseBranch);
 				break;
 			}
-			case OP_DEFINE_FUNCTION:
+			case OP_NEW_FUNCTION:
 				PushStack(CreateFunctionObject(frame->m_IntegerNums[frame->m_Codes[++ip]]));
 				break;
 			case OP_REF:

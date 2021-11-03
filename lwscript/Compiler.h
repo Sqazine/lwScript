@@ -11,6 +11,7 @@ namespace lws
 		INIT,
 		READ,
 		WRITE,
+		CLASS_INIT,
 		CLASS_READ,
 	};
 	class Compiler
@@ -47,6 +48,7 @@ namespace lws
 		void CompilePrefixExpr(PrefixExpr *expr, Frame *frame);
 		void CompileInfixExpr(InfixExpr *expr, Frame *frame);
 		void CompileRefExpr(RefExpr *expr, Frame *frame);
+		void CompileNewExpr(NewExpr* expr, Frame* frame);
 		void CompileFunctionExpr(FunctionExpr *stmt, Frame *frame);
 		void CompileConditionExpr(ConditionExpr *expr, Frame *frame);
 		void CompileFunctionCallExpr(FunctionCallExpr *expr, Frame *frame);

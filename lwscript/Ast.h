@@ -26,6 +26,7 @@ namespace lws
 		REF,
 		FUNCTION_CALL,
 		CLASS_CALL,
+		NEW,
 		//stmt
 		LET,
 		EXPR,
@@ -319,6 +320,18 @@ namespace lws
 
 		Expr* callee;
 		Expr* callMember;
+	};
+
+	struct NewExpr :public Expr
+	{
+		NewExpr() : callee(nullptr){}
+		NewExpr(IdentifierExpr* callee) : callee(callee) {}
+		~NewExpr() {}
+
+		std::string Stringify() override { return "new" +callee->Stringify(); }
+		AstType Type() override { return AstType::NEW; }
+
+		IdentifierExpr* callee;
 	};
 
 	struct Stmt : public AstNode

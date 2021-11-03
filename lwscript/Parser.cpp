@@ -20,6 +20,7 @@ namespace lws
 				{TokenType::LBRACE, &Parser::ParseTableExpr},
 				{TokenType::AMPERSAND, &Parser::ParseRefExpr},
 				{TokenType::FUNCTION,&Parser::ParseFunctionExpr},
+				{TokenType::NEW,&Parser::ParseNewExpr}
 			};
 
 		m_InfixFunctions =
@@ -412,6 +413,12 @@ namespace lws
 	{
 		Consume(TokenType::AMPERSAND, "Expect 'ref' keyword.");
 		return new RefExpr(Consume(TokenType::IDENTIFIER, "Expect a identifier.").literal);
+	}
+
+	Expr* Parser::ParseNewExpr()
+	{
+		Consume(TokenType::NEW, "Expect 'new keyword'");
+		return new NewExpr((IdentifierExpr*)ParseIdentifierExpr());
 	}
 
 	Expr *Parser::ParseInfixExpr(Expr *prefixExpr)
