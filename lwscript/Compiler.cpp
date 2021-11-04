@@ -423,9 +423,8 @@ namespace lws
 
 	void Compiler::CompileRefExpr(RefExpr *expr, Frame *frame)
 	{
+		CompileExpr(expr->refExpr,frame);
 		frame->AddOpCode(OP_REF);
-		uint64_t offset = frame->AddString(expr->refName);
-		frame->AddOpCode(offset);
 	}
 
 	void Compiler::CompileNewExpr(NewExpr* expr, Frame* frame)

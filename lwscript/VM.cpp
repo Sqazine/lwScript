@@ -161,12 +161,12 @@ namespace lws
 		return object;
 	}
 
-	RefObject* VM::CreateRefObject(std::string_view refName)
+	RefObject* VM::CreateRefObject(std::string_view address)
 	{
 		if (curObjCount == maxObjCount)
 			Gc();
 
-		RefObject* refObject = new RefObject(refName);
+		RefObject* refObject = new RefObject(address);
 		refObject->marked = false;
 
 		refObject->next = firstObject;
@@ -341,31 +341,32 @@ namespace lws
 			case OP_DEFINE_VAR:
 			{
 				Object* value = PopStack();
-				m_Context->DefineVariable(frame->m_Strings[frame->m_Codes[++ip]], value);
+				m_Context->DefineVariableByName(frame->m_Strings[frame->m_Codes[++ip]], value);
 				break;
 			}
 			case OP_SET_VAR:
 			{
 				std::string name = frame->m_Strings[frame->m_Codes[++ip]];
-				
+
 				if (!IsStackEmpty() && IS_CLASS_OBJ(StackTop()))
 				{
-					ClassObject* classInstance= TO_CLASS_OBJ(PopStack());
-					if (classInstance->GetMember(name)==nullptr)
-						Assert("No Variable:"+name+"in class.");
+					ClassObject* classInstance = TO_CLASS_OBJ(PopStack());
+					if (classInstance->GetMember(name) == nullptr)
+						Assert("No Variable:" + name + "in class.");
 					classInstance->AssignMember(name, PopStack());
 				}
 				else
 				{
 					Object* value = PopStack();
-					Object* variable = m_Context->GetVariable(name);
-					variable = m_Context->GetVariable(name);
-
+					Object* variable = m_Context->GetVariableByName(name);
 
 					if (IS_REF_OBJ(variable))
-						name = TO_REF_OBJ(variable)->refObjName;
-
-					m_Context->AssignVariable(name, value);
+					{
+						m_Context->AssignVariableByAddress(TO_REF_OBJ(variable)->address, value);
+						TO_REF_OBJ(variable)->address = PointerAddressToString(value);//update ref address
+					}
+					else
+						m_Context->AssignVariableByName(name, value);
 				}
 				break;
 			}
@@ -377,15 +378,10 @@ namespace lws
 				if (!IsStackEmpty() && IS_CLASS_OBJ(StackTop()))
 					varObject = TO_CLASS_OBJ(PopStack())->GetMember(name);
 				else
-					varObject = m_Context->GetVariable(name);
+					varObject = m_Context->GetVariableByName(name);
 
-				//no variable
 				if (IS_REF_OBJ(varObject))
-				{
-					std::string refName = TO_REF_OBJ(varObject)->refObjName;
-					varObject = m_Context->GetVariable(refName);
-				}
-
+					varObject = m_Context->GetVariableByAddress(TO_REF_OBJ(varObject)->address);
 				PushStack(varObject);
 				break;
 			}
@@ -494,7 +490,7 @@ namespace lws
 			case OP_CLASS_CALL:
 			{
 				std::string className = frame->m_Strings[frame->m_Codes[++ip]];
-				if (IS_CLASS_OBJ(StackTop()))//a.b.x
+				if (!IsStackEmpty() && IS_CLASS_OBJ(StackTop()))//a.b.x
 				{
 					ClassObject* preClassObject = TO_CLASS_OBJ(PopStack());
 					Object* obj = preClassObject->GetMember(className);
@@ -504,7 +500,7 @@ namespace lws
 				}
 				else//a.x
 				{
-					Object* obj = m_Context->GetVariable(className);
+					Object* obj = m_Context->GetVariableByName(className);
 					if (!IS_CLASS_OBJ(obj))
 						Assert("Not a class object:" + className);
 					ClassObject* classObject = TO_CLASS_OBJ(obj);
@@ -545,7 +541,7 @@ namespace lws
 
 				std::string fnName = frame->m_Strings[frame->m_Codes[++ip]];
 
-				Object* object = m_Context->GetVariable(fnName);
+				Object* object = m_Context->GetVariableByName(fnName);
 
 				if (object && IS_FUNCTION_OBJ(object))
 				{
@@ -588,7 +584,7 @@ namespace lws
 				break;
 			case OP_REF:
 			{
-				PushStack(CreateRefObject(frame->m_Strings[frame->m_Codes[++ip]]));
+				PushStack(CreateRefObject(PointerAddressToString(PopStack())));
 				break;
 			}
 			default:
@@ -647,10 +643,7 @@ namespace lws
 
 	bool VM::IsStackEmpty()
 	{
-		for (const auto& stackObj : m_Stack)
-			if (stackObj != nullptr)
-				return false;
-		return true;
+		return sp <= 0 ? true : false;
 	}
 
 	void VM::Gc()

@@ -274,14 +274,14 @@ namespace lws
 	struct RefExpr : public Expr
 	{
 		RefExpr() {}
-		RefExpr(std::string_view refName) : refName(refName) {};
+		RefExpr(Expr* refExpr) : refExpr(refExpr) {};
 		~RefExpr() {}
 
-		std::string Stringify() override { return "ref " + refName; }
+		std::string Stringify() override { return "&" + refExpr->Stringify(); }
 
 		AstType Type() override { return AstType::REF; }
 
-		std::string refName;
+		Expr* refExpr;
 	};
 
 	struct FunctionCallExpr : public Expr

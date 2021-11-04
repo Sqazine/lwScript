@@ -3,6 +3,7 @@
 #include <fstream>
 #include <sstream>
 #include <string_view>
+
 namespace lws
 {
     inline void Assert(std::string_view msg)
@@ -21,5 +22,13 @@ namespace lws
         std::stringstream sstream;
         sstream << file.rdbuf();
         return sstream.str();
+    }
+
+    inline std::string PointerAddressToString(void* pointer)
+    {
+		std::stringstream sstr;
+        sstr << pointer;
+		std::string address = sstr.str();
+        return address;
     }
 }

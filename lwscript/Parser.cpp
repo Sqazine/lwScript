@@ -412,7 +412,7 @@ namespace lws
 	Expr *Parser::ParseRefExpr()
 	{
 		Consume(TokenType::AMPERSAND, "Expect 'ref' keyword.");
-		return new RefExpr(Consume(TokenType::IDENTIFIER, "Expect a identifier.").literal);
+		return new RefExpr(ParseExpr(Precedence::UNARY));
 	}
 
 	Expr* Parser::ParseNewExpr()

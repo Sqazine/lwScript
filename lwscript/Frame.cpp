@@ -277,7 +277,7 @@ namespace lws
 				SINGLE_INSTR_STRINGIFY(OP_CONDITION);
 				break;
 			case OP_REF:
-				CONSTANT_INSTR_STRINGIFY(OP_REF, m_Strings);
+				SINGLE_INSTR_STRINGIFY(OP_REF);
 				break;
 			default:
 				SINGLE_INSTR_STRINGIFY(UNKNOWN);

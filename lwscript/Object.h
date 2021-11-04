@@ -302,16 +302,16 @@ namespace lws
 	struct ClassObject : public Object
 	{
 		ClassObject() {}
-		ClassObject(std::string_view name, const std::unordered_map<std::string, Object*>& members) :name(name), m_Members(members) {}
+		ClassObject(std::string_view name, const std::unordered_map<std::string, Object*>& members) :name(name), members(members) {}
 		~ClassObject() {}
 
 		std::string Stringify() override
 		{
 			std::string result = "class instance " + name;
-			if (!m_Members.empty())
+			if (!members.empty())
 			{
 				result += ":\n";
-				for (const auto& [key, value] : m_Members)
+				for (const auto& [key, value] : members)
 					result += key + "=" + value->Stringify() + "\n";
 				result = result.substr(0, result.size() - 1);
 			}
@@ -325,8 +325,8 @@ namespace lws
 			if (!IS_CLASS_OBJ(other))
 				return false;
 
-			for (auto [key1, value1] : m_Members)
-				for (auto [key2, value2] : TO_CLASS_OBJ(other)->m_Members)
+			for (auto [key1, value1] : members)
+				for (auto [key2, value2] : TO_CLASS_OBJ(other)->members)
 					if (key1 != key2 || !value1->IsEqualTo(value2))
 						return false;
 			return true;
@@ -334,39 +334,39 @@ namespace lws
 
 		void DefineMember(std::string_view name, Object* value)
 		{
-			auto iter = m_Members.find(name.data());
-			if (iter != m_Members.end())
+			auto iter = members.find(name.data());
+			if (iter != members.end())
 				Assert("Redefined class member:" + std::string(name));
 			else
-				m_Members[name.data()] = value;
+				members[name.data()] = value;
 		}
 
 		void AssignMember(std::string_view name, Object* value)
 		{
-			auto iter = m_Members.find(name.data());
-			if (iter != m_Members.end())
-				m_Members[name.data()] = value;
+			auto iter = members.find(name.data());
+			if (iter != members.end())
+				members[name.data()] = value;
 			else
 				Assert("Undefine class member:" + std::string(name));
 		}
 
 		Object* GetMember(std::string_view name)
 		{
-			auto iter = m_Members.find(name.data());
-			if (iter != m_Members.end())
+			auto iter = members.find(name.data());
+			if (iter != members.end())
 				return iter->second;
 			return nullptr;
 		}
 		std::string name;
-		std::unordered_map<std::string, Object*> m_Members;
+		std::unordered_map<std::string, Object*> members;
 	};
 
 	struct RefObject : public Object
 	{
-		RefObject(std::string_view refObjName) : refObjName(refObjName) {}
+		RefObject(std::string_view address) : address(address) {}
 		~RefObject() {}
 
-		std::string Stringify() override { return "ref " + refObjName; }
+		std::string Stringify() override { return address; }
 		ObjectType Type() override { return ObjectType::REF; }
 		void Mark() override { marked = true; }
 		void UnMark() override { marked = false; }
@@ -374,9 +374,9 @@ namespace lws
 		{
 			if (!IS_REF_OBJ(other))
 				return false;
-			return refObjName == TO_REF_OBJ(other)->refObjName;
+			return address==TO_REF_OBJ(other)->address;
 		}
 
-		std::string refObjName;
+		std::string address;
 	};
 }

@@ -26,7 +26,7 @@ namespace lws
 		Object* Execute(Frame* frame);
 
 		FloatingObject* CreateFloatingObject(double value = 0.0);
-		IntegerObject* CreateIntegerObject(int64_t value = 0.0);
+		IntegerObject* CreateIntegerObject(int64_t value = 0);
 		StrObject* CreateStrObject(std::string_view value = "");
 		BoolObject* CreateBoolObject(bool value = false);
 		NilObject* CreateNilObject();
@@ -34,7 +34,7 @@ namespace lws
 		TableObject* CreateTableObject(const std::unordered_map<Object*, Object*>& elements = {});
 		ClassObject* CreateClassObject(std::string_view name, const std::unordered_map<std::string, Object*>& members);
 		FunctionObject* CreateFunctionObject(int64_t frameIdx);
-		RefObject* CreateRefObject(std::string_view refName);
+		RefObject* CreateRefObject(std::string_view address);
 
 		void Gc();
 
