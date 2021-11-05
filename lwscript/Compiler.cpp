@@ -267,8 +267,6 @@ namespace lws
 			frame->AddOpCode(OP_SET_VAR);
 		else if (state == INIT)
 			frame->AddOpCode(OP_DEFINE_VAR);
-		else if (state == CLASS_INIT)
-			frame->AddOpCode(OP_NEW_CLASS);
 		else if (state == CLASS_READ)
 			frame->AddOpCode(OP_CLASS_CALL);
 		uint64_t offset = frame->AddString(expr->literal);
@@ -304,8 +302,8 @@ namespace lws
 
 	void Compiler::CompileIndexExpr(IndexExpr *expr, Frame *frame, ObjectState state)
 	{
+		CompileExpr(expr->ds, frame);
 		CompileExpr(expr->index, frame);
-		CompileExpr(expr->array, frame);
 		if (state == READ)
 			frame->AddOpCode(OP_GET_INDEX_VAR);
 		else if (state == WRITE)
@@ -328,6 +326,9 @@ namespace lws
 		if (expr->op == "=")
 		{
 			CompileExpr(expr->right, frame);
+			if(expr->left->Type()== AstType::CLASS_CALL)
+				CompileExpr(expr->left, frame, CLASS_WRITE);
+			else
 			CompileExpr(expr->left, frame, WRITE);
 		}
 		else
@@ -429,7 +430,9 @@ namespace lws
 
 	void Compiler::CompileNewExpr(NewExpr* expr, Frame* frame)
 	{
-		CompileIdentifierExpr(expr->callee, frame, CLASS_INIT);
+		frame->AddOpCode(OP_NEW_CLASS);
+		uint64_t offset = frame->AddString(expr->callee->literal);
+		frame->AddOpCode(offset);
 	}
 
 	void Compiler::CompileConditionExpr(ConditionExpr *expr, Frame *frame)

@@ -13,6 +13,7 @@ namespace lws
 		WRITE,
 		CLASS_INIT,
 		CLASS_READ,
+		CLASS_WRITE,
 	};
 	class Compiler
 	{

@@ -254,20 +254,20 @@ namespace lws
 
 	struct IndexExpr : public Expr
 	{
-		IndexExpr() : array(nullptr), index(nullptr) {}
-		IndexExpr(Expr* array, Expr* index) : array(array), index(index) {}
+		IndexExpr() : ds(nullptr), index(nullptr) {}
+		IndexExpr(Expr* ds, Expr* index) : ds(ds), index(index) {}
 		~IndexExpr()
 		{
-			delete array;
-			array = nullptr;
+			delete ds;
+			ds = nullptr;
 			delete index;
 			index = nullptr;
 		}
-		std::string Stringify() override { return array->Stringify() + "[" + index->Stringify() + "]"; }
+		std::string Stringify() override { return ds->Stringify() + "[" + index->Stringify() + "]"; }
 
 		AstType Type() override { return AstType::INDEX; }
 
-		Expr* array;
+		Expr* ds;
 		Expr* index;
 	};
 

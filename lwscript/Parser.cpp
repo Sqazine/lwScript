@@ -369,7 +369,7 @@ namespace lws
 
 		auto leftExpr = (this->*prefixFn)();
 
-		while (!IsMatchCurToken(TokenType::SEMICOLON) && precedence <= GetCurTokenPrecedence())
+		while (!IsMatchCurToken(TokenType::SEMICOLON) && precedence < GetCurTokenPrecedence())
 		{
 			if (m_InfixFunctions.find(GetCurToken().type) == m_InfixFunctions.end())
 				return leftExpr;
@@ -517,8 +517,8 @@ namespace lws
 	{
 		Consume(TokenType::LBRACKET, "Expect '['.");
 		auto indexExpr = new IndexExpr();
-		indexExpr->array = prefixExpr;
-		indexExpr->index = ParseExpr();
+		indexExpr->ds = prefixExpr;
+		indexExpr->index = ParseExpr(Precedence::POSTFIX);
 		Consume(TokenType::RBRACKET, "Expect ']'.");
 		return indexExpr;
 	}

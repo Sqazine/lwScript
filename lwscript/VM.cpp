@@ -438,8 +438,8 @@ namespace lws
 			}
 			case OP_GET_INDEX_VAR:
 			{
-				Object* object = PopStack();
 				Object* index = PopStack();
+				Object* object = PopStack();
 				if (IS_ARRAY_OBJ(object))
 				{
 					ArrayObject* arrayObject = TO_ARRAY_OBJ(object);
@@ -474,8 +474,8 @@ namespace lws
 			}
 			case OP_SET_INDEX_VAR:
 			{
-				Object* object = PopStack();
 				Object* index = PopStack();
+				Object* object = PopStack();
 				Object* assigner = PopStack();
 
 				if (IS_ARRAY_OBJ(object))

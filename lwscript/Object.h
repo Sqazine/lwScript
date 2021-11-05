@@ -325,6 +325,9 @@ namespace lws
 			if (!IS_CLASS_OBJ(other))
 				return false;
 
+			if (name != TO_CLASS_OBJ(other)->name)
+				return false;
+
 			for (auto [key1, value1] : members)
 				for (auto [key2, value2] : TO_CLASS_OBJ(other)->members)
 					if (key1 != key2 || !value1->IsEqualTo(value2))
