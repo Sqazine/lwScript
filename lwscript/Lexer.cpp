@@ -10,6 +10,7 @@ namespace lws
             {"false", TokenType::FALSE},
             {"nil", TokenType::NIL},
             {"while", TokenType::WHILE},
+            {"for",TokenType::FOR},
             {"function", TokenType::FUNCTION},
             {"class", TokenType::CLASS},
             {"return", TokenType::RETURN},

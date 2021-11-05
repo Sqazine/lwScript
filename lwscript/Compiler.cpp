@@ -107,12 +107,12 @@ namespace lws
 		uint64_t jmpOffset = frame->AddIntegerNum(0);
 		frame->AddOpCode(jmpOffset);
 
-		frame->GetFloatingNums()[jmpIfFalseOffset] = (double)frame->GetOpCodeSize() - 1.0;
+		frame->GetIntegerNums()[jmpIfFalseOffset] = (double)frame->GetOpCodeSize() - 1.0;
 
 		if (stmt->elseBranch)
 			CompileStmt(stmt->elseBranch, frame);
 
-		frame->GetFloatingNums()[jmpOffset] = (double)frame->GetOpCodeSize() - 1.0;
+		frame->GetIntegerNums()[jmpOffset] = (double)frame->GetOpCodeSize() - 1.0;
 	}
 	void Compiler::CompileWhileStmt(WhileStmt *stmt, Frame *frame)
 	{
@@ -129,7 +129,7 @@ namespace lws
 		uint64_t offset = frame->AddIntegerNum(jmpAddress);
 		frame->AddOpCode(offset);
 
-		frame->GetFloatingNums()[jmpIfFalseOffset] = (double)frame->GetOpCodeSize() - 1.0;
+		frame->GetIntegerNums()[jmpIfFalseOffset] = (double)frame->GetOpCodeSize() - 1.0;
 	}
 
 	void Compiler::CompileFunctionExpr(FunctionExpr *stmt, Frame *frame)

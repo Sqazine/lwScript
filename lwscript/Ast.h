@@ -273,7 +273,7 @@ namespace lws
 
 	struct RefExpr : public Expr
 	{
-		RefExpr() {}
+		RefExpr():refExpr(nullptr) {}
 		RefExpr(Expr* refExpr) : refExpr(refExpr) {};
 		~RefExpr() {}
 

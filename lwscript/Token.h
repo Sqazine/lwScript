@@ -59,6 +59,7 @@ namespace lws
 		FALSE,				   // false
 		NIL,				   // nil
 		WHILE,				   // while
+		FOR,				   // for
 		FUNCTION,			   // function
 		CLASS,				   // class
 		RETURN,				   // return

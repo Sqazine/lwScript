@@ -51,6 +51,7 @@ namespace lws
 		Stmt* ParseIfStmt();
 		Stmt* ParseScopeStmt();
 		Stmt* ParseWhileStmt();
+		Stmt* ParseForStmt();
 		Stmt* ParseClassStmt();
 
 		Expr* ParseExpr(Precedence precedence = Precedence::LOWEST);

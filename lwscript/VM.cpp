@@ -214,7 +214,20 @@ namespace lws
 	{                                                                                                                               \
 		Object *left = PopStack();                                                                                                       \
 		Object *right = PopStack();                                                                                                      \
-		PushStack(CreateBoolObject(left->IsEqualTo(right)));                                                                             \
+		if (IS_INTEGER_OBJ(right) && IS_INTEGER_OBJ(left))                                                                          \
+			PushStack(TO_INTEGER_OBJ(left)->value op TO_INTEGER_OBJ(right)->value ? CreateBoolObject(true) : CreateBoolObject(false));   \
+		else if (IS_INTEGER_OBJ(right) && IS_FLOATING_OBJ(left))                                                                    \
+			PushStack(TO_FLOATING_OBJ(left)->value op TO_INTEGER_OBJ(right)->value ? CreateBoolObject(true) : CreateBoolObject(false));  \
+		else if (IS_FLOATING_OBJ(right) && IS_INTEGER_OBJ(left))                                                                    \
+			PushStack(TO_INTEGER_OBJ(left)->value op TO_FLOATING_OBJ(right)->value ? CreateBoolObject(true) : CreateBoolObject(false));  \
+		else if (IS_FLOATING_OBJ(right) && IS_FLOATING_OBJ(left))                                                                   \
+			PushStack(TO_FLOATING_OBJ(left)->value op TO_FLOATING_OBJ(right)->value ? CreateBoolObject(true) : CreateBoolObject(false)); \
+		else if (IS_BOOL_OBJ(right) && IS_BOOL_OBJ(left))                                                                           \
+			PushStack(TO_BOOL_OBJ(left)->value op TO_BOOL_OBJ(right)->value ? CreateBoolObject(true) : CreateBoolObject(false));         \
+		else if (IS_NIL_OBJ(right) && IS_NIL_OBJ(left))                                                                             \
+			PushStack(TO_NIL_OBJ(left) op TO_NIL_OBJ(right) ? CreateBoolObject(true) : CreateBoolObject(false));                         \
+		else                                                                                                                        \
+			PushStack(CreateBoolObject(false));                                                                                          \
 	} while (0);
 
 //&& || 
@@ -523,7 +536,7 @@ namespace lws
 			case OP_JUMP_IF_FALSE:
 			{
 				bool isJump = !TO_BOOL_OBJ(PopStack())->value;
-				uint64_t address = (uint64_t)(frame->m_FloatingNums[frame->m_Codes[++ip]]);
+				uint64_t address = (uint64_t)(frame->m_IntegerNums[frame->m_Codes[++ip]]);
 
 				if (isJump)
 					ip = address;
@@ -531,7 +544,7 @@ namespace lws
 			}
 			case OP_JUMP:
 			{
-				uint64_t address = (uint64_t)(frame->m_FloatingNums[frame->m_Codes[++ip]]);
+				uint64_t address = (uint64_t)(frame->m_IntegerNums[frame->m_Codes[++ip]]);
 				ip = address;
 				break;
 			}

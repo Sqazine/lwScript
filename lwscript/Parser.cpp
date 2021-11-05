@@ -149,6 +149,8 @@ namespace lws
 			return ParseScopeStmt();
 		else if (IsMatchCurToken(TokenType::WHILE))
 			return ParseWhileStmt();
+		else if (IsMatchCurToken(TokenType::FOR))
+			return ParseForStmt();
 		else if (IsMatchCurToken(TokenType::CLASS))
 			return ParseClassStmt();
 		else
@@ -244,6 +246,70 @@ namespace lws
 		whileStmt->body = ParseStmt();
 
 		return whileStmt;
+	}
+
+	Stmt* Parser::ParseForStmt()
+	{
+		//for(let i=0,j=0;i<10&&j<10;i=i+1,j=j+1)
+		//{
+		//	...
+		//}
+		// |
+		// |
+		// v
+		//{
+		//		let i=0,j=0;
+		//		while(i<10&&j<10)
+		//		{
+		//			...
+		//			i=i+1;
+		//			j=j+1;
+		//		}
+		//}
+		Consume(TokenType::FOR, "Expect 'for' keyword.");
+		Consume(TokenType::LPAREN, "Expect '(' after 'for'.");
+
+		//initializer
+		auto scopeStmt = new ScopeStmt();
+		if (IsMatchCurToken(TokenType::LET))
+			scopeStmt->stmts.emplace_back(ParseLetStmt());
+		else
+		{
+			if (!IsMatchCurToken(TokenType::SEMICOLON))
+			{
+				scopeStmt->stmts.emplace_back(new ExprStmt(ParseExpr()));
+				while(IsMatchCurTokenAndStepOnce(TokenType::COMMA))
+					scopeStmt->stmts.emplace_back(new ExprStmt(ParseExpr()));
+			}
+			Consume(TokenType::SEMICOLON, "Expect ';' after for stmt's initializer stmt");
+		}
+
+		Expr* condition = nullptr;
+		if (!IsMatchCurToken(TokenType::SEMICOLON))
+			condition = ParseExpr();
+		Consume(TokenType::SEMICOLON, "Expect ';' after for stmt's condition expr.");
+
+		std::vector<Expr* > increment;
+		if (!IsMatchCurToken(TokenType::RPAREN))
+		{
+			increment.emplace_back(ParseExpr());
+			while(IsMatchCurTokenAndStepOnce(TokenType::COMMA))
+			increment.emplace_back(ParseExpr());
+		}
+		Consume(TokenType::RPAREN, "Expect ')' after for stmt's increment expr(s)");
+
+		std::vector<Stmt*> whileBodyStmts;
+		whileBodyStmts.emplace_back(ParseStmt());
+		for (const auto expr : increment)
+			whileBodyStmts.emplace_back(new ExprStmt(expr));
+
+		auto whileStmt = new WhileStmt();
+		whileStmt->condition = condition;
+		whileStmt->body = new ScopeStmt(whileBodyStmts);
+
+		scopeStmt->stmts.emplace_back(whileStmt);
+
+		return scopeStmt;
 	}
 
 	Expr *Parser::ParseFunctionExpr()
