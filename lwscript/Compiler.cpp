@@ -326,10 +326,13 @@ namespace lws
 		if (expr->op == "=")
 		{
 			CompileExpr(expr->right, frame);
+			if (expr->right->Type() == AstType::INFIX && ((InfixExpr*)expr->right)->op == "=")//continuous assignment such as a=b=c;
+				CompileExpr(((InfixExpr*)expr->right)->left, frame);
+			
 			if(expr->left->Type()== AstType::CLASS_CALL)
 				CompileExpr(expr->left, frame, CLASS_WRITE);
 			else
-			CompileExpr(expr->left, frame, WRITE);
+				CompileExpr(expr->left, frame, WRITE);
 		}
 		else
 		{

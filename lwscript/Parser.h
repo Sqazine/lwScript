@@ -24,7 +24,7 @@ namespace lws
 		ADD_PLUS,	 // + -
 		MUL_DIV_MOD, // * / %
 		PREFIX,		 // ! ~ - &
-		INFIX,	 // [] () .
+		INFIX,		 // [] () .
 	};
 
 	enum class Associativity
