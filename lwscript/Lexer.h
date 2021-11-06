@@ -14,12 +14,12 @@ namespace lws
 		Lexer();
 		~Lexer();
 
-		const std::vector<Token> &ScanTokens(std::string_view src);
+		const std::vector<Token> &GenerateTokens(std::string_view src);
 
 	private:
 		void ResetStatus();
 
-		void ScanToken();
+		void GenerateToken();
 
 		bool IsMatchCurChar(char c);
 		bool IsMatchCurCharAndStepOnce(char c);

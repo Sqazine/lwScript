@@ -25,21 +25,21 @@ namespace lws
     {
     }
 
-    const std::vector<Token> &Lexer::ScanTokens(std::string_view src)
+    const std::vector<Token> &Lexer::GenerateTokens(std::string_view src)
     {
         ResetStatus();
         m_Source = src;
         while (!IsAtEnd())
         {
             m_StartPos = m_CurPos;
-            ScanToken();
+            GenerateToken();
         }
 
         AddToken(TokenType::END, "EOF");
 
         return m_Tokens;
     }
-    void Lexer::ScanToken()
+    void Lexer::GenerateToken()
     {
         char c = GetCurCharAndStepOnce();
 

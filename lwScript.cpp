@@ -16,7 +16,7 @@ void Repl()
 		if (line == "clear")
 			compiler.ResetStatus();
 		else {
-			auto tokens = lexer.ScanTokens(line);
+			auto tokens = lexer.GenerateTokens(line);
 #ifdef _DEBUG
 			for (const auto& token : tokens)
 				std::cout << token << std::endl;
@@ -44,7 +44,7 @@ void RunFile(std::string path)
 	lws::Compiler compiler;
 	lws::VM vm;
 
-	auto tokens = lexer.ScanTokens(content);
+	auto tokens = lexer.GenerateTokens(content);
 #ifdef _DEBUG
 	for (const auto& token : tokens)
 		std::cout << token << std::endl;

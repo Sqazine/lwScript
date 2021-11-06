@@ -10,9 +10,9 @@ namespace lws
 {
 	enum class Precedence
 	{
-		LOWEST = 0,
+		LOWEST = 0,  // ,
 		ASSIGN,		 // = += -= *= /= %= &= |= ^= <<= >>=
-		CONDITION,	 // ?
+		CONDITION,	 // ?:
 		OR,			 // ||
 		AND,		 // &&
 		BIT_OR,		 // |
@@ -23,8 +23,14 @@ namespace lws
 		BIT_SHIFT,	 // >> <<
 		ADD_PLUS,	 // + -
 		MUL_DIV_MOD, // * / %
-		UNARY,		 // ++ -- ! ~ - ref
-		POSTFIX,	 // [] () . ++ --
+		PREFIX,		 // ! ~ - &
+		INFIX,	 // [] () .
+	};
+
+	enum class Associativity
+	{
+		LEFT2RIGHT,
+		RIGHT2LEFT
 	};
 
 	class Parser;
@@ -77,6 +83,7 @@ namespace lws
 		Token GetCurToken();
 		Token GetCurTokenAndStepOnce();
 		Precedence GetCurTokenPrecedence();
+		Associativity GetCurTokenAssociativity();
 
 		Token GetNextToken();
 		Token GetNextTokenAndStepOnce();
@@ -96,8 +103,9 @@ namespace lws
 		AstStmts* m_Stmts;
 		std::vector<Token> m_Tokens;
 
-		std::unordered_map<TokenType, PrefixFn> m_PrefixFunctions;
-		std::unordered_map<TokenType, InfixFn> m_InfixFunctions;
-		std::unordered_map<TokenType, Precedence> m_Precedence;
+		static std::unordered_map<TokenType, PrefixFn> m_PrefixFunctions;
+		static std::unordered_map<TokenType, InfixFn> m_InfixFunctions;
+		static std::unordered_map<TokenType, Precedence> m_Precedence;
+		static std::unordered_map<Precedence, Associativity> m_Associativity;
 	};
 }
