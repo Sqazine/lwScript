@@ -32,6 +32,7 @@ namespace lws
 		void CompileScopeStmt(ScopeStmt *stmt, Frame *frame);
 		void CompileIfStmt(IfStmt *stmt, Frame *frame);
 		void CompileWhileStmt(WhileStmt *stmt, Frame *frame);
+		void CompileFunctionStmt(FunctionStmt* stmt, Frame* frame);
 		void CompileClassStmt(ClassStmt *stmt, Frame *frame);
 
 		void CompileExpr(Expr *expr, Frame *frame, ObjectState state = READ);
@@ -49,7 +50,7 @@ namespace lws
 		void CompileInfixExpr(InfixExpr *expr, Frame *frame);
 		void CompileRefExpr(RefExpr *expr, Frame *frame);
 		void CompileNewExpr(NewExpr* expr, Frame* frame);
-		void CompileFunctionExpr(FunctionExpr *stmt, Frame *frame);
+		void CompileLambdaExpr(LambdaExpr *stmt, Frame *frame);
 		void CompileConditionExpr(ConditionExpr *expr, Frame *frame);
 		void CompileFunctionCallExpr(FunctionCallExpr *expr, Frame *frame);
 		void CompileClassCallExpr(ClassCallExpr *expr, Frame *frame, ObjectState state = READ);

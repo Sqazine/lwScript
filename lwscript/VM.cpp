@@ -543,11 +543,13 @@ namespace lws
 
 				Object* object = m_Context->GetVariableByName(fnName);
 
-				if (object && IS_FUNCTION_OBJ(object))
+				if (frame->HasFunctionFrame(fnName))
+					PushStack(Execute(frame->GetFunctionFrame(fnName)));
+				else if (object && IS_FUNCTION_OBJ(object))
 				{
 					FunctionObject* fnObject = TO_FUNCTION_OBJ(object);
-					if (frame->HasFunctionFrame(fnObject->frameIndex))
-						PushStack(Execute(frame->GetFunctionFrame(fnObject->frameIndex)));
+					if (frame->HasLambdaFrame(fnObject->frameIndex))
+						PushStack(Execute(frame->GetLambdaFrame(fnObject->frameIndex)));
 					else
 						Assert("No function:" + fnName);
 				}
@@ -579,7 +581,7 @@ namespace lws
 					PushStack(falseBranch);
 				break;
 			}
-			case OP_NEW_FUNCTION:
+			case OP_NEW_LAMBDA:
 				PushStack(CreateFunctionObject(frame->m_IntegerNums[frame->m_Codes[++ip]]));
 				break;
 			case OP_REF:

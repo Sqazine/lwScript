@@ -19,7 +19,7 @@ namespace lws
 		OP_NEW_NIL,
 		OP_NEW_ARRAY,
 		OP_NEW_TABLE,
-		OP_NEW_FUNCTION,
+		OP_NEW_LAMBDA,
 		OP_NEW_CLASS,
 		OP_GET_VAR,
 		OP_SET_VAR,
@@ -76,9 +76,13 @@ namespace lws
 		std::vector<double> &GetFloatingNums();
 		std::vector<int64_t> &GetIntegerNums();
 
-		uint64_t AddFunctionFrame(Frame *frame);
-		Frame *GetFunctionFrame(uint64_t idx);
-		bool HasFunctionFrame(uint64_t idx);
+		uint64_t AddLambdaFrame(Frame *frame);
+		Frame *GetLambdaFrame(uint64_t idx);
+		bool HasLambdaFrame(uint64_t idx);
+
+		void AddFunctionFrame(std::string_view name, Frame* frame);
+		Frame* GetFunctionFrame(std::string_view name);
+		bool HasFunctionFrame(std::string_view name);
 
 		void AddClassFrame(std::string_view name, Frame *frame);
 		Frame *GetClassFrame(std::string_view name);
@@ -97,7 +101,8 @@ namespace lws
 		std::vector<int64_t> m_IntegerNums;
 		std::vector<std::string> m_Strings;
 
-		std::vector<Frame *> m_FunctionFrames;
+		std::vector<Frame *> m_LambdaFrames;
+		std::unordered_map<std::string, Frame *> m_FunctionFrames;
 		std::unordered_map<std::string, Frame *> m_ClassFrames;
 
 		Frame *m_ParentFrame;

@@ -16,7 +16,7 @@ namespace lws
 		{TokenType::LBRACKET, &Parser::ParseArrayExpr},
 		{TokenType::LBRACE, &Parser::ParseTableExpr},
 		{TokenType::AMPERSAND, &Parser::ParseRefExpr},
-		{TokenType::FUNCTION,&Parser::ParseFunctionExpr},
+		{TokenType::LAMBDA,&Parser::ParseLambdaExpr},
 		{TokenType::NEW,&Parser::ParseNewExpr}
 	};
 
@@ -173,6 +173,8 @@ namespace lws
 			return ParseWhileStmt();
 		else if (IsMatchCurToken(TokenType::FOR))
 			return ParseForStmt();
+		else  if (IsMatchCurToken(TokenType::FUNCTION))
+			return ParseFunctionStmt();
 		else if (IsMatchCurToken(TokenType::CLASS))
 			return ParseClassStmt();
 		else
@@ -334,13 +336,40 @@ namespace lws
 		return scopeStmt;
 	}
 
-	Expr* Parser::ParseFunctionExpr()
+	Stmt* Parser::ParseFunctionStmt()
 	{
 		Consume(TokenType::FUNCTION, "Expect 'function' keyword");
 
-		auto funcExpr = new FunctionExpr();
+		auto funcStmt = new FunctionStmt();
+
+		funcStmt->name =(IdentifierExpr*)ParseIdentifierExpr();
 
 		Consume(TokenType::LPAREN, "Expect '(' after 'function' keyword");
+
+		if (!IsMatchCurToken(TokenType::RPAREN)) //has parameter
+		{
+			IdentifierExpr* idenExpr = (IdentifierExpr*)ParseIdentifierExpr();
+			funcStmt->parameters.emplace_back(idenExpr);
+			while (IsMatchCurTokenAndStepOnce(TokenType::COMMA))
+			{
+				idenExpr = (IdentifierExpr*)ParseIdentifierExpr();
+				funcStmt->parameters.emplace_back(idenExpr);
+			}
+		}
+		Consume(TokenType::RPAREN, "Expect ')' after function stmt's '('");
+
+		funcStmt->body = (ScopeStmt*)ParseScopeStmt();
+
+		return funcStmt;
+	}
+
+	Expr* Parser::ParseLambdaExpr()
+	{
+		Consume(TokenType::LAMBDA, "Expect 'lambda' keyword");
+
+		auto funcExpr = new LambdaExpr();
+
+		Consume(TokenType::LPAREN, "Expect '(' after 'lambda' keyword");
 
 		if (!IsMatchCurToken(TokenType::RPAREN)) //has parameter
 		{
@@ -352,7 +381,7 @@ namespace lws
 				funcExpr->parameters.emplace_back(idenExpr);
 			}
 		}
-		Consume(TokenType::RPAREN, "Expect ')' after function stmt's '('");
+		Consume(TokenType::RPAREN, "Expect ')' after lambda expr's '('");
 
 		funcExpr->body = (ScopeStmt*)ParseScopeStmt();
 

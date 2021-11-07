@@ -15,9 +15,9 @@ namespace lws
 		}
 	}
 
-	Frame *Compiler::Compile(Stmt *stmt)
+	Frame* Compiler::Compile(Stmt* stmt)
 	{
-		CompileAstStmts((AstStmts *)stmt, m_RootFrame);
+		CompileAstStmts((AstStmts*)stmt, m_RootFrame);
 		return m_RootFrame;
 	}
 
@@ -26,42 +26,45 @@ namespace lws
 		m_RootFrame->Clear();
 	}
 
-	void Compiler::CompileAstStmts(AstStmts *stmt, Frame *frame)
+	void Compiler::CompileAstStmts(AstStmts* stmt, Frame* frame)
 	{
-		for (const auto &s : stmt->stmts)
+		for (const auto& s : stmt->stmts)
 			CompileStmt(s, frame);
 	}
 
-	void Compiler::CompileStmt(Stmt *stmt, Frame *frame)
+	void Compiler::CompileStmt(Stmt* stmt, Frame* frame)
 	{
 		switch (stmt->Type())
 		{
 		case AstType::RETURN:
-			CompileReturnStmt((ReturnStmt *)stmt, frame);
+			CompileReturnStmt((ReturnStmt*)stmt, frame);
 			break;
 		case AstType::EXPR:
-			CompileExprStmt((ExprStmt *)stmt, frame);
+			CompileExprStmt((ExprStmt*)stmt, frame);
 			break;
 		case AstType::LET:
-			CompileLetStmt((LetStmt *)stmt, frame);
+			CompileLetStmt((LetStmt*)stmt, frame);
 			break;
 		case AstType::SCOPE:
-			CompileScopeStmt((ScopeStmt *)stmt, frame);
+			CompileScopeStmt((ScopeStmt*)stmt, frame);
 			break;
 		case AstType::IF:
-			CompileIfStmt((IfStmt *)stmt, frame);
+			CompileIfStmt((IfStmt*)stmt, frame);
 			break;
 		case AstType::WHILE:
-			CompileWhileStmt((WhileStmt *)stmt, frame);
+			CompileWhileStmt((WhileStmt*)stmt, frame);
+			break;
+		case AstType::FUNCTION:
+			CompileFunctionStmt((FunctionStmt*)stmt, frame);
 			break;
 		case AstType::CLASS:
-			CompileClassStmt((ClassStmt *)stmt, frame);
+			CompileClassStmt((ClassStmt*)stmt, frame);
 			break;
 		default:
 			break;
 		}
 	}
-	void Compiler::CompileReturnStmt(ReturnStmt *stmt, Frame *frame)
+	void Compiler::CompileReturnStmt(ReturnStmt* stmt, Frame* frame)
 	{
 		if (stmt->expr)
 			CompileExpr(stmt->expr, frame);
@@ -69,12 +72,12 @@ namespace lws
 		frame->AddOpCode(OP_RETURN);
 	}
 
-	void Compiler::CompileExprStmt(ExprStmt *stmt, Frame *frame)
+	void Compiler::CompileExprStmt(ExprStmt* stmt, Frame* frame)
 	{
 		CompileExpr(stmt->expr, frame);
 	}
 
-	void Compiler::CompileLetStmt(LetStmt *stmt, Frame *frame)
+	void Compiler::CompileLetStmt(LetStmt* stmt, Frame* frame)
 	{
 		for (auto [key, value] : stmt->variables)
 		{
@@ -83,17 +86,17 @@ namespace lws
 		}
 	}
 
-	void Compiler::CompileScopeStmt(ScopeStmt *stmt, Frame *frame)
+	void Compiler::CompileScopeStmt(ScopeStmt* stmt, Frame* frame)
 	{
 		frame->AddOpCode(OP_ENTER_SCOPE);
 
-		for (const auto &s : stmt->stmts)
+		for (const auto& s : stmt->stmts)
 			CompileStmt(s, frame);
 
 		frame->AddOpCode(OP_EXIT_SCOPE);
 	}
 
-	void Compiler::CompileIfStmt(IfStmt *stmt, Frame *frame)
+	void Compiler::CompileIfStmt(IfStmt* stmt, Frame* frame)
 	{
 		CompileExpr(stmt->condition, frame);
 
@@ -114,7 +117,7 @@ namespace lws
 
 		frame->GetIntegerNums()[jmpOffset] = (double)frame->GetOpCodeSize() - 1.0;
 	}
-	void Compiler::CompileWhileStmt(WhileStmt *stmt, Frame *frame)
+	void Compiler::CompileWhileStmt(WhileStmt* stmt, Frame* frame)
 	{
 		uint64_t jmpAddress = frame->GetOpCodeSize() - 1;
 		CompileExpr(stmt->condition, frame);
@@ -132,9 +135,9 @@ namespace lws
 		frame->GetIntegerNums()[jmpIfFalseOffset] = (double)frame->GetOpCodeSize() - 1.0;
 	}
 
-	void Compiler::CompileFunctionExpr(FunctionExpr *stmt, Frame *frame)
+	void Compiler::CompileFunctionStmt(FunctionStmt* stmt, Frame* frame)
 	{
-		Frame *functionFrame = new Frame(frame);
+		Frame* functionFrame = new Frame(frame);
 
 		functionFrame->AddOpCode(OP_ENTER_SCOPE);
 
@@ -145,14 +148,30 @@ namespace lws
 
 		functionFrame->AddOpCode(OP_EXIT_SCOPE);
 
-		frame->AddOpCode(OP_NEW_FUNCTION);
-		size_t offset = frame->AddIntegerNum(frame->AddFunctionFrame(functionFrame));
+		frame->AddFunctionFrame(stmt->name->literal, functionFrame);
+	}
+
+	void Compiler::CompileLambdaExpr(LambdaExpr* stmt, Frame* frame)
+	{
+		Frame* lambdaFrame = new Frame(frame);
+
+		lambdaFrame->AddOpCode(OP_ENTER_SCOPE);
+
+		for (int64_t i = stmt->parameters.size() - 1; i >= 0; --i)
+			CompileIdentifierExpr(stmt->parameters[i], lambdaFrame, INIT);
+
+		CompileScopeStmt(stmt->body, lambdaFrame);
+
+		lambdaFrame->AddOpCode(OP_EXIT_SCOPE);
+
+		frame->AddOpCode(OP_NEW_LAMBDA);
+		size_t offset = frame->AddIntegerNum(frame->AddLambdaFrame(lambdaFrame));
 		frame->AddOpCode(offset);
 	}
 
-	void Compiler::CompileClassStmt(ClassStmt *stmt, Frame *frame)
+	void Compiler::CompileClassStmt(ClassStmt* stmt, Frame* frame)
 	{
-		Frame *classFrame = new Frame(frame);
+		Frame* classFrame = new Frame(frame);
 
 		classFrame->AddOpCode(OP_ENTER_SCOPE);
 
@@ -162,60 +181,60 @@ namespace lws
 		frame->AddClassFrame(stmt->name, classFrame);
 	}
 
-	void Compiler::CompileExpr(Expr *expr, Frame *frame, ObjectState state)
+	void Compiler::CompileExpr(Expr* expr, Frame* frame, ObjectState state)
 	{
 		switch (expr->Type())
 		{
 		case AstType::FLOATING:
-			CompileFloatingExpr((FloatingExpr *)expr, frame);
+			CompileFloatingExpr((FloatingExpr*)expr, frame);
 			break;
 		case AstType::INTEGER:
-			CompileIntegerExpr((IntegerExpr *)expr, frame);
+			CompileIntegerExpr((IntegerExpr*)expr, frame);
 			break;
 		case AstType::STR:
-			CompileStrExpr((StrExpr *)expr, frame);
+			CompileStrExpr((StrExpr*)expr, frame);
 			break;
 		case AstType::BOOL:
-			CompileBoolExpr((BoolExpr *)expr, frame);
+			CompileBoolExpr((BoolExpr*)expr, frame);
 			break;
 		case AstType::NIL:
-			CompileNilExpr((NilExpr *)expr, frame);
+			CompileNilExpr((NilExpr*)expr, frame);
 			break;
 		case AstType::IDENTIFIER:
-			CompileIdentifierExpr((IdentifierExpr *)expr, frame, state);
+			CompileIdentifierExpr((IdentifierExpr*)expr, frame, state);
 			break;
 		case AstType::GROUP:
-			CompileGroupExpr((GroupExpr *)expr, frame);
+			CompileGroupExpr((GroupExpr*)expr, frame);
 			break;
 		case AstType::ARRAY:
-			CompileArrayExpr((ArrayExpr *)expr, frame);
+			CompileArrayExpr((ArrayExpr*)expr, frame);
 			break;
 		case AstType::TABLE:
-			CompileTableExpr((TableExpr *)expr, frame);
+			CompileTableExpr((TableExpr*)expr, frame);
 			break;
 		case AstType::INDEX:
-			CompileIndexExpr((IndexExpr *)expr, frame, state);
+			CompileIndexExpr((IndexExpr*)expr, frame, state);
 			break;
 		case AstType::PREFIX:
-			CompilePrefixExpr((PrefixExpr *)expr, frame);
+			CompilePrefixExpr((PrefixExpr*)expr, frame);
 			break;
 		case AstType::INFIX:
-			CompileInfixExpr((InfixExpr *)expr, frame);
+			CompileInfixExpr((InfixExpr*)expr, frame);
 			break;
 		case AstType::CONDITION:
-			CompileConditionExpr((ConditionExpr *)expr, frame);
+			CompileConditionExpr((ConditionExpr*)expr, frame);
 			break;
-		case AstType::FUNCTION:
-			CompileFunctionExpr((FunctionExpr*)expr, frame);
+		case AstType::LAMBDA:
+			CompileLambdaExpr((LambdaExpr*)expr, frame);
 			break;
 		case AstType::FUNCTION_CALL:
-			CompileFunctionCallExpr((FunctionCallExpr *)expr, frame);
+			CompileFunctionCallExpr((FunctionCallExpr*)expr, frame);
 			break;
 		case AstType::CLASS_CALL:
-			CompileClassCallExpr((ClassCallExpr *)expr, frame, state);
+			CompileClassCallExpr((ClassCallExpr*)expr, frame, state);
 			break;
 		case AstType::REF:
-			CompileRefExpr((RefExpr *)expr, frame);
+			CompileRefExpr((RefExpr*)expr, frame);
 			break;
 		case AstType::NEW:
 			CompileNewExpr((NewExpr*)expr, frame);
@@ -225,28 +244,28 @@ namespace lws
 		}
 	}
 
-	void Compiler::CompileIntegerExpr(IntegerExpr *expr, Frame *frame)
+	void Compiler::CompileIntegerExpr(IntegerExpr* expr, Frame* frame)
 	{
 		frame->AddOpCode(OP_NEW_INTEGER);
 		size_t offset = frame->AddIntegerNum(expr->value);
 		frame->AddOpCode(offset);
 	}
 
-	void Compiler::CompileFloatingExpr(FloatingExpr *expr, Frame *frame)
+	void Compiler::CompileFloatingExpr(FloatingExpr* expr, Frame* frame)
 	{
 		frame->AddOpCode(OP_NEW_FLOATING);
 		size_t offset = frame->AddFloatingNum(expr->value);
 		frame->AddOpCode(offset);
 	}
 
-	void Compiler::CompileStrExpr(StrExpr *expr, Frame *frame)
+	void Compiler::CompileStrExpr(StrExpr* expr, Frame* frame)
 	{
 		frame->AddOpCode(OP_NEW_STR);
 		size_t offset = frame->AddString(expr->value);
 		frame->AddOpCode(offset);
 	}
 
-	void Compiler::CompileBoolExpr(BoolExpr *expr, Frame *frame)
+	void Compiler::CompileBoolExpr(BoolExpr* expr, Frame* frame)
 	{
 		if (expr->value)
 			frame->AddOpCode(OP_NEW_TRUE);
@@ -254,12 +273,12 @@ namespace lws
 			frame->AddOpCode(OP_NEW_FALSE);
 	}
 
-	void Compiler::CompileNilExpr(NilExpr *expr, Frame *frame)
+	void Compiler::CompileNilExpr(NilExpr* expr, Frame* frame)
 	{
 		frame->AddOpCode(OP_NEW_NIL);
 	}
 
-	void Compiler::CompileIdentifierExpr(IdentifierExpr *expr, Frame *frame, ObjectState state)
+	void Compiler::CompileIdentifierExpr(IdentifierExpr* expr, Frame* frame, ObjectState state)
 	{
 		if (state == READ)
 			frame->AddOpCode(OP_GET_VAR);
@@ -276,14 +295,14 @@ namespace lws
 		frame->AddOpCode(offset);
 	}
 
-	void Compiler::CompileGroupExpr(GroupExpr *expr, Frame *frame)
+	void Compiler::CompileGroupExpr(GroupExpr* expr, Frame* frame)
 	{
 		CompileExpr(expr->expr, frame);
 	}
 
-	void Compiler::CompileArrayExpr(ArrayExpr *expr, Frame *frame)
+	void Compiler::CompileArrayExpr(ArrayExpr* expr, Frame* frame)
 	{
-		for (const auto &e : expr->elements)
+		for (const auto& e : expr->elements)
 			CompileExpr(e, frame);
 
 		frame->AddOpCode(OP_NEW_ARRAY);
@@ -291,7 +310,7 @@ namespace lws
 		frame->AddOpCode(offset);
 	}
 
-	void Compiler::CompileTableExpr(TableExpr *expr, Frame *frame)
+	void Compiler::CompileTableExpr(TableExpr* expr, Frame* frame)
 	{
 		for (auto [key, value] : expr->elements)
 		{
@@ -303,7 +322,7 @@ namespace lws
 		frame->AddOpCode(offset);
 	}
 
-	void Compiler::CompileIndexExpr(IndexExpr *expr, Frame *frame, ObjectState state)
+	void Compiler::CompileIndexExpr(IndexExpr* expr, Frame* frame, ObjectState state)
 	{
 		CompileExpr(expr->ds, frame);
 		CompileExpr(expr->index, frame);
@@ -313,7 +332,7 @@ namespace lws
 			frame->AddOpCode(OP_SET_INDEX_VAR);
 	}
 
-	void Compiler::CompilePrefixExpr(PrefixExpr *expr, Frame *frame)
+	void Compiler::CompilePrefixExpr(PrefixExpr* expr, Frame* frame)
 	{
 		CompileExpr(expr->right, frame);
 		if (expr->op == "-")
@@ -324,15 +343,15 @@ namespace lws
 			frame->AddOpCode(OP_NOT);
 	}
 
-	void Compiler::CompileInfixExpr(InfixExpr *expr, Frame *frame)
+	void Compiler::CompileInfixExpr(InfixExpr* expr, Frame* frame)
 	{
 		if (expr->op == "=")
 		{
 			CompileExpr(expr->right, frame);
 			if (expr->right->Type() == AstType::INFIX && ((InfixExpr*)expr->right)->op == "=")//continuous assignment such as a=b=c;
 				CompileExpr(((InfixExpr*)expr->right)->left, frame);
-			
-				CompileExpr(expr->left, frame, WRITE);
+
+			CompileExpr(expr->left, frame, WRITE);
 		}
 		else
 		{
@@ -425,9 +444,9 @@ namespace lws
 		}
 	}
 
-	void Compiler::CompileRefExpr(RefExpr *expr, Frame *frame)
+	void Compiler::CompileRefExpr(RefExpr* expr, Frame* frame)
 	{
-		CompileExpr(expr->refExpr,frame);
+		CompileExpr(expr->refExpr, frame);
 		frame->AddOpCode(OP_REF);
 	}
 
@@ -438,7 +457,7 @@ namespace lws
 		frame->AddOpCode(offset);
 	}
 
-	void Compiler::CompileConditionExpr(ConditionExpr *expr, Frame *frame)
+	void Compiler::CompileConditionExpr(ConditionExpr* expr, Frame* frame)
 	{
 		CompileExpr(expr->falseBranch, frame);
 		CompileExpr(expr->trueBranch, frame);
@@ -446,9 +465,9 @@ namespace lws
 		frame->AddOpCode(OP_CONDITION);
 	}
 
-	void Compiler::CompileFunctionCallExpr(FunctionCallExpr *expr, Frame *frame)
+	void Compiler::CompileFunctionCallExpr(FunctionCallExpr* expr, Frame* frame)
 	{
-		for (const auto &arg : expr->arguments)
+		for (const auto& arg : expr->arguments)
 			CompileExpr(arg, frame);
 
 		//argument count
@@ -461,12 +480,12 @@ namespace lws
 		frame->AddOpCode(offset);
 	}
 
-	void Compiler::CompileClassCallExpr(ClassCallExpr *expr, Frame *frame, ObjectState state)
+	void Compiler::CompileClassCallExpr(ClassCallExpr* expr, Frame* frame, ObjectState state)
 	{
 		CompileExpr(expr->callee, frame);
 
 		if (expr->callMember->Type() == AstType::CLASS_CALL)//continuous class call such as a.b.c;
-			CompileExpr(((ClassCallExpr*)expr->callMember)->callee, frame,CLASS_READ);
+			CompileExpr(((ClassCallExpr*)expr->callMember)->callee, frame, CLASS_READ);
 
 		if (state == READ)
 			CompileExpr(expr->callMember, frame, CLASS_READ);

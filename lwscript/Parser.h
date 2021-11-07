@@ -58,6 +58,7 @@ namespace lws
 		Stmt* ParseScopeStmt();
 		Stmt* ParseWhileStmt();
 		Stmt* ParseForStmt();
+		Stmt* ParseFunctionStmt();
 		Stmt* ParseClassStmt();
 
 		Expr* ParseExpr(Precedence precedence = Precedence::LOWEST);
@@ -73,7 +74,7 @@ namespace lws
 		Expr* ParsePrefixExpr();
 		Expr* ParseRefExpr();
 		Expr* ParseNewExpr();
-		Expr* ParseFunctionExpr();
+		Expr* ParseLambdaExpr();
 		Expr* ParseInfixExpr(Expr* prefixExpr);
 		Expr* ParseConditionExpr(Expr* prefixExpr);
 		Expr* ParseIndexExpr(Expr* prefixExpr);

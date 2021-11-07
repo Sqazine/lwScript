@@ -24,6 +24,7 @@ namespace lws
 		CONDITION,
 		INDEX,
 		REF,
+		LAMBDA,
 		FUNCTION_CALL,
 		CLASS_CALL,
 		NEW,
@@ -451,11 +452,11 @@ namespace lws
 		std::vector<Stmt*> stmts;
 	};
 
-	struct FunctionExpr : public Expr
+	struct LambdaExpr : public Expr
 	{
-		FunctionExpr() : body(nullptr) {}
-		FunctionExpr(std::vector<IdentifierExpr*> parameters, ScopeStmt* body) : parameters(parameters), body(body) {}
-		~FunctionExpr()
+		LambdaExpr() : body(nullptr) {}
+		LambdaExpr(std::vector<IdentifierExpr*> parameters, ScopeStmt* body) : parameters(parameters), body(body) {}
+		~LambdaExpr()
 		{
 			std::vector<IdentifierExpr*>().swap(parameters);
 
@@ -465,7 +466,38 @@ namespace lws
 
 		std::string Stringify() override
 		{
-			std::string result = "function (";
+			std::string result = "lambda(";
+			if (!parameters.empty())
+			{
+				for (auto param : parameters)
+					result += param->Stringify() + ",";
+				result = result.substr(0, result.size() - 1);
+			}
+			result += ")";
+			result += body->Stringify();
+			return result;
+		}
+		AstType Type() override { return AstType::LAMBDA; }
+
+		std::vector<IdentifierExpr*> parameters;
+		ScopeStmt* body;
+	};
+
+	struct FunctionStmt :public Stmt
+	{
+		FunctionStmt() :name(nullptr), body(nullptr) {}
+		FunctionStmt(IdentifierExpr* name, std::vector<IdentifierExpr*> parameters, ScopeStmt* body) :name(name), parameters(parameters), body(body) {}
+		~FunctionStmt()
+		{
+			std::vector<IdentifierExpr*>().swap(parameters);
+
+			delete body;
+			body = nullptr;
+		}
+
+		std::string Stringify() override
+		{
+			std::string result = "function "+name->Stringify()+"(";
 			if (!parameters.empty())
 			{
 				for (auto param : parameters)
@@ -478,9 +510,11 @@ namespace lws
 		}
 		AstType Type() override { return AstType::FUNCTION; }
 
+		IdentifierExpr* name;
 		std::vector<IdentifierExpr*> parameters;
 		ScopeStmt* body;
 	};
+
 	struct ClassStmt : public Stmt
 	{
 		ClassStmt() {}

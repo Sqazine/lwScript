@@ -54,30 +54,58 @@ namespace lws
 		return m_IntegerNums;
 	}
 
-	uint64_t Frame::AddFunctionFrame(Frame* frame)
+	uint64_t Frame::AddLambdaFrame(Frame* frame)
 	{
-		m_FunctionFrames.emplace_back(frame);
-		return m_FunctionFrames.size() - 1;
+		m_LambdaFrames.emplace_back(frame);
+		return m_LambdaFrames.size() - 1;
 	}
 
-	Frame* Frame::GetFunctionFrame(uint64_t idx)
+	Frame* Frame::GetLambdaFrame(uint64_t idx)
 	{
-		if (idx >= 0 || idx < m_FunctionFrames.size())
-			return m_FunctionFrames[idx];
+		if (idx >= 0 || idx < m_LambdaFrames.size())
+			return m_LambdaFrames[idx];
 		else if (m_ParentFrame)
-			return m_ParentFrame->GetFunctionFrame(idx);
+			return m_ParentFrame->GetLambdaFrame(idx);
 		else
 			return nullptr;
 	}
 
-	bool Frame::HasFunctionFrame(uint64_t idx)
+	bool Frame::HasLambdaFrame(uint64_t idx)
 	{
-		if (idx >= 0 || idx < m_FunctionFrames.size())
+		if (idx >= 0 || idx < m_LambdaFrames.size())
 			return true;
 		else if (m_ParentFrame)
-			return m_ParentFrame->HasFunctionFrame(idx);
+			return m_ParentFrame->HasLambdaFrame(idx);
 		else
 		return false;
+	}
+
+	void Frame::AddFunctionFrame(std::string_view name, Frame* frame)
+	{
+		auto iter = m_FunctionFrames.find(name.data());
+		if (iter != m_FunctionFrames.end())
+			Assert("Redifinition function:"+std::string(name));
+		m_FunctionFrames[name.data()] = frame;
+	}
+
+	Frame* Frame::GetFunctionFrame(std::string_view name)
+	{
+		auto iter = m_FunctionFrames.find(name.data());
+		if (iter != m_FunctionFrames.end())
+			return iter->second;
+		else if (m_ParentFrame)
+			return m_ParentFrame->GetFunctionFrame(name);
+		else return nullptr;
+	}
+
+	bool Frame::HasFunctionFrame(std::string_view name)
+	{
+		auto iter = m_FunctionFrames.find(name.data());
+		if (iter != m_FunctionFrames.end())
+			return true;
+		else if (m_ParentFrame)
+			return m_ParentFrame->GetFunctionFrame(name);
+		else return false;
 	}
 
 	void Frame::AddClassFrame(std::string_view name, Frame *frame)
@@ -132,10 +160,16 @@ namespace lws
 			result << value->Stringify(depth + 1);
 		}
 
-		for (size_t i=0;i<m_FunctionFrames.size();++i)
+		for (auto [key, value] : m_FunctionFrames)
+		{
+			result << interval << "Frame " << key << ":\n";
+			result << value->Stringify(depth + 1);
+		}
+
+		for (size_t i=0;i< m_LambdaFrames.size();++i)
 		{
 			result << interval << "Frame " << i << ":\n";
-			result << m_FunctionFrames[i]->Stringify(depth + 1);
+			result << m_LambdaFrames[i]->Stringify(depth + 1);
 		}
 
 		result << interval << "OpCodes:\n";
@@ -243,8 +277,8 @@ namespace lws
 			case OP_NEW_TABLE:
 				CONSTANT_INSTR_STRINGIFY(OP_NEW_TABLE, m_IntegerNums);
 				break;
-			case OP_NEW_FUNCTION:
-				CONSTANT_INSTR_STRINGIFY(OP_NEW_FUNCTION, m_IntegerNums);
+			case OP_NEW_LAMBDA:
+				CONSTANT_INSTR_STRINGIFY(OP_NEW_LAMBDA, m_IntegerNums);
 				break;
 			case OP_NEW_CLASS:
 				CONSTANT_INSTR_STRINGIFY(OP_NEW_CLASS,m_Strings);
@@ -297,14 +331,18 @@ namespace lws
 		std::vector<int64_t>().swap(m_IntegerNums);
 		std::vector<std::string>().swap(m_Strings);
 
-		for (auto funcFrame : m_FunctionFrames)
+		for (auto funcFrame : m_LambdaFrames)
 			funcFrame->Clear();
 
 		for (auto [key, value] : m_ClassFrames)
 			value->Clear();
 
-		std::vector<Frame *>().swap(m_FunctionFrames);
+		for (auto [key, value] : m_FunctionFrames)
+			value->Clear();
+
+		std::vector<Frame *>().swap(m_LambdaFrames);
 		std::unordered_map<std::string, Frame *>().swap(m_ClassFrames);
+		std::unordered_map<std::string, Frame *>().swap(m_FunctionFrames);
 		if (m_ParentFrame)
 			m_ParentFrame = nullptr;
 	}
