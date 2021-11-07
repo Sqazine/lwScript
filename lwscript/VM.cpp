@@ -500,25 +500,27 @@ namespace lws
 					Assert("Invalid index op.The indexed object isn't a array object or a table object:" + object->Stringify());
 				break;
 			}
-			case OP_CLASS_CALL:
+			case OP_GET_CLASS_VAR:
 			{
-				std::string className = frame->m_Strings[frame->m_Codes[++ip]];
-				if (!IsStackEmpty() && IS_CLASS_OBJ(StackTop()))//a.b.x
-				{
-					ClassObject* preClassObject = TO_CLASS_OBJ(PopStack());
-					Object* obj = preClassObject->GetMember(className);
-					if (!IS_CLASS_OBJ(obj))
-						Assert("Not a class object:" + className);
-					PushStack(TO_CLASS_OBJ(obj));
-				}
-				else//a.x
-				{
-					Object* obj = m_Context->GetVariableByName(className);
-					if (!IS_CLASS_OBJ(obj))
-						Assert("Not a class object:" + className);
-					ClassObject* classObject = TO_CLASS_OBJ(obj);
-					PushStack(classObject);
-				}
+				std::string memberName = frame->m_Strings[frame->m_Codes[++ip]];
+				Object* stackTop = PopStack();
+				if (!IS_CLASS_OBJ(stackTop))
+					Assert("Not a class object of the callee of:" + memberName);
+				ClassObject* classObj = TO_CLASS_OBJ(stackTop);
+				PushStack(classObj->GetMember(memberName));
+				break;
+			}
+			case OP_SET_CLASS_VAR:
+			{
+				std::string memberName = frame->m_Strings[frame->m_Codes[++ip]];
+				Object* stackTop = PopStack();
+				if (!IS_CLASS_OBJ(stackTop))
+					Assert("Not a class object of the callee of:" + memberName);
+				ClassObject* classObj = TO_CLASS_OBJ(stackTop);
+
+				Object* assigner = PopStack();
+
+				classObj->AssignMember(memberName, assigner);
 				break;
 			}
 			case OP_ENTER_SCOPE:

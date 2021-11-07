@@ -268,7 +268,10 @@ namespace lws
 		else if (state == INIT)
 			frame->AddOpCode(OP_DEFINE_VAR);
 		else if (state == CLASS_READ)
-			frame->AddOpCode(OP_CLASS_CALL);
+			frame->AddOpCode(OP_GET_CLASS_VAR);
+		else if (state == CLASS_WRITE)
+			frame->AddOpCode(OP_SET_CLASS_VAR);
+
 		uint64_t offset = frame->AddString(expr->literal);
 		frame->AddOpCode(offset);
 	}
@@ -329,9 +332,6 @@ namespace lws
 			if (expr->right->Type() == AstType::INFIX && ((InfixExpr*)expr->right)->op == "=")//continuous assignment such as a=b=c;
 				CompileExpr(((InfixExpr*)expr->right)->left, frame);
 			
-			if(expr->left->Type()== AstType::CLASS_CALL)
-				CompileExpr(expr->left, frame, CLASS_WRITE);
-			else
 				CompileExpr(expr->left, frame, WRITE);
 		}
 		else
@@ -463,7 +463,14 @@ namespace lws
 
 	void Compiler::CompileClassCallExpr(ClassCallExpr *expr, Frame *frame, ObjectState state)
 	{
-		CompileExpr(expr->callee, frame, CLASS_READ);
-		CompileExpr(expr->callMember, frame, state);
+		CompileExpr(expr->callee, frame);
+
+		if (expr->callMember->Type() == AstType::CLASS_CALL)//continuous class call such as a.b.c;
+			CompileExpr(((ClassCallExpr*)expr->callMember)->callee, frame,CLASS_READ);
+
+		if (state == READ)
+			CompileExpr(expr->callMember, frame, CLASS_READ);
+		else if (state == WRITE)
+			CompileExpr(expr->callMember, frame, CLASS_WRITE);
 	}
 }

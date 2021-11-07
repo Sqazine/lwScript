@@ -55,7 +55,6 @@ namespace lws
 		OP_JUMP,
 		OP_JUMP_IF_FALSE,
 		OP_FUNCTION_CALL,
-		OP_CLASS_CALL,
 		OP_CONDITION,
 		OP_REF,
 	};

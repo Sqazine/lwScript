@@ -328,7 +328,7 @@ namespace lws
 		NewExpr(IdentifierExpr* callee) : callee(callee) {}
 		~NewExpr() {}
 
-		std::string Stringify() override { return "new" +callee->Stringify(); }
+		std::string Stringify() override { return "new " +callee->Stringify(); }
 		AstType Type() override { return AstType::NEW; }
 
 		IdentifierExpr* callee;

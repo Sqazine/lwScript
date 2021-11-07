@@ -11,7 +11,6 @@ namespace lws
 		INIT,
 		READ,
 		WRITE,
-		CLASS_INIT,
 		CLASS_READ,
 		CLASS_WRITE,
 	};
