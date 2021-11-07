@@ -361,15 +361,6 @@ namespace lws
 			{
 				std::string name = frame->m_Strings[frame->m_Codes[++ip]];
 
-				if (!IsStackEmpty() && IS_CLASS_OBJ(StackTop()))
-				{
-					ClassObject* classInstance = TO_CLASS_OBJ(PopStack());
-					if (classInstance->GetMember(name) == nullptr)
-						Assert("No Variable:" + name + "in class.");
-					classInstance->AssignMember(name, PopStack());
-				}
-				else
-				{
 					Object* value = PopStack();
 					Object* variable = m_Context->GetVariableByName(name);
 
@@ -380,19 +371,13 @@ namespace lws
 					}
 					else
 						m_Context->AssignVariableByName(name, value);
-				}
 				break;
 			}
 			case OP_GET_VAR:
 			{
 				std::string name = frame->m_Strings[frame->m_Codes[++ip]];
 
-				Object* varObject = nullptr;
-				if (!IsStackEmpty() && IS_CLASS_OBJ(StackTop()))
-					varObject = TO_CLASS_OBJ(PopStack())->GetMember(name);
-				else
-					varObject = m_Context->GetVariableByName(name);
-
+				Object* varObject = m_Context->GetVariableByName(name);
 				if (IS_REF_OBJ(varObject))
 					varObject = m_Context->GetVariableByAddress(TO_REF_OBJ(varObject)->address);
 				PushStack(varObject);
