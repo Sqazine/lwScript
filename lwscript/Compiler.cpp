@@ -175,8 +175,11 @@ namespace lws
 
 		classFrame->AddOpCode(OP_ENTER_SCOPE);
 
-		for (const auto letStmt : stmt->letStmts)
+		for (const auto& letStmt : stmt->letStmts)
 			CompileLetStmt(letStmt, classFrame);
+
+		for (const auto& functionStmt : stmt->functionStmts)
+			CompileFunctionStmt(functionStmt, classFrame);
 
 		frame->AddClassFrame(stmt->name, classFrame);
 	}

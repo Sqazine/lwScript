@@ -274,7 +274,7 @@ namespace lws
 
 	struct RefExpr : public Expr
 	{
-		RefExpr():refExpr(nullptr) {}
+		RefExpr() :refExpr(nullptr) {}
 		RefExpr(Expr* refExpr) : refExpr(refExpr) {};
 		~RefExpr() {}
 
@@ -325,11 +325,11 @@ namespace lws
 
 	struct NewExpr :public Expr
 	{
-		NewExpr() : callee(nullptr){}
+		NewExpr() : callee(nullptr) {}
 		NewExpr(IdentifierExpr* callee) : callee(callee) {}
 		~NewExpr() {}
 
-		std::string Stringify() override { return "new " +callee->Stringify(); }
+		std::string Stringify() override { return "new " + callee->Stringify(); }
 		AstType Type() override { return AstType::NEW; }
 
 		IdentifierExpr* callee;
@@ -497,7 +497,7 @@ namespace lws
 
 		std::string Stringify() override
 		{
-			std::string result = "function "+name->Stringify()+"(";
+			std::string result = "function " + name->Stringify() + "(";
 			if (!parameters.empty())
 			{
 				for (auto param : parameters)
@@ -518,24 +518,24 @@ namespace lws
 	struct ClassStmt : public Stmt
 	{
 		ClassStmt() {}
-		ClassStmt(std::string name, std::vector<LetStmt*> letStmts) : name(name), letStmts(letStmts) {}
+		ClassStmt(std::string name, std::vector<LetStmt*> letStmts, std::vector<FunctionStmt*> functionStmts)
+			: name(name), letStmts(letStmts), functionStmts(functionStmts) {}
 		~ClassStmt() { std::vector<LetStmt*>().swap(letStmts); }
 
 		std::string Stringify() override
 		{
-			std::string result = "struct " + name + "{\n";
-			if (!letStmts.empty())
-			{
-				for (auto letStmt : letStmts)
-					result += letStmt->Stringify() + "\n";
-				result = result.substr(0, result.size() - 1);
-			}
-			return result + "\n}";
+			std::string result = "class " + name + "{\n";
+			for (auto letStmt : letStmts)
+				result += letStmt->Stringify() + "\n";
+			for (auto functionStmt : functionStmts)
+				result += functionStmt->Stringify() + "\n";
+			return result + "}";
 		}
 		AstType Type() override { return AstType::CLASS; }
 
 		std::string name;
 		std::vector<LetStmt*> letStmts;
+		std::vector<FunctionStmt*> functionStmts;
 	};
 
 	struct WhileStmt : public Stmt

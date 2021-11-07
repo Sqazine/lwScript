@@ -392,21 +392,24 @@ namespace lws
 	{
 		Consume(TokenType::CLASS, "Expect 'class' keyword");
 
-		auto structStmt = new ClassStmt();
-		structStmt->name = ((IdentifierExpr*)ParseIdentifierExpr())->literal;
+		auto classStmt = new ClassStmt();
+		classStmt->name = ((IdentifierExpr*)ParseIdentifierExpr())->literal;
 
 		Consume(TokenType::LBRACE, "Expect '{' after 'class' keyword");
 
 		while (!IsMatchCurToken(TokenType::RBRACE))
 		{
 			if (IsMatchCurToken(TokenType::LET))
-				structStmt->letStmts.emplace_back((LetStmt*)ParseLetStmt());
-			else Consume(TokenType::LET, "UnExpect identifier '" + GetCurToken().literal + "'.");
+				classStmt->letStmts.emplace_back((LetStmt*)ParseLetStmt());
+			else if (IsMatchCurToken(TokenType::FUNCTION))
+				classStmt->functionStmts.emplace_back((FunctionStmt*)ParseFunctionStmt());
+			else 
+				Consume({ TokenType::LET ,TokenType::FUNCTION}, "UnExpect identifier '" + GetCurToken().literal + "'.");
 		}
 
 		Consume(TokenType::RBRACE, "Expect '}' after class stmt's '{'");
 
-		return structStmt;
+		return classStmt;
 	}
 
 	Expr* Parser::ParseExpr(Precedence precedence)
