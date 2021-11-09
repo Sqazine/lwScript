@@ -96,21 +96,21 @@ namespace lws
 
 	std::unordered_map<Precedence, Associativity> Parser::m_Associativity =
 	{
-		{Precedence::LOWEST,Associativity::LEFT2RIGHT},
-		{Precedence::ASSIGN,Associativity::RIGHT2LEFT},
-		{Precedence::CONDITION,Associativity::LEFT2RIGHT},
-		{Precedence::OR,Associativity::LEFT2RIGHT},
-		{Precedence::AND,Associativity::LEFT2RIGHT},
-		{Precedence::BIT_OR,Associativity::LEFT2RIGHT},
-		{Precedence::BIT_XOR,Associativity::LEFT2RIGHT},
-		{Precedence::BIT_AND,Associativity::LEFT2RIGHT},
-		{Precedence::EQUAL,Associativity::LEFT2RIGHT},
-		{Precedence::COMPARE,Associativity::LEFT2RIGHT},
-		{Precedence::BIT_SHIFT,Associativity::LEFT2RIGHT},
-		{Precedence::ADD_PLUS,Associativity::LEFT2RIGHT},
-		{Precedence::MUL_DIV_MOD,Associativity::LEFT2RIGHT},
-		{Precedence::PREFIX,Associativity::RIGHT2LEFT},
-		{Precedence::INFIX,Associativity::LEFT2RIGHT},
+		{Precedence::LOWEST,Associativity::L2R},
+		{Precedence::ASSIGN,Associativity::R2L},
+		{Precedence::CONDITION,Associativity::L2R},
+		{Precedence::OR,Associativity::L2R},
+		{Precedence::AND,Associativity::L2R},
+		{Precedence::BIT_OR,Associativity::L2R},
+		{Precedence::BIT_XOR,Associativity::L2R},
+		{Precedence::BIT_AND,Associativity::L2R},
+		{Precedence::EQUAL,Associativity::L2R},
+		{Precedence::COMPARE,Associativity::L2R},
+		{Precedence::BIT_SHIFT,Associativity::L2R},
+		{Precedence::ADD_PLUS,Associativity::L2R},
+		{Precedence::MUL_DIV_MOD,Associativity::L2R},
+		{Precedence::PREFIX,Associativity::R2L},
+		{Precedence::INFIX,Associativity::L2R},
 
 	};
 
@@ -423,7 +423,7 @@ namespace lws
 
 		auto leftExpr = (this->*prefixFn)();
 
-		while (!IsMatchCurToken(TokenType::SEMICOLON) &&(GetCurTokenAssociativity()==Associativity::LEFT2RIGHT? precedence < GetCurTokenPrecedence(): precedence <= GetCurTokenPrecedence()))
+		while (!IsMatchCurToken(TokenType::SEMICOLON) &&(GetCurTokenAssociativity()==Associativity::L2R? precedence < GetCurTokenPrecedence(): precedence <= GetCurTokenPrecedence()))
 		{
 			if (m_InfixFunctions.find(GetCurToken().type) == m_InfixFunctions.end())
 				return leftExpr;
@@ -627,7 +627,7 @@ namespace lws
 	{
 		if (m_Associativity.find(GetCurTokenPrecedence()) != m_Associativity.end())
 			return m_Associativity[GetCurTokenPrecedence()];
-		return Associativity::LEFT2RIGHT;
+		return Associativity::L2R;
 	}
 
 	Token Parser::GetNextToken()

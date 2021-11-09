@@ -29,8 +29,8 @@ namespace lws
 
 	enum class Associativity
 	{
-		LEFT2RIGHT,
-		RIGHT2LEFT
+		L2R, //left->right
+		R2L//right->left
 	};
 
 	class Parser;
