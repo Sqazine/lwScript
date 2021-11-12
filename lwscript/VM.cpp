@@ -541,7 +541,7 @@ namespace lws
 				std::string fnName = frame->m_Strings[frame->m_Codes[++ip]];
 				if (frame->HasFunctionFrame(fnName)) //function:function add(){return 10;}
 					PushFrame(frame->GetFunctionFrame(fnName));
-				else if (m_Context->GetVariableByName(fnName) != nullptr)
+				else if (m_Context->GetVariableByName(fnName) != nullptr)//lambda:let add=function(){return 10;}
 				{
 					Object *lambdaObject = m_Context->GetVariableByName(fnName);
 					if (!IS_LAMBDA_OBJ(lambdaObject))
@@ -557,8 +557,6 @@ namespace lws
 			case OP_FUNCTION_CALL:
 			{
 				IntegerObject *argCount = TO_INTEGER_OBJ(PopObject());
-
-				//Object *object = m_Context->GetVariableByName(fnName);
 
 				if (!IsFrameStackEmpty())
 				{
@@ -576,24 +574,6 @@ namespace lws
 					else
 						PushObject(Execute(f));
 				}
-				// else if (object && IS_LAMBDA_OBJ(object))
-				// {
-				// 	LambdaObject *fnObject = TO_LAMBDA_OBJ(object);
-				// 	if (frame->HasLambdaFrame(fnObject->frameIndex))
-				// 		PushObject(Execute(frame->GetLambdaFrame(fnObject->frameIndex)));
-				// 	else
-				// 		Assert("No function:" + fnName);
-				// }
-				// else if (HasNativeFunction(fnName))
-				// {
-				// 	std::vector<Object *> args;
-				// 	for (int64_t i = 0; i < argCount->value; ++i)
-				// 		args.insert(args.begin(), PopObject());
-
-				// 	Object *returnResult = GetNativeFunction(fnName)(args);
-				// 	if (returnResult != nullptr)
-				// 		PushObject(returnResult);
-				// }
 				break;
 			}
 			case OP_CONDITION:
