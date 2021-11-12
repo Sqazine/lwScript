@@ -14,7 +14,7 @@ namespace lws
 #define TO_BOOL_OBJ(obj) ((BoolObject *)obj)
 #define TO_ARRAY_OBJ(obj) ((ArrayObject *)obj)
 #define TO_TABLE_OBJ(obj) ((TableObject *)obj)
-#define TO_LAMBDA_OBJ(obj) ((LambdaObject *)obj)
+#define TO_FUNCTION_OBJ(obj) ((FunctionObject *)obj)
 #define TO_CLASS_OBJ(obj) ((ClassObject *)obj)
 #define TO_REF_OBJ(obj) ((RefObject *)obj)
 
@@ -25,7 +25,7 @@ namespace lws
 #define IS_NIL_OBJ(obj) (obj->Type() == ObjectType::NIL)
 #define IS_ARRAY_OBJ(obj) (obj->Type() == ObjectType::ARRAY)
 #define IS_TABLE_OBJ(obj) (obj->Type() == ObjectType::TABLE)
-#define IS_LAMBDA_OBJ(obj) (obj->Type() == ObjectType::LAMBDA)
+#define IS_FUNCTION_OBJ(obj) (obj->Type() == ObjectType::FUNCTION)
 #define IS_CLASS_OBJ(obj) (obj->Type() == ObjectType::CLASS)
 #define IS_REF_OBJ(obj) (obj->Type() == ObjectType::REF)
 
@@ -38,7 +38,7 @@ namespace lws
 		NIL,
 		ARRAY,
 		TABLE,
-		LAMBDA,
+		FUNCTION,
 		CLASS,
 		REF
 	};
@@ -278,22 +278,22 @@ namespace lws
 		std::unordered_map<Object*, Object*> elements;
 	};
 
-	struct LambdaObject : public Object
+	struct FunctionObject : public Object
 	{
-		LambdaObject() : frameIndex(0) {}
-		LambdaObject(int64_t frameIndex) : frameIndex(frameIndex) {}
-		~LambdaObject() {}
+		FunctionObject() : frameIndex(0) {}
+		FunctionObject(int64_t frameIndex) : frameIndex(frameIndex) {}
+		~FunctionObject() {}
 
 		std::string Stringify() override { return "lambda"; }
-		ObjectType Type() override { return ObjectType::LAMBDA; }
+		ObjectType Type() override { return ObjectType::FUNCTION; }
 		void Mark() override { marked = true; }
 		void UnMark() override { marked = false; }
 
 		bool IsEqualTo(Object* other) override
 		{
-			if (!IS_LAMBDA_OBJ(other))
+			if (!IS_FUNCTION_OBJ(other))
 				return false;
-			return frameIndex == TO_LAMBDA_OBJ(other)->frameIndex;
+			return frameIndex == TO_FUNCTION_OBJ(other)->frameIndex;
 		}
 
 		int64_t frameIndex;

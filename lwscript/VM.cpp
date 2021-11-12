@@ -146,12 +146,12 @@ namespace lws
 		return object;
 	}
 
-	LambdaObject *VM::CreateLambdaObject(int64_t frameIdx)
+	FunctionObject *VM::CreateFunctionObject(int64_t frameIdx)
 	{
 		if (curObjCount == maxObjCount)
 			Gc();
 
-		LambdaObject *object = new LambdaObject(frameIdx);
+		FunctionObject *object = new FunctionObject(frameIdx);
 		object->marked = false;
 
 		object->next = firstObject;
@@ -544,9 +544,9 @@ namespace lws
 				else if (m_Context->GetVariableByName(fnName) != nullptr)//lambda:let add=function(){return 10;}
 				{
 					Object *lambdaObject = m_Context->GetVariableByName(fnName);
-					if (!IS_LAMBDA_OBJ(lambdaObject))
+					if (!IS_FUNCTION_OBJ(lambdaObject))
 						Assert("Not a lambda object of " + fnName);
-					PushFrame(frame->GetLambdaFrame(TO_LAMBDA_OBJ(lambdaObject)->frameIndex));
+					PushFrame(frame->GetLambdaFrame(TO_FUNCTION_OBJ(lambdaObject)->frameIndex));
 				}
 				else if (HasNativeFunction(fnName))
 					PushFrame(new NativeFunctionFrame(fnName));
@@ -591,7 +591,7 @@ namespace lws
 				break;
 			}
 			case OP_NEW_LAMBDA:
-				PushObject(CreateLambdaObject(frame->m_IntegerNums[frame->m_Codes[++ip]]));
+				PushObject(CreateFunctionObject(frame->m_IntegerNums[frame->m_Codes[++ip]]));
 				break;
 			case OP_REF:
 			{
