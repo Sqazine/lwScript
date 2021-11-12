@@ -16,7 +16,7 @@ namespace lws
 		{TokenType::LBRACKET, &Parser::ParseArrayExpr},
 		{TokenType::LBRACE, &Parser::ParseTableExpr},
 		{TokenType::AMPERSAND, &Parser::ParseRefExpr},
-		{TokenType::LAMBDA,&Parser::ParseLambdaExpr},
+		{TokenType::FUNCTION,&Parser::ParseFunctionExpr},
 		{TokenType::NEW,&Parser::ParseNewExpr}
 	};
 
@@ -363,13 +363,13 @@ namespace lws
 		return funcStmt;
 	}
 
-	Expr* Parser::ParseLambdaExpr()
+	Expr* Parser::ParseFunctionExpr()
 	{
-		Consume(TokenType::LAMBDA, "Expect 'lambda' keyword");
+		Consume(TokenType::FUNCTION, "Expect 'function' keyword");
 
-		auto funcExpr = new LambdaExpr();
+		auto funcExpr = new FunctionExpr();
 
-		Consume(TokenType::LPAREN, "Expect '(' after 'lambda' keyword");
+		Consume(TokenType::LPAREN, "Expect '(' after 'function' keyword");
 
 		if (!IsMatchCurToken(TokenType::RPAREN)) //has parameter
 		{
@@ -381,7 +381,7 @@ namespace lws
 				funcExpr->parameters.emplace_back(idenExpr);
 			}
 		}
-		Consume(TokenType::RPAREN, "Expect ')' after lambda expr's '('");
+		Consume(TokenType::RPAREN, "Expect ')' after function expr's '('");
 
 		funcExpr->body = (ScopeStmt*)ParseScopeStmt();
 
@@ -581,7 +581,7 @@ namespace lws
 	{
 		auto funcCallExpr = new FunctionCallExpr();
 
-		funcCallExpr->name = ((IdentifierExpr*)prefixExpr)->literal;
+		funcCallExpr->name = prefixExpr;
 		Consume(TokenType::LPAREN, "Expect '('.");
 		if (!IsMatchCurToken(TokenType::RPAREN)) //has arguments
 		{

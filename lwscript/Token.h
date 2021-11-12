@@ -61,7 +61,6 @@ namespace lws
 		WHILE,				   // while
 		FOR,				   // for
 		FUNCTION,			   // function
-		LAMBDA,				   // lambda
 		CLASS,				   // class
 		RETURN,				   // return
 		NEW,				   // new

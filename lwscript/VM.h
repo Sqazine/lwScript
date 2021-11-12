@@ -33,7 +33,7 @@ namespace lws
 		ArrayObject* CreateArrayObject(const std::vector<Object*>& elements = {});
 		TableObject* CreateTableObject(const std::unordered_map<Object*, Object*>& elements = {});
 		ClassObject* CreateClassObject(std::string_view name, const std::unordered_map<std::string, Object*>& members);
-		FunctionObject* CreateFunctionObject(int64_t frameIdx);
+		LambdaObject* CreateLambdaObject(int64_t frameIdx);
 		RefObject* CreateRefObject(std::string_view address);
 
 		void Gc();
@@ -42,13 +42,18 @@ namespace lws
 		std::function<Object* (std::vector<Object*>)> GetNativeFunction(std::string_view fnName);
 		bool HasNativeFunction(std::string_view name);
 
-		void PushStack(Object* object);
-		Object* PopStack();
-		Object* StackTop();
-		bool IsStackEmpty();
+		void PushObject(Object* object);
+		Object* PopObject();
+
+		void PushFrame(Frame* frame);
+		Frame* PopFrame();
+		bool IsFrameStackEmpty();
 
 		uint8_t sp;
-		std::array<Object*, STACK_MAX> m_Stack;
+		std::array<Object*, STACK_MAX> m_ObjectStack;
+
+		uint8_t fp;
+		std::array<Frame*,STACK_MAX> m_FrameStack; 
 
 		Object* firstObject;
 		int curObjCount;

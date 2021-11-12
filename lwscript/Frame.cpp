@@ -54,13 +54,13 @@ namespace lws
 		return m_IntegerNums;
 	}
 
-	uint64_t Frame::AddLambdaFrame(Frame* frame)
+	uint64_t Frame::AddLambdaFrame(Frame *frame)
 	{
 		m_LambdaFrames.emplace_back(frame);
 		return m_LambdaFrames.size() - 1;
 	}
 
-	Frame* Frame::GetLambdaFrame(uint64_t idx)
+	Frame *Frame::GetLambdaFrame(uint64_t idx)
 	{
 		if (idx >= 0 || idx < m_LambdaFrames.size())
 			return m_LambdaFrames[idx];
@@ -77,25 +77,26 @@ namespace lws
 		else if (m_ParentFrame)
 			return m_ParentFrame->HasLambdaFrame(idx);
 		else
-		return false;
+			return false;
 	}
 
-	void Frame::AddFunctionFrame(std::string_view name, Frame* frame)
+	void Frame::AddFunctionFrame(std::string_view name, Frame *frame)
 	{
 		auto iter = m_FunctionFrames.find(name.data());
 		if (iter != m_FunctionFrames.end())
-			Assert("Redifinition function:"+std::string(name));
+			Assert("Redifinition function:" + std::string(name));
 		m_FunctionFrames[name.data()] = frame;
 	}
 
-	Frame* Frame::GetFunctionFrame(std::string_view name)
+	Frame *Frame::GetFunctionFrame(std::string_view name)
 	{
 		auto iter = m_FunctionFrames.find(name.data());
 		if (iter != m_FunctionFrames.end())
 			return iter->second;
 		else if (m_ParentFrame)
 			return m_ParentFrame->GetFunctionFrame(name);
-		else return nullptr;
+		else
+			return nullptr;
 	}
 
 	bool Frame::HasFunctionFrame(std::string_view name)
@@ -105,7 +106,8 @@ namespace lws
 			return true;
 		else if (m_ParentFrame)
 			return m_ParentFrame->GetFunctionFrame(name);
-		else return false;
+		else
+			return false;
 	}
 
 	void Frame::AddClassFrame(std::string_view name, Frame *frame)
@@ -166,7 +168,7 @@ namespace lws
 			result << value->Stringify(depth + 1);
 		}
 
-		for (size_t i=0;i< m_LambdaFrames.size();++i)
+		for (size_t i = 0; i < m_LambdaFrames.size(); ++i)
 		{
 			result << interval << "Frame " << i << ":\n";
 			result << m_LambdaFrames[i]->Stringify(depth + 1);
@@ -281,7 +283,7 @@ namespace lws
 				CONSTANT_INSTR_STRINGIFY(OP_NEW_LAMBDA, m_IntegerNums);
 				break;
 			case OP_NEW_CLASS:
-				CONSTANT_INSTR_STRINGIFY(OP_NEW_CLASS,m_Strings);
+				CONSTANT_INSTR_STRINGIFY(OP_NEW_CLASS, m_Strings);
 				break;
 			case OP_GET_INDEX_VAR:
 				SINGLE_INSTR_STRINGIFY(OP_GET_INDEX_VAR);
@@ -294,6 +296,9 @@ namespace lws
 				break;
 			case OP_SET_CLASS_VAR:
 				CONSTANT_INSTR_STRINGIFY(OP_SET_CLASS_VAR, m_Strings);
+				break;
+			case OP_GET_FUNCTION:
+				CONSTANT_INSTR_STRINGIFY(OP_GET_FUNCTION, m_Strings);
 				break;
 			case OP_ENTER_SCOPE:
 				SINGLE_INSTR_STRINGIFY(OP_ENTER_SCOPE);
@@ -308,7 +313,7 @@ namespace lws
 				CONSTANT_INSTR_STRINGIFY(OP_JUMP_IF_FALSE, m_IntegerNums);
 				break;
 			case OP_FUNCTION_CALL:
-				CONSTANT_INSTR_STRINGIFY(OP_FUNCTION_CALL, m_Strings);
+				SINGLE_INSTR_STRINGIFY(OP_FUNCTION_CALL);
 				break;
 			case OP_CONDITION:
 				SINGLE_INSTR_STRINGIFY(OP_CONDITION);
@@ -345,5 +350,28 @@ namespace lws
 		std::unordered_map<std::string, Frame *>().swap(m_FunctionFrames);
 		if (m_ParentFrame)
 			m_ParentFrame = nullptr;
+	}
+
+	FrameType Frame::Type()
+	{
+		return FrameType::NORMAL;
+	}
+
+	NativeFunctionFrame::NativeFunctionFrame(std::string_view name)
+		: m_NativeFuntionName(name)
+	{
+	}
+	NativeFunctionFrame::~NativeFunctionFrame()
+	{
+	}
+
+	const std::string &NativeFunctionFrame::GetName() const
+	{
+		return m_NativeFuntionName;
+	}
+
+	FrameType NativeFunctionFrame::Type()
+	{
+		return FrameType::NATIVE_FUNCTION;
 	}
 }

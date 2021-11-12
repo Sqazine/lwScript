@@ -151,7 +151,7 @@ namespace lws
 		frame->AddFunctionFrame(stmt->name->literal, functionFrame);
 	}
 
-	void Compiler::CompileLambdaExpr(LambdaExpr* stmt, Frame* frame)
+	void Compiler::CompileFunctionExpr(FunctionExpr* stmt, Frame* frame)
 	{
 		Frame* lambdaFrame = new Frame(frame);
 
@@ -228,7 +228,7 @@ namespace lws
 			CompileConditionExpr((ConditionExpr*)expr, frame);
 			break;
 		case AstType::LAMBDA:
-			CompileLambdaExpr((LambdaExpr*)expr, frame);
+			CompileFunctionExpr((FunctionExpr*)expr, frame);
 			break;
 		case AstType::FUNCTION_CALL:
 			CompileFunctionCallExpr((FunctionCallExpr*)expr, frame);
@@ -293,6 +293,8 @@ namespace lws
 			frame->AddOpCode(OP_GET_CLASS_VAR);
 		else if (state == CLASS_WRITE)
 			frame->AddOpCode(OP_SET_CLASS_VAR);
+		else if(state==FUNCTION_READ)
+			frame->AddOpCode(OP_GET_FUNCTION);
 
 		uint64_t offset = frame->AddString(expr->literal);
 		frame->AddOpCode(offset);
@@ -478,9 +480,9 @@ namespace lws
 		uint64_t offset = frame->AddIntegerNum((int64_t)expr->arguments.size());
 		frame->AddOpCode(offset);
 
+		if(expr->name->Type()==AstType::IDENTIFIER)
+		CompileExpr(expr->name,frame,FUNCTION_READ);
 		frame->AddOpCode(OP_FUNCTION_CALL);
-		offset = frame->AddString(expr->name);
-		frame->AddOpCode(offset);
 	}
 
 	void Compiler::CompileClassCallExpr(ClassCallExpr* expr, Frame* frame, ObjectState state)

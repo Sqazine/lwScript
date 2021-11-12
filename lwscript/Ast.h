@@ -288,12 +288,12 @@ namespace lws
 	struct FunctionCallExpr : public Expr
 	{
 		FunctionCallExpr() {}
-		FunctionCallExpr(std::string name, std::vector<Expr*> arguments) : name(name), arguments(arguments) {}
+		FunctionCallExpr(Expr* name, std::vector<Expr*> arguments) : name(name), arguments(arguments) {}
 		~FunctionCallExpr() {}
 
 		std::string Stringify() override
 		{
-			std::string result = name + "(";
+			std::string result = name->Stringify() + "(";
 
 			if (!arguments.empty())
 			{
@@ -306,7 +306,7 @@ namespace lws
 		}
 		AstType Type() override { return AstType::FUNCTION_CALL; }
 
-		std::string name;
+		Expr* name;
 		std::vector<Expr*> arguments;
 	};
 
@@ -452,11 +452,11 @@ namespace lws
 		std::vector<Stmt*> stmts;
 	};
 
-	struct LambdaExpr : public Expr
+	struct FunctionExpr : public Expr
 	{
-		LambdaExpr() : body(nullptr) {}
-		LambdaExpr(std::vector<IdentifierExpr*> parameters, ScopeStmt* body) : parameters(parameters), body(body) {}
-		~LambdaExpr()
+		FunctionExpr() : body(nullptr) {}
+		FunctionExpr(std::vector<IdentifierExpr*> parameters, ScopeStmt* body) : parameters(parameters), body(body) {}
+		~FunctionExpr()
 		{
 			std::vector<IdentifierExpr*>().swap(parameters);
 
@@ -466,7 +466,7 @@ namespace lws
 
 		std::string Stringify() override
 		{
-			std::string result = "lambda(";
+			std::string result = "fucntion(";
 			if (!parameters.empty())
 			{
 				for (auto param : parameters)

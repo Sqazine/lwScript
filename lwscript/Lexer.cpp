@@ -14,8 +14,7 @@ namespace lws
             {"function", TokenType::FUNCTION},
             {"class", TokenType::CLASS},
             {"return", TokenType::RETURN},
-            {"new",TokenType::NEW},
-            {"lambda",TokenType::LAMBDA}
+            {"new",TokenType::NEW}
     };
 
     Lexer::Lexer()

@@ -11,6 +11,7 @@ namespace lws
 		INIT,
 		READ,
 		WRITE,
+		FUNCTION_READ,
 		CLASS_READ,
 		CLASS_WRITE,
 	};
@@ -50,7 +51,7 @@ namespace lws
 		void CompileInfixExpr(InfixExpr *expr, Frame *frame);
 		void CompileRefExpr(RefExpr *expr, Frame *frame);
 		void CompileNewExpr(NewExpr* expr, Frame* frame);
-		void CompileLambdaExpr(LambdaExpr *stmt, Frame *frame);
+		void CompileFunctionExpr(FunctionExpr *stmt, Frame *frame);
 		void CompileConditionExpr(ConditionExpr *expr, Frame *frame);
 		void CompileFunctionCallExpr(FunctionCallExpr *expr, Frame *frame);
 		void CompileClassCallExpr(ClassCallExpr *expr, Frame *frame, ObjectState state = READ);

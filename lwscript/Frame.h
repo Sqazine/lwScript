@@ -28,6 +28,7 @@ namespace lws
 		OP_SET_INDEX_VAR,
 		OP_GET_CLASS_VAR,
 		OP_SET_CLASS_VAR,
+		OP_GET_FUNCTION,
 		OP_NEG,
 		OP_RETURN,
 		OP_ADD,
@@ -59,12 +60,23 @@ namespace lws
 		OP_REF,
 	};
 
+	enum class FrameType
+	{
+		NORMAL,
+		NATIVE_FUNCTION
+	};
+
+#define IS_NORMAL_FRAME(f) (f->Type() == FrameType::NORMAL)
+#define IS_NATIVE_FUNCTION_FRAME(f) (f->Type() == FrameType::NATIVE_FUNCTION)
+#define TO_NORMAL_FRAME(f) ((Frame *)f)
+#define TO_NATIVE_FUNCTION_FRAME(f) ((NativeFunctionFrame *)f)
+
 	class Frame
 	{
 	public:
 		Frame();
 		Frame(Frame *parentFrame);
-		~Frame();
+		virtual ~Frame();
 
 		void AddOpCode(uint64_t code);
 		uint64_t GetOpCodeSize() const;
@@ -80,8 +92,8 @@ namespace lws
 		Frame *GetLambdaFrame(uint64_t idx);
 		bool HasLambdaFrame(uint64_t idx);
 
-		void AddFunctionFrame(std::string_view name, Frame* frame);
-		Frame* GetFunctionFrame(std::string_view name);
+		void AddFunctionFrame(std::string_view name, Frame *frame);
+		Frame *GetFunctionFrame(std::string_view name);
 		bool HasFunctionFrame(std::string_view name);
 
 		void AddClassFrame(std::string_view name, Frame *frame);
@@ -91,6 +103,8 @@ namespace lws
 		std::string Stringify(int depth = 0);
 
 		void Clear();
+
+		virtual FrameType Type();
 
 	private:
 		friend class VM;
@@ -106,5 +120,19 @@ namespace lws
 		std::unordered_map<std::string, Frame *> m_ClassFrames;
 
 		Frame *m_ParentFrame;
+	};
+
+	class NativeFunctionFrame : public Frame
+	{
+	public:
+		NativeFunctionFrame(std::string_view name);
+		~NativeFunctionFrame();
+
+		const std::string &GetName() const;
+
+		FrameType Type() override;
+
+	private:
+		std::string m_NativeFuntionName;
 	};
 }
