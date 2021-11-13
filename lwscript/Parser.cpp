@@ -16,7 +16,7 @@ namespace lws
 		{TokenType::LBRACKET, &Parser::ParseArrayExpr},
 		{TokenType::LBRACE, &Parser::ParseTableExpr},
 		{TokenType::AMPERSAND, &Parser::ParseRefExpr},
-		{TokenType::FUNCTION,&Parser::ParseFunctionExpr},
+		{TokenType::FUNCTION,&Parser::ParseLambdaExpr},
 		{TokenType::NEW,&Parser::ParseNewExpr}
 	};
 
@@ -363,11 +363,11 @@ namespace lws
 		return funcStmt;
 	}
 
-	Expr* Parser::ParseFunctionExpr()
+	Expr* Parser::ParseLambdaExpr()
 	{
 		Consume(TokenType::FUNCTION, "Expect 'function' keyword");
 
-		auto funcExpr = new FunctionExpr();
+		auto funcExpr = new LambdaExpr();
 
 		Consume(TokenType::LPAREN, "Expect '(' after 'function' keyword");
 

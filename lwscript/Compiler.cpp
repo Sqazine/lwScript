@@ -151,7 +151,7 @@ namespace lws
 		frame->AddFunctionFrame(stmt->name->literal, functionFrame);
 	}
 
-	void Compiler::CompileFunctionExpr(FunctionExpr* stmt, Frame* frame)
+	void Compiler::CompileLambdaExpr(LambdaExpr* stmt, Frame* frame)
 	{
 		Frame* lambdaFrame = new Frame(frame);
 
@@ -175,11 +175,19 @@ namespace lws
 
 		classFrame->AddOpCode(OP_ENTER_SCOPE);
 
-		for (const auto& letStmt : stmt->letStmts)
+		for (auto& letStmt : stmt->letStmts)//add 'this' parameter for class lambda function
+		{
+			for (auto& variable : letStmt->variables)
+				if (variable.second->Type() == AstType::LAMBDA)
+					((LambdaExpr*)variable.second)->parameters.emplace_back(new IdentifierExpr("this"));
 			CompileLetStmt(letStmt, classFrame);
+		}
 
 		for (const auto& functionStmt : stmt->functionStmts)
+		{
+			functionStmt->parameters.emplace_back(new IdentifierExpr("this"));//regisiter class instance to function
 			CompileFunctionStmt(functionStmt, classFrame);
+		}
 
 		frame->AddClassFrame(stmt->name, classFrame);
 	}
@@ -228,7 +236,7 @@ namespace lws
 			CompileConditionExpr((ConditionExpr*)expr, frame);
 			break;
 		case AstType::LAMBDA:
-			CompileFunctionExpr((FunctionExpr*)expr, frame);
+			CompileLambdaExpr((LambdaExpr*)expr, frame);
 			break;
 		case AstType::FUNCTION_CALL:
 			CompileFunctionCallExpr((FunctionCallExpr*)expr, frame);
@@ -474,15 +482,23 @@ namespace lws
 
 	void Compiler::CompileFunctionCallExpr(FunctionCallExpr* expr, Frame* frame)
 	{
+
 		for (const auto& arg : expr->arguments)
 			CompileExpr(arg, frame);
 
+		int64_t extraArgCount = 0;
+		if (expr->name->Type() == AstType::CLASS_CALL)
+		{
+			CompileRefExpr(new RefExpr(((ClassCallExpr*)expr->name)->callee), frame);
+			extraArgCount++;
+		}
 		//argument count
 		frame->AddOpCode(OP_NEW_INTEGER);
-		uint64_t offset = frame->AddIntegerNum((int64_t)expr->arguments.size());
+		uint64_t offset = frame->AddIntegerNum((int64_t)expr->arguments.size()+extraArgCount);
 		frame->AddOpCode(offset);
 
-			CompileExpr(expr->name, frame, FUNCTION_READ);
+
+		CompileExpr(expr->name, frame, FUNCTION_READ);
 		frame->AddOpCode(OP_FUNCTION_CALL);
 	}
 

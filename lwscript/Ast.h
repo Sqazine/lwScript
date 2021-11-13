@@ -452,11 +452,11 @@ namespace lws
 		std::vector<Stmt*> stmts;
 	};
 
-	struct FunctionExpr : public Expr
+	struct LambdaExpr : public Expr
 	{
-		FunctionExpr() : body(nullptr) {}
-		FunctionExpr(std::vector<IdentifierExpr*> parameters, ScopeStmt* body) : parameters(parameters), body(body) {}
-		~FunctionExpr()
+		LambdaExpr() : body(nullptr) {}
+		LambdaExpr(std::vector<IdentifierExpr*> parameters, ScopeStmt* body) : parameters(parameters), body(body) {}
+		~LambdaExpr()
 		{
 			std::vector<IdentifierExpr*>().swap(parameters);
 
