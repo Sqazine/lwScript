@@ -12,6 +12,7 @@ namespace lws
 		READ,
 		WRITE,
 		FUNCTION_READ,
+		CLASS_FUNCTION_READ,
 		CLASS_READ,
 		CLASS_WRITE,
 	};

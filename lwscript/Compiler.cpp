@@ -293,8 +293,10 @@ namespace lws
 			frame->AddOpCode(OP_GET_CLASS_VAR);
 		else if (state == CLASS_WRITE)
 			frame->AddOpCode(OP_SET_CLASS_VAR);
-		else if(state==FUNCTION_READ)
+		else if (state == FUNCTION_READ)
 			frame->AddOpCode(OP_GET_FUNCTION);
+		else if (state == CLASS_FUNCTION_READ)
+			frame->AddOpCode(OP_GET_CLASS_FUNCTION);
 
 		uint64_t offset = frame->AddString(expr->literal);
 		frame->AddOpCode(offset);
@@ -480,8 +482,7 @@ namespace lws
 		uint64_t offset = frame->AddIntegerNum((int64_t)expr->arguments.size());
 		frame->AddOpCode(offset);
 
-		if(expr->name->Type()==AstType::IDENTIFIER)
-		CompileExpr(expr->name,frame,FUNCTION_READ);
+			CompileExpr(expr->name, frame, FUNCTION_READ);
 		frame->AddOpCode(OP_FUNCTION_CALL);
 	}
 
@@ -496,5 +497,8 @@ namespace lws
 			CompileExpr(expr->callMember, frame, CLASS_READ);
 		else if (state == WRITE)
 			CompileExpr(expr->callMember, frame, CLASS_WRITE);
+		else if(state==FUNCTION_READ)
+			CompileExpr(expr->callMember, frame, CLASS_FUNCTION_READ);
+
 	}
 }

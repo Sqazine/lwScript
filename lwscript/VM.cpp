@@ -509,6 +509,35 @@ namespace lws
 				classObj->AssignMember(memberName, assigner);
 				break;
 			}
+			case OP_GET_CLASS_FUNCTION:
+			{
+				std::string memberName = frame->m_Strings[frame->m_Codes[++ip]];
+				Object* stackTop = PopObject();
+				if (!IS_CLASS_OBJ(stackTop))
+					Assert("Not a class object of the callee of:" + memberName);
+				ClassObject* classObj = TO_CLASS_OBJ(stackTop);
+				std::string classType = classObj->name;
+
+				Frame* classFrame = nullptr;
+				if (frame->HasClassFrame(classType)) //function:function add(){return 10;}
+					classFrame = frame->GetClassFrame(classType);
+				else
+					Assert("No class declaration:" + classType);
+
+				if(classFrame->HasFunctionFrame(memberName))
+						PushFrame(classFrame->GetFunctionFrame(memberName));
+				else if (classObj->GetMember(memberName) != nullptr)//lambda:let add=function(){return 10;}
+				{
+					Object* lambdaObject = classObj->GetMember(memberName);
+					if (!IS_FUNCTION_OBJ(lambdaObject))
+						Assert("No lambda object:"+memberName+" in class:" + classType);
+					PushFrame(classFrame->GetLambdaFrame(TO_FUNCTION_OBJ(lambdaObject)->frameIndex));
+				}
+				else
+					Assert("No function in class:" + memberName);
+
+				break;
+			}
 			case OP_ENTER_SCOPE:
 			{
 				m_Context = new Context(m_Context);
