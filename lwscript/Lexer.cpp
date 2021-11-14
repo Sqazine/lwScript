@@ -14,7 +14,10 @@ namespace lws
             {"function", TokenType::FUNCTION},
             {"class", TokenType::CLASS},
             {"return", TokenType::RETURN},
-            {"new",TokenType::NEW}
+            {"new",TokenType::NEW},
+            {"public",TokenType::PUBLIC},
+            {"protected",TokenType::PROTECTED},
+            {"private",TokenType::PRIVATE}
     };
 
     Lexer::Lexer()

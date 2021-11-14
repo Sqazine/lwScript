@@ -175,7 +175,7 @@ namespace lws
 
 		classFrame->AddOpCode(OP_ENTER_SCOPE);
 
-		for (auto& letStmt : stmt->letStmts)//add 'this' parameter for class lambda function
+		for (auto& letStmt : stmt->pubLetStmts)//add 'this' parameter for class lambda function
 		{
 			for (auto& variable : letStmt->variables)
 				if (variable.second->Type() == AstType::LAMBDA)
@@ -183,7 +183,35 @@ namespace lws
 			CompileLetStmt(letStmt, classFrame);
 		}
 
-		for (const auto& functionStmt : stmt->functionStmts)
+		for (auto& letStmt : stmt->proLetStmts)//add 'this' parameter for class lambda function
+		{
+			for (auto& variable : letStmt->variables)
+				if (variable.second->Type() == AstType::LAMBDA)
+					((LambdaExpr*)variable.second)->parameters.emplace_back(new IdentifierExpr("this"));
+			CompileLetStmt(letStmt, classFrame);
+		}
+
+		for (auto& letStmt : stmt->priLetStmts)//add 'this' parameter for class lambda function
+		{
+			for (auto& variable : letStmt->variables)
+				if (variable.second->Type() == AstType::LAMBDA)
+					((LambdaExpr*)variable.second)->parameters.emplace_back(new IdentifierExpr("this"));
+			CompileLetStmt(letStmt, classFrame);
+		}
+
+		for (const auto& functionStmt : stmt->pubFnStmts)
+		{
+			functionStmt->parameters.emplace_back(new IdentifierExpr("this"));//regisiter class instance to function
+			CompileFunctionStmt(functionStmt, classFrame);
+		}
+
+		for (const auto& functionStmt : stmt->proFnStmts)
+		{
+			functionStmt->parameters.emplace_back(new IdentifierExpr("this"));//regisiter class instance to function
+			CompileFunctionStmt(functionStmt, classFrame);
+		}
+
+		for (const auto& functionStmt : stmt->priFnStmts)
 		{
 			functionStmt->parameters.emplace_back(new IdentifierExpr("this"));//regisiter class instance to function
 			CompileFunctionStmt(functionStmt, classFrame);
