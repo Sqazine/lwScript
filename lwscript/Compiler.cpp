@@ -101,21 +101,21 @@ namespace lws
 		CompileExpr(stmt->condition, frame);
 
 		frame->AddOpCode(OP_JUMP_IF_FALSE);
-		uint64_t jmpIfFalseOffset = frame->AddIntegerNum(0);
+		uint64_t jmpIfFalseOffset = frame->AddIntNumNum(0);
 		frame->AddOpCode(jmpIfFalseOffset);
 
 		CompileStmt(stmt->thenBranch, frame);
 
 		frame->AddOpCode(OP_JUMP);
-		uint64_t jmpOffset = frame->AddIntegerNum(0);
+		uint64_t jmpOffset = frame->AddIntNumNum(0);
 		frame->AddOpCode(jmpOffset);
 
-		frame->GetIntegerNums()[jmpIfFalseOffset] = (double)frame->GetOpCodeSize() - 1.0;
+		frame->GetIntNumNums()[jmpIfFalseOffset] = (double)frame->GetOpCodeSize() - 1.0;
 
 		if (stmt->elseBranch)
 			CompileStmt(stmt->elseBranch, frame);
 
-		frame->GetIntegerNums()[jmpOffset] = (double)frame->GetOpCodeSize() - 1.0;
+		frame->GetIntNumNums()[jmpOffset] = (double)frame->GetOpCodeSize() - 1.0;
 	}
 	void Compiler::CompileWhileStmt(WhileStmt* stmt, Frame* frame)
 	{
@@ -123,16 +123,16 @@ namespace lws
 		CompileExpr(stmt->condition, frame);
 
 		frame->AddOpCode(OP_JUMP_IF_FALSE);
-		uint64_t jmpIfFalseOffset = frame->AddIntegerNum(0);
+		uint64_t jmpIfFalseOffset = frame->AddIntNumNum(0);
 		frame->AddOpCode(jmpIfFalseOffset);
 
 		CompileStmt(stmt->body, frame);
 
 		frame->AddOpCode(OP_JUMP);
-		uint64_t offset = frame->AddIntegerNum(jmpAddress);
+		uint64_t offset = frame->AddIntNumNum(jmpAddress);
 		frame->AddOpCode(offset);
 
-		frame->GetIntegerNums()[jmpIfFalseOffset] = (double)frame->GetOpCodeSize() - 1.0;
+		frame->GetIntNumNums()[jmpIfFalseOffset] = (double)frame->GetOpCodeSize() - 1.0;
 	}
 
 	void Compiler::CompileFunctionStmt(FunctionStmt* stmt, Frame* frame)
@@ -165,7 +165,7 @@ namespace lws
 		lambdaFrame->AddOpCode(OP_EXIT_SCOPE);
 
 		frame->AddOpCode(OP_NEW_LAMBDA);
-		size_t offset = frame->AddIntegerNum(frame->AddLambdaFrame(lambdaFrame));
+		size_t offset = frame->AddIntNumNum(frame->AddLambdaFrame(lambdaFrame));
 		frame->AddOpCode(offset);
 	}
 
@@ -225,10 +225,10 @@ namespace lws
 		switch (expr->Type())
 		{
 		case AstType::FLOATING:
-			CompileFloatingExpr((FloatingExpr*)expr, frame);
+			CompileRealNumExpr((RealNumExpr*)expr, frame);
 			break;
 		case AstType::INTEGER:
-			CompileIntegerExpr((IntegerExpr*)expr, frame);
+			CompileIntNumExpr((IntNumExpr*)expr, frame);
 			break;
 		case AstType::STR:
 			CompileStrExpr((StrExpr*)expr, frame);
@@ -283,17 +283,17 @@ namespace lws
 		}
 	}
 
-	void Compiler::CompileIntegerExpr(IntegerExpr* expr, Frame* frame)
+	void Compiler::CompileIntNumExpr(IntNumExpr* expr, Frame* frame)
 	{
 		frame->AddOpCode(OP_NEW_INTEGER);
-		size_t offset = frame->AddIntegerNum(expr->value);
+		size_t offset = frame->AddIntNumNum(expr->value);
 		frame->AddOpCode(offset);
 	}
 
-	void Compiler::CompileFloatingExpr(FloatingExpr* expr, Frame* frame)
+	void Compiler::CompileRealNumExpr(RealNumExpr* expr, Frame* frame)
 	{
 		frame->AddOpCode(OP_NEW_FLOATING);
-		size_t offset = frame->AddFloatingNum(expr->value);
+		size_t offset = frame->AddRealNumNum(expr->value);
 		frame->AddOpCode(offset);
 	}
 
@@ -325,13 +325,13 @@ namespace lws
 			frame->AddOpCode(OP_SET_VAR);
 		else if (state == INIT)
 			frame->AddOpCode(OP_DEFINE_VAR);
-		else if (state == CLASS_READ)
+		else if (state == CLASS_PUBLIC_MEMBER_READ)
 			frame->AddOpCode(OP_GET_CLASS_VAR);
-		else if (state == CLASS_WRITE)
+		else if (state == CLASS_PUBLIC_MEMBER_WRITE)
 			frame->AddOpCode(OP_SET_CLASS_VAR);
 		else if (state == FUNCTION_READ)
 			frame->AddOpCode(OP_GET_FUNCTION);
-		else if (state == CLASS_FUNCTION_READ)
+		else if (state == CLASS_PUBLIC_FUNCTION_READ)
 			frame->AddOpCode(OP_GET_CLASS_FUNCTION);
 
 		uint64_t offset = frame->AddString(expr->literal);
@@ -349,7 +349,7 @@ namespace lws
 			CompileExpr(e, frame);
 
 		frame->AddOpCode(OP_NEW_ARRAY);
-		size_t offset = frame->AddIntegerNum((int64_t)expr->elements.size());
+		size_t offset = frame->AddIntNumNum((int64_t)expr->elements.size());
 		frame->AddOpCode(offset);
 	}
 
@@ -361,7 +361,7 @@ namespace lws
 			CompileExpr(key, frame);
 		}
 		frame->AddOpCode(OP_NEW_TABLE);
-		uint64_t offset = frame->AddIntegerNum((int64_t)expr->elements.size());
+		uint64_t offset = frame->AddIntNumNum((int64_t)expr->elements.size());
 		frame->AddOpCode(offset);
 	}
 
@@ -522,7 +522,7 @@ namespace lws
 		}
 		//argument count
 		frame->AddOpCode(OP_NEW_INTEGER);
-		uint64_t offset = frame->AddIntegerNum((int64_t)expr->arguments.size()+extraArgCount);
+		uint64_t offset = frame->AddIntNumNum((int64_t)expr->arguments.size()+extraArgCount);
 		frame->AddOpCode(offset);
 
 
@@ -535,14 +535,14 @@ namespace lws
 		CompileExpr(expr->callee, frame);
 
 		if (expr->callMember->Type() == AstType::CLASS_CALL)//continuous class call such as a.b.c;
-			CompileExpr(((ClassCallExpr*)expr->callMember)->callee, frame, CLASS_READ);
+			CompileExpr(((ClassCallExpr*)expr->callMember)->callee, frame, CLASS_PUBLIC_MEMBER_READ);
 
 		if (state == READ)
-			CompileExpr(expr->callMember, frame, CLASS_READ);
+			CompileExpr(expr->callMember, frame, CLASS_PUBLIC_MEMBER_READ);
 		else if (state == WRITE)
-			CompileExpr(expr->callMember, frame, CLASS_WRITE);
+			CompileExpr(expr->callMember, frame, CLASS_PUBLIC_MEMBER_WRITE);
 		else if(state==FUNCTION_READ)
-			CompileExpr(expr->callMember, frame, CLASS_FUNCTION_READ);
+			CompileExpr(expr->callMember, frame, CLASS_PUBLIC_FUNCTION_READ);
 
 	}
 }

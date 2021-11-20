@@ -26,16 +26,16 @@ namespace lws
 		return m_Codes.size();
 	}
 
-	uint64_t Frame::AddFloatingNum(double value)
+	uint64_t Frame::AddRealNumNum(double value)
 	{
-		m_FloatingNums.emplace_back(value);
-		return m_FloatingNums.size() - 1;
+		m_RealNumNums.emplace_back(value);
+		return m_RealNumNums.size() - 1;
 	}
 
-	uint64_t Frame::AddIntegerNum(int64_t value)
+	uint64_t Frame::AddIntNumNum(int64_t value)
 	{
-		m_IntegerNums.emplace_back(value);
-		return m_IntegerNums.size() - 1;
+		m_IntNumNums.emplace_back(value);
+		return m_IntNumNums.size() - 1;
 	}
 
 	uint64_t Frame::AddString(std::string_view value)
@@ -44,14 +44,14 @@ namespace lws
 		return m_Strings.size() - 1;
 	}
 
-	std::vector<double>& Frame::GetFloatingNums()
+	std::vector<double>& Frame::GetRealNumNums()
 	{
-		return m_FloatingNums;
+		return m_RealNumNums;
 	}
 
-	std::vector<int64_t>& Frame::GetIntegerNums()
+	std::vector<int64_t>& Frame::GetIntNumNums()
 	{
-		return m_IntegerNums;
+		return m_IntNumNums;
 	}
 
 	uint64_t Frame::AddLambdaFrame(Frame* frame)
@@ -201,10 +201,10 @@ namespace lws
 				SINGLE_INSTR_STRINGIFY(OP_RETURN);
 				break;
 			case OP_NEW_FLOATING:
-				CONSTANT_INSTR_STRINGIFY(OP_NEW_FLOATING, m_FloatingNums);
+				CONSTANT_INSTR_STRINGIFY(OP_NEW_FLOATING, m_RealNumNums);
 				break;
 			case OP_NEW_INTEGER:
-				CONSTANT_INSTR_STRINGIFY(OP_NEW_INTEGER, m_IntegerNums);
+				CONSTANT_INSTR_STRINGIFY(OP_NEW_INTEGER, m_IntNumNums);
 				break;
 			case OP_NEW_STR:
 				CONSTANT_INSTR_STRINGIFY(OP_NEW_STR, m_Strings);
@@ -291,13 +291,13 @@ namespace lws
 				CONSTANT_INSTR_STRINGIFY(OP_SET_VAR, m_Strings);
 				break;
 			case OP_NEW_ARRAY:
-				CONSTANT_INSTR_STRINGIFY(OP_NEW_ARRAY, m_IntegerNums);
+				CONSTANT_INSTR_STRINGIFY(OP_NEW_ARRAY, m_IntNumNums);
 				break;
 			case OP_NEW_TABLE:
-				CONSTANT_INSTR_STRINGIFY(OP_NEW_TABLE, m_IntegerNums);
+				CONSTANT_INSTR_STRINGIFY(OP_NEW_TABLE, m_IntNumNums);
 				break;
 			case OP_NEW_LAMBDA:
-				CONSTANT_INSTR_STRINGIFY(OP_NEW_LAMBDA, m_IntegerNums);
+				CONSTANT_INSTR_STRINGIFY(OP_NEW_LAMBDA, m_IntNumNums);
 				break;
 			case OP_NEW_CLASS:
 				CONSTANT_INSTR_STRINGIFY(OP_NEW_CLASS, m_Strings);
@@ -327,10 +327,10 @@ namespace lws
 				SINGLE_INSTR_STRINGIFY(OP_EXIT_SCOPE);
 				break;
 			case OP_JUMP:
-				CONSTANT_INSTR_STRINGIFY(OP_JUMP, m_IntegerNums);
+				CONSTANT_INSTR_STRINGIFY(OP_JUMP, m_IntNumNums);
 				break;
 			case OP_JUMP_IF_FALSE:
-				CONSTANT_INSTR_STRINGIFY(OP_JUMP_IF_FALSE, m_IntegerNums);
+				CONSTANT_INSTR_STRINGIFY(OP_JUMP_IF_FALSE, m_IntNumNums);
 				break;
 			case OP_FUNCTION_CALL:
 				SINGLE_INSTR_STRINGIFY(OP_FUNCTION_CALL);
@@ -352,8 +352,8 @@ namespace lws
 	void Frame::Clear()
 	{
 		std::vector<uint64_t>().swap(m_Codes);
-		std::vector<double>().swap(m_FloatingNums);
-		std::vector<int64_t>().swap(m_IntegerNums);
+		std::vector<double>().swap(m_RealNumNums);
+		std::vector<int64_t>().swap(m_IntNumNums);
 		std::vector<std::string>().swap(m_Strings);
 
 		for (auto funcFrame : m_LambdaFrames)

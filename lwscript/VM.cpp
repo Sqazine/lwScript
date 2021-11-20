@@ -20,12 +20,12 @@ namespace lws
 		Gc();
 	}
 
-	FloatingObject *VM::CreateFloatingObject(double value)
+	RealNumObject *VM::CreateRealNumObject(double value)
 	{
 		if (curObjCount == maxObjCount)
 			Gc();
 
-		FloatingObject *object = new FloatingObject(value);
+		RealNumObject *object = new RealNumObject(value);
 		object->marked = false;
 
 		object->next = firstObject;
@@ -36,12 +36,12 @@ namespace lws
 		return object;
 	}
 
-	IntegerObject *VM::CreateIntegerObject(int64_t value)
+	IntNumObject *VM::CreateIntNumObject(int64_t value)
 	{
 		if (curObjCount == maxObjCount)
 			Gc();
 
-		IntegerObject *object = new IntegerObject(value);
+		IntNumObject *object = new IntNumObject(value);
 		object->marked = false;
 
 		object->next = firstObject;
@@ -130,12 +130,14 @@ namespace lws
 		return object;
 	}
 
-	ClassObject *VM::CreateClassObject(std::string_view name, const std::unordered_map<std::string, Object *> &members)
+	ClassObject *VM::CreateClassObject(std::string_view name, const std::unordered_map<std::string, Object *> &pubMembers,
+									   const std::unordered_map<std::string, Object *> &proMembers,
+									   const std::unordered_map<std::string, Object *> &priMembers)
 	{
 		if (curObjCount == maxObjCount)
 			Gc();
 
-		ClassObject *object = new ClassObject(name, members);
+		ClassObject *object = new ClassObject(name, pubMembers,proMembers,priMembers);
 		object->marked = false;
 
 		object->next = firstObject;
@@ -187,13 +189,13 @@ namespace lws
 		Object *left = PopObject();                                                                          \
 		Object *right = PopObject();                                                                         \
 		if (IS_INTEGER_OBJ(right) && IS_INTEGER_OBJ(left))                                                   \
-			PushObject(CreateIntegerObject(TO_INTEGER_OBJ(left)->value op TO_INTEGER_OBJ(right)->value));    \
+			PushObject(CreateIntNumObject(TO_INTEGER_OBJ(left)->value op TO_INTEGER_OBJ(right)->value));    \
 		else if (IS_INTEGER_OBJ(right) && IS_FLOATING_OBJ(left))                                             \
-			PushObject(CreateFloatingObject(TO_FLOATING_OBJ(left)->value op TO_INTEGER_OBJ(right)->value));  \
+			PushObject(CreateRealNumObject(TO_FLOATING_OBJ(left)->value op TO_INTEGER_OBJ(right)->value));  \
 		else if (IS_FLOATING_OBJ(right) && IS_INTEGER_OBJ(left))                                             \
-			PushObject(CreateFloatingObject(TO_INTEGER_OBJ(left)->value op TO_FLOATING_OBJ(right)->value));  \
+			PushObject(CreateRealNumObject(TO_INTEGER_OBJ(left)->value op TO_FLOATING_OBJ(right)->value));  \
 		else if (IS_FLOATING_OBJ(right) && IS_FLOATING_OBJ(left))                                            \
-			PushObject(CreateFloatingObject(TO_FLOATING_OBJ(left)->value op TO_FLOATING_OBJ(right)->value)); \
+			PushObject(CreateRealNumObject(TO_FLOATING_OBJ(left)->value op TO_FLOATING_OBJ(right)->value)); \
 		else                                                                                                 \
 			Assert("Invalid binary op:" + left->Stringify() + (#op) + right->Stringify());                   \
 	} while (0);
@@ -204,7 +206,7 @@ namespace lws
 		Object *left = PopObject();                                                                       \
 		Object *right = PopObject();                                                                      \
 		if (IS_INTEGER_OBJ(right) && IS_INTEGER_OBJ(left))                                                \
-			PushObject(CreateIntegerObject(TO_INTEGER_OBJ(left)->value op TO_INTEGER_OBJ(right)->value)); \
+			PushObject(CreateIntNumObject(TO_INTEGER_OBJ(left)->value op TO_INTEGER_OBJ(right)->value)); \
 		else                                                                                              \
 			Assert("Invalid binary op:" + left->Stringify() + (#op) + right->Stringify());                \
 	} while (0);
@@ -252,10 +254,10 @@ namespace lws
 				return PopObject();
 				break;
 			case OP_NEW_FLOATING:
-				PushObject(CreateFloatingObject(frame->m_FloatingNums[frame->m_Codes[++ip]]));
+				PushObject(CreateRealNumObject(frame->m_RealNumNums[frame->m_Codes[++ip]]));
 				break;
 			case OP_NEW_INTEGER:
-				PushObject(CreateIntegerObject(frame->m_IntegerNums[frame->m_Codes[++ip]]));
+				PushObject(CreateIntNumObject(frame->m_IntNumNums[frame->m_Codes[++ip]]));
 				break;
 			case OP_NEW_STR:
 				PushObject(CreateStrObject(frame->m_Strings[frame->m_Codes[++ip]]));
@@ -273,9 +275,9 @@ namespace lws
 			{
 				Object *object = PopObject();
 				if (IS_FLOATING_OBJ(object))
-					PushObject(CreateFloatingObject(-TO_FLOATING_OBJ(object)->value));
+					PushObject(CreateRealNumObject(-TO_FLOATING_OBJ(object)->value));
 				else if (IS_INTEGER_OBJ(object))
-					PushObject(CreateIntegerObject(-TO_INTEGER_OBJ(object)->value));
+					PushObject(CreateIntNumObject(-TO_INTEGER_OBJ(object)->value));
 				else
 					Assert("Invalid op:'-'" + object->Stringify());
 				break;
@@ -317,7 +319,7 @@ namespace lws
 			{
 				Object *object = PopObject();
 				if (IS_INTEGER_OBJ(object))
-					PushObject(CreateIntegerObject(~TO_INTEGER_OBJ(object)->value));
+					PushObject(CreateIntNumObject(~TO_INTEGER_OBJ(object)->value));
 				else
 					Assert("Invalid op:'~'" + object->Stringify());
 				break;
@@ -387,7 +389,7 @@ namespace lws
 			case OP_NEW_ARRAY:
 			{
 				std::vector<Object *> elements;
-				int64_t arraySize = (int64_t)frame->m_IntegerNums[frame->m_Codes[++ip]];
+				int64_t arraySize = (int64_t)frame->m_IntNumNums[frame->m_Codes[++ip]];
 				for (int64_t i = 0; i < arraySize; ++i)
 					elements.insert(elements.begin(), PopObject());
 				PushObject(CreateArrayObject(elements));
@@ -396,7 +398,7 @@ namespace lws
 			case OP_NEW_TABLE:
 			{
 				std::unordered_map<Object *, Object *> elements;
-				int64_t tableSize = (int64_t)frame->m_IntegerNums[frame->m_Codes[++ip]];
+				int64_t tableSize = (int64_t)frame->m_IntNumNums[frame->m_Codes[++ip]];
 				for (int64_t i = 0; i < tableSize; ++i)
 				{
 					Object *key = PopObject();
@@ -493,7 +495,7 @@ namespace lws
 				if (!IS_CLASS_OBJ(stackTop))
 					Assert("Not a class object of the callee of:" + memberName);
 				ClassObject *classObj = TO_CLASS_OBJ(stackTop);
-				PushObject(classObj->GetMember(memberName));
+				PushObject(classObj->GetPublicMember(memberName));
 				break;
 			}
 			case OP_SET_CLASS_VAR:
@@ -506,7 +508,7 @@ namespace lws
 
 				Object *assigner = PopObject();
 
-				classObj->AssignMember(memberName, assigner);
+				classObj->AssignPublicMember(memberName, assigner);
 				break;
 			}
 			case OP_GET_CLASS_FUNCTION:
@@ -526,9 +528,9 @@ namespace lws
 
 				if(classFrame->HasFunctionFrame(memberName))
 						PushFrame(classFrame->GetFunctionFrame(memberName));
-				else if (classObj->GetMember(memberName) != nullptr)//lambda:let add=function(){return 10;}
+				else if (classObj->GetPublicMember(memberName) != nullptr)//lambda:let add=function(){return 10;}
 				{
-					Object* lambdaObject = classObj->GetMember(memberName);
+					Object* lambdaObject = classObj->GetPublicMember(memberName);
 					if (!IS_FUNCTION_OBJ(lambdaObject))
 						Assert("No lambda object:"+memberName+" in class:" + classType);
 					PushFrame(classFrame->GetLambdaFrame(TO_FUNCTION_OBJ(lambdaObject)->frameIndex));
@@ -553,7 +555,7 @@ namespace lws
 			case OP_JUMP_IF_FALSE:
 			{
 				bool isJump = !TO_BOOL_OBJ(PopObject())->value;
-				uint64_t address = (uint64_t)(frame->m_IntegerNums[frame->m_Codes[++ip]]);
+				uint64_t address = (uint64_t)(frame->m_IntNumNums[frame->m_Codes[++ip]]);
 
 				if (isJump)
 					ip = address;
@@ -561,7 +563,7 @@ namespace lws
 			}
 			case OP_JUMP:
 			{
-				uint64_t address = (uint64_t)(frame->m_IntegerNums[frame->m_Codes[++ip]]);
+				uint64_t address = (uint64_t)(frame->m_IntNumNums[frame->m_Codes[++ip]]);
 				ip = address;
 				break;
 			}
@@ -585,7 +587,7 @@ namespace lws
 			}
 			case OP_FUNCTION_CALL:
 			{
-				IntegerObject *argCount = TO_INTEGER_OBJ(PopObject());
+				IntNumObject *argCount = TO_INTEGER_OBJ(PopObject());
 
 				if (!IsFrameStackEmpty())
 				{
@@ -620,7 +622,7 @@ namespace lws
 				break;
 			}
 			case OP_NEW_LAMBDA:
-				PushObject(CreateFunctionObject(frame->m_IntegerNums[frame->m_Codes[++ip]]));
+				PushObject(CreateFunctionObject(frame->m_IntNumNums[frame->m_Codes[++ip]]));
 				break;
 			case OP_REF:
 			{

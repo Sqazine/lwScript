@@ -156,11 +156,11 @@ namespace lws
                 Assert("[Native function 'sizeof']:Expect a argument.");
 
             if (IS_ARRAY_OBJ(args[0]))
-                return m_VMHandle->CreateIntegerObject(TO_ARRAY_OBJ(args[0])->elements.size());
+                return m_VMHandle->CreateIntNumObject(TO_ARRAY_OBJ(args[0])->elements.size());
             else if(IS_TABLE_OBJ(args[0]))
-                return m_VMHandle->CreateIntegerObject(TO_TABLE_OBJ(args[0])->elements.size());
+                return m_VMHandle->CreateIntNumObject(TO_TABLE_OBJ(args[0])->elements.size());
             else if(IS_STR_OBJ(args[0]))
-                return m_VMHandle->CreateIntegerObject(TO_STR_OBJ(args[0])->value.size());
+                return m_VMHandle->CreateIntNumObject(TO_STR_OBJ(args[0])->value.size());
             else 
                 Assert("[Native function 'sizeof']:Expect a array,table ot string argument.");
             return nullptr;

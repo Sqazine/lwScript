@@ -12,9 +12,9 @@ namespace lws
 		READ,
 		WRITE,
 		FUNCTION_READ,
-		CLASS_FUNCTION_READ,
-		CLASS_READ,
-		CLASS_WRITE,
+		CLASS_PUBLIC_FUNCTION_READ,
+		CLASS_PUBLIC_MEMBER_READ,
+		CLASS_PUBLIC_MEMBER_WRITE,
 	};
 	class Compiler
 	{
@@ -38,8 +38,8 @@ namespace lws
 		void CompileClassStmt(ClassStmt *stmt, Frame *frame);
 
 		void CompileExpr(Expr *expr, Frame *frame, ObjectState state = READ);
-		void CompileIntegerExpr(IntegerExpr *expr, Frame *frame);
-		void CompileFloatingExpr(FloatingExpr *expr, Frame *frame);
+		void CompileIntNumExpr(IntNumExpr *expr, Frame *frame);
+		void CompileRealNumExpr(RealNumExpr *expr, Frame *frame);
 		void CompileStrExpr(StrExpr *expr, Frame *frame);
 		void CompileBoolExpr(BoolExpr *expr, Frame *frame);
 		void CompileNilExpr(NilExpr *expr, Frame *frame);

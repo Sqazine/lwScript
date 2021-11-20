@@ -58,11 +58,11 @@ namespace lws
 		virtual AstType Type() = 0;
 	};
 
-	struct IntegerExpr : public Expr
+	struct IntNumExpr : public Expr
 	{
-		IntegerExpr() : value(0) {}
-		IntegerExpr(int64_t value) : value(value) {}
-		~IntegerExpr() {}
+		IntNumExpr() : value(0) {}
+		IntNumExpr(int64_t value) : value(value) {}
+		~IntNumExpr() {}
 
 		std::string Stringify() override { return std::to_string(value); }
 		AstType Type() override { return AstType::INTEGER; }
@@ -70,11 +70,11 @@ namespace lws
 		int64_t value;
 	};
 
-	struct FloatingExpr : public Expr
+	struct RealNumExpr : public Expr
 	{
-		FloatingExpr() : value(0.0) {}
-		FloatingExpr(double value) : value(value) {}
-		~FloatingExpr() {}
+		RealNumExpr() : value(0.0) {}
+		RealNumExpr(double value) : value(value) {}
+		~RealNumExpr() {}
 
 		std::string Stringify() override { return std::to_string(value); }
 		AstType Type() override { return AstType::FLOATING; }

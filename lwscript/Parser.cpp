@@ -469,9 +469,9 @@ namespace lws
 	{
 		std::string numLiteral = Consume(TokenType::NUMBER, "Expexct a number literal.").literal;
 		if (numLiteral.find('.') != std::string::npos)
-			return new FloatingExpr(std::stod(numLiteral));
+			return new RealNumExpr(std::stod(numLiteral));
 		else
-			return new IntegerExpr(std::stoll(numLiteral));
+			return new IntNumExpr(std::stoll(numLiteral));
 	}
 
 	Expr* Parser::ParseStrExpr()
