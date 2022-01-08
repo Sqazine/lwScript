@@ -260,9 +260,6 @@ namespace lws
 			case OP_LESS:
 				SINGLE_INSTR_STRINGIFY(OP_LESS);
 				break;
-			case OP_LESS_EQUAL:
-				SINGLE_INSTR_STRINGIFY(OP_LESS_EQUAL);
-				break;
 			case OP_EQUAL:
 				SINGLE_INSTR_STRINGIFY(OP_EQUAL);
 				break;

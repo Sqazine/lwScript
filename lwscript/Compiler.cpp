@@ -431,7 +431,10 @@ namespace lws
 				frame->AddOpCode(OP_NOT);
 			}
 			else if (expr->op == "<=")
-				frame->AddOpCode(OP_LESS_EQUAL);
+			{
+				frame->AddOpCode(OP_GREATER);
+				frame->AddOpCode(OP_NOT);
+			}
 			else if (expr->op == "==")
 				frame->AddOpCode(OP_EQUAL);
 			else if (expr->op == "!=")

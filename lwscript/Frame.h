@@ -45,7 +45,6 @@ namespace lws
 		OP_BIT_RIGHT_SHIFT,
 		OP_GREATER,
 		OP_LESS,
-		OP_LESS_EQUAL,
 		OP_EQUAL,
 		OP_NOT,
 		OP_OR,
