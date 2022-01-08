@@ -336,9 +336,6 @@ namespace lws
 			case OP_LESS:
 				COMPARE_BINARY(<);
 				break;
-			case OP_GREATER_EQUAL:
-				COMPARE_BINARY(>=);
-				break;
 			case OP_LESS_EQUAL:
 				COMPARE_BINARY(<=);
 				break;
