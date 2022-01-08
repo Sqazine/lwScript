@@ -48,7 +48,6 @@ namespace lws
 		OP_GREATER_EQUAL,
 		OP_LESS_EQUAL,
 		OP_EQUAL,
-		OP_NOT_EQUAL,
 		OP_NOT,
 		OP_OR,
 		OP_AND,

@@ -345,9 +345,6 @@ namespace lws
 			case OP_EQUAL:
 				COMPARE_BINARY(==);
 				break;
-			case OP_NOT_EQUAL:
-				COMPARE_BINARY(!=);
-				break;
 			case OP_AND:
 				LOGIC_BINARY(&&);
 				break;
