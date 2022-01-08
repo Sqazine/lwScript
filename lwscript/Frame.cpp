@@ -275,8 +275,8 @@ namespace lws
 			case OP_GET_VAR:
 				CONSTANT_INSTR_STRINGIFY(OP_GET_VAR, m_Strings);
 				break;
-			case OP_DEFINE_VAR:
-				CONSTANT_INSTR_STRINGIFY(OP_DEFINE_VAR, m_Strings);
+			case OP_NEW_VAR:
+				CONSTANT_INSTR_STRINGIFY(OP_NEW_VAR, m_Strings);
 				break;
 			case OP_SET_VAR:
 				CONSTANT_INSTR_STRINGIFY(OP_SET_VAR, m_Strings);

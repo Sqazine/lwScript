@@ -345,7 +345,7 @@ namespace lws
 			case OP_OR:
 				LOGIC_BINARY(||);
 				break;
-			case OP_DEFINE_VAR:
+			case OP_NEW_VAR:
 			{
 				Object *value = PopObject();
 				m_Context->DefineVariableByName(frame->m_Strings[frame->m_Codes[++ip]], value);

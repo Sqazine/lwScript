@@ -324,7 +324,7 @@ namespace lws
 		else if (state == WRITE)
 			frame->AddOpCode(OP_SET_VAR);
 		else if (state == INIT)
-			frame->AddOpCode(OP_DEFINE_VAR);
+			frame->AddOpCode(OP_NEW_VAR);
 		else if (state == CLASS_PUBLIC_MEMBER_READ)
 			frame->AddOpCode(OP_GET_CLASS_VAR);
 		else if (state == CLASS_PUBLIC_MEMBER_WRITE)
