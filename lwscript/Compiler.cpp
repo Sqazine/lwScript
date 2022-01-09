@@ -325,13 +325,13 @@ namespace lws
 			frame->AddOpCode(OP_SET_VAR);
 		else if (state == INIT)
 			frame->AddOpCode(OP_NEW_VAR);
-		else if (state == CLASS_PUBLIC_MEMBER_READ)
+		else if (state == CLASS_MEMBER_READ)
 			frame->AddOpCode(OP_GET_CLASS_VAR);
-		else if (state == CLASS_PUBLIC_MEMBER_WRITE)
+		else if (state == CLASS_MEMBER_WRITE)
 			frame->AddOpCode(OP_SET_CLASS_VAR);
 		else if (state == FUNCTION_READ)
 			frame->AddOpCode(OP_GET_FUNCTION);
-		else if (state == CLASS_PUBLIC_FUNCTION_READ)
+		else if (state == CLASS_FUNCTION_READ)
 			frame->AddOpCode(OP_GET_CLASS_FUNCTION);
 
 		uint64_t offset = frame->AddString(expr->literal);
@@ -534,7 +534,6 @@ namespace lws
 		uint64_t offset = frame->AddIntNumNum((int64_t)expr->arguments.size()+extraArgCount);
 		frame->AddOpCode(offset);
 
-
 		CompileExpr(expr->name, frame, FUNCTION_READ);
 		frame->AddOpCode(OP_FUNCTION_CALL);
 	}
@@ -544,14 +543,13 @@ namespace lws
 		CompileExpr(expr->callee, frame);
 
 		if (expr->callMember->Type() == AstType::CLASS_CALL)//continuous class call such as a.b.c;
-			CompileExpr(((ClassCallExpr*)expr->callMember)->callee, frame, CLASS_PUBLIC_MEMBER_READ);
+			CompileExpr(((ClassCallExpr*)expr->callMember)->callee, frame, CLASS_MEMBER_READ);
 
 		if (state == READ)
-			CompileExpr(expr->callMember, frame, CLASS_PUBLIC_MEMBER_READ);
+			CompileExpr(expr->callMember, frame, CLASS_MEMBER_READ);
 		else if (state == WRITE)
-			CompileExpr(expr->callMember, frame, CLASS_PUBLIC_MEMBER_WRITE);
+			CompileExpr(expr->callMember, frame, CLASS_MEMBER_WRITE);
 		else if(state==FUNCTION_READ)
-			CompileExpr(expr->callMember, frame, CLASS_PUBLIC_FUNCTION_READ);
-
+			CompileExpr(expr->callMember, frame, CLASS_FUNCTION_READ);
 	}
 }
