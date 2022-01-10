@@ -342,7 +342,7 @@ namespace lws
 
 		auto funcStmt = new FunctionStmt();
 
-		funcStmt->name =(IdentifierExpr*)ParseIdentifierExpr();
+		funcStmt->name = (IdentifierExpr*)ParseIdentifierExpr();
 
 		Consume(TokenType::LPAREN, "Expect '(' after 'function' keyword");
 
@@ -399,36 +399,12 @@ namespace lws
 
 		while (!IsMatchCurToken(TokenType::RBRACE))
 		{
-			if (IsMatchCurTokenAndStepOnce(TokenType::PUBLIC))
-			{
-				if (IsMatchCurToken(TokenType::LET))
-					classStmt->pubLetStmts.emplace_back((LetStmt*)ParseLetStmt());
-				else if (IsMatchCurToken(TokenType::FUNCTION))
-					classStmt->pubFnStmts.emplace_back((FunctionStmt*)ParseFunctionStmt());
-				else
-					Consume({ TokenType::LET ,TokenType::FUNCTION }, "UnExpect identifier '" + GetCurToken().literal + "'.");
-			}
-			else if (IsMatchCurTokenAndStepOnce(TokenType::PROTECTED))
-			{
-				if (IsMatchCurToken(TokenType::LET))
-					classStmt->proLetStmts.emplace_back((LetStmt*)ParseLetStmt());
-				else if (IsMatchCurToken(TokenType::FUNCTION))
-					classStmt->proFnStmts.emplace_back((FunctionStmt*)ParseFunctionStmt());
-				else
-					Consume({ TokenType::LET ,TokenType::FUNCTION }, "UnExpect identifier '" + GetCurToken().literal + "'.");
-			}
+			if (IsMatchCurToken(TokenType::LET))
+				classStmt->letStmts.emplace_back((LetStmt*)ParseLetStmt());
+			else if (IsMatchCurToken(TokenType::FUNCTION))
+				classStmt->fnStmts.emplace_back((FunctionStmt*)ParseFunctionStmt());
 			else
-			{
-				if (IsMatchCurToken(TokenType::PRIVATE))
-					GetCurTokenAndStepOnce();
-
-				if (IsMatchCurToken(TokenType::LET))
-					classStmt->priLetStmts.emplace_back((LetStmt*)ParseLetStmt());
-				else if (IsMatchCurToken(TokenType::FUNCTION))
-					classStmt->priFnStmts.emplace_back((FunctionStmt*)ParseFunctionStmt());
-				else
-					Consume({ TokenType::LET ,TokenType::FUNCTION }, "UnExpect identifier '" + GetCurToken().literal + "'.");
-			}
+				Consume({ TokenType::LET ,TokenType::FUNCTION }, "UnExpect identifier '" + GetCurToken().literal + "'.");
 		}
 
 		Consume(TokenType::RBRACE, "Expect '}' after class stmt's '{'");
@@ -447,7 +423,7 @@ namespace lws
 
 		auto leftExpr = (this->*prefixFn)();
 
-		while (!IsMatchCurToken(TokenType::SEMICOLON) &&(GetCurTokenAssociativity()==Associativity::L2R? precedence < GetCurTokenPrecedence(): precedence <= GetCurTokenPrecedence()))
+		while (!IsMatchCurToken(TokenType::SEMICOLON) && (GetCurTokenAssociativity() == Associativity::L2R ? precedence < GetCurTokenPrecedence() : precedence <= GetCurTokenPrecedence()))
 		{
 			if (m_InfixFunctions.find(GetCurToken().type) == m_InfixFunctions.end())
 				return leftExpr;

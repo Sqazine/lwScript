@@ -70,10 +70,10 @@ namespace lws
 			else if (IS_CLASS_OBJ(contextValue))
 			{
 				ClassObject* klass = TO_CLASS_OBJ(contextValue);
-				for (auto [classMemberKey, classMemberValue] : klass->pubMembers)
+				for (auto [classMemberKey, classMemberValue] : klass->members)
 					if (PointerAddressToString(classMemberValue) == address)
 					{
-						klass->pubMembers[classMemberKey] = value;
+						klass->members[classMemberKey] = value;
 						return;
 					}
 			}
@@ -108,9 +108,9 @@ namespace lws
 			else if (IS_CLASS_OBJ(contextValue))
 			{
 				ClassObject* klass = TO_CLASS_OBJ(contextValue);
-				for (auto [classMemberKey, classMemberValue] : klass->pubMembers)
+				for (auto [classMemberKey, classMemberValue] : klass->members)
 					if (PointerAddressToString(classMemberValue) == address)
-						return klass->pubMembers[classMemberKey];
+						return klass->members[classMemberKey];
 			}
 		}
 

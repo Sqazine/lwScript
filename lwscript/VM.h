@@ -32,9 +32,7 @@ namespace lws
 		NilObject *CreateNilObject();
 		ArrayObject *CreateArrayObject(const std::vector<Object *> &elements = {});
 		TableObject *CreateTableObject(const std::unordered_map<Object *, Object *> &elements = {});
-		ClassObject *CreateClassObject(std::string_view name, const std::unordered_map<std::string, Object *> &pubMembers,
-									   const std::unordered_map<std::string, Object *> &proMembers={},
-									   const std::unordered_map<std::string, Object *> &priMembers={});
+		ClassObject *CreateClassObject(std::string_view name, const std::unordered_map<std::string, Object *> &members);
 		FunctionObject *CreateFunctionObject(int64_t frameIdx);
 		RefObject *CreateRefObject(std::string_view address);
 

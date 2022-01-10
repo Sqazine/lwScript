@@ -519,55 +519,29 @@ namespace lws
 	{
 		ClassStmt() {}
 		ClassStmt(std::string name,
-			std::vector<LetStmt*> pubLetStmts,
-			std::vector<LetStmt*> proLetStmts,
-			std::vector<LetStmt*> priLetStmts,
-			std::vector<FunctionStmt*> pubFnStmts,
-			std::vector<FunctionStmt*> proFnStmts,
-			std::vector<FunctionStmt*> priFnStmts)
-			: name(name),
-			pubLetStmts(pubLetStmts),
-			proLetStmts(proLetStmts),
-			priLetStmts(priLetStmts),
-			pubFnStmts(pubFnStmts),
-			proFnStmts(proFnStmts),
-			priFnStmts(priFnStmts) {}
+			std::vector<LetStmt*> letStmts,
+			std::vector<FunctionStmt*> fnStmts)
+			: name(name),letStmts(letStmts),fnStmts(fnStmts){}
 		~ClassStmt() {
-			std::vector<LetStmt*>().swap(pubLetStmts);
-			std::vector<LetStmt*>().swap(proLetStmts);
-			std::vector<LetStmt*>().swap(priLetStmts);
-			std::vector<FunctionStmt*>().swap(pubFnStmts);
-			std::vector<FunctionStmt*>().swap(proFnStmts);
-			std::vector<FunctionStmt*>().swap(priFnStmts);
+			std::vector<LetStmt*>().swap(letStmts);
+			std::vector<FunctionStmt*>().swap(fnStmts);
 		}
 
 		std::string Stringify() override
 		{
 			std::string result = "class " + name + "{\n";
-			for (auto letStmt : pubLetStmts)
-				result += "public " + letStmt->Stringify() + "\n";
-			for (auto letStmt : proLetStmts)
-				result += "protected " + letStmt->Stringify() + "\n";
-			for (auto letStmt : priLetStmts)
-				result += "private " + letStmt->Stringify() + "\n";
-
-			for (auto functionStmt : pubFnStmts)
-				result += "public " + functionStmt->Stringify() + "\n";
-			for (auto functionStmt : proFnStmts)
-				result += "protected " + functionStmt->Stringify() + "\n";
-			for (auto functionStmt : priFnStmts)
-				result += "private " + functionStmt->Stringify() + "\n";
+			for (auto letStmt : letStmts)
+				result += letStmt->Stringify() + "\n";
+			for (auto fnStmt : fnStmts)
+				result += fnStmt->Stringify() + "\n";
 			return result + "}";
 		}
 		AstType Type() override { return AstType::CLASS; }
 
 		std::string name;
-		std::vector<LetStmt*> pubLetStmts;
-		std::vector<LetStmt*> proLetStmts;
-		std::vector<LetStmt*> priLetStmts;
-		std::vector<FunctionStmt*> pubFnStmts;
-		std::vector<FunctionStmt*> proFnStmts;
-		std::vector<FunctionStmt*> priFnStmts;
+		std::vector<LetStmt*> letStmts;
+		std::vector<FunctionStmt*> fnStmts;
+
 	};
 
 	struct WhileStmt : public Stmt

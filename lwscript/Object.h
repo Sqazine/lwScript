@@ -52,10 +52,10 @@ namespace lws
 		virtual ObjectType Type() = 0;
 		virtual void Mark() = 0;
 		virtual void UnMark() = 0;
-		virtual bool IsEqualTo(Object *other) = 0;
+		virtual bool IsEqualTo(Object* other) = 0;
 
 		bool marked;
-		Object *next;
+		Object* next;
 	};
 
 	struct IntNumObject : public Object
@@ -68,7 +68,7 @@ namespace lws
 		ObjectType Type() override { return ObjectType::INTEGER; }
 		void Mark() override { marked = true; }
 		void UnMark() override { marked = false; }
-		bool IsEqualTo(Object *other) override
+		bool IsEqualTo(Object* other) override
 		{
 			if (!IS_INTEGER_OBJ(other))
 				return false;
@@ -88,7 +88,7 @@ namespace lws
 		ObjectType Type() override { return ObjectType::FLOATING; }
 		void Mark() override { marked = true; }
 		void UnMark() override { marked = false; }
-		bool IsEqualTo(Object *other) override
+		bool IsEqualTo(Object* other) override
 		{
 			if (!IS_FLOATING_OBJ(other))
 				return false;
@@ -108,7 +108,7 @@ namespace lws
 		ObjectType Type() override { return ObjectType::STR; }
 		void Mark() override { marked = true; }
 		void UnMark() override { marked = false; }
-		bool IsEqualTo(Object *other) override
+		bool IsEqualTo(Object* other) override
 		{
 			if (!IS_STR_OBJ(other))
 				return false;
@@ -128,7 +128,7 @@ namespace lws
 		ObjectType Type() override { return ObjectType::BOOL; }
 		void Mark() override { marked = true; }
 		void UnMark() override { marked = false; }
-		bool IsEqualTo(Object *other) override
+		bool IsEqualTo(Object* other) override
 		{
 			if (!IS_BOOL_OBJ(other))
 				return false;
@@ -147,7 +147,7 @@ namespace lws
 		ObjectType Type() override { return ObjectType::NIL; }
 		void Mark() override { marked = true; }
 		void UnMark() override { marked = false; }
-		bool IsEqualTo(Object *other) override
+		bool IsEqualTo(Object* other) override
 		{
 			if (!IS_NIL_OBJ(other))
 				return false;
@@ -158,7 +158,7 @@ namespace lws
 	struct ArrayObject : public Object
 	{
 		ArrayObject() {}
-		ArrayObject(const std::vector<Object *> &elements) : elements(elements) {}
+		ArrayObject(const std::vector<Object*>& elements) : elements(elements) {}
 		~ArrayObject() {}
 
 		std::string Stringify() override
@@ -166,7 +166,7 @@ namespace lws
 			std::string result = "[";
 			if (!elements.empty())
 			{
-				for (const auto &e : elements)
+				for (const auto& e : elements)
 					result += e->Stringify() + ",";
 				result = result.substr(0, result.size() - 1);
 			}
@@ -180,7 +180,7 @@ namespace lws
 				return;
 			marked = true;
 
-			for (const auto &e : elements)
+			for (const auto& e : elements)
 				e->Mark();
 		}
 		void UnMark() override
@@ -189,16 +189,16 @@ namespace lws
 				return;
 			marked = false;
 
-			for (const auto &e : elements)
+			for (const auto& e : elements)
 				e->UnMark();
 		}
 
-		bool IsEqualTo(Object *other) override
+		bool IsEqualTo(Object* other) override
 		{
 			if (!IS_ARRAY_OBJ(other))
 				return false;
 
-			ArrayObject *arrayOther = TO_ARRAY_OBJ(other);
+			ArrayObject* arrayOther = TO_ARRAY_OBJ(other);
 
 			if (arrayOther->elements.size() != elements.size())
 				return false;
@@ -210,14 +210,14 @@ namespace lws
 			return true;
 		}
 
-		std::vector<Object *> elements;
+		std::vector<Object*> elements;
 	};
 
 	struct TableObject : public Object
 	{
 		TableObject() {}
-		TableObject(const std::unordered_map<Object *, Object *> &elements) : elements(elements) {}
-		~TableObject() { std::unordered_map<Object *, Object *>().swap(elements); }
+		TableObject(const std::unordered_map<Object*, Object*>& elements) : elements(elements) {}
+		~TableObject() { std::unordered_map<Object*, Object*>().swap(elements); }
 
 		std::string Stringify() override
 		{
@@ -257,12 +257,12 @@ namespace lws
 			}
 		}
 
-		bool IsEqualTo(Object *other) override
+		bool IsEqualTo(Object* other) override
 		{
 			if (!IS_TABLE_OBJ(other))
 				return false;
 
-			TableObject *tableOther = TO_TABLE_OBJ(other);
+			TableObject* tableOther = TO_TABLE_OBJ(other);
 
 			if (tableOther->elements.size() != elements.size())
 				return false;
@@ -275,7 +275,7 @@ namespace lws
 			return true;
 		}
 
-		std::unordered_map<Object *, Object *> elements;
+		std::unordered_map<Object*, Object*> elements;
 	};
 
 	struct FunctionObject : public Object
@@ -289,7 +289,7 @@ namespace lws
 		void Mark() override { marked = true; }
 		void UnMark() override { marked = false; }
 
-		bool IsEqualTo(Object *other) override
+		bool IsEqualTo(Object* other) override
 		{
 			if (!IS_FUNCTION_OBJ(other))
 				return false;
@@ -308,7 +308,7 @@ namespace lws
 		ObjectType Type() override { return ObjectType::REF; }
 		void Mark() override { marked = true; }
 		void UnMark() override { marked = false; }
-		bool IsEqualTo(Object *other) override
+		bool IsEqualTo(Object* other) override
 		{
 			if (!IS_REF_OBJ(other))
 				return false;
@@ -321,30 +321,24 @@ namespace lws
 	{
 		ClassObject() {}
 		ClassObject(std::string_view name,
-					const std::unordered_map<std::string, Object *> &pubMembers,
-					const std::unordered_map<std::string, Object *> &proMembers,
-					const std::unordered_map<std::string, Object *> &priMembers) : name(name), pubMembers(pubMembers), proMembers(proMembers), priMembers(priMembers) {}
+			const std::unordered_map<std::string, Object*>& members) : name(name), members(members) {}
 		~ClassObject() {}
 
 		std::string Stringify() override
 		{
 			std::string result = "class instance " + name;
-			if (!pubMembers.empty() || !proMembers.empty() || !priMembers.empty())
+			if (!members.empty())
 			{
 				result += ":\n";
-				for (const auto &[key, value] : pubMembers)
-					result += "public " + key + "=" + value->Stringify() + "\n";
-				for (const auto &[key, value] : proMembers)
-					result += "protected " + key + "=" + value->Stringify() + "\n";
-				for (const auto &[key, value] : proMembers)
-					result += "private " + key + "=" + value->Stringify() + "\n";
+				for (const auto& [key, value] : members)
+					result += key + "=" + value->Stringify() + "\n";
 			}
 			return result;
 		}
 		ObjectType Type() override { return ObjectType::CLASS; }
 		void Mark() override { marked = true; }
 		void UnMark() override { marked = false; }
-		bool IsEqualTo(Object *other) override
+		bool IsEqualTo(Object* other) override
 		{
 			if (!IS_CLASS_OBJ(other))
 				return false;
@@ -352,49 +346,39 @@ namespace lws
 			if (name != TO_CLASS_OBJ(other)->name)
 				return false;
 
-			for (auto [key1, value1] : pubMembers)
-				for (auto [key2, value2] : TO_CLASS_OBJ(other)->pubMembers)
-					if (key1 != key2 || !value1->IsEqualTo(value2))
-						return false;
-			for (auto [key1, value1] : proMembers)
-				for (auto [key2, value2] : TO_CLASS_OBJ(other)->proMembers)
-					if (key1 != key2 || !value1->IsEqualTo(value2))
-						return false;
-			for (auto [key1, value1] : priMembers)
-				for (auto [key2, value2] : TO_CLASS_OBJ(other)->priMembers)
+			for (auto [key1, value1] : members)
+				for (auto [key2, value2] : TO_CLASS_OBJ(other)->members)
 					if (key1 != key2 || !value1->IsEqualTo(value2))
 						return false;
 			return true;
 		}
 
-		void DefinePublicMember(std::string_view name, Object *value)
+		void DefineMember(std::string_view name, Object* value)
 		{
-			auto iter = pubMembers.find(name.data());
-			if (iter != pubMembers.end())
+			auto iter = members.find(name.data());
+			if (iter != members.end())
 				Assert("Redefined class member:" + std::string(name));
 			else
-				pubMembers[name.data()] = value;
+				members[name.data()] = value;
 		}
 
-		void AssignPublicMember(std::string_view name, Object *value)
+		void AssignMember(std::string_view name, Object* value)
 		{
-			auto iter = pubMembers.find(name.data());
-			if (iter != pubMembers.end())
-				pubMembers[name.data()] = value;
+			auto iter = members.find(name.data());
+			if (iter != members.end())
+				members[name.data()] = value;
 			else
 				Assert("Undefine class member:" + std::string(name));
 		}
 
-		Object *GetPublicMember(std::string_view name)
+		Object* GetMember(std::string_view name)
 		{
-			auto iter = pubMembers.find(name.data());
-			if (iter != pubMembers.end())
+			auto iter = members.find(name.data());
+			if (iter != members.end())
 				return iter->second;
 			return nullptr;
 		}
 		std::string name;
-		std::unordered_map<std::string, Object *> pubMembers;
-		std::unordered_map<std::string, Object *> proMembers;
-		std::unordered_map<std::string, Object *> priMembers;
+		std::unordered_map<std::string, Object*> members;
 	};
 }

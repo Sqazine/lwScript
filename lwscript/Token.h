@@ -64,9 +64,6 @@ namespace lws
 		CLASS,				   // class
 		RETURN,				   // return
 		NEW,				   // new
-		PUBLIC,				   // public
-		PROTECTED,			   // protected
-		PRIVATE,			   // private
 
 		UNKNOWN,
 		END

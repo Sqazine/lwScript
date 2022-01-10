@@ -15,9 +15,6 @@ namespace lws
             {"class", TokenType::CLASS},
             {"return", TokenType::RETURN},
             {"new",TokenType::NEW},
-            {"public",TokenType::PUBLIC},
-            {"protected",TokenType::PROTECTED},
-            {"private",TokenType::PRIVATE}
     };
 
     Lexer::Lexer()
