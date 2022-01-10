@@ -60,7 +60,7 @@ namespace lws
 		NIL,				   // nil
 		WHILE,				   // while
 		FOR,				   // for
-		FUNCTION,			   // function
+		FUNCTION,			   // fn
 		CLASS,				   // class
 		RETURN,				   // return
 		NEW,				   // new

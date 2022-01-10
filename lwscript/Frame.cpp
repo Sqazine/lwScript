@@ -200,11 +200,11 @@ namespace lws
 			case OP_RETURN:
 				SINGLE_INSTR_STRINGIFY(OP_RETURN);
 				break;
-			case OP_NEW_FLOATING:
-				CONSTANT_INSTR_STRINGIFY(OP_NEW_FLOATING, m_RealNumNums);
+			case OP_NEW_REAL:
+				CONSTANT_INSTR_STRINGIFY(OP_NEW_REAL, m_RealNumNums);
 				break;
-			case OP_NEW_INTEGER:
-				CONSTANT_INSTR_STRINGIFY(OP_NEW_INTEGER, m_IntNumNums);
+			case OP_NEW_INT:
+				CONSTANT_INSTR_STRINGIFY(OP_NEW_INT, m_IntNumNums);
 				break;
 			case OP_NEW_STR:
 				CONSTANT_INSTR_STRINGIFY(OP_NEW_STR, m_Strings);

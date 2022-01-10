@@ -256,14 +256,14 @@ namespace lws
 
 	void Compiler::CompileIntNumExpr(IntNumExpr* expr, Frame* frame)
 	{
-		frame->AddOpCode(OP_NEW_INTEGER);
+		frame->AddOpCode(OP_NEW_INT);
 		size_t offset = frame->AddIntNumNum(expr->value);
 		frame->AddOpCode(offset);
 	}
 
 	void Compiler::CompileRealNumExpr(RealNumExpr* expr, Frame* frame)
 	{
-		frame->AddOpCode(OP_NEW_FLOATING);
+		frame->AddOpCode(OP_NEW_REAL);
 		size_t offset = frame->AddRealNumNum(expr->value);
 		frame->AddOpCode(offset);
 	}
@@ -501,7 +501,7 @@ namespace lws
 			extraArgCount++;
 		}
 		//argument count
-		frame->AddOpCode(OP_NEW_INTEGER);
+		frame->AddOpCode(OP_NEW_INT);
 		uint64_t offset = frame->AddIntNumNum((int64_t)expr->arguments.size()+extraArgCount);
 		frame->AddOpCode(offset);
 

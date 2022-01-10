@@ -251,10 +251,10 @@ namespace lws
 			case OP_RETURN:
 				return PopObject();
 				break;
-			case OP_NEW_FLOATING:
+			case OP_NEW_REAL:
 				PushObject(CreateRealNumObject(frame->m_RealNumNums[frame->m_Codes[++ip]]));
 				break;
-			case OP_NEW_INTEGER:
+			case OP_NEW_INT:
 				PushObject(CreateIntNumObject(frame->m_IntNumNums[frame->m_Codes[++ip]]));
 				break;
 			case OP_NEW_STR:

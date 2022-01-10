@@ -11,8 +11,8 @@ namespace lws
 {
 	enum OpCode
 	{
-		OP_NEW_FLOATING,
-		OP_NEW_INTEGER,
+		OP_NEW_REAL,
+		OP_NEW_INT,
 		OP_NEW_STR,
 		OP_NEW_TRUE,
 		OP_NEW_FALSE,
