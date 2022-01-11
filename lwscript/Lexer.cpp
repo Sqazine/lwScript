@@ -204,7 +204,11 @@ namespace lws
             else if (IsLetter(c))
                 Identifier();
             else
-                AddToken(TokenType::UNKNOWN);
+            {
+                auto literal= m_Source.substr(m_StartPos, m_CurPos - m_StartPos);
+                std::cout << "Unknown literal:" << literal << std::endl;
+                exit(1);
+            }
             break;
         }
     }

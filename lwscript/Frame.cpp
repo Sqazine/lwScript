@@ -333,7 +333,7 @@ namespace lws
 				SINGLE_INSTR_STRINGIFY(OP_REF);
 				break;
 			default:
-				SINGLE_INSTR_STRINGIFY(UNKNOWN);
+				SINGLE_INSTR_STRINGIFY(OP_UNKNOWN);
 				break;
 			}
 		}

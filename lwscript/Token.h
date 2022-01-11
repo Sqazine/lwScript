@@ -64,8 +64,6 @@ namespace lws
 		CLASS,				   // class
 		RETURN,				   // return
 		NEW,				   // new
-
-		UNKNOWN,
 		END
 	};
 
