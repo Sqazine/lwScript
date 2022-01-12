@@ -20,12 +20,12 @@ namespace lws
 		Gc();
 	}
 
-	RealNumObject* VM::CreateRealNumObject(double value)
+	RealNumObject *VM::CreateRealNumObject(double value)
 	{
 		if (curObjCount == maxObjCount)
 			Gc();
 
-		RealNumObject* object = new RealNumObject(value);
+		RealNumObject *object = new RealNumObject(value);
 		object->marked = false;
 
 		object->next = firstObject;
@@ -36,12 +36,12 @@ namespace lws
 		return object;
 	}
 
-	IntNumObject* VM::CreateIntNumObject(int64_t value)
+	IntNumObject *VM::CreateIntNumObject(int64_t value)
 	{
 		if (curObjCount == maxObjCount)
 			Gc();
 
-		IntNumObject* object = new IntNumObject(value);
+		IntNumObject *object = new IntNumObject(value);
 		object->marked = false;
 
 		object->next = firstObject;
@@ -52,12 +52,12 @@ namespace lws
 		return object;
 	}
 
-	StrObject* VM::CreateStrObject(std::string_view value)
+	StrObject *VM::CreateStrObject(std::string_view value)
 	{
 		if (curObjCount == maxObjCount)
 			Gc();
 
-		StrObject* object = new StrObject(value);
+		StrObject *object = new StrObject(value);
 		object->marked = false;
 
 		object->next = firstObject;
@@ -67,43 +67,12 @@ namespace lws
 
 		return object;
 	}
-	BoolObject* VM::CreateBoolObject(bool value)
+	BoolObject *VM::CreateBoolObject(bool value)
 	{
 		if (curObjCount == maxObjCount)
 			Gc();
 
-		BoolObject* object = new BoolObject(value);
-		object->marked = false;
-
-		object->next = firstObject;
-		firstObject = object;
-
-		curObjCount++;
-
-		return object;
-	}
-
-	NilObject* VM::CreateNilObject()
-	{
-		if (curObjCount == maxObjCount)
-			Gc();
-
-		NilObject* object = new NilObject();
-		object->marked = false;
-
-		object->next = firstObject;
-		firstObject = object;
-
-		curObjCount++;
-
-		return object;
-	}
-	ArrayObject* VM::CreateArrayObject(const std::vector<Object*>& elements)
-	{
-		if (curObjCount == maxObjCount)
-			Gc();
-
-		ArrayObject* object = new ArrayObject(elements);
+		BoolObject *object = new BoolObject(value);
 		object->marked = false;
 
 		object->next = firstObject;
@@ -114,12 +83,27 @@ namespace lws
 		return object;
 	}
 
-	TableObject* VM::CreateTableObject(const std::unordered_map<Object*, Object*>& elements)
+	NilObject *VM::CreateNilObject()
 	{
 		if (curObjCount == maxObjCount)
 			Gc();
 
-		TableObject* object = new TableObject(elements);
+		NilObject *object = new NilObject();
+		object->marked = false;
+
+		object->next = firstObject;
+		firstObject = object;
+
+		curObjCount++;
+
+		return object;
+	}
+	ArrayObject *VM::CreateArrayObject(const std::vector<Object *> &elements)
+	{
+		if (curObjCount == maxObjCount)
+			Gc();
+
+		ArrayObject *object = new ArrayObject(elements);
 		object->marked = false;
 
 		object->next = firstObject;
@@ -130,12 +114,12 @@ namespace lws
 		return object;
 	}
 
-	ClassObject* VM::CreateClassObject(std::string_view name, const std::unordered_map<std::string, Object*>& members)
+	TableObject *VM::CreateTableObject(const std::unordered_map<Object *, Object *> &elements)
 	{
 		if (curObjCount == maxObjCount)
 			Gc();
 
-		ClassObject* object = new ClassObject(name, members);
+		TableObject *object = new TableObject(elements);
 		object->marked = false;
 
 		object->next = firstObject;
@@ -146,12 +130,12 @@ namespace lws
 		return object;
 	}
 
-	FunctionObject* VM::CreateFunctionObject(int64_t frameIdx)
+	ClassObject *VM::CreateClassObject(std::string_view name, const std::unordered_map<std::string, Object *> &members)
 	{
 		if (curObjCount == maxObjCount)
 			Gc();
 
-		FunctionObject* object = new FunctionObject(frameIdx);
+		ClassObject *object = new ClassObject(name, members);
 		object->marked = false;
 
 		object->next = firstObject;
@@ -162,12 +146,28 @@ namespace lws
 		return object;
 	}
 
-	RefObject* VM::CreateRefObject(std::string_view address)
+	FunctionObject *VM::CreateFunctionObject(int64_t frameIdx)
 	{
 		if (curObjCount == maxObjCount)
 			Gc();
 
-		RefObject* refObject = new RefObject(address);
+		FunctionObject *object = new FunctionObject(frameIdx);
+		object->marked = false;
+
+		object->next = firstObject;
+		firstObject = object;
+
+		curObjCount++;
+
+		return object;
+	}
+
+	RefObject *VM::CreateRefObject(std::string_view address)
+	{
+		if (curObjCount == maxObjCount)
+			Gc();
+
+		RefObject *refObject = new RefObject(address);
 		refObject->marked = false;
 
 		refObject->next = firstObject;
@@ -178,35 +178,35 @@ namespace lws
 		return refObject;
 	}
 
-	Object* VM::Execute(Frame* frame)
+	Object *VM::Execute(Frame *frame)
 	{
 		// + - * /
-#define COMMON_BINARY(op)                                                                                    \
-	do                                                                                                       \
-	{                                                                                                        \
-		Object *left = PopObject();                                                                          \
-		Object *right = PopObject();                                                                         \
-		if (IS_INTEGER_OBJ(right) && IS_INTEGER_OBJ(left))                                                   \
+#define COMMON_BINARY(op)                                                                                   \
+	do                                                                                                      \
+	{                                                                                                       \
+		Object *left = PopObject();                                                                         \
+		Object *right = PopObject();                                                                        \
+		if (IS_INTEGER_OBJ(right) && IS_INTEGER_OBJ(left))                                                  \
 			PushObject(CreateIntNumObject(TO_INTEGER_OBJ(left)->value op TO_INTEGER_OBJ(right)->value));    \
-		else if (IS_INTEGER_OBJ(right) && IS_FLOATING_OBJ(left))                                             \
+		else if (IS_INTEGER_OBJ(right) && IS_FLOATING_OBJ(left))                                            \
 			PushObject(CreateRealNumObject(TO_FLOATING_OBJ(left)->value op TO_INTEGER_OBJ(right)->value));  \
-		else if (IS_FLOATING_OBJ(right) && IS_INTEGER_OBJ(left))                                             \
+		else if (IS_FLOATING_OBJ(right) && IS_INTEGER_OBJ(left))                                            \
 			PushObject(CreateRealNumObject(TO_INTEGER_OBJ(left)->value op TO_FLOATING_OBJ(right)->value));  \
-		else if (IS_FLOATING_OBJ(right) && IS_FLOATING_OBJ(left))                                            \
+		else if (IS_FLOATING_OBJ(right) && IS_FLOATING_OBJ(left))                                           \
 			PushObject(CreateRealNumObject(TO_FLOATING_OBJ(left)->value op TO_FLOATING_OBJ(right)->value)); \
-		else                                                                                                 \
-			Assert("Invalid binary op:" + left->Stringify() + (#op) + right->Stringify());                   \
+		else                                                                                                \
+			Assert("Invalid binary op:" + left->Stringify() + (#op) + right->Stringify());                  \
 	} while (0);
 // & | % << >>
-#define INTEGER_BINARY(op)                                                                                \
-	do                                                                                                    \
-	{                                                                                                     \
-		Object *left = PopObject();                                                                       \
-		Object *right = PopObject();                                                                      \
-		if (IS_INTEGER_OBJ(right) && IS_INTEGER_OBJ(left))                                                \
+#define INTEGER_BINARY(op)                                                                               \
+	do                                                                                                   \
+	{                                                                                                    \
+		Object *left = PopObject();                                                                      \
+		Object *right = PopObject();                                                                     \
+		if (IS_INTEGER_OBJ(right) && IS_INTEGER_OBJ(left))                                               \
 			PushObject(CreateIntNumObject(TO_INTEGER_OBJ(left)->value op TO_INTEGER_OBJ(right)->value)); \
-		else                                                                                              \
-			Assert("Invalid binary op:" + left->Stringify() + (#op) + right->Stringify());                \
+		else                                                                                             \
+			Assert("Invalid binary op:" + left->Stringify() + (#op) + right->Stringify());               \
 	} while (0);
 
 // > >= < <= == !=
@@ -271,7 +271,7 @@ namespace lws
 				break;
 			case OP_NEG:
 			{
-				Object* object = PopObject();
+				Object *object = PopObject();
 				if (IS_FLOATING_OBJ(object))
 					PushObject(CreateRealNumObject(-TO_FLOATING_OBJ(object)->value));
 				else if (IS_INTEGER_OBJ(object))
@@ -282,7 +282,7 @@ namespace lws
 			}
 			case OP_NOT:
 			{
-				Object* object = PopObject();
+				Object *object = PopObject();
 				if (IS_BOOL_OBJ(object))
 					PushObject(CreateBoolObject(!TO_BOOL_OBJ(object)->value));
 				else
@@ -299,7 +299,7 @@ namespace lws
 				COMMON_BINARY(*);
 				break;
 			case OP_DIV:
-				COMMON_BINARY(/ );
+				COMMON_BINARY(/);
 				break;
 			case OP_MOD:
 				INTEGER_BINARY(%);
@@ -308,14 +308,14 @@ namespace lws
 				INTEGER_BINARY(&);
 				break;
 			case OP_BIT_OR:
-				INTEGER_BINARY(| );
+				INTEGER_BINARY(|);
 				break;
 			case OP_BIT_XOR:
 				INTEGER_BINARY(^);
 				break;
 			case OP_BIT_NOT:
 			{
-				Object* object = PopObject();
+				Object *object = PopObject();
 				if (IS_INTEGER_OBJ(object))
 					PushObject(CreateIntNumObject(~TO_INTEGER_OBJ(object)->value));
 				else
@@ -323,29 +323,29 @@ namespace lws
 				break;
 			}
 			case OP_BIT_LEFT_SHIFT:
-				INTEGER_BINARY(<< );
+				INTEGER_BINARY(<<);
 				break;
 			case OP_BIT_RIGHT_SHIFT:
-				INTEGER_BINARY(>> );
+				INTEGER_BINARY(>>);
 				break;
 			case OP_GREATER:
-				COMPARE_BINARY(> );
+				COMPARE_BINARY(>);
 				break;
 			case OP_LESS:
-				COMPARE_BINARY(< );
+				COMPARE_BINARY(<);
 				break;
 			case OP_EQUAL:
-				COMPARE_BINARY(== );
+				COMPARE_BINARY(==);
 				break;
 			case OP_AND:
 				LOGIC_BINARY(&&);
 				break;
 			case OP_OR:
-				LOGIC_BINARY(|| );
+				LOGIC_BINARY(||);
 				break;
 			case OP_NEW_VAR:
 			{
-				Object* value = PopObject();
+				Object *value = PopObject();
 				m_Context->DefineVariableByName(frame->m_Strings[frame->m_Codes[++ip]], value);
 				break;
 			}
@@ -353,8 +353,8 @@ namespace lws
 			{
 				std::string name = frame->m_Strings[frame->m_Codes[++ip]];
 
-				Object* value = PopObject();
-				Object* variable = m_Context->GetVariableByName(name);
+				Object *value = PopObject();
+				Object *variable = m_Context->GetVariableByName(name);
 
 				if (IS_REF_OBJ(variable))
 				{
@@ -369,15 +369,25 @@ namespace lws
 			{
 				std::string name = frame->m_Strings[frame->m_Codes[++ip]];
 
-				Object* varObject = m_Context->GetVariableByName(name);
-				if (IS_REF_OBJ(varObject))
+				Object *varObject = m_Context->GetVariableByName(name);
+
+				//create a class object
+				if (varObject == nullptr)
+				{
+					if (frame->HasClassFrame(name))
+						PushObject(Execute(frame->GetClassFrame(name)));
+					else
+						Assert("No class declaration:" + name);
+				}
+				else if (IS_REF_OBJ(varObject))
 					varObject = m_Context->GetVariableByAddress(TO_REF_OBJ(varObject)->address);
-				PushObject(varObject);
+				else
+					PushObject(varObject);
 				break;
 			}
 			case OP_NEW_ARRAY:
 			{
-				std::vector<Object*> elements;
+				std::vector<Object *> elements;
 				int64_t arraySize = (int64_t)frame->m_IntNumNums[frame->m_Codes[++ip]];
 				for (int64_t i = 0; i < arraySize; ++i)
 					elements.insert(elements.begin(), PopObject());
@@ -386,12 +396,12 @@ namespace lws
 			}
 			case OP_NEW_TABLE:
 			{
-				std::unordered_map<Object*, Object*> elements;
+				std::unordered_map<Object *, Object *> elements;
 				int64_t tableSize = (int64_t)frame->m_IntNumNums[frame->m_Codes[++ip]];
 				for (int64_t i = 0; i < tableSize; ++i)
 				{
-					Object* key = PopObject();
-					Object* value = PopObject();
+					Object *key = PopObject();
+					Object *value = PopObject();
 					elements[key] = value;
 				}
 				PushObject(CreateTableObject(elements));
@@ -400,14 +410,9 @@ namespace lws
 			case OP_NEW_CLASS:
 			{
 				std::string name = frame->m_Strings[frame->m_Codes[++ip]];
-				Object* obj;
-				if (frame->HasClassFrame(name))
-					obj = Execute(frame->GetClassFrame(name));
-				else
-					Assert("No class declaration:" + name);
 
 				PushObject(CreateClassObject(name, m_Context->GetValues()));
-				Context* up = m_Context->GetUpContext();
+				Context *up = m_Context->GetUpContext();
 				if (m_Context != nullptr)
 					delete m_Context;
 				m_Context = up;
@@ -415,11 +420,11 @@ namespace lws
 			}
 			case OP_GET_INDEX_VAR:
 			{
-				Object* index = PopObject();
-				Object* object = PopObject();
+				Object *index = PopObject();
+				Object *object = PopObject();
 				if (IS_ARRAY_OBJ(object))
 				{
-					ArrayObject* arrayObject = TO_ARRAY_OBJ(object);
+					ArrayObject *arrayObject = TO_ARRAY_OBJ(object);
 					if (!IS_INTEGER_OBJ(index))
 						Assert("Invalid index op.The index type of the array object must ba a int num type,but got:" + index->Stringify());
 
@@ -432,7 +437,7 @@ namespace lws
 				}
 				else if (IS_TABLE_OBJ(object))
 				{
-					TableObject* tableObject = TO_TABLE_OBJ(object);
+					TableObject *tableObject = TO_TABLE_OBJ(object);
 
 					bool hasValue = false;
 					for (const auto [key, value] : tableObject->elements)
@@ -451,13 +456,13 @@ namespace lws
 			}
 			case OP_SET_INDEX_VAR:
 			{
-				Object* index = PopObject();
-				Object* object = PopObject();
-				Object* assigner = PopObject();
+				Object *index = PopObject();
+				Object *object = PopObject();
+				Object *assigner = PopObject();
 
 				if (IS_ARRAY_OBJ(object))
 				{
-					ArrayObject* arrayObject = TO_ARRAY_OBJ(object);
+					ArrayObject *arrayObject = TO_ARRAY_OBJ(object);
 					if (!IS_INTEGER_OBJ(index))
 						Assert("Invalid index op.The index type of the array object must ba a int num type,but got:" + index->Stringify());
 
@@ -470,7 +475,7 @@ namespace lws
 				}
 				else if (IS_TABLE_OBJ(object))
 				{
-					TableObject* tableObject = TO_TABLE_OBJ(object);
+					TableObject *tableObject = TO_TABLE_OBJ(object);
 					tableObject->elements[index] = assigner;
 				}
 				else
@@ -480,22 +485,22 @@ namespace lws
 			case OP_GET_CLASS_VAR:
 			{
 				std::string memberName = frame->m_Strings[frame->m_Codes[++ip]];
-				Object* stackTop = PopObject();
+				Object *stackTop = PopObject();
 				if (!IS_CLASS_OBJ(stackTop))
 					Assert("Not a class object of the callee of:" + memberName);
-				ClassObject* classObj = TO_CLASS_OBJ(stackTop);
+				ClassObject *classObj = TO_CLASS_OBJ(stackTop);
 				PushObject(classObj->GetMember(memberName));
 				break;
 			}
 			case OP_SET_CLASS_VAR:
 			{
 				std::string memberName = frame->m_Strings[frame->m_Codes[++ip]];
-				Object* stackTop = PopObject();
+				Object *stackTop = PopObject();
 				if (!IS_CLASS_OBJ(stackTop))
 					Assert("Not a class object of the callee of:" + memberName);
-				ClassObject* classObj = TO_CLASS_OBJ(stackTop);
+				ClassObject *classObj = TO_CLASS_OBJ(stackTop);
 
-				Object* assigner = PopObject();
+				Object *assigner = PopObject();
 
 				classObj->AssignMember(memberName, assigner);
 				break;
@@ -503,13 +508,13 @@ namespace lws
 			case OP_GET_CLASS_FUNCTION:
 			{
 				std::string memberName = frame->m_Strings[frame->m_Codes[++ip]];
-				Object* stackTop = PopObject();
+				Object *stackTop = PopObject();
 				if (!IS_CLASS_OBJ(stackTop))
 					Assert("Not a class object of the callee of:" + memberName);
-				ClassObject* classObj = TO_CLASS_OBJ(stackTop);
+				ClassObject *classObj = TO_CLASS_OBJ(stackTop);
 				std::string classType = classObj->name;
 
-				Frame* classFrame = nullptr;
+				Frame *classFrame = nullptr;
 				if (frame->HasClassFrame(classType)) //function:function add(){return 10;}
 					classFrame = frame->GetClassFrame(classType);
 				else
@@ -517,9 +522,9 @@ namespace lws
 
 				if (classFrame->HasFunctionFrame(memberName))
 					PushFrame(classFrame->GetFunctionFrame(memberName));
-				else if (classObj->GetMember(memberName) != nullptr)//lambda:let add=function(){return 10;}
+				else if (classObj->GetMember(memberName) != nullptr) //lambda:let add=function(){return 10;}
 				{
-					Object* lambdaObject = classObj->GetMember(memberName);
+					Object *lambdaObject = classObj->GetMember(memberName);
 					if (!IS_FUNCTION_OBJ(lambdaObject))
 						Assert("No lambda object:" + memberName + " in class:" + classType);
 					PushFrame(classFrame->GetLambdaFrame(TO_FUNCTION_OBJ(lambdaObject)->frameIndex));
@@ -536,7 +541,7 @@ namespace lws
 			}
 			case OP_EXIT_SCOPE:
 			{
-				Context* tmp = m_Context->GetUpContext();
+				Context *tmp = m_Context->GetUpContext();
 				delete m_Context;
 				m_Context = tmp;
 				break;
@@ -561,9 +566,9 @@ namespace lws
 				std::string fnName = frame->m_Strings[frame->m_Codes[++ip]];
 				if (frame->HasFunctionFrame(fnName)) //function:function add(){return 10;}
 					PushFrame(frame->GetFunctionFrame(fnName));
-				else if (m_Context->GetVariableByName(fnName) != nullptr)//lambda:let add=function(){return 10;}
+				else if (m_Context->GetVariableByName(fnName) != nullptr) //lambda:let add=function(){return 10;}
 				{
-					Object* lambdaObject = m_Context->GetVariableByName(fnName);
+					Object *lambdaObject = m_Context->GetVariableByName(fnName);
 					if (!IS_FUNCTION_OBJ(lambdaObject))
 						Assert("Not a lambda object of " + fnName);
 					PushFrame(frame->GetLambdaFrame(TO_FUNCTION_OBJ(lambdaObject)->frameIndex));
@@ -576,18 +581,18 @@ namespace lws
 			}
 			case OP_FUNCTION_CALL:
 			{
-				IntNumObject* argCount = TO_INTEGER_OBJ(PopObject());
+				IntNumObject *argCount = TO_INTEGER_OBJ(PopObject());
 
 				if (!IsFrameStackEmpty())
 				{
-					Frame* f = PopFrame();
+					Frame *f = PopFrame();
 					if (IS_NATIVE_FUNCTION_FRAME(f))
 					{
-						std::vector<Object*> args;
+						std::vector<Object *> args;
 						for (int64_t i = 0; i < argCount->value; ++i)
 							args.insert(args.begin(), PopObject());
 
-						Object* result = GetNativeFunction(TO_NATIVE_FUNCTION_FRAME(f)->GetName())(args);
+						Object *result = GetNativeFunction(TO_NATIVE_FUNCTION_FRAME(f)->GetName())(args);
 						if (result)
 							PushObject(result);
 					}
@@ -598,9 +603,9 @@ namespace lws
 			}
 			case OP_CONDITION:
 			{
-				Object* condition = PopObject();
-				Object* trueBranch = PopObject();
-				Object* falseBranch = PopObject();
+				Object *condition = PopObject();
+				Object *trueBranch = PopObject();
+				Object *falseBranch = PopObject();
 
 				if (!IS_BOOL_OBJ(condition))
 					Assert("Not a bool expr of condition expr's '?'.");
@@ -634,7 +639,7 @@ namespace lws
 		curObjCount = 0;
 		maxObjCount = INIT_OBJ_NUM_MAX;
 
-		std::array<Object*, STACK_MAX>().swap(m_ObjectStack);
+		std::array<Object *, STACK_MAX>().swap(m_ObjectStack);
 
 		if (m_Context != nullptr)
 		{
@@ -644,7 +649,7 @@ namespace lws
 		m_Context = new Context();
 	}
 
-	std::function<Object* (std::vector<Object*>)> VM::GetNativeFunction(std::string_view fnName)
+	std::function<Object *(std::vector<Object *>)> VM::GetNativeFunction(std::string_view fnName)
 	{
 		for (const auto lib : m_Libraries)
 			if (lib.second->HasNativeFunction(fnName))
@@ -659,20 +664,20 @@ namespace lws
 		return false;
 	}
 
-	void VM::PushObject(Object* object)
+	void VM::PushObject(Object *object)
 	{
 		m_ObjectStack[sp++] = object;
 	}
-	Object* VM::PopObject()
+	Object *VM::PopObject()
 	{
 		return m_ObjectStack[--sp];
 	}
 
-	void VM::PushFrame(Frame* frame)
+	void VM::PushFrame(Frame *frame)
 	{
 		m_FrameStack[fp++] = frame;
 	}
-	Frame* VM::PopFrame()
+	Frame *VM::PopFrame()
 	{
 		return m_FrameStack[--fp];
 	}
@@ -691,12 +696,12 @@ namespace lws
 			m_ObjectStack[i]->Mark();
 
 		//sweep objects which is not reachable
-		Object** object = &firstObject;
+		Object **object = &firstObject;
 		while (*object)
 		{
 			if (!((*object)->marked))
 			{
-				Object* unreached = *object;
+				Object *unreached = *object;
 				*object = unreached->next;
 
 				delete unreached;

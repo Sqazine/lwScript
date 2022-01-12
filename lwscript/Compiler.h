@@ -51,7 +51,6 @@ namespace lws
 		void CompilePrefixExpr(PrefixExpr *expr, Frame *frame);
 		void CompileInfixExpr(InfixExpr *expr, Frame *frame);
 		void CompileRefExpr(RefExpr *expr, Frame *frame);
-		void CompileNewExpr(NewExpr* expr, Frame* frame);
 		void CompileLambdaExpr(LambdaExpr *stmt, Frame *frame);
 		void CompileConditionExpr(ConditionExpr *expr, Frame *frame);
 		void CompileFunctionCallExpr(FunctionCallExpr *expr, Frame *frame);

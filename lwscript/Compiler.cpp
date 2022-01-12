@@ -188,6 +188,12 @@ namespace lws
 			CompileFunctionStmt(functionStmt, classFrame);
 		}
 
+		classFrame->AddOpCode(OP_NEW_CLASS);
+		uint64_t offset = classFrame->AddString(stmt->name);
+		classFrame->AddOpCode(offset);
+
+		classFrame->AddOpCode(OP_RETURN);
+
 		frame->AddClassFrame(stmt->name, classFrame);
 	}
 
@@ -245,9 +251,6 @@ namespace lws
 			break;
 		case AstType::REF:
 			CompileRefExpr((RefExpr*)expr, frame);
-			break;
-		case AstType::NEW:
-			CompileNewExpr((NewExpr*)expr, frame);
 			break;
 		default:
 			break;
@@ -471,13 +474,6 @@ namespace lws
 	{
 		CompileExpr(expr->refExpr, frame);
 		frame->AddOpCode(OP_REF);
-	}
-
-	void Compiler::CompileNewExpr(NewExpr* expr, Frame* frame)
-	{
-		frame->AddOpCode(OP_NEW_CLASS);
-		uint64_t offset = frame->AddString(expr->callee->literal);
-		frame->AddOpCode(offset);
 	}
 
 	void Compiler::CompileConditionExpr(ConditionExpr* expr, Frame* frame)

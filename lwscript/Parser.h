@@ -73,7 +73,6 @@ namespace lws
 		Expr* ParseTableExpr();
 		Expr* ParsePrefixExpr();
 		Expr* ParseRefExpr();
-		Expr* ParseNewExpr();
 		Expr* ParseLambdaExpr();
 		Expr* ParseInfixExpr(Expr* prefixExpr);
 		Expr* ParseConditionExpr(Expr* prefixExpr);

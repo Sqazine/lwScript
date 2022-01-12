@@ -17,7 +17,6 @@ namespace lws
 		{TokenType::LBRACE, &Parser::ParseTableExpr},
 		{TokenType::AMPERSAND, &Parser::ParseRefExpr},
 		{TokenType::FUNCTION,&Parser::ParseLambdaExpr},
-		{TokenType::NEW,&Parser::ParseNewExpr}
 	};
 
 	std::unordered_map<TokenType, InfixFn> Parser::m_InfixFunctions =
@@ -535,11 +534,6 @@ namespace lws
 		return new RefExpr(ParseExpr(Precedence::PREFIX));
 	}
 
-	Expr* Parser::ParseNewExpr()
-	{
-		Consume(TokenType::NEW, "Expect 'new keyword'");
-		return new NewExpr((IdentifierExpr*)ParseIdentifierExpr());
-	}
 
 	Expr* Parser::ParseInfixExpr(Expr* prefixExpr)
 	{

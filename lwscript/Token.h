@@ -63,7 +63,6 @@ namespace lws
 		FUNCTION,			   // fn
 		CLASS,				   // class
 		RETURN,				   // return
-		NEW,				   // new
 		END
 	};
 
