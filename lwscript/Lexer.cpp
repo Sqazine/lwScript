@@ -12,7 +12,7 @@ namespace lws
             {"while", TokenType::WHILE},
             {"for",TokenType::FOR},
             {"fn", TokenType::FUNCTION},
-            {"class", TokenType::CLASS},
+            {"field", TokenType::FIELD},
             {"return", TokenType::RETURN},
     };
 

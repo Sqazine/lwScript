@@ -53,7 +53,7 @@ namespace lws
 		{TokenType::PERCENT, &Parser::ParseInfixExpr},
 		{TokenType::LPAREN, &Parser::ParseFunctionCallExpr},
 		{TokenType::LBRACKET, &Parser::ParseIndexExpr},
-		{TokenType::DOT, &Parser::ParseClassCallExpr},
+		{TokenType::DOT, &Parser::ParseFieldCallExpr},
 	};
 
 	std::unordered_map<TokenType, Precedence> Parser::m_Precedence =
@@ -174,8 +174,8 @@ namespace lws
 			return ParseForStmt();
 		else  if (IsMatchCurToken(TokenType::FUNCTION))
 			return ParseFunctionStmt();
-		else if (IsMatchCurToken(TokenType::CLASS))
-			return ParseClassStmt();
+		else if (IsMatchCurToken(TokenType::FIELD))
+			return ParseFieldStmt();
 		else
 			return ParseExprStmt();
 	}
@@ -387,11 +387,11 @@ namespace lws
 		return funcExpr;
 	}
 
-	Stmt* Parser::ParseClassStmt()
+	Stmt* Parser::ParseFieldStmt()
 	{
-		Consume(TokenType::CLASS, "Expect 'class' keyword");
+		Consume(TokenType::FIELD, "Expect 'class' keyword");
 
-		auto classStmt = new ClassStmt();
+		auto classStmt = new FieldStmt();
 		classStmt->name = ((IdentifierExpr*)ParseIdentifierExpr())->literal;
 
 		Consume(TokenType::LBRACE, "Expect '{' after 'class' keyword");
@@ -588,10 +588,10 @@ namespace lws
 		return funcCallExpr;
 	}
 
-	Expr* Parser::ParseClassCallExpr(Expr* prefixExpr)
+	Expr* Parser::ParseFieldCallExpr(Expr* prefixExpr)
 	{
 		Consume(TokenType::DOT, "Expect '.'.");
-		auto classCallExpr = new ClassCallExpr();
+		auto classCallExpr = new FieldCallExpr();
 		classCallExpr->callee = prefixExpr;
 		classCallExpr->callMember = ParseExpr(Precedence::INFIX);
 		return classCallExpr;

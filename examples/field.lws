@@ -1,16 +1,16 @@
-class Vec2
+field Vec2
 {
     let x=0;
     let y=0;
 }
 
-class Vec3
+field Vec3
 {
     let vec2=Vec2;
     let z=0;
 }
 
-class Vec4
+field Vec4
 {
     let vec3=Vec3;
     let w=0;
@@ -27,9 +27,9 @@ a.vec3.vec2.x=1000;
 
 println("{}",a);
 
-//class instance Vec4:
-//vec3=class instance Vec3:
-//     vec2=class instance Vec2:
+//field instance Vec4:
+//vec3=field instance Vec3:
+//     vec2=field instance Vec2:
 //          x=1000
 //          y=0
 //

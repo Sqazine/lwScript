@@ -26,7 +26,7 @@ namespace lws
 		REF,
 		LAMBDA,
 		FUNCTION_CALL,
-		CLASS_CALL,
+		FIELD_CALL,
 		NEW,
 		//stmt
 		LET,
@@ -36,7 +36,7 @@ namespace lws
 		SCOPE,
 		WHILE,
 		FUNCTION,
-		CLASS,
+		FIELD,
 		ASTSTMTS,
 	};
 
@@ -310,14 +310,14 @@ namespace lws
 		std::vector<Expr*> arguments;
 	};
 
-	struct ClassCallExpr : public Expr
+	struct FieldCallExpr : public Expr
 	{
-		ClassCallExpr() : callee(nullptr), callMember(nullptr) {}
-		ClassCallExpr(Expr* callee, Expr* callMember) : callee(callee), callMember(callMember) {}
-		~ClassCallExpr() {}
+		FieldCallExpr() : callee(nullptr), callMember(nullptr) {}
+		FieldCallExpr(Expr* callee, Expr* callMember) : callee(callee), callMember(callMember) {}
+		~FieldCallExpr() {}
 
 		std::string Stringify() override { return callee->Stringify() + "." + callMember->Stringify(); }
-		AstType Type() override { return AstType::CLASS_CALL; }
+		AstType Type() override { return AstType::FIELD_CALL; }
 
 		Expr* callee;
 		Expr* callMember;
@@ -504,28 +504,28 @@ namespace lws
 		ScopeStmt* body;
 	};
 
-	struct ClassStmt : public Stmt
+	struct FieldStmt : public Stmt
 	{
-		ClassStmt() {}
-		ClassStmt(std::string name,
+		FieldStmt() {}
+		FieldStmt(std::string name,
 			std::vector<LetStmt*> letStmts,
 			std::vector<FunctionStmt*> fnStmts)
 			: name(name),letStmts(letStmts),fnStmts(fnStmts){}
-		~ClassStmt() {
+		~FieldStmt() {
 			std::vector<LetStmt*>().swap(letStmts);
 			std::vector<FunctionStmt*>().swap(fnStmts);
 		}
 
 		std::string Stringify() override
 		{
-			std::string result = "class " + name + "{\n";
+			std::string result = "field " + name + "{\n";
 			for (auto letStmt : letStmts)
 				result += letStmt->Stringify() + "\n";
 			for (auto fnStmt : fnStmts)
 				result += fnStmt->Stringify() + "\n";
 			return result + "}";
 		}
-		AstType Type() override { return AstType::CLASS; }
+		AstType Type() override { return AstType::FIELD; }
 
 		std::string name;
 		std::vector<LetStmt*> letStmts;

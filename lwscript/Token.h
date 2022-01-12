@@ -61,7 +61,7 @@ namespace lws
 		WHILE,				   // while
 		FOR,				   // for
 		FUNCTION,			   // fn
-		CLASS,				   // class
+		FIELD,				   // field
 		RETURN,				   // return
 		END
 	};

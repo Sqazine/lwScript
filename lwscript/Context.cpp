@@ -67,13 +67,13 @@ namespace lws
 						return;
 					}
 			}
-			else if (IS_CLASS_OBJ(contextValue))
+			else if (IS_FIELD_OBJ(contextValue))
 			{
-				ClassObject* klass = TO_CLASS_OBJ(contextValue);
-				for (auto [classMemberKey, classMemberValue] : klass->members)
+				FieldObject* field = TO_FIELD_OBJ(contextValue);
+				for (auto [classMemberKey, classMemberValue] : field->members)
 					if (PointerAddressToString(classMemberValue) == address)
 					{
-						klass->members[classMemberKey] = value;
+						field->members[classMemberKey] = value;
 						return;
 					}
 			}
@@ -105,12 +105,12 @@ namespace lws
 					if (PointerAddressToString(tableValue) == address)
 						return table->elements[tableKey];
 			}
-			else if (IS_CLASS_OBJ(contextValue))
+			else if (IS_FIELD_OBJ(contextValue))
 			{
-				ClassObject* klass = TO_CLASS_OBJ(contextValue);
-				for (auto [classMemberKey, classMemberValue] : klass->members)
+				FieldObject* field = TO_FIELD_OBJ(contextValue);
+				for (auto [classMemberKey, classMemberValue] : field->members)
 					if (PointerAddressToString(classMemberValue) == address)
-						return klass->members[classMemberKey];
+						return field->members[classMemberKey];
 			}
 		}
 

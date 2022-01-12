@@ -57,8 +57,8 @@ namespace lws
 		case AstType::FUNCTION:
 			CompileFunctionStmt((FunctionStmt*)stmt, frame);
 			break;
-		case AstType::CLASS:
-			CompileClassStmt((ClassStmt*)stmt, frame);
+		case AstType::FIELD:
+			CompileFieldStmt((FieldStmt*)stmt, frame);
 			break;
 		default:
 			break;
@@ -169,7 +169,7 @@ namespace lws
 		frame->AddOpCode(offset);
 	}
 
-	void Compiler::CompileClassStmt(ClassStmt* stmt, Frame* frame)
+	void Compiler::CompileFieldStmt(FieldStmt* stmt, Frame* frame)
 	{
 		Frame* classFrame = new Frame(frame);
 
@@ -188,13 +188,13 @@ namespace lws
 			CompileFunctionStmt(functionStmt, classFrame);
 		}
 
-		classFrame->AddOpCode(OP_NEW_CLASS);
+		classFrame->AddOpCode(OP_NEW_FIELD);
 		uint64_t offset = classFrame->AddString(stmt->name);
 		classFrame->AddOpCode(offset);
 
 		classFrame->AddOpCode(OP_RETURN);
 
-		frame->AddClassFrame(stmt->name, classFrame);
+		frame->AddFieldFrame(stmt->name, classFrame);
 	}
 
 	void Compiler::CompileExpr(Expr* expr, Frame* frame, ObjectState state)
@@ -246,8 +246,8 @@ namespace lws
 		case AstType::FUNCTION_CALL:
 			CompileFunctionCallExpr((FunctionCallExpr*)expr, frame);
 			break;
-		case AstType::CLASS_CALL:
-			CompileClassCallExpr((ClassCallExpr*)expr, frame, state);
+		case AstType::FIELD_CALL:
+			CompileFieldCallExpr((FieldCallExpr*)expr, frame, state);
 			break;
 		case AstType::REF:
 			CompileRefExpr((RefExpr*)expr, frame);
@@ -299,14 +299,14 @@ namespace lws
 			frame->AddOpCode(OP_SET_VAR);
 		else if (state == INIT)
 			frame->AddOpCode(OP_NEW_VAR);
-		else if (state == CLASS_MEMBER_READ)
-			frame->AddOpCode(OP_GET_CLASS_VAR);
-		else if (state == CLASS_MEMBER_WRITE)
-			frame->AddOpCode(OP_SET_CLASS_VAR);
+		else if (state == FIELD_MEMBER_READ)
+			frame->AddOpCode(OP_GET_FIELD_VAR);
+		else if (state == FIELD_MEMBER_WRITE)
+			frame->AddOpCode(OP_SET_FIELD_VAR);
 		else if (state == FUNCTION_READ)
 			frame->AddOpCode(OP_GET_FUNCTION);
-		else if (state == CLASS_FUNCTION_READ)
-			frame->AddOpCode(OP_GET_CLASS_FUNCTION);
+		else if (state == FIELD_FUNCTION_READ)
+			frame->AddOpCode(OP_GET_FIELD_FUNCTION);
 
 		uint64_t offset = frame->AddString(expr->literal);
 		frame->AddOpCode(offset);
@@ -491,9 +491,9 @@ namespace lws
 			CompileExpr(arg, frame);
 
 		int64_t extraArgCount = 0;
-		if (expr->name->Type() == AstType::CLASS_CALL)
+		if (expr->name->Type() == AstType::FIELD_CALL)
 		{
-			CompileRefExpr(new RefExpr(((ClassCallExpr*)expr->name)->callee), frame);
+			CompileRefExpr(new RefExpr(((FieldCallExpr*)expr->name)->callee), frame);
 			extraArgCount++;
 		}
 		//argument count
@@ -505,18 +505,18 @@ namespace lws
 		frame->AddOpCode(OP_FUNCTION_CALL);
 	}
 
-	void Compiler::CompileClassCallExpr(ClassCallExpr* expr, Frame* frame, ObjectState state)
+	void Compiler::CompileFieldCallExpr(FieldCallExpr* expr, Frame* frame, ObjectState state)
 	{
 		CompileExpr(expr->callee, frame);
 
-		if (expr->callMember->Type() == AstType::CLASS_CALL)//continuous class call such as a.b.c;
-			CompileExpr(((ClassCallExpr*)expr->callMember)->callee, frame, CLASS_MEMBER_READ);
+		if (expr->callMember->Type() == AstType::FIELD_CALL)//continuous class call such as a.b.c;
+			CompileExpr(((FieldCallExpr*)expr->callMember)->callee, frame, FIELD_MEMBER_READ);
 
 		if (state == READ)
-			CompileExpr(expr->callMember, frame, CLASS_MEMBER_READ);
+			CompileExpr(expr->callMember, frame, FIELD_MEMBER_READ);
 		else if (state == WRITE)
-			CompileExpr(expr->callMember, frame, CLASS_MEMBER_WRITE);
+			CompileExpr(expr->callMember, frame, FIELD_MEMBER_WRITE);
 		else if(state==FUNCTION_READ)
-			CompileExpr(expr->callMember, frame, CLASS_FUNCTION_READ);
+			CompileExpr(expr->callMember, frame, FIELD_FUNCTION_READ);
 	}
 }

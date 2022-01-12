@@ -130,12 +130,12 @@ namespace lws
 		return object;
 	}
 
-	ClassObject *VM::CreateClassObject(std::string_view name, const std::unordered_map<std::string, Object *> &members)
+	FieldObject *VM::CreateFieldObject(std::string_view name, const std::unordered_map<std::string, Object *> &members)
 	{
 		if (curObjCount == maxObjCount)
 			Gc();
 
-		ClassObject *object = new ClassObject(name, members);
+		FieldObject *object = new FieldObject(name, members);
 		object->marked = false;
 
 		object->next = firstObject;
@@ -374,8 +374,8 @@ namespace lws
 				//create a class object
 				if (varObject == nullptr)
 				{
-					if (frame->HasClassFrame(name))
-						PushObject(Execute(frame->GetClassFrame(name)));
+					if (frame->HasFieldFrame(name))
+						PushObject(Execute(frame->GetFieldFrame(name)));
 					else
 						Assert("No class declaration:" + name);
 				}
@@ -410,11 +410,11 @@ namespace lws
 				PushObject(CreateTableObject(elements));
 				break;
 			}
-			case OP_NEW_CLASS:
+			case OP_NEW_FIELD:
 			{
 				std::string name = frame->m_Strings[frame->m_Codes[++ip]];
 
-				PushObject(CreateClassObject(name, m_Context->GetValues()));
+				PushObject(CreateFieldObject(name, m_Context->GetValues()));
 				Context *up = m_Context->GetUpContext();
 				if (m_Context != nullptr)
 					delete m_Context;
@@ -485,41 +485,41 @@ namespace lws
 					Assert("Invalid index op.The indexed object isn't a array object or a table object:" + object->Stringify());
 				break;
 			}
-			case OP_GET_CLASS_VAR:
+			case OP_GET_FIELD_VAR:
 			{
 				std::string memberName = frame->m_Strings[frame->m_Codes[++ip]];
 				Object *stackTop = PopObject();
-				if (!IS_CLASS_OBJ(stackTop))
+				if (!IS_FIELD_OBJ(stackTop))
 					Assert("Not a class object of the callee of:" + memberName);
-				ClassObject *classObj = TO_CLASS_OBJ(stackTop);
+				FieldObject *classObj = TO_FIELD_OBJ(stackTop);
 				PushObject(classObj->GetMember(memberName));
 				break;
 			}
-			case OP_SET_CLASS_VAR:
+			case OP_SET_FIELD_VAR:
 			{
 				std::string memberName = frame->m_Strings[frame->m_Codes[++ip]];
 				Object *stackTop = PopObject();
-				if (!IS_CLASS_OBJ(stackTop))
+				if (!IS_FIELD_OBJ(stackTop))
 					Assert("Not a class object of the callee of:" + memberName);
-				ClassObject *classObj = TO_CLASS_OBJ(stackTop);
+				FieldObject *classObj = TO_FIELD_OBJ(stackTop);
 
 				Object *assigner = PopObject();
 
 				classObj->AssignMember(memberName, assigner);
 				break;
 			}
-			case OP_GET_CLASS_FUNCTION:
+			case OP_GET_FIELD_FUNCTION:
 			{
 				std::string memberName = frame->m_Strings[frame->m_Codes[++ip]];
 				Object *stackTop = PopObject();
-				if (!IS_CLASS_OBJ(stackTop))
+				if (!IS_FIELD_OBJ(stackTop))
 					Assert("Not a class object of the callee of:" + memberName);
-				ClassObject *classObj = TO_CLASS_OBJ(stackTop);
+				FieldObject *classObj = TO_FIELD_OBJ(stackTop);
 				std::string classType = classObj->name;
 
 				Frame *classFrame = nullptr;
-				if (frame->HasClassFrame(classType)) //function:function add(){return 10;}
-					classFrame = frame->GetClassFrame(classType);
+				if (frame->HasFieldFrame(classType)) //function:function add(){return 10;}
+					classFrame = frame->GetFieldFrame(classType);
 				else
 					Assert("No class declaration:" + classType);
 

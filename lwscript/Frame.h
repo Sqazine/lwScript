@@ -20,15 +20,15 @@ namespace lws
 		OP_NEW_ARRAY,
 		OP_NEW_TABLE,
 		OP_NEW_LAMBDA,
-		OP_NEW_CLASS,
+		OP_NEW_FIELD,
 		OP_NEW_VAR,
 		OP_GET_VAR,
 		OP_SET_VAR,
 		OP_GET_INDEX_VAR,
 		OP_SET_INDEX_VAR,
-		OP_GET_CLASS_VAR,
-		OP_SET_CLASS_VAR,
-		OP_GET_CLASS_FUNCTION,
+		OP_GET_FIELD_VAR,
+		OP_SET_FIELD_VAR,
+		OP_GET_FIELD_FUNCTION,
 		OP_GET_FUNCTION,
 		OP_NEG,
 		OP_RETURN,
@@ -94,9 +94,9 @@ namespace lws
 		Frame *GetFunctionFrame(std::string_view name);
 		bool HasFunctionFrame(std::string_view name);
 
-		void AddClassFrame(std::string_view name, Frame *frame);
-		Frame *GetClassFrame(std::string_view name);
-		bool HasClassFrame(std::string_view name);
+		void AddFieldFrame(std::string_view name, Frame *frame);
+		Frame *GetFieldFrame(std::string_view name);
+		bool HasFieldFrame(std::string_view name);
 
 		std::string Stringify(int depth = 0);
 
@@ -115,7 +115,7 @@ namespace lws
 
 		std::vector<Frame *> m_LambdaFrames;
 		std::unordered_map<std::string, Frame *> m_FunctionFrames;
-		std::unordered_map<std::string, Frame *> m_ClassFrames;
+		std::unordered_map<std::string, Frame *> m_FieldFrames;
 
 		Frame *m_ParentFrame;
 	};

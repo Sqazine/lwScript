@@ -1,4 +1,4 @@
-class Node
+field Node
 {
     let v=0;
     let next=nil;
@@ -22,24 +22,24 @@ while(i<10)
 
 println("{}",head);
 
-//class instance Node:
+//field instance Node:
 //v=0
-//next=class instance Node:
+//next=field instance Node:
 //     v=1
-//     next=class instance Node:
+//     next=field instance Node:
 //          v=2
-//          next=class instance Node:
+//          next=field instance Node:
 //               v=3
-//               next=class instance Node:
+//               next=field instance Node:
 //                    v=4
-//                    next=class instance Node:
+//                    next=field instance Node:
 //                         v=5
-//                         next=class instance Node:
+//                         next=field instance Node:
 //                              v=6
-//                              next=class instance Node:
+//                              next=field instance Node:
 //                                   v=7
-//                                   next=class instance Node:
+//                                   next=field instance Node:
 //                                        v=8
-//                                        next=class instance Node:
+//                                        next=field instance Node:
 //                                              v=9
 //                                              next=nil

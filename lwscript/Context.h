@@ -24,7 +24,7 @@ namespace lws
         const std::unordered_map<std::string, struct Object*>& GetValues() const;
     private:
         friend class VM;
-        friend struct ClassObject;
+        friend struct FieldObject;
 
         std::unordered_map<std::string, struct Object *> m_Values;
         Context *m_UpContext;

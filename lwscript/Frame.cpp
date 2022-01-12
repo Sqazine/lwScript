@@ -127,35 +127,35 @@ namespace lws
 			return false;
 	}
 
-	void Frame::AddClassFrame(std::string_view name, Frame* frame)
+	void Frame::AddFieldFrame(std::string_view name, Frame* frame)
 	{
-		auto iter = m_ClassFrames.find(name.data());
+		auto iter = m_FieldFrames.find(name.data());
 
-		if (iter != m_ClassFrames.end())
+		if (iter != m_FieldFrames.end())
 			Assert(std::string("Redefinition struct:") + name.data());
 
-		m_ClassFrames[name.data()] = frame;
+		m_FieldFrames[name.data()] = frame;
 	}
 
-	Frame* Frame::GetClassFrame(std::string_view name)
+	Frame* Frame::GetFieldFrame(std::string_view name)
 	{
-		auto iter = m_ClassFrames.find(name.data());
-		if (iter != m_ClassFrames.end())
+		auto iter = m_FieldFrames.find(name.data());
+		if (iter != m_FieldFrames.end())
 			return iter->second;
 		else if (m_ParentFrame != nullptr)
-			return m_ParentFrame->GetClassFrame(name);
+			return m_ParentFrame->GetFieldFrame(name);
 		Assert(std::string("No function:") + name.data());
 
 		return nullptr;
 	}
 
-	bool Frame::HasClassFrame(std::string_view name)
+	bool Frame::HasFieldFrame(std::string_view name)
 	{
-		auto iter = m_ClassFrames.find(name.data());
-		if (iter != m_ClassFrames.end())
+		auto iter = m_FieldFrames.find(name.data());
+		if (iter != m_FieldFrames.end())
 			return true;
 		else if (m_ParentFrame != nullptr)
-			return m_ParentFrame->HasClassFrame(name);
+			return m_ParentFrame->HasFieldFrame(name);
 		return false;
 	}
 
@@ -173,7 +173,7 @@ namespace lws
 
 		std::stringstream result;
 
-		for (auto [key, value] : m_ClassFrames)
+		for (auto [key, value] : m_FieldFrames)
 		{
 			result << interval << "Frame " << key << ":\n";
 			result << value->Stringify(depth + 1);
@@ -290,8 +290,8 @@ namespace lws
 			case OP_NEW_LAMBDA:
 				CONSTANT_INSTR_STRINGIFY(OP_NEW_LAMBDA, m_IntNumNums);
 				break;
-			case OP_NEW_CLASS:
-				CONSTANT_INSTR_STRINGIFY(OP_NEW_CLASS, m_Strings);
+			case OP_NEW_FIELD:
+				CONSTANT_INSTR_STRINGIFY(OP_NEW_FIELD, m_Strings);
 				break;
 			case OP_GET_INDEX_VAR:
 				SINGLE_INSTR_STRINGIFY(OP_GET_INDEX_VAR);
@@ -299,14 +299,14 @@ namespace lws
 			case OP_SET_INDEX_VAR:
 				SINGLE_INSTR_STRINGIFY(OP_SET_INDEX_VAR);
 				break;
-			case OP_GET_CLASS_VAR:
-				CONSTANT_INSTR_STRINGIFY(OP_GET_CLASS_VAR, m_Strings);
+			case OP_GET_FIELD_VAR:
+				CONSTANT_INSTR_STRINGIFY(OP_GET_FIELD_VAR, m_Strings);
 				break;
-			case OP_SET_CLASS_VAR:
-				CONSTANT_INSTR_STRINGIFY(OP_SET_CLASS_VAR, m_Strings);
+			case OP_SET_FIELD_VAR:
+				CONSTANT_INSTR_STRINGIFY(OP_SET_FIELD_VAR, m_Strings);
 				break;
-			case OP_GET_CLASS_FUNCTION:
-				CONSTANT_INSTR_STRINGIFY(OP_GET_CLASS_FUNCTION, m_Strings);
+			case OP_GET_FIELD_FUNCTION:
+				CONSTANT_INSTR_STRINGIFY(OP_GET_FIELD_FUNCTION, m_Strings);
 				break;
 			case OP_GET_FUNCTION:
 				CONSTANT_INSTR_STRINGIFY(OP_GET_FUNCTION, m_Strings);
@@ -350,14 +350,14 @@ namespace lws
 		for (auto funcFrame : m_LambdaFrames)
 			funcFrame->Clear();
 
-		for (auto [key, value] : m_ClassFrames)
+		for (auto [key, value] : m_FieldFrames)
 			value->Clear();
 
 		for (auto [key, value] : m_FunctionFrames)
 			value->Clear();
 
 		std::vector<Frame*>().swap(m_LambdaFrames);
-		std::unordered_map<std::string, Frame*>().swap(m_ClassFrames);
+		std::unordered_map<std::string, Frame*>().swap(m_FieldFrames);
 		std::unordered_map<std::string, Frame*>().swap(m_FunctionFrames);
 		if (m_ParentFrame)
 			m_ParentFrame = nullptr;

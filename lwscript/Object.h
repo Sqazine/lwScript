@@ -15,7 +15,7 @@ namespace lws
 #define TO_ARRAY_OBJ(obj) ((ArrayObject *)obj)
 #define TO_TABLE_OBJ(obj) ((TableObject *)obj)
 #define TO_FUNCTION_OBJ(obj) ((FunctionObject *)obj)
-#define TO_CLASS_OBJ(obj) ((ClassObject *)obj)
+#define TO_FIELD_OBJ(obj) ((FieldObject *)obj)
 #define TO_REF_OBJ(obj) ((RefObject *)obj)
 
 #define IS_INTEGER_OBJ(obj) (obj->Type() == ObjectType::INTEGER)
@@ -26,7 +26,7 @@ namespace lws
 #define IS_ARRAY_OBJ(obj) (obj->Type() == ObjectType::ARRAY)
 #define IS_TABLE_OBJ(obj) (obj->Type() == ObjectType::TABLE)
 #define IS_FUNCTION_OBJ(obj) (obj->Type() == ObjectType::FUNCTION)
-#define IS_CLASS_OBJ(obj) (obj->Type() == ObjectType::CLASS)
+#define IS_FIELD_OBJ(obj) (obj->Type() == ObjectType::FIELD)
 #define IS_REF_OBJ(obj) (obj->Type() == ObjectType::REF)
 
 	enum class ObjectType
@@ -39,7 +39,7 @@ namespace lws
 		ARRAY,
 		TABLE,
 		FUNCTION,
-		CLASS,
+		FIELD,
 		REF
 	};
 
@@ -317,16 +317,16 @@ namespace lws
 
 		std::string address;
 	};
-	struct ClassObject : public Object
+	struct FieldObject : public Object
 	{
-		ClassObject() {}
-		ClassObject(std::string_view name,
+		FieldObject() {}
+		FieldObject(std::string_view name,
 			const std::unordered_map<std::string, Object*>& members) : name(name), members(members) {}
-		~ClassObject() {}
+		~FieldObject() {}
 
 		std::string Stringify() override
 		{
-			std::string result = "class instance " + name;
+			std::string result = "field instance " + name;
 			if (!members.empty())
 			{
 				result += ":\n";
@@ -335,19 +335,19 @@ namespace lws
 			}
 			return result;
 		}
-		ObjectType Type() override { return ObjectType::CLASS; }
+		ObjectType Type() override { return ObjectType::FIELD; }
 		void Mark() override { marked = true; }
 		void UnMark() override { marked = false; }
 		bool IsEqualTo(Object* other) override
 		{
-			if (!IS_CLASS_OBJ(other))
+			if (!IS_FIELD_OBJ(other))
 				return false;
 
-			if (name != TO_CLASS_OBJ(other)->name)
+			if (name != TO_FIELD_OBJ(other)->name)
 				return false;
 
 			for (auto [key1, value1] : members)
-				for (auto [key2, value2] : TO_CLASS_OBJ(other)->members)
+				for (auto [key2, value2] : TO_FIELD_OBJ(other)->members)
 					if (key1 != key2 || !value1->IsEqualTo(value2))
 						return false;
 			return true;

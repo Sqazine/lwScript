@@ -59,7 +59,7 @@ namespace lws
 		Stmt* ParseWhileStmt();
 		Stmt* ParseForStmt();
 		Stmt* ParseFunctionStmt();
-		Stmt* ParseClassStmt();
+		Stmt* ParseFieldStmt();
 
 		Expr* ParseExpr(Precedence precedence = Precedence::LOWEST);
 		Expr* ParseIdentifierExpr();
@@ -78,7 +78,7 @@ namespace lws
 		Expr* ParseConditionExpr(Expr* prefixExpr);
 		Expr* ParseIndexExpr(Expr* prefixExpr);
 		Expr* ParseFunctionCallExpr(Expr* prefixExpr);
-		Expr* ParseClassCallExpr(Expr* prefixExpr);
+		Expr* ParseFieldCallExpr(Expr* prefixExpr);
 
 		Token GetCurToken();
 		Token GetCurTokenAndStepOnce();

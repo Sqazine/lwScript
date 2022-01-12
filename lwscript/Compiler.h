@@ -12,9 +12,9 @@ namespace lws
 		READ,
 		WRITE,
 		FUNCTION_READ,
-		CLASS_FUNCTION_READ,
-		CLASS_MEMBER_READ,
-		CLASS_MEMBER_WRITE,
+		FIELD_FUNCTION_READ,
+		FIELD_MEMBER_READ,
+		FIELD_MEMBER_WRITE,
 	};
 	class Compiler
 	{
@@ -35,7 +35,7 @@ namespace lws
 		void CompileIfStmt(IfStmt *stmt, Frame *frame);
 		void CompileWhileStmt(WhileStmt *stmt, Frame *frame);
 		void CompileFunctionStmt(FunctionStmt* stmt, Frame* frame);
-		void CompileClassStmt(ClassStmt *stmt, Frame *frame);
+		void CompileFieldStmt(FieldStmt *stmt, Frame *frame);
 
 		void CompileExpr(Expr *expr, Frame *frame, ObjectState state = READ);
 		void CompileIntNumExpr(IntNumExpr *expr, Frame *frame);
@@ -54,7 +54,7 @@ namespace lws
 		void CompileLambdaExpr(LambdaExpr *stmt, Frame *frame);
 		void CompileConditionExpr(ConditionExpr *expr, Frame *frame);
 		void CompileFunctionCallExpr(FunctionCallExpr *expr, Frame *frame);
-		void CompileClassCallExpr(ClassCallExpr *expr, Frame *frame, ObjectState state = READ);
+		void CompileFieldCallExpr(FieldCallExpr *expr, Frame *frame, ObjectState state = READ);
 
 		Frame* m_RootFrame;
 	};
