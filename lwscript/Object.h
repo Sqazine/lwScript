@@ -332,6 +332,7 @@ namespace lws
 				result += ":\n";
 				for (const auto& [key, value] : members)
 					result += key + "=" + value->Stringify() + "\n";
+				result=result.substr(0,result.size()-1);
 			}
 			return result;
 		}
