@@ -380,8 +380,11 @@ namespace lws
 						Assert("No class declaration:" + name);
 				}
 				else if (IS_REF_OBJ(varObject))
-					varObject = m_Context->GetVariableByAddress(TO_REF_OBJ(varObject)->address);
-				else
+					{
+						varObject = m_Context->GetVariableByAddress(TO_REF_OBJ(varObject)->address);
+						PushObject(varObject);
+					}
+				else 
 					PushObject(varObject);
 				break;
 			}
