@@ -14,6 +14,8 @@ namespace lws
             {"fn", TokenType::FUNCTION},
             {"field", TokenType::FIELD},
             {"return", TokenType::RETURN},
+            {"static", TokenType::STATIC},
+            {"const", TokenType::CONST},
     };
 
     Lexer::Lexer()

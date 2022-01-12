@@ -63,6 +63,8 @@ namespace lws
 		FUNCTION,			   // fn
 		FIELD,				   // field
 		RETURN,				   // return
+		STATIC,				   // static
+		CONST,				   // const
 		END
 	};
 
@@ -75,7 +77,7 @@ namespace lws
 		uint64_t line;
 	};
 
-	inline std::ostream& operator<<(std::ostream& stream, const Token& token)
+	inline std::ostream &operator<<(std::ostream &stream, const Token &token)
 	{
 		return stream << token.literal << "," << token.line;
 	}
