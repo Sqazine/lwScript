@@ -110,12 +110,12 @@ namespace lws
 		uint64_t jmpOffset = frame->AddIntNumNum(0);
 		frame->AddOpCode(jmpOffset);
 
-		frame->GetIntNumNums()[jmpIfFalseOffset] = (double)frame->GetOpCodeSize() - 1.0;
+		frame->GetIntNumNums()[jmpIfFalseOffset] = frame->GetOpCodeSize() - 1;
 
 		if (stmt->elseBranch)
 			CompileStmt(stmt->elseBranch, frame);
 
-		frame->GetIntNumNums()[jmpOffset] = (double)frame->GetOpCodeSize() - 1.0;
+		frame->GetIntNumNums()[jmpOffset] = frame->GetOpCodeSize() - 1;
 	}
 	void Compiler::CompileWhileStmt(WhileStmt* stmt, Frame* frame)
 	{
@@ -132,7 +132,7 @@ namespace lws
 		uint64_t offset = frame->AddIntNumNum(jmpAddress);
 		frame->AddOpCode(offset);
 
-		frame->GetIntNumNums()[jmpIfFalseOffset] = (double)frame->GetOpCodeSize() - 1.0;
+		frame->GetIntNumNums()[jmpIfFalseOffset] = frame->GetOpCodeSize() - 1;
 	}
 
 	void Compiler::CompileFunctionStmt(FunctionStmt* stmt, Frame* frame)
@@ -201,10 +201,10 @@ namespace lws
 	{
 		switch (expr->Type())
 		{
-		case AstType::FLOATING:
+		case AstType::REAL:
 			CompileRealNumExpr((RealNumExpr*)expr, frame);
 			break;
-		case AstType::INTEGER:
+		case AstType::INT:
 			CompileIntNumExpr((IntNumExpr*)expr, frame);
 			break;
 		case AstType::STR:

@@ -186,25 +186,25 @@ namespace lws
 	{                                                                                                       \
 		Object *left = PopObject();                                                                         \
 		Object *right = PopObject();                                                                        \
-		if (IS_INTEGER_OBJ(right) && IS_INTEGER_OBJ(left))                                                  \
-			PushObject(CreateIntNumObject(TO_INTEGER_OBJ(left)->value op TO_INTEGER_OBJ(right)->value));    \
-		else if (IS_INTEGER_OBJ(right) && IS_FLOATING_OBJ(left))                                            \
-			PushObject(CreateRealNumObject(TO_FLOATING_OBJ(left)->value op TO_INTEGER_OBJ(right)->value));  \
-		else if (IS_FLOATING_OBJ(right) && IS_INTEGER_OBJ(left))                                            \
-			PushObject(CreateRealNumObject(TO_INTEGER_OBJ(left)->value op TO_FLOATING_OBJ(right)->value));  \
-		else if (IS_FLOATING_OBJ(right) && IS_FLOATING_OBJ(left))                                           \
-			PushObject(CreateRealNumObject(TO_FLOATING_OBJ(left)->value op TO_FLOATING_OBJ(right)->value)); \
+		if (IS_INT_OBJ(right) && IS_INT_OBJ(left))                                                  \
+			PushObject(CreateIntNumObject(TO_INT_OBJ(left)->value op TO_INT_OBJ(right)->value));    \
+		else if (IS_INT_OBJ(right) && IS_REAL_OBJ(left))                                            \
+			PushObject(CreateRealNumObject(TO_REAL_OBJ(left)->value op TO_INT_OBJ(right)->value));  \
+		else if (IS_REAL_OBJ(right) && IS_INT_OBJ(left))                                            \
+			PushObject(CreateRealNumObject(TO_INT_OBJ(left)->value op TO_REAL_OBJ(right)->value));  \
+		else if (IS_REAL_OBJ(right) && IS_REAL_OBJ(left))                                           \
+			PushObject(CreateRealNumObject(TO_REAL_OBJ(left)->value op TO_REAL_OBJ(right)->value)); \
 		else                                                                                                \
 			Assert("Invalid binary op:" + left->Stringify() + (#op) + right->Stringify());                  \
 	} while (0);
 // & | % << >>
-#define INTEGER_BINARY(op)                                                                               \
+#define INT_BINARY(op)                                                                               \
 	do                                                                                                   \
 	{                                                                                                    \
 		Object *left = PopObject();                                                                      \
 		Object *right = PopObject();                                                                     \
-		if (IS_INTEGER_OBJ(right) && IS_INTEGER_OBJ(left))                                               \
-			PushObject(CreateIntNumObject(TO_INTEGER_OBJ(left)->value op TO_INTEGER_OBJ(right)->value)); \
+		if (IS_INT_OBJ(right) && IS_INT_OBJ(left))                                               \
+			PushObject(CreateIntNumObject(TO_INT_OBJ(left)->value op TO_INT_OBJ(right)->value)); \
 		else                                                                                             \
 			Assert("Invalid binary op:" + left->Stringify() + (#op) + right->Stringify());               \
 	} while (0);
@@ -215,14 +215,14 @@ namespace lws
 	{                                                                                                                                     \
 		Object *left = PopObject();                                                                                                       \
 		Object *right = PopObject();                                                                                                      \
-		if (IS_INTEGER_OBJ(right) && IS_INTEGER_OBJ(left))                                                                                \
-			PushObject(TO_INTEGER_OBJ(left)->value op TO_INTEGER_OBJ(right)->value ? CreateBoolObject(true) : CreateBoolObject(false));   \
-		else if (IS_INTEGER_OBJ(right) && IS_FLOATING_OBJ(left))                                                                          \
-			PushObject(TO_FLOATING_OBJ(left)->value op TO_INTEGER_OBJ(right)->value ? CreateBoolObject(true) : CreateBoolObject(false));  \
-		else if (IS_FLOATING_OBJ(right) && IS_INTEGER_OBJ(left))                                                                          \
-			PushObject(TO_INTEGER_OBJ(left)->value op TO_FLOATING_OBJ(right)->value ? CreateBoolObject(true) : CreateBoolObject(false));  \
-		else if (IS_FLOATING_OBJ(right) && IS_FLOATING_OBJ(left))                                                                         \
-			PushObject(TO_FLOATING_OBJ(left)->value op TO_FLOATING_OBJ(right)->value ? CreateBoolObject(true) : CreateBoolObject(false)); \
+		if (IS_INT_OBJ(right) && IS_INT_OBJ(left))                                                                                \
+			PushObject(TO_INT_OBJ(left)->value op TO_INT_OBJ(right)->value ? CreateBoolObject(true) : CreateBoolObject(false));   \
+		else if (IS_INT_OBJ(right) && IS_REAL_OBJ(left))                                                                          \
+			PushObject(TO_REAL_OBJ(left)->value op TO_INT_OBJ(right)->value ? CreateBoolObject(true) : CreateBoolObject(false));  \
+		else if (IS_REAL_OBJ(right) && IS_INT_OBJ(left))                                                                          \
+			PushObject(TO_INT_OBJ(left)->value op TO_REAL_OBJ(right)->value ? CreateBoolObject(true) : CreateBoolObject(false));  \
+		else if (IS_REAL_OBJ(right) && IS_REAL_OBJ(left))                                                                         \
+			PushObject(TO_REAL_OBJ(left)->value op TO_REAL_OBJ(right)->value ? CreateBoolObject(true) : CreateBoolObject(false)); \
 		else if (IS_BOOL_OBJ(right) && IS_BOOL_OBJ(left))                                                                                 \
 			PushObject(TO_BOOL_OBJ(left)->value op TO_BOOL_OBJ(right)->value ? CreateBoolObject(true) : CreateBoolObject(false));         \
 		else if (IS_NIL_OBJ(right) && IS_NIL_OBJ(left))                                                                                   \
@@ -245,7 +245,7 @@ namespace lws
 
 		for (size_t ip = 0; ip < frame->m_Codes.size(); ++ip)
 		{
-			uint8_t instruction = frame->m_Codes[ip];
+			uint64_t instruction = frame->m_Codes[ip];
 			switch (instruction)
 			{
 			case OP_RETURN:
@@ -272,10 +272,10 @@ namespace lws
 			case OP_NEG:
 			{
 				Object *object = PopObject();
-				if (IS_FLOATING_OBJ(object))
-					PushObject(CreateRealNumObject(-TO_FLOATING_OBJ(object)->value));
-				else if (IS_INTEGER_OBJ(object))
-					PushObject(CreateIntNumObject(-TO_INTEGER_OBJ(object)->value));
+				if (IS_REAL_OBJ(object))
+					PushObject(CreateRealNumObject(-TO_REAL_OBJ(object)->value));
+				else if (IS_INT_OBJ(object))
+					PushObject(CreateIntNumObject(-TO_INT_OBJ(object)->value));
 				else
 					Assert("Invalid op:'-'" + object->Stringify());
 				break;
@@ -302,31 +302,31 @@ namespace lws
 				COMMON_BINARY(/);
 				break;
 			case OP_MOD:
-				INTEGER_BINARY(%);
+				INT_BINARY(%);
 				break;
 			case OP_BIT_AND:
-				INTEGER_BINARY(&);
+				INT_BINARY(&);
 				break;
 			case OP_BIT_OR:
-				INTEGER_BINARY(|);
+				INT_BINARY(|);
 				break;
 			case OP_BIT_XOR:
-				INTEGER_BINARY(^);
+				INT_BINARY(^);
 				break;
 			case OP_BIT_NOT:
 			{
 				Object *object = PopObject();
-				if (IS_INTEGER_OBJ(object))
-					PushObject(CreateIntNumObject(~TO_INTEGER_OBJ(object)->value));
+				if (IS_INT_OBJ(object))
+					PushObject(CreateIntNumObject(~TO_INT_OBJ(object)->value));
 				else
 					Assert("Invalid op:'~'" + object->Stringify());
 				break;
 			}
 			case OP_BIT_LEFT_SHIFT:
-				INTEGER_BINARY(<<);
+				INT_BINARY(<<);
 				break;
 			case OP_BIT_RIGHT_SHIFT:
-				INTEGER_BINARY(>>);
+				INT_BINARY(>>);
 				break;
 			case OP_GREATER:
 				COMPARE_BINARY(>);
@@ -428,10 +428,10 @@ namespace lws
 				if (IS_ARRAY_OBJ(object))
 				{
 					ArrayObject *arrayObject = TO_ARRAY_OBJ(object);
-					if (!IS_INTEGER_OBJ(index))
+					if (!IS_INT_OBJ(index))
 						Assert("Invalid index op.The index type of the array object must ba a int num type,but got:" + index->Stringify());
 
-					int64_t iIndex = (int64_t)TO_INTEGER_OBJ(index)->value;
+					int64_t iIndex = (int64_t)TO_INT_OBJ(index)->value;
 
 					if (iIndex < 0 || iIndex >= (int64_t)arrayObject->elements.size())
 						Assert("Index out of array range,array size:" + std::to_string(arrayObject->elements.size()) + ",index:" + std::to_string(iIndex));
@@ -466,10 +466,10 @@ namespace lws
 				if (IS_ARRAY_OBJ(object))
 				{
 					ArrayObject *arrayObject = TO_ARRAY_OBJ(object);
-					if (!IS_INTEGER_OBJ(index))
+					if (!IS_INT_OBJ(index))
 						Assert("Invalid index op.The index type of the array object must ba a int num type,but got:" + index->Stringify());
 
-					int64_t iIndex = TO_INTEGER_OBJ(index)->value;
+					int64_t iIndex = TO_INT_OBJ(index)->value;
 
 					if (iIndex < 0 || iIndex >= (int64_t)arrayObject->elements.size())
 						Assert("Index out of array range,array size:" + std::to_string(arrayObject->elements.size()) + ",index:" + std::to_string(iIndex));
@@ -584,7 +584,7 @@ namespace lws
 			}
 			case OP_FUNCTION_CALL:
 			{
-				IntNumObject *argCount = TO_INTEGER_OBJ(PopObject());
+				IntNumObject *argCount = TO_INT_OBJ(PopObject());
 
 				if (!IsFrameStackEmpty())
 				{

@@ -7,8 +7,8 @@
 #include "Context.h"
 namespace lws
 {
-#define TO_INTEGER_OBJ(obj) ((IntNumObject *)obj)
-#define TO_FLOATING_OBJ(obj) ((RealNumObject *)obj)
+#define TO_INT_OBJ(obj) ((IntNumObject *)obj)
+#define TO_REAL_OBJ(obj) ((RealNumObject *)obj)
 #define TO_STR_OBJ(obj) ((StrObject *)obj)
 #define TO_NIL_OBJ(obj) ((NilObject *)obj)
 #define TO_BOOL_OBJ(obj) ((BoolObject *)obj)
@@ -18,8 +18,8 @@ namespace lws
 #define TO_FIELD_OBJ(obj) ((FieldObject *)obj)
 #define TO_REF_OBJ(obj) ((RefObject *)obj)
 
-#define IS_INTEGER_OBJ(obj) (obj->Type() == ObjectType::INTEGER)
-#define IS_FLOATING_OBJ(obj) (obj->Type() == ObjectType::FLOATING)
+#define IS_INT_OBJ(obj) (obj->Type() == ObjectType::INT)
+#define IS_REAL_OBJ(obj) (obj->Type() == ObjectType::REAL)
 #define IS_STR_OBJ(obj) (obj->Type() == ObjectType::STR)
 #define IS_BOOL_OBJ(obj) (obj->Type() == ObjectType::BOOL)
 #define IS_NIL_OBJ(obj) (obj->Type() == ObjectType::NIL)
@@ -31,8 +31,8 @@ namespace lws
 
 	enum class ObjectType
 	{
-		INTEGER,
-		FLOATING,
+		INT,
+		REAL,
 		STR,
 		BOOL,
 		NIL,
@@ -65,14 +65,14 @@ namespace lws
 		~IntNumObject() {}
 
 		std::string Stringify() override { return std::to_string(value); }
-		ObjectType Type() override { return ObjectType::INTEGER; }
+		ObjectType Type() override { return ObjectType::INT; }
 		void Mark() override { marked = true; }
 		void UnMark() override { marked = false; }
 		bool IsEqualTo(Object* other) override
 		{
-			if (!IS_INTEGER_OBJ(other))
+			if (!IS_INT_OBJ(other))
 				return false;
-			return value == TO_INTEGER_OBJ(other)->value;
+			return value == TO_INT_OBJ(other)->value;
 		}
 
 		int64_t value;
@@ -85,14 +85,14 @@ namespace lws
 		~RealNumObject() {}
 
 		std::string Stringify() override { return std::to_string(value); }
-		ObjectType Type() override { return ObjectType::FLOATING; }
+		ObjectType Type() override { return ObjectType::REAL; }
 		void Mark() override { marked = true; }
 		void UnMark() override { marked = false; }
 		bool IsEqualTo(Object* other) override
 		{
-			if (!IS_FLOATING_OBJ(other))
+			if (!IS_REAL_OBJ(other))
 				return false;
-			return value == TO_FLOATING_OBJ(other)->value;
+			return value == TO_REAL_OBJ(other)->value;
 		}
 
 		double value;

@@ -9,8 +9,8 @@ namespace lws
 	enum class AstType
 	{
 		//expr
-		INTEGER,
-		FLOATING,
+		INT,
+		REAL,
 		STR,
 		NIL,
 		BOOL,
@@ -65,7 +65,7 @@ namespace lws
 		~IntNumExpr() {}
 
 		std::string Stringify() override { return std::to_string(value); }
-		AstType Type() override { return AstType::INTEGER; }
+		AstType Type() override { return AstType::INT; }
 
 		int64_t value;
 	};
@@ -77,7 +77,7 @@ namespace lws
 		~RealNumExpr() {}
 
 		std::string Stringify() override { return std::to_string(value); }
-		AstType Type() override { return AstType::FLOATING; }
+		AstType Type() override { return AstType::REAL; }
 
 		double value;
 	};
