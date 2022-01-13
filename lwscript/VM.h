@@ -10,7 +10,6 @@
 #include "Object.h"
 #include "Utils.h"
 #include "Context.h"
-#include "Library.h"
 namespace lws
 {
 #define STACK_MAX 2048
@@ -60,7 +59,5 @@ namespace lws
 		int maxObjCount;
 
 		Context *m_Context;
-
-		std::unordered_map<std::string, Library *> m_Libraries;
 	};
 }

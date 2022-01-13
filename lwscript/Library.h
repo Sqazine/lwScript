@@ -30,4 +30,15 @@ namespace lws
         public:
         DataStructure(class VM* vm);
     };
+
+    class LibraryManager
+    {
+    public:
+         static void RegisterLibrary(std::string_view name,Library* lib);
+         static bool HasNativeFunction(std::string_view name);
+    private:
+        LibraryManager() {}
+        friend class VM;
+        static std::unordered_map<std::string,Library*> m_Libraries;
+    };
 }

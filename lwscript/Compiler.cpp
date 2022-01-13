@@ -1,5 +1,6 @@
 #include "Compiler.h"
 #include "Utils.h"
+#include "Library.h"
 namespace lws
 {
 	Compiler::Compiler()
@@ -498,10 +499,17 @@ namespace lws
 		}
 		//argument count
 		frame->AddOpCode(OP_NEW_INT);
-		uint64_t offset = frame->AddIntNumNum((int64_t)expr->arguments.size()+extraArgCount);
+		uint64_t offset = frame->AddIntNumNum((int64_t)expr->arguments.size() + extraArgCount);
 		frame->AddOpCode(offset);
 
-		CompileExpr(expr->name, frame, FUNCTION_READ);
+		if (expr->name->Type() == AstType::IDENTIFIER && !LibraryManager::HasNativeFunction(((IdentifierExpr*)expr->name)->literal))
+		{
+			IdentifierExpr* tmpIden = new IdentifierExpr(((IdentifierExpr*)expr->name)->literal + std::to_string(expr->arguments.size()));
+			CompileExpr(tmpIden, frame, FUNCTION_READ);
+		}
+		else
+			CompileExpr(expr->name, frame, FUNCTION_READ);
+
 		frame->AddOpCode(OP_FUNCTION_CALL);
 	}
 
@@ -516,7 +524,7 @@ namespace lws
 			CompileExpr(expr->callMember, frame, FIELD_MEMBER_READ);
 		else if (state == WRITE)
 			CompileExpr(expr->callMember, frame, FIELD_MEMBER_WRITE);
-		else if(state==FUNCTION_READ)
+		else if (state == FUNCTION_READ)
 			CompileExpr(expr->callMember, frame, FIELD_FUNCTION_READ);
 	}
 }

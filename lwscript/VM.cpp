@@ -1,12 +1,13 @@
 #include "VM.h"
+#include "Library.h"
 namespace lws
 {
 	VM::VM()
 		: m_Context(nullptr)
 	{
 		ResetStatus();
-		m_Libraries["IO"] = new IO(this);
-		m_Libraries["DataStructure"] = new DataStructure(this);
+		LibraryManager::RegisterLibrary("IO", new IO(this));
+		LibraryManager::RegisterLibrary("DataStructure", new DataStructure(this));
 	}
 	VM::~VM()
 	{
@@ -654,14 +655,14 @@ namespace lws
 
 	std::function<Object *(std::vector<Object *>)> VM::GetNativeFunction(std::string_view fnName)
 	{
-		for (const auto lib : m_Libraries)
+		for (const auto lib :LibraryManager::m_Libraries)
 			if (lib.second->HasNativeFunction(fnName))
 				return lib.second->GetNativeFunction(fnName);
 		return nullptr;
 	}
 	bool VM::HasNativeFunction(std::string_view name)
 	{
-		for (const auto lib : m_Libraries)
+		for (const auto lib : LibraryManager::m_Libraries)
 			if (lib.second->HasNativeFunction(name))
 				return true;
 		return false;

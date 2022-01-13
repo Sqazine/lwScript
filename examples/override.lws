@@ -1,0 +1,14 @@
+fn add(x,y)
+{
+    return x+y;
+}
+
+fn add(x,y,z)
+{
+    return x+y+z;
+}
+
+let a=add(10,20);
+let b=add(10,20,30);
+
+println("{},{}",a,b);//30,60
