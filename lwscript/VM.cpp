@@ -182,11 +182,11 @@ namespace lws
 	Object *VM::Execute(Frame *frame)
 	{
 		// + - * /
-#define COMMON_BINARY(op)                                                                                   \
-	do                                                                                                      \
-	{                                                                                                       \
-		Object *left = PopObject();                                                                         \
-		Object *right = PopObject();                                                                        \
+#define COMMON_BINARY(op)                                                                           \
+	do                                                                                              \
+	{                                                                                               \
+		Object *left = PopObject();                                                                 \
+		Object *right = PopObject();                                                                \
 		if (IS_INT_OBJ(right) && IS_INT_OBJ(left))                                                  \
 			PushObject(CreateIntNumObject(TO_INT_OBJ(left)->value op TO_INT_OBJ(right)->value));    \
 		else if (IS_INT_OBJ(right) && IS_REAL_OBJ(left))                                            \
@@ -195,27 +195,27 @@ namespace lws
 			PushObject(CreateRealNumObject(TO_INT_OBJ(left)->value op TO_REAL_OBJ(right)->value));  \
 		else if (IS_REAL_OBJ(right) && IS_REAL_OBJ(left))                                           \
 			PushObject(CreateRealNumObject(TO_REAL_OBJ(left)->value op TO_REAL_OBJ(right)->value)); \
-		else                                                                                                \
-			Assert("Invalid binary op:" + left->Stringify() + (#op) + right->Stringify());                  \
+		else                                                                                        \
+			Assert("Invalid binary op:" + left->Stringify() + (#op) + right->Stringify());          \
 	} while (0);
 // & | % << >>
-#define INT_BINARY(op)                                                                               \
-	do                                                                                                   \
-	{                                                                                                    \
-		Object *left = PopObject();                                                                      \
-		Object *right = PopObject();                                                                     \
+#define INT_BINARY(op)                                                                           \
+	do                                                                                           \
+	{                                                                                            \
+		Object *left = PopObject();                                                              \
+		Object *right = PopObject();                                                             \
 		if (IS_INT_OBJ(right) && IS_INT_OBJ(left))                                               \
 			PushObject(CreateIntNumObject(TO_INT_OBJ(left)->value op TO_INT_OBJ(right)->value)); \
-		else                                                                                             \
-			Assert("Invalid binary op:" + left->Stringify() + (#op) + right->Stringify());               \
+		else                                                                                     \
+			Assert("Invalid binary op:" + left->Stringify() + (#op) + right->Stringify());       \
 	} while (0);
 
 // > >= < <= == !=
-#define COMPARE_BINARY(op)                                                                                                                \
-	do                                                                                                                                    \
-	{                                                                                                                                     \
-		Object *left = PopObject();                                                                                                       \
-		Object *right = PopObject();                                                                                                      \
+#define COMPARE_BINARY(op)                                                                                                        \
+	do                                                                                                                            \
+	{                                                                                                                             \
+		Object *left = PopObject();                                                                                               \
+		Object *right = PopObject();                                                                                              \
 		if (IS_INT_OBJ(right) && IS_INT_OBJ(left))                                                                                \
 			PushObject(TO_INT_OBJ(left)->value op TO_INT_OBJ(right)->value ? CreateBoolObject(true) : CreateBoolObject(false));   \
 		else if (IS_INT_OBJ(right) && IS_REAL_OBJ(left))                                                                          \
@@ -224,12 +224,12 @@ namespace lws
 			PushObject(TO_INT_OBJ(left)->value op TO_REAL_OBJ(right)->value ? CreateBoolObject(true) : CreateBoolObject(false));  \
 		else if (IS_REAL_OBJ(right) && IS_REAL_OBJ(left))                                                                         \
 			PushObject(TO_REAL_OBJ(left)->value op TO_REAL_OBJ(right)->value ? CreateBoolObject(true) : CreateBoolObject(false)); \
-		else if (IS_BOOL_OBJ(right) && IS_BOOL_OBJ(left))                                                                                 \
-			PushObject(TO_BOOL_OBJ(left)->value op TO_BOOL_OBJ(right)->value ? CreateBoolObject(true) : CreateBoolObject(false));         \
-		else if (IS_NIL_OBJ(right) && IS_NIL_OBJ(left))                                                                                   \
-			PushObject(TO_NIL_OBJ(left) op TO_NIL_OBJ(right) ? CreateBoolObject(true) : CreateBoolObject(false));                         \
-		else                                                                                                                              \
-			PushObject(CreateBoolObject(false));                                                                                          \
+		else if (IS_BOOL_OBJ(right) && IS_BOOL_OBJ(left))                                                                         \
+			PushObject(TO_BOOL_OBJ(left)->value op TO_BOOL_OBJ(right)->value ? CreateBoolObject(true) : CreateBoolObject(false)); \
+		else if (IS_NIL_OBJ(right) && IS_NIL_OBJ(left))                                                                           \
+			PushObject(TO_NIL_OBJ(left) op TO_NIL_OBJ(right) ? CreateBoolObject(true) : CreateBoolObject(false));                 \
+		else                                                                                                                      \
+			PushObject(CreateBoolObject(false));                                                                                  \
 	} while (0);
 
 //&& ||
@@ -381,11 +381,11 @@ namespace lws
 						Assert("No class declaration:" + name);
 				}
 				else if (IS_REF_OBJ(varObject))
-					{
-						varObject = m_Context->GetVariableByAddress(TO_REF_OBJ(varObject)->address);
-						PushObject(varObject);
-					}
-				else 
+				{
+					varObject = m_Context->GetVariableByAddress(TO_REF_OBJ(varObject)->address);
+					PushObject(varObject);
+				}
+				else
 					PushObject(varObject);
 				break;
 			}
@@ -585,23 +585,34 @@ namespace lws
 			}
 			case OP_FUNCTION_CALL:
 			{
-				IntNumObject *argCount = TO_INT_OBJ(PopObject());
+				Object *stackTop = PopObject();
 
-				if (!IsFrameStackEmpty())
+				if (IS_FUNCTION_OBJ(stackTop)) //if stack is a function object then execute it
 				{
-					Frame *f = PopFrame();
-					if (IS_NATIVE_FUNCTION_FRAME(f))
-					{
-						std::vector<Object *> args;
-						for (int64_t i = 0; i < argCount->value; ++i)
-							args.insert(args.begin(), PopObject());
+					IntNumObject *argCount = TO_INT_OBJ(PopObject());
+					Object *executeResult = Execute(frame->GetLambdaFrame(TO_FUNCTION_OBJ(stackTop)->frameIndex));
+					PushObject(executeResult);
+				}
+				else //else execute function
+				{
+					IntNumObject *argCount = TO_INT_OBJ(stackTop);
 
-						Object *result = GetNativeFunction(TO_NATIVE_FUNCTION_FRAME(f)->GetName())(args);
-						if (result)
-							PushObject(result);
+					if (!IsFrameStackEmpty())
+					{
+						Frame *f = PopFrame();
+						if (IS_NATIVE_FUNCTION_FRAME(f))
+						{
+							std::vector<Object *> args;
+							for (int64_t i = 0; i < argCount->value; ++i)
+								args.insert(args.begin(), PopObject());
+
+							Object *result = GetNativeFunction(TO_NATIVE_FUNCTION_FRAME(f)->GetName())(args);
+							if (result)
+								PushObject(result);
+						}
+						else
+							PushObject(Execute(f));
 					}
-					else
-						PushObject(Execute(f));
 				}
 				break;
 			}
@@ -655,7 +666,7 @@ namespace lws
 
 	std::function<Object *(std::vector<Object *>)> VM::GetNativeFunction(std::string_view fnName)
 	{
-		for (const auto lib :LibraryManager::m_Libraries)
+		for (const auto lib : LibraryManager::m_Libraries)
 			if (lib.second->HasNativeFunction(fnName))
 				return lib.second->GetNativeFunction(fnName);
 		return nullptr;

@@ -1,0 +1,10 @@
+fn set()
+{
+    let add=fn(x,y)
+    {
+        return x+y;
+    };
+    return add;
+} 
+let a=set()(10,30);
+println("{}",a);//40
