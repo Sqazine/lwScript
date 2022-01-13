@@ -480,7 +480,16 @@ namespace lws
 				else if (IS_TABLE_OBJ(object))
 				{
 					TableObject *tableObject = TO_TABLE_OBJ(object);
-					tableObject->elements[index] = assigner;
+					bool existed=false;
+					for(auto [key,value]:tableObject->elements)
+						if(key->IsEqualTo(index))
+						{		
+							tableObject->elements[key]=assigner;
+							existed=true;
+							break;
+						}
+					if(!existed)
+						tableObject->elements[index]=assigner;
 				}
 				else
 					Assert("Invalid index op.The indexed object isn't a array object or a table object:" + object->Stringify());
