@@ -12,3 +12,15 @@ let a=add(10,20);
 let b=add(10,20,30);
 
 println("{},{}",a,b);//30,60
+
+let a=fn(x,y)
+{
+    return x+y;
+};
+println("{}",a(10,20));//30
+
+let a=fn(x,y,z)
+{
+    return x+y+z;
+};
+println("{}",a(10,20,100));//130

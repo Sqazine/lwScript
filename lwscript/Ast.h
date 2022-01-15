@@ -455,7 +455,7 @@ namespace lws
 
 		std::string Stringify() override
 		{
-			std::string result = "fucntion(";
+			std::string result = "fn(";
 			if (!parameters.empty())
 			{
 				for (auto param : parameters)
