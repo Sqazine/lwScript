@@ -396,6 +396,13 @@ namespace lws
 		auto classStmt = new FieldStmt();
 		classStmt->name = ((IdentifierExpr*)ParseIdentifierExpr())->literal;
 
+		if(IsMatchCurTokenAndStepOnce(TokenType::COLON))
+		{
+				classStmt->includeFields.emplace_back((IdentifierExpr*)ParseIdentifierExpr());
+				while (IsMatchCurTokenAndStepOnce(TokenType::COMMA))
+					classStmt->includeFields.emplace_back((IdentifierExpr*)ParseIdentifierExpr());
+		}
+
 		Consume(TokenType::LBRACE, "Expect '{' after 'class' keyword");
 
 		while (!IsMatchCurToken(TokenType::RBRACE))
