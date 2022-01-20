@@ -79,12 +79,10 @@ namespace lws
 		void AddOpCode(uint64_t code);
 		uint64_t GetOpCodeSize() const;
 
-		uint64_t AddRealNumNum(double value);
-		uint64_t AddIntNumNum(int64_t value);
+		uint64_t AddRealNum(double value);
+		uint64_t AddIntNum(int64_t value);
 		uint64_t AddString(std::string_view value);
 
-		std::vector<double> &GetRealNumNums();
-		std::vector<int64_t> &GetIntNumNums();
 
 		uint64_t AddLambdaFrame(Frame *frame);
 		Frame *GetLambdaFrame(uint64_t idx);
@@ -106,11 +104,12 @@ namespace lws
 
 	private:
 		friend class VM;
+		friend class Compiler;
 
 		std::vector<uint64_t> m_Codes;
 
-		std::vector<double> m_RealNumNums;
-		std::vector<int64_t> m_IntNumNums;
+		std::vector<double> m_RealNums;
+		std::vector<int64_t> m_IntNums;
 		std::vector<std::string> m_Strings;
 
 		std::vector<Frame *> m_LambdaFrames;

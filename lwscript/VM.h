@@ -48,10 +48,10 @@ namespace lws
 		Frame *PopFrame();
 		bool IsFrameStackEmpty();
 
-		uint8_t sp;
+		uint64_t sp;
 		std::array<Object *, STACK_MAX> m_ObjectStack;
 
-		uint8_t fp;
+		uint64_t fp;
 		std::array<Frame *, STACK_MAX> m_FrameStack;
 
 		Object *firstObject;

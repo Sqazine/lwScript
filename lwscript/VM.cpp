@@ -253,10 +253,10 @@ namespace lws
 				return PopObject();
 				break;
 			case OP_NEW_REAL:
-				PushObject(CreateRealNumObject(frame->m_RealNumNums[frame->m_Codes[++ip]]));
+				PushObject(CreateRealNumObject(frame->m_RealNums[frame->m_Codes[++ip]]));
 				break;
 			case OP_NEW_INT:
-				PushObject(CreateIntNumObject(frame->m_IntNumNums[frame->m_Codes[++ip]]));
+				PushObject(CreateIntNumObject(frame->m_IntNums[frame->m_Codes[++ip]]));
 				break;
 			case OP_NEW_STR:
 				PushObject(CreateStrObject(frame->m_Strings[frame->m_Codes[++ip]]));
@@ -392,7 +392,7 @@ namespace lws
 			case OP_NEW_ARRAY:
 			{
 				std::vector<Object *> elements;
-				int64_t arraySize = (int64_t)frame->m_IntNumNums[frame->m_Codes[++ip]];
+				int64_t arraySize = (int64_t)frame->m_IntNums[frame->m_Codes[++ip]];
 				for (int64_t i = 0; i < arraySize; ++i)
 					elements.insert(elements.begin(), PopObject());
 				PushObject(CreateArrayObject(elements));
@@ -401,7 +401,7 @@ namespace lws
 			case OP_NEW_TABLE:
 			{
 				std::unordered_map<Object *, Object *> elements;
-				int64_t tableSize = (int64_t)frame->m_IntNumNums[frame->m_Codes[++ip]];
+				int64_t tableSize = (int64_t)frame->m_IntNums[frame->m_Codes[++ip]];
 				for (int64_t i = 0; i < tableSize; ++i)
 				{
 					Object *key = PopObject();
@@ -562,7 +562,7 @@ namespace lws
 			case OP_JUMP_IF_FALSE:
 			{
 				bool isJump = !TO_BOOL_OBJ(PopObject())->value;
-				uint64_t address = (uint64_t)(frame->m_IntNumNums[frame->m_Codes[++ip]]);
+				uint64_t address = (uint64_t)(frame->m_IntNums[frame->m_Codes[++ip]]);
 
 				if (isJump)
 					ip = address;
@@ -570,7 +570,7 @@ namespace lws
 			}
 			case OP_JUMP:
 			{
-				uint64_t address = (uint64_t)(frame->m_IntNumNums[frame->m_Codes[++ip]]);
+				uint64_t address = (uint64_t)(frame->m_IntNums[frame->m_Codes[++ip]]);
 				ip = address;
 				break;
 			}
@@ -640,7 +640,7 @@ namespace lws
 				break;
 			}
 			case OP_NEW_LAMBDA:
-				PushObject(CreateFunctionObject(frame->m_IntNumNums[frame->m_Codes[++ip]]));
+				PushObject(CreateFunctionObject(frame->m_IntNums[frame->m_Codes[++ip]]));
 				break;
 			case OP_REF:
 			{
