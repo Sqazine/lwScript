@@ -12,8 +12,8 @@
 #include "Context.h"
 namespace lws
 {
-#define STACK_MAX 2048
-#define INIT_OBJ_NUM_MAX 2048
+#define STACK_MAX 1024
+#define INIT_OBJ_NUM_MAX 8192
 
 	class VM
 	{
