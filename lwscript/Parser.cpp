@@ -366,27 +366,27 @@ namespace lws
 
 	Expr* Parser::ParseLambdaExpr()
 	{
-		Consume(TokenType::FUNCTION, "Expect 'function' keyword");
+		Consume(TokenType::FUNCTION, "Expect 'fn' keyword");
 
-		auto funcExpr = new LambdaExpr();
+		auto lambdaExpr = new LambdaExpr();
 
-		Consume(TokenType::LPAREN, "Expect '(' after 'function' keyword");
+		Consume(TokenType::LPAREN, "Expect '(' after 'fn' keyword");
 
 		if (!IsMatchCurToken(TokenType::RPAREN)) //has parameter
 		{
 			IdentifierExpr* idenExpr = (IdentifierExpr*)ParseIdentifierExpr();
-			funcExpr->parameters.emplace_back(idenExpr);
+			lambdaExpr->parameters.emplace_back(idenExpr);
 			while (IsMatchCurTokenAndStepOnce(TokenType::COMMA))
 			{
 				idenExpr = (IdentifierExpr*)ParseIdentifierExpr();
-				funcExpr->parameters.emplace_back(idenExpr);
+				lambdaExpr->parameters.emplace_back(idenExpr);
 			}
 		}
-		Consume(TokenType::RPAREN, "Expect ')' after function expr's '('");
+		Consume(TokenType::RPAREN, "Expect ')' after lambda expr's '('");
 
-		funcExpr->body = (ScopeStmt*)ParseScopeStmt();
+		lambdaExpr->body = (ScopeStmt*)ParseScopeStmt();
 
-		return funcExpr;
+		return lambdaExpr;
 	}
 
 	Stmt* Parser::ParseFieldStmt()

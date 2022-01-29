@@ -83,12 +83,6 @@ namespace lws
 		for (auto [key, value] : stmt->variables)
 		{
 				CompileExpr(value, frame);
-			if (value->Type() == AstType::LAMBDA)
-			{
-				IdentifierExpr *tmpIden = new IdentifierExpr(((IdentifierExpr *)key)->literal + std::to_string(((LambdaExpr*)value)->parameters.size()));
-				CompileExpr(tmpIden, frame,INIT);
-			}
-			else
 				CompileExpr(key, frame, INIT);
 		}
 	}
@@ -168,7 +162,8 @@ namespace lws
 		for (int64_t i = stmt->parameters.size() - 1; i >= 0; --i)
 			CompileIdentifierExpr(stmt->parameters[i], lambdaFrame, INIT);
 
-		CompileScopeStmt(stmt->body, lambdaFrame);
+		for (const auto& s : stmt->body->stmts)
+			CompileStmt(s, lambdaFrame);
 
 		lambdaFrame->AddOpCode(OP_EXIT_SCOPE);
 
@@ -200,7 +195,7 @@ namespace lws
 		uint64_t offset = classFrame->AddString(stmt->name);
 		classFrame->AddOpCode(offset);
 
-		classFrame->AddOpCode(OP_RETURN);
+		classFrame->AddOpCode(OP_FIELD_RETURN);
 
 		frame->AddFieldFrame(stmt->name, classFrame);
 	}

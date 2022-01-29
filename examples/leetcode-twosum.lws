@@ -5,15 +5,12 @@ fn twosum(nums,target)
 {
     let i=0;
     let j=i+1;
-    println("{}",j);
 
     while(i<sizeof(nums)-1)
     {
         j=i+1;
         while(j<sizeof(nums))
         {
-            println("{}",nums[i]);
-            println("{}",nums[j]);
             if(nums[i]+nums[j]==target)
                 return [i,j];
             j=j+1;
