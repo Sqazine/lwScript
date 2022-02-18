@@ -391,33 +391,33 @@ namespace lws
 
 	Stmt* Parser::ParseFieldStmt()
 	{
-		Consume(TokenType::FIELD, "Expect 'class' keyword");
+		Consume(TokenType::FIELD, "Expect 'field' keyword");
 
-		auto classStmt = new FieldStmt();
-		classStmt->name = ((IdentifierExpr*)ParseIdentifierExpr())->literal;
+		auto fieldStmt = new FieldStmt();
+		fieldStmt->name = ((IdentifierExpr*)ParseIdentifierExpr())->literal;
 
 		if(IsMatchCurTokenAndStepOnce(TokenType::COLON))
 		{
-				classStmt->containedFields.emplace_back((IdentifierExpr*)ParseIdentifierExpr());
+				fieldStmt->containedFields.emplace_back((IdentifierExpr*)ParseIdentifierExpr());
 				while (IsMatchCurTokenAndStepOnce(TokenType::COMMA))
-					classStmt->containedFields.emplace_back((IdentifierExpr*)ParseIdentifierExpr());
+					fieldStmt->containedFields.emplace_back((IdentifierExpr*)ParseIdentifierExpr());
 		}
 
-		Consume(TokenType::LBRACE, "Expect '{' after 'class' keyword");
+		Consume(TokenType::LBRACE, "Expect '{' after field name or contained field name");
 
 		while (!IsMatchCurToken(TokenType::RBRACE))
 		{
 			if (IsMatchCurToken(TokenType::LET))
-				classStmt->letStmts.emplace_back((LetStmt*)ParseLetStmt());
+				fieldStmt->letStmts.emplace_back((LetStmt*)ParseLetStmt());
 			else if (IsMatchCurToken(TokenType::FUNCTION))
-				classStmt->fnStmts.emplace_back((FunctionStmt*)ParseFunctionStmt());
+				fieldStmt->fnStmts.emplace_back((FunctionStmt*)ParseFunctionStmt());
 			else
 				Consume({ TokenType::LET ,TokenType::FUNCTION }, "UnExpect identifier '" + GetCurToken().literal + "'.");
 		}
 
-		Consume(TokenType::RBRACE, "Expect '}' after class stmt's '{'");
+		Consume(TokenType::RBRACE, "Expect '}' after field stmt's '{'");
 
-		return classStmt;
+		return fieldStmt;
 	}
 
 	Expr* Parser::ParseExpr(Precedence precedence)
@@ -600,10 +600,10 @@ namespace lws
 	Expr* Parser::ParseFieldCallExpr(Expr* prefixExpr)
 	{
 		Consume(TokenType::DOT, "Expect '.'.");
-		auto classCallExpr = new FieldCallExpr();
-		classCallExpr->callee = prefixExpr;
-		classCallExpr->callMember = ParseExpr(Precedence::INFIX);
-		return classCallExpr;
+		auto fieldCallExpr = new FieldCallExpr();
+		fieldCallExpr->callee = prefixExpr;
+		fieldCallExpr->callMember = ParseExpr(Precedence::INFIX);
+		return fieldCallExpr;
 	}
 
 	Token Parser::GetCurToken()

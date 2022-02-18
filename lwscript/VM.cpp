@@ -525,11 +525,11 @@ namespace lws
 				Object *stackTop = PopObject();
 				if (!IS_FIELD_OBJ(stackTop))
 					Assert("Not a field object of the callee of:" + memberName);
-				FieldObject *classObj = TO_FIELD_OBJ(stackTop);
+				FieldObject *fieldObj = TO_FIELD_OBJ(stackTop);
 
 				Object *assigner = PopObject();
 
-				classObj->AssignMemberByName(memberName, assigner);
+				fieldObj->AssignMemberByName(memberName, assigner);
 				break;
 			}
 			case OP_GET_FIELD_FUNCTION:

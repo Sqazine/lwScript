@@ -545,7 +545,7 @@ namespace lws
 	{
 		CompileExpr(expr->callee, frame);
 
-		if (expr->callMember->Type() == AstType::FIELD_CALL) //continuous class call such as a.b.c;
+		if (expr->callMember->Type() == AstType::FIELD_CALL) //continuous field call such as a.b.c;
 			CompileExpr(((FieldCallExpr*)expr->callMember)->callee, frame, FIELD_MEMBER_READ);
 
 		if (state == READ)
