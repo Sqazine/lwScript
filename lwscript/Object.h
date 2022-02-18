@@ -321,18 +321,29 @@ namespace lws
 	{
 		FieldObject() {}
 		FieldObject(std::string_view name,
-			const std::unordered_map<std::string, Object*>& members) : name(name), members(members) {}
+			const std::unordered_map<std::string, Object*>& members,
+			const std::vector<std::pair<std::string, FieldObject*>>& containedFields = {}) : name(name), members(members), containedFields(containedFields) {}
 		~FieldObject() {}
 
 		std::string Stringify() override
 		{
-			std::string result = "field instance " + name;
-			if (!members.empty())
+			std::string result = name;
+
+			if (!containedFields.empty())
 			{
 				result += ":\n";
+				for (const auto& containedField : containedFields)
+					result += containedField.first + ",";
+				result = result.substr(0, result.size() - 1);
+			}
+
+			if (!members.empty())
+			{
+				result += "{\n";
 				for (const auto& [key, value] : members)
 					result += key + "=" + value->Stringify() + "\n";
-				result=result.substr(0,result.size()-1);
+				result = result.substr(0, result.size() - 1);
+				result += "}\n";
 			}
 			return result;
 		}
@@ -354,32 +365,74 @@ namespace lws
 			return true;
 		}
 
-		void DefineMember(std::string_view name, Object* value)
-		{
-			auto iter = members.find(name.data());
-			if (iter != members.end())
-				Assert("Redefined class member:" + std::string(name));
-			else
-				members[name.data()] = value;
-		}
-
-		void AssignMember(std::string_view name, Object* value)
+		void AssignMemberByName(std::string_view name, Object* value)
 		{
 			auto iter = members.find(name.data());
 			if (iter != members.end())
 				members[name.data()] = value;
+			else if (!containedFields.empty())
+			{
+				for (auto& containedField : containedFields)
+					containedField.second->AssignMemberByName(name, value);
+			}
 			else
-				Assert("Undefine class member:" + std::string(name));
+				Assert("Undefined field member:" + std::string(name));
 		}
 
-		Object* GetMember(std::string_view name)
+		Object* GetMemberByName(std::string_view name)
 		{
-			auto iter = members.find(name.data());
+			auto iter = members.find(name.data()); // variables in self scope
 			if (iter != members.end())
 				return iter->second;
+			else // variables in contained field
+			{
+				for (const auto& containedField : containedFields)
+				{
+					// the contained field self
+					if (containedField.first == name)
+						return containedField.second;
+					else // the member
+					{
+						auto member = containedField.second->GetMemberByName(name);
+						if (member)
+							return member;
+					}
+				}
+			}
 			return nullptr;
 		}
+
+		Object* GetMemberByAddress(std::string_view address)
+		{
+			if (!members.empty())
+			{
+				for (auto [key, value] : members)
+					if (PointerAddressToString(value) == address)
+						return value;
+			}
+
+			if (!containedFields.empty()) // in contained field
+			{
+				for (const auto& containedField : containedFields)
+				{
+					// the contained field self
+					if (PointerAddressToString(containedField.second) == address)
+						return containedField.second;
+					else // the member in contained field
+					{
+						auto member = containedField.second->GetMemberByAddress(address);
+						if (member)
+							return member;
+					}
+				}
+			}
+
+			Assert("No Object's address:" + std::string(address) + "in field:" + std::string(name.data()));
+			return nullptr;
+		}
+
 		std::string name;
 		std::unordered_map<std::string, Object*> members;
+		std::vector<std::pair<std::string, FieldObject*>> containedFields;
 	};
 }

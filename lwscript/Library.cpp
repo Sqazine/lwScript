@@ -45,6 +45,12 @@ namespace lws
 			if (args.empty())
 				return nullptr;
 
+			if (args.size() == 1)
+			{
+				std::cout << args[0]->Stringify();
+				return nullptr;
+			}
+
 			if (args[0]->Type() != ObjectType::STR)
 			{
 				for (const auto& arg : args)
@@ -100,6 +106,12 @@ namespace lws
 		{
 			if (args.empty())
 				return nullptr;
+
+			if (args.size() == 1)
+			{
+				std::cout << args[0]->Stringify() << std::endl;
+				return nullptr;
+			}
 
 			if (args[0]->Type() != ObjectType::STR)
 			{

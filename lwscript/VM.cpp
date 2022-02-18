@@ -1,5 +1,6 @@
 #include "VM.h"
 #include "Library.h"
+#include "Config.h"
 namespace lws
 {
 	VM::VM()
@@ -131,12 +132,12 @@ namespace lws
 		return object;
 	}
 
-	FieldObject *VM::CreateFieldObject(std::string_view name, const std::unordered_map<std::string, Object *> &members)
+	FieldObject *VM::CreateFieldObject(std::string_view name, const std::unordered_map<std::string, Object *> &members,const std::vector<std::pair<std::string, FieldObject*>>& containedFields)
 	{
 		if (curObjCount == maxObjCount)
 			Gc();
 
-		FieldObject *object = new FieldObject(name, members);
+		FieldObject *object = new FieldObject(name, members,containedFields);
 		object->marked = false;
 
 		object->next = firstObject;
@@ -258,8 +259,6 @@ namespace lws
 				}
 				return PopObject();
 				break;
-			case OP_FIELD_RETURN:
-				return PopObject();
 			case OP_NEW_REAL:
 				PushObject(CreateRealNumObject(frame->m_RealNums[frame->m_Codes[++ip]]));
 				break;
@@ -380,13 +379,13 @@ namespace lws
 
 				Object *varObject = m_Context->GetVariableByName(name);
 
-				//create a class object
+				//create a field object
 				if (varObject == nullptr)
 				{
 					if (frame->HasFieldFrame(name))
 						PushObject(Execute(frame->GetFieldFrame(name)));
 					else
-						Assert("No class declaration:" + name);
+						Assert("No field declaration:" + name);
 				}
 				else if (IS_REF_OBJ(varObject))
 				{
@@ -423,11 +422,18 @@ namespace lws
 			{
 				std::string name = frame->m_Strings[frame->m_Codes[++ip]];
 
-				PushObject(CreateFieldObject(name, m_Context->GetValues()));
-				Context *up = m_Context->GetUpContext();
-				if (m_Context != nullptr)
-					delete m_Context;
-				m_Context = up;
+				std::unordered_map<std::string, Object*> members;
+				std::vector<std::pair<std::string, FieldObject*>> containedFields;
+
+				for (auto value : m_Context->GetValues())
+				{
+					if (value.first.find_first_of(containedFieldPrefixID) == 0 && IS_FIELD_OBJ(value.second))
+						containedFields.emplace_back(std::make_pair(value.first.substr(containedFieldPrefixID.size()), TO_FIELD_OBJ(value.second)));
+					else
+						members[value.first] = value.second;
+				}
+
+				PushObject(CreateFieldObject(name, members,containedFields));
 				break;
 			}
 			case OP_GET_INDEX_VAR:
@@ -506,11 +512,11 @@ namespace lws
 			case OP_GET_FIELD_VAR:
 			{
 				std::string memberName = frame->m_Strings[frame->m_Codes[++ip]];
-				Object *stackTop = PopObject();
+				Object* stackTop = PopObject();
 				if (!IS_FIELD_OBJ(stackTop))
-					Assert("Not a class object of the callee of:" + memberName);
-				FieldObject *classObj = TO_FIELD_OBJ(stackTop);
-				PushObject(classObj->GetMember(memberName));
+					Assert("Not a field object of the callee of:" + memberName);
+				FieldObject* fieldObj = TO_FIELD_OBJ(stackTop);
+				PushObject(fieldObj->GetMemberByName(memberName));
 				break;
 			}
 			case OP_SET_FIELD_VAR:
@@ -518,12 +524,12 @@ namespace lws
 				std::string memberName = frame->m_Strings[frame->m_Codes[++ip]];
 				Object *stackTop = PopObject();
 				if (!IS_FIELD_OBJ(stackTop))
-					Assert("Not a class object of the callee of:" + memberName);
+					Assert("Not a field object of the callee of:" + memberName);
 				FieldObject *classObj = TO_FIELD_OBJ(stackTop);
 
 				Object *assigner = PopObject();
 
-				classObj->AssignMember(memberName, assigner);
+				classObj->AssignMemberByName(memberName, assigner);
 				break;
 			}
 			case OP_GET_FIELD_FUNCTION:
@@ -531,27 +537,27 @@ namespace lws
 				std::string memberName = frame->m_Strings[frame->m_Codes[++ip]];
 				Object *stackTop = PopObject();
 				if (!IS_FIELD_OBJ(stackTop))
-					Assert("Not a class object of the callee of:" + memberName);
-				FieldObject *classObj = TO_FIELD_OBJ(stackTop);
-				std::string classType = classObj->name;
+					Assert("Not a fleid object of the callee of:" + memberName);
+				FieldObject *fieldObj = TO_FIELD_OBJ(stackTop);
+				std::string fieldType = fieldObj->name;
 
-				Frame *classFrame = nullptr;
-				if (frame->HasFieldFrame(classType)) //function:function add(){return 10;}
-					classFrame = frame->GetFieldFrame(classType);
+				Frame *fieldFrame = nullptr;
+				if (frame->HasFieldFrame(fieldType)) //function:function add(){return 10;}
+					fieldFrame = frame->GetFieldFrame(fieldType);
 				else
-					Assert("No class declaration:" + classType);
+					Assert("No field declaration:" + fieldType);
 
-				if (classFrame->HasFunctionFrame(memberName))
-					PushFrame(classFrame->GetFunctionFrame(memberName));
-				else if (classObj->GetMember(memberName) != nullptr) //lambda:let add=function(){return 10;}
+				if (fieldFrame->HasFunctionFrame(memberName))
+					PushFrame(fieldFrame->GetFunctionFrame(memberName));
+				else if (fieldObj->GetMemberByName(memberName) != nullptr) //lambda:let add=function(){return 10;}
 				{
-					Object *lambdaObject = classObj->GetMember(memberName);
+					Object *lambdaObject = fieldObj->GetMemberByName(memberName);
 					if (!IS_FUNCTION_OBJ(lambdaObject))
-						Assert("No lambda object:" + memberName + " in class:" + classType);
-					PushFrame(classFrame->GetLambdaFrame(TO_FUNCTION_OBJ(lambdaObject)->frameIndex));
+						Assert("No lambda object:" + memberName + " in field:" + fieldType);
+					PushFrame(fieldFrame->GetLambdaFrame(TO_FUNCTION_OBJ(lambdaObject)->frameIndex));
 				}
 				else
-					Assert("No function in class:" + memberName);
+					Assert("No function in field:" + memberName);
 
 				break;
 			}

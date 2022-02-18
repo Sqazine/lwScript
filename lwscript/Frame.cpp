@@ -191,9 +191,6 @@ namespace lws
 			case OP_RETURN:
 				SINGLE_INSTR_STRINGIFY(OP_RETURN);
 				break;
-			case OP_FIELD_RETURN:
-				SINGLE_INSTR_STRINGIFY(OP_FIELD_RETURN);
-				break;
 			case OP_NEW_REAL:
 				CONSTANT_INSTR_STRINGIFY(OP_NEW_REAL, m_RealNums);
 				break;

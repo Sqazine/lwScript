@@ -5,10 +5,10 @@
 namespace lws
 {
 	Context::Context() : m_UpContext(nullptr) {}
-	Context::Context(Context* upContext) : m_UpContext(upContext) {}
+	Context::Context(Context *upContext) : m_UpContext(upContext) {}
 	Context::~Context() {}
 
-	void Context::DefineVariableByName(std::string_view name, Object* value)
+	void Context::DefineVariableByName(std::string_view name, Object *value)
 	{
 		auto iter = m_Values.find(name.data());
 		if (iter != m_Values.end())
@@ -17,7 +17,7 @@ namespace lws
 			m_Values[name.data()] = value;
 	}
 
-	void Context::AssignVariableByName(std::string_view name, Object* value)
+	void Context::AssignVariableByName(std::string_view name, Object *value)
 	{
 		auto iter = m_Values.find(name.data());
 		if (iter != m_Values.end())
@@ -28,7 +28,7 @@ namespace lws
 			Assert("Undefine variable:" + std::string(name) + " in current context");
 	}
 
-	Object* Context::GetVariableByName(std::string_view name)
+	Object *Context::GetVariableByName(std::string_view name)
 	{
 		auto iter = m_Values.find(name.data());
 		if (iter != m_Values.end())
@@ -38,7 +38,7 @@ namespace lws
 		return nullptr;
 	}
 
-	void Context::AssignVariableByAddress(std::string_view address, Object* value)
+	void Context::AssignVariableByAddress(std::string_view address, Object *value)
 	{
 		for (auto [contextKey, contextValue] : m_Values)
 		{
@@ -49,7 +49,7 @@ namespace lws
 			}
 			else if (IS_ARRAY_OBJ(contextValue))
 			{
-				ArrayObject* array = TO_ARRAY_OBJ(contextValue);
+				ArrayObject *array = TO_ARRAY_OBJ(contextValue);
 				for (size_t i = 0; i < array->elements.size(); ++i)
 					if (PointerAddressToString(array->elements[i]) == address)
 					{
@@ -59,7 +59,7 @@ namespace lws
 			}
 			else if (IS_TABLE_OBJ(contextValue))
 			{
-				TableObject* table = TO_TABLE_OBJ(contextValue);
+				TableObject *table = TO_TABLE_OBJ(contextValue);
 				for (auto [tableKey, tableValue] : table->elements)
 					if (PointerAddressToString(tableValue) == address)
 					{
@@ -69,11 +69,11 @@ namespace lws
 			}
 			else if (IS_FIELD_OBJ(contextValue))
 			{
-				FieldObject* field = TO_FIELD_OBJ(contextValue);
-				for (auto [classMemberKey, classMemberValue] : field->members)
-					if (PointerAddressToString(classMemberValue) == address)
+				FieldObject *field = TO_FIELD_OBJ(contextValue);
+				for (auto [fieldMemberKey, fieldMemberValue] : field->members)
+					if (PointerAddressToString(fieldMemberValue) == address)
 					{
-						field->members[classMemberKey] = value;
+						field->members[fieldMemberKey] = value;
 						return;
 					}
 			}
@@ -85,7 +85,7 @@ namespace lws
 			Assert("Undefine variable(address:" + std::string(address) + ") in current context");
 	}
 
-	Object* Context::GetVariableByAddress(std::string_view address)
+	Object *Context::GetVariableByAddress(std::string_view address)
 	{
 		for (auto [contextKey, contextValue] : m_Values)
 		{
@@ -93,24 +93,22 @@ namespace lws
 				return contextValue;
 			else if (IS_ARRAY_OBJ(contextValue))
 			{
-				ArrayObject* array = TO_ARRAY_OBJ(contextValue);
+				ArrayObject *array = TO_ARRAY_OBJ(contextValue);
 				for (size_t i = 0; i < array->elements.size(); ++i)
 					if (PointerAddressToString(array->elements[i]) == address)
 						return array->elements[i];
 			}
 			else if (IS_TABLE_OBJ(contextValue))
 			{
-				TableObject* table = TO_TABLE_OBJ(contextValue);
+				TableObject *table = TO_TABLE_OBJ(contextValue);
 				for (auto [tableKey, tableValue] : table->elements)
 					if (PointerAddressToString(tableValue) == address)
 						return table->elements[tableKey];
 			}
 			else if (IS_FIELD_OBJ(contextValue))
 			{
-				FieldObject* field = TO_FIELD_OBJ(contextValue);
-				for (auto [classMemberKey, classMemberValue] : field->members)
-					if (PointerAddressToString(classMemberValue) == address)
-						return field->members[classMemberKey];
+				FieldObject *field = TO_FIELD_OBJ(contextValue);
+				return field->GetMemberByAddress(address);
 			}
 		}
 
@@ -120,17 +118,17 @@ namespace lws
 		return nullptr;
 	}
 
-	Context* Context::GetUpContext()
+	Context *Context::GetUpContext()
 	{
 		return m_UpContext;
 	}
 
-	void Context::SetUpContext(Context* env)
+	void Context::SetUpContext(Context *env)
 	{
 		m_UpContext = env;
 	}
 
-	const std::unordered_map<std::string, struct Object*>& Context::GetValues() const
+	const std::unordered_map<std::string, struct Object *> &Context::GetValues() const
 	{
 		return m_Values;
 	}

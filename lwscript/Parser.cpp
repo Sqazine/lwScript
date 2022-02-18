@@ -398,9 +398,9 @@ namespace lws
 
 		if(IsMatchCurTokenAndStepOnce(TokenType::COLON))
 		{
-				classStmt->includeFields.emplace_back((IdentifierExpr*)ParseIdentifierExpr());
+				classStmt->containedFields.emplace_back((IdentifierExpr*)ParseIdentifierExpr());
 				while (IsMatchCurTokenAndStepOnce(TokenType::COMMA))
-					classStmt->includeFields.emplace_back((IdentifierExpr*)ParseIdentifierExpr());
+					classStmt->containedFields.emplace_back((IdentifierExpr*)ParseIdentifierExpr());
 		}
 
 		Consume(TokenType::LBRACE, "Expect '{' after 'class' keyword");

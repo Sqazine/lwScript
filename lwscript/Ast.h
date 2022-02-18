@@ -509,13 +509,13 @@ namespace lws
 		FieldStmt(std::string name,
 				  std::vector<LetStmt *> letStmts,
 				  std::vector<FunctionStmt *> fnStmts,
-				  std::vector<IdentifierExpr *> includeFields = {})
-			: name(name), letStmts(letStmts), fnStmts(fnStmts), includeFields(includeFields)
+				  std::vector<IdentifierExpr *> containedFields = {})
+			: name(name), letStmts(letStmts), fnStmts(fnStmts), containedFields(containedFields)
 		{
 		}
 		~FieldStmt()
 		{
-			std::vector<IdentifierExpr *>().swap(includeFields);
+			std::vector<IdentifierExpr *>().swap(containedFields);
 			std::vector<LetStmt *>().swap(letStmts);
 			std::vector<FunctionStmt *>().swap(fnStmts);
 		}
@@ -523,11 +523,11 @@ namespace lws
 		std::string Stringify() override
 		{
 			std::string result = "field " + name;
-			if (!includeFields.empty())
+			if (!containedFields.empty())
 			{
 				result += ":";
-				for (const auto &includeField : includeFields)
-					result += includeField->Stringify() + ",";
+				for (const auto &containedField : containedFields)
+					result += containedField->Stringify() + ",";
 				result = result.substr(0, result.size() - 1);
 			}
 			result += "{\n";
@@ -540,7 +540,7 @@ namespace lws
 		AstType Type() override { return AstType::FIELD; }
 
 		std::string name;
-		std::vector<IdentifierExpr *> includeFields;
+		std::vector<IdentifierExpr *> containedFields;
 		std::vector<LetStmt *> letStmts;
 		std::vector<FunctionStmt *> fnStmts;
 	};
