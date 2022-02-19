@@ -3,9 +3,13 @@
 namespace lws
 {
     IntNumObject::IntNumObject()
-        : value(0) {}
+        : value(0)
+    {
+    }
     IntNumObject::IntNumObject(int64_t value)
-        : value(value) {}
+        : value(value)
+    {
+    }
     IntNumObject::~IntNumObject()
     {
     }
@@ -20,10 +24,14 @@ namespace lws
     }
     void IntNumObject::Mark()
     {
+        if (marked)
+            return;
         marked = true;
     }
     void IntNumObject::UnMark()
     {
+        if (!marked)
+            return;
         marked = false;
     }
     bool IntNumObject::IsEqualTo(Object *other)
@@ -55,10 +63,14 @@ namespace lws
     }
     void RealNumObject::Mark()
     {
+        if (marked)
+            return;
         marked = true;
     }
     void RealNumObject::UnMark()
     {
+        if (!marked)
+            return;
         marked = false;
     }
     bool RealNumObject::IsEqualTo(Object *other)
@@ -69,9 +81,13 @@ namespace lws
     }
 
     BoolObject::BoolObject()
-        : value(false) {}
+        : value(false)
+    {
+    }
     BoolObject::BoolObject(bool value)
-        : value(value) {}
+        : value(value)
+    {
+    }
     BoolObject::~BoolObject()
     {
     }
@@ -86,10 +102,14 @@ namespace lws
     }
     void BoolObject::Mark()
     {
+        if (marked)
+            return;
         marked = true;
     }
     void BoolObject::UnMark()
     {
+        if (!marked)
+            return;
         marked = false;
     }
     bool BoolObject::IsEqualTo(Object *other)
@@ -103,7 +123,9 @@ namespace lws
     {
     }
     ArrayObject::ArrayObject(const std::vector<Object *> &elements)
-        : elements(elements) {}
+        : elements(elements)
+    {
+    }
     ArrayObject::~ArrayObject()
     {
     }
@@ -253,10 +275,14 @@ namespace lws
     }
     void FunctionObject::Mark()
     {
+        if (marked)
+            return;
         marked = true;
     }
     void FunctionObject::UnMark()
     {
+        if (!marked)
+            return;
         marked = false;
     }
 
@@ -285,10 +311,14 @@ namespace lws
     }
     void RefObject::Mark()
     {
+        if (marked)
+            return;
         marked = true;
     }
     void RefObject::UnMark()
     {
+        if (!marked)
+            return;
         marked = false;
     }
     bool RefObject::IsEqualTo(Object *other)
@@ -298,14 +328,18 @@ namespace lws
         return address == TO_REF_OBJ(other)->address;
     }
 
-    FieldObject::FieldObject() {}
+    FieldObject::FieldObject()
+    {
+    }
     FieldObject::FieldObject(std::string_view name,
                              const std::unordered_map<std::string, Object *> &members,
                              const std::vector<std::pair<std::string, FieldObject *>> &containedFields)
         : name(name), members(members), containedFields(containedFields)
     {
     }
-    FieldObject::~FieldObject() {}
+    FieldObject::~FieldObject()
+    {
+    }
 
     std::string FieldObject::Stringify()
     {
@@ -335,11 +369,23 @@ namespace lws
     }
     void FieldObject::Mark()
     {
+        if (marked)
+            return;
         marked = true;
+        for (auto [key, value] : members)
+            value->Mark();
+        for (auto &containedField : containedFields)
+            containedField.second->Mark();
     }
     void FieldObject::UnMark()
     {
+        if (!marked)
+            return;
         marked = false;
+        for (auto [key, value] : members)
+            value->UnMark();
+        for (auto &containedField : containedFields)
+            containedField.second->UnMark();
     }
     bool FieldObject::IsEqualTo(Object *other)
     {
