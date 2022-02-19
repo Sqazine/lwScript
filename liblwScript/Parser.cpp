@@ -194,7 +194,7 @@ namespace lws
 		std::unordered_map<IdentifierExpr*, Expr*> variables;
 
 		auto name = (IdentifierExpr*)ParseIdentifierExpr();
-		Expr* value = nilExpr;
+		Expr* value = new NilExpr();
 		if (IsMatchCurTokenAndStepOnce(TokenType::EQUAL))
 			value = ParseExpr();
 		variables[name] = value;
@@ -202,7 +202,7 @@ namespace lws
 		while (IsMatchCurTokenAndStepOnce(TokenType::COMMA))
 		{
 			auto name = (IdentifierExpr*)ParseIdentifierExpr();
-			Expr* value = nilExpr;
+			Expr* value = new NilExpr();
 			if (IsMatchCurTokenAndStepOnce(TokenType::EQUAL))
 				value = ParseExpr();
 			variables[name] = value;
@@ -425,7 +425,7 @@ namespace lws
 		if (m_PrefixFunctions.find(GetCurToken().type) == m_PrefixFunctions.end())
 		{
 			std::cout << "no prefix definition for:" << GetCurTokenAndStepOnce().literal << std::endl;
-			return nilExpr;
+			return new NilExpr();
 		}
 		auto prefixFn = m_PrefixFunctions[GetCurToken().type];
 
@@ -466,17 +466,17 @@ namespace lws
 	Expr* Parser::ParseNilExpr()
 	{
 		Consume(TokenType::NIL, "Expect 'null' keyword");
-		return nilExpr;
+		return new NilExpr();
 	}
 	Expr* Parser::ParseTrueExpr()
 	{
 		Consume(TokenType::TRUE, "Expect 'true' keyword");
-		return trueExpr;
+		return new BoolExpr(true);
 	}
 	Expr* Parser::ParseFalseExpr()
 	{
 		Consume(TokenType::FALSE, "Expect 'false' keyword");
-		return falseExpr;
+		return new BoolExpr(false);
 	}
 
 	Expr* Parser::ParseGroupExpr()

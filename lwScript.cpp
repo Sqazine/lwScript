@@ -1,7 +1,7 @@
 #include <string>
 #include <string_view>
 
-#include "lwScript/lwScript.h"
+#include "liblwScript/lwScript.h"
 
 void Repl()
 {
