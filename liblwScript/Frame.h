@@ -16,7 +16,7 @@ namespace lws
 		OP_NEW_STR,
 		OP_NEW_TRUE,
 		OP_NEW_FALSE,
-		OP_NEW_NIL,
+		OP_NEW_NULL,
 		OP_NEW_ARRAY,
 		OP_NEW_TABLE,
 		OP_NEW_LAMBDA,

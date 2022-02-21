@@ -38,28 +38,28 @@ namespace lws
 	{
 		switch (stmt->Type())
 		{
-		case AstType::RETURN:
+		case AST_RETURN:
 			CompileReturnStmt((ReturnStmt*)stmt, frame);
 			break;
-		case AstType::EXPR:
+		case AST_EXPR:
 			CompileExprStmt((ExprStmt*)stmt, frame);
 			break;
-		case AstType::LET:
+		case AST_LET:
 			CompileLetStmt((LetStmt*)stmt, frame);
 			break;
-		case AstType::SCOPE:
+		case AST_SCOPE:
 			CompileScopeStmt((ScopeStmt*)stmt, frame);
 			break;
-		case AstType::IF:
+		case AST_IF:
 			CompileIfStmt((IfStmt*)stmt, frame);
 			break;
-		case AstType::WHILE:
+		case AST_WHILE:
 			CompileWhileStmt((WhileStmt*)stmt, frame);
 			break;
-		case AstType::FUNCTION:
+		case AST_FUNCTION:
 			CompileFunctionStmt((FunctionStmt*)stmt, frame);
 			break;
-		case AstType::FIELD:
+		case AST_FIELD:
 			CompileFieldStmt((FieldStmt*)stmt, frame);
 			break;
 		default:
@@ -190,7 +190,7 @@ namespace lws
 		for (auto& letStmt : stmt->letStmts)
 		{
 			for (auto& variable : letStmt->variables)
-				if (variable.second->Type() == AstType::LAMBDA)
+				if (variable.second->Type() == AST_LAMBDA)
 					((LambdaExpr*)variable.second)->parameters.emplace_back(new IdentifierExpr("this"));//add 'this' parameter for field lambda function
 
 			CompileLetStmt(letStmt, fieldFrame);
@@ -217,55 +217,55 @@ namespace lws
 	{
 		switch (expr->Type())
 		{
-		case AstType::REAL:
+		case AST_REAL:
 			CompileRealNumExpr((RealNumExpr*)expr, frame);
 			break;
-		case AstType::INT:
+		case AST_INT:
 			CompileIntNumExpr((IntNumExpr*)expr, frame);
 			break;
-		case AstType::STR:
+		case AST_STR:
 			CompileStrExpr((StrExpr*)expr, frame);
 			break;
-		case AstType::BOOL:
+		case AST_BOOL:
 			CompileBoolExpr((BoolExpr*)expr, frame);
 			break;
-		case AstType::NIL:
-			CompileNilExpr((NilExpr*)expr, frame);
+		case AST_NULL:
+			CompileNullExpr((NullExpr*)expr, frame);
 			break;
-		case AstType::IDENTIFIER:
+		case AST_IDENTIFIER:
 			CompileIdentifierExpr((IdentifierExpr*)expr, frame, state);
 			break;
-		case AstType::GROUP:
+		case AST_GROUP:
 			CompileGroupExpr((GroupExpr*)expr, frame);
 			break;
-		case AstType::ARRAY:
+		case AST_ARRAY:
 			CompileArrayExpr((ArrayExpr*)expr, frame);
 			break;
-		case AstType::TABLE:
+		case AST_TABLE:
 			CompileTableExpr((TableExpr*)expr, frame);
 			break;
-		case AstType::INDEX:
+		case AST_INDEX:
 			CompileIndexExpr((IndexExpr*)expr, frame, state);
 			break;
-		case AstType::PREFIX:
+		case AST_PREFIX:
 			CompilePrefixExpr((PrefixExpr*)expr, frame);
 			break;
-		case AstType::INFIX:
+		case AST_INFIX:
 			CompileInfixExpr((InfixExpr*)expr, frame);
 			break;
-		case AstType::CONDITION:
+		case AST_CONDITION:
 			CompileConditionExpr((ConditionExpr*)expr, frame);
 			break;
-		case AstType::LAMBDA:
+		case AST_LAMBDA:
 			CompileLambdaExpr((LambdaExpr*)expr, frame);
 			break;
-		case AstType::FUNCTION_CALL:
+		case AST_FUNCTION_CALL:
 			CompileFunctionCallExpr((FunctionCallExpr*)expr, frame);
 			break;
-		case AstType::FIELD_CALL:
+		case AST_FIELD_CALL:
 			CompileFieldCallExpr((FieldCallExpr*)expr, frame, state);
 			break;
-		case AstType::REF:
+		case AST_REF:
 			CompileRefExpr((RefExpr*)expr, frame);
 			break;
 		default:
@@ -302,9 +302,9 @@ namespace lws
 			frame->AddOpCode(OP_NEW_FALSE);
 	}
 
-	void Compiler::CompileNilExpr(NilExpr* expr, Frame* frame)
+	void Compiler::CompileNullExpr(NullExpr* expr, Frame* frame)
 	{
-		frame->AddOpCode(OP_NEW_NIL);
+		frame->AddOpCode(OP_NEW_NULL);
 	}
 
 	void Compiler::CompileIdentifierExpr(IdentifierExpr* expr, Frame* frame, ObjectState state)
@@ -381,7 +381,7 @@ namespace lws
 		if (expr->op == "=")
 		{
 			CompileExpr(expr->right, frame);
-			if (expr->right->Type() == AstType::INFIX && ((InfixExpr*)expr->right)->op == "=") //continuous assignment such as a=b=c;
+			if (expr->right->Type() == AST_INFIX && ((InfixExpr*)expr->right)->op == "=") //continuous assignment such as a=b=c;
 				CompileExpr(((InfixExpr*)expr->right)->left, frame);
 
 			CompileExpr(expr->left, frame, WRITE);
@@ -508,7 +508,7 @@ namespace lws
 
 		//extra args such as 'this' or the field contained field instance 
 		int64_t extraArgCount = 0;
-		if (expr->name->Type() == AstType::FIELD_CALL)
+		if (expr->name->Type() == AST_FIELD_CALL)
 		{
 			CompileRefExpr(new RefExpr(((FieldCallExpr*)expr->name)->callee), frame);
 			extraArgCount++;
@@ -518,18 +518,18 @@ namespace lws
 		uint64_t offset = frame->AddIntNum((int64_t)expr->arguments.size() + extraArgCount);
 		frame->AddOpCode(offset);
 
-		if (expr->name->Type() == AstType::IDENTIFIER && !LibraryManager::HasNativeFunction(((IdentifierExpr*)expr->name)->literal))
+		if (expr->name->Type() == AST_IDENTIFIER && !LibraryManager::HasNativeFunction(((IdentifierExpr*)expr->name)->literal))
 		{
 			IdentifierExpr* tmpIden = new IdentifierExpr(((IdentifierExpr*)expr->name)->literal + std::to_string(expr->arguments.size()));
 			CompileExpr(tmpIden, frame, FUNCTION_READ);
 		}
-		else if (expr->name->Type() == AstType::FIELD_CALL)
+		else if (expr->name->Type() == AST_FIELD_CALL)
 		{
 			FieldCallExpr* fieldCallExpr = (FieldCallExpr*)expr->name;
 
 			CompileExpr(fieldCallExpr->callee, frame);
 
-			if (fieldCallExpr->callMember->Type() == AstType::FIELD_CALL) //continuous field call such as a.b.c;
+			if (fieldCallExpr->callMember->Type() == AST_FIELD_CALL) //continuous field call such as a.b.c;
 				CompileExpr(((FieldCallExpr*)fieldCallExpr->callMember)->callee, frame, FIELD_MEMBER_READ);
 
 			IdentifierExpr* tmpIden = new IdentifierExpr(((IdentifierExpr*)fieldCallExpr->callMember)->literal + std::to_string(expr->arguments.size()));
@@ -545,7 +545,7 @@ namespace lws
 	{
 		CompileExpr(expr->callee, frame);
 
-		if (expr->callMember->Type() == AstType::FIELD_CALL) //continuous field call such as a.b.c;
+		if (expr->callMember->Type() == AST_FIELD_CALL) //continuous field call such as a.b.c;
 			CompileExpr(((FieldCallExpr*)expr->callMember)->callee, frame, FIELD_MEMBER_READ);
 
 		if (state == READ)

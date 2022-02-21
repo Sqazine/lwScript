@@ -28,7 +28,7 @@ namespace lws
 		IntNumObject *CreateIntNumObject(int64_t value = 0);
 		StrObject *CreateStrObject(std::string_view value = "");
 		BoolObject *CreateBoolObject(bool value = false);
-		NilObject *CreateNilObject();
+		NullObject *CreateNullObject();
 		ArrayObject *CreateArrayObject(const std::vector<Object *> &elements = {});
 		TableObject *CreateTableObject(const std::unordered_map<Object *, Object *> &elements = {});
 		FieldObject *CreateFieldObject(std::string_view name, const std::unordered_map<std::string, Object *> &members, const std::vector<std::pair<std::string, FieldObject*>>& containedFields = {});

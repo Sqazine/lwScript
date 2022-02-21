@@ -1,7 +1,7 @@
 field Node
 {
     let v=0;
-    let next=nil;
+    let next=null;
 }
 
 let head=Node;
@@ -42,4 +42,4 @@ println("{}",head);
 //                                        v=8
 //                                        next=field instance Node:
 //                                              v=9
-//                                              next=nil
+//                                              next=null

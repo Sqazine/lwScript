@@ -42,7 +42,7 @@ namespace lws
 		void CompileRealNumExpr(RealNumExpr *expr, Frame *frame);
 		void CompileStrExpr(StrExpr *expr, Frame *frame);
 		void CompileBoolExpr(BoolExpr *expr, Frame *frame);
-		void CompileNilExpr(NilExpr *expr, Frame *frame);
+		void CompileNullExpr(NullExpr *expr, Frame *frame);
 		void CompileIdentifierExpr(IdentifierExpr *expr, Frame *frame, ObjectState state = READ);
 		void CompileGroupExpr(GroupExpr *expr, Frame *frame);
 		void CompileArrayExpr(ArrayExpr *expr, Frame *frame);

@@ -5,67 +5,67 @@
 #include <ostream>
 namespace lws
 {
-	enum class TokenType
+	enum TokenType
 	{
-		NUMBER = 0,
-		STRING,
-		IDENTIFIER,
-		DOT,				   // .
-		COMMA,				   // ,
-		COLON,				   // :
-		SEMICOLON,			   // ;
-		LBRACKET,			   // [
-		RBRACKET,			   // ]
-		LBRACE,				   // {
-		RBRACE,				   // }
-		LPAREN,				   // (
-		RPAREN,				   // )
-		PLUS,				   // +
-		MINUS,				   // -
-		ASTERISK,			   // *
-		SLASH,				   // /
-		PERCENT,			   // %
-		EQUAL,				   // =
-		LESS,				   // <
-		GREATER,			   // >
-		AMPERSAND,			   // &
-		VBAR,				   // |
-		CARET,				   // ^
-		TILDE,				   // ~
-		QUESTION,			   // ?
-		BANG,				   // !
-		LESS_LESS,			   // <<
-		GREATER_GREATER,	   // >>
-		PLUS_EQUAL,			   // +=
-		MINUS_EQUAL,		   // -=
-		ASTERISK_EQUAL,		   // *=
-		SLASH_EQUAL,		   // /=
-		PERCENT_EQUAL,		   // %=
-		AMPERSAND_EQUAL,	   // &=
-		VBAR_EQUAL,			   // |=
-		CARET_EQUAL,		   // ^=
-		LESS_LESS_EQUAL,	   // <<=
-		GREATER_GREATER_EQUAL, // >>
-		EQUAL_EQUAL,		   // ==
-		LESS_EQUAL,			   // <=
-		GREATER_EQUAL,		   // >=
-		BANG_EQUAL,			   // !=
-		AMPERSAND_AMPERSAND,   // &&
-		VBAR_VBAR,			   // ||
-		LET,				   // let
-		IF,					   // if
-		ELSE,				   // else
-		TRUE,				   // true
-		FALSE,				   // false
-		NIL,				   // nil
-		WHILE,				   // while
-		FOR,				   // for
-		FUNCTION,			   // fn
-		FIELD,				   // field
-		RETURN,				   // return
-		STATIC,				   // static
-		CONST,				   // const
-		END
+		TOKEN_NUMBER = 0,
+		TOKEN_STRING,
+		TOKEN_IDENTIFIER,
+		TOKEN_DOT,					 // .
+		TOKEN_COMMA,				 // ,
+		TOKEN_COLON,				 // :
+		TOKEN_SEMICOLON,			 // ;
+		TOKEN_LBRACKET,				 // [
+		TOKEN_RBRACKET,				 // ]
+		TOKEN_LBRACE,				 // {
+		TOKEN_RBRACE,				 // }
+		TOKEN_LPAREN,				 // (
+		TOKEN_RPAREN,				 // )
+		TOKEN_PLUS,					 // +
+		TOKEN_MINUS,				 // -
+		TOKEN_ASTERISK,				 // *
+		TOKEN_SLASH,				 // /
+		TOKEN_PERCENT,				 // %
+		TOKEN_EQUAL,				 // =
+		TOKEN_LESS,					 // <
+		TOKEN_GREATER,				 // >
+		TOKEN_AMPERSAND,			 // &
+		TOKEN_VBAR,					 // |
+		TOKEN_CARET,				 // ^
+		TOKEN_TILDE,				 // ~
+		TOKEN_QUESTION,				 // ?
+		TOKEN_BANG,					 // !
+		TOKEN_LESS_LESS,			 // <<
+		TOKEN_GREATER_GREATER,		 // >>
+		TOKEN_PLUS_EQUAL,			 // +=
+		TOKEN_MINUS_EQUAL,			 // -=
+		TOKEN_ASTERISK_EQUAL,		 // *=
+		TOKEN_SLASH_EQUAL,			 // /=
+		TOKEN_PERCENT_EQUAL,		 // %=
+		TOKEN_AMPERSAND_EQUAL,		 // &=
+		TOKEN_VBAR_EQUAL,			 // |=
+		TOKEN_CARET_EQUAL,			 // ^=
+		TOKEN_LESS_LESS_EQUAL,		 // <<=
+		TOKEN_GREATER_GREATER_EQUAL, // >>
+		TOKEN_EQUAL_EQUAL,			 // ==
+		TOKEN_LESS_EQUAL,			 // <=
+		TOKEN_GREATER_EQUAL,		 // >=
+		TOKEN_BANG_EQUAL,			 // !=
+		TOKEN_AMPERSAND_AMPERSAND,	 // &&
+		TOKEN_VBAR_VBAR,			 // ||
+		TOKEN_LET,					 // let
+		TOKEN_IF,					 // if
+		TOKEN_ELSE,					 // else
+		TOKEN_TRUE,					 // true
+		TOKEN_FALSE,				 // false
+		TOKEN_NULL,					 // null
+		TOKEN_WHILE,				 // while
+		TOKEN_FOR,					 // for
+		TOKEN_FUNCTION,				 // fn
+		TOKEN_FIELD,				 // field
+		TOKEN_RETURN,				 // return
+		TOKEN_STATIC,				 // static
+		TOKEN_CONST,				 // const
+		TOKEN_END
 	};
 
 	struct Token

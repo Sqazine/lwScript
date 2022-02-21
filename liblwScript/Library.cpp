@@ -51,7 +51,7 @@ namespace lws
 				return nullptr;
 			}
 
-			if (args[0]->Type() != ObjectType::STR)
+			if (args[0]->Type() != OBJECT_STR)
 			{
 				for (const auto& arg : args)
 					std::cout << arg->Stringify();
@@ -69,7 +69,7 @@ namespace lws
 					if (argpos < args.size())
 						content.replace(pos, 2, args[argpos++]->Stringify());
 					else
-						content.replace(pos, 2, "nil");
+						content.replace(pos, 2, "null");
 					pos = content.find("{}");
 				}
 			}
@@ -113,7 +113,7 @@ namespace lws
 				return nullptr;
 			}
 
-			if (args[0]->Type() != ObjectType::STR)
+			if (args[0]->Type() != OBJECT_STR)
 			{
 				for (const auto& arg : args)
 					std::cout << arg->Stringify() << std::endl;
@@ -131,7 +131,7 @@ namespace lws
 					if (argpos < args.size())
 						content.replace(pos, 2, args[argpos++]->Stringify());
 					else
-						content.replace(pos, 2, "nil");
+						content.replace(pos, 2, "null");
 					pos = content.find("{}");
 				}
 			}

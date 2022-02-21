@@ -65,7 +65,7 @@ namespace lws
 		Expr* ParseIdentifierExpr();
 		Expr* ParseNumExpr();
 		Expr* ParseStrExpr();
-		Expr* ParseNilExpr();
+		Expr* ParseNullExpr();
 		Expr* ParseTrueExpr();
 		Expr* ParseFalseExpr();
 		Expr* ParseGroupExpr();

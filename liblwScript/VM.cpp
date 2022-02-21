@@ -85,12 +85,12 @@ namespace lws
 		return object;
 	}
 
-	NilObject *VM::CreateNilObject()
+	NullObject *VM::CreateNullObject()
 	{
 		if (curObjCount == maxObjCount)
 			Gc();
 
-		NilObject *object = new NilObject();
+		NullObject *object = new NullObject();
 		object->marked = false;
 
 		object->next = firstObject;
@@ -227,8 +227,8 @@ namespace lws
 			PushObject(TO_REAL_OBJ(left)->value op TO_REAL_OBJ(right)->value ? CreateBoolObject(true) : CreateBoolObject(false)); \
 		else if (IS_BOOL_OBJ(right) && IS_BOOL_OBJ(left))                                                                         \
 			PushObject(TO_BOOL_OBJ(left)->value op TO_BOOL_OBJ(right)->value ? CreateBoolObject(true) : CreateBoolObject(false)); \
-		else if (IS_NIL_OBJ(right) && IS_NIL_OBJ(left))                                                                           \
-			PushObject(TO_NIL_OBJ(left) op TO_NIL_OBJ(right) ? CreateBoolObject(true) : CreateBoolObject(false));                 \
+		else if (IS_NULL_OBJ(right) && IS_NULL_OBJ(left))                                                                           \
+			PushObject(TO_NULL_OBJ(left) op TO_NULL_OBJ(right) ? CreateBoolObject(true) : CreateBoolObject(false));                 \
 		else                                                                                                                      \
 			PushObject(CreateBoolObject(false));                                                                                  \
 	} while (0);
@@ -274,8 +274,8 @@ namespace lws
 			case OP_NEW_FALSE:
 				PushObject(CreateBoolObject(false));
 				break;
-			case OP_NEW_NIL:
-				PushObject(CreateNilObject());
+			case OP_NEW_NULL:
+				PushObject(CreateNullObject());
 				break;
 			case OP_NEG:
 			{
@@ -466,7 +466,7 @@ namespace lws
 							break;
 						}
 					if (!hasValue)
-						PushObject(CreateNilObject());
+						PushObject(CreateNullObject());
 				}
 				else
 					Assert("Invalid index op.The indexed object isn't a array object or a table object:" + object->Stringify());
@@ -666,7 +666,7 @@ namespace lws
 			}
 		}
 
-		return CreateNilObject();
+		return CreateNullObject();
 	}
 
 	void VM::ResetStatus()

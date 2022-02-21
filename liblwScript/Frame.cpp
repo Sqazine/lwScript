@@ -206,8 +206,8 @@ namespace lws
 			case OP_NEW_FALSE:
 				SINGLE_INSTR_STRINGIFY(OP_NEW_FALSE);
 				break;
-			case OP_NEW_NIL:
-				SINGLE_INSTR_STRINGIFY(OP_NEW_NIL);
+			case OP_NEW_NULL:
+				SINGLE_INSTR_STRINGIFY(OP_NEW_NULL);
 				break;
 			case OP_NEG:
 				SINGLE_INSTR_STRINGIFY(OP_NEG);

@@ -20,7 +20,7 @@ namespace lws
     }
     ObjectType IntNumObject::Type()
     {
-        return ObjectType::INT;
+        return OBJECT_INT;
     }
     void IntNumObject::Mark()
     {
@@ -59,7 +59,7 @@ namespace lws
     }
     ObjectType RealNumObject::Type()
     {
-        return ObjectType::REAL;
+        return OBJECT_REAL;
     }
     void RealNumObject::Mark()
     {
@@ -98,7 +98,7 @@ namespace lws
     }
     ObjectType BoolObject::Type()
     {
-        return ObjectType::BOOL;
+        return OBJECT_BOOL;
     }
     void BoolObject::Mark()
     {
@@ -144,7 +144,7 @@ namespace lws
     }
     ObjectType ArrayObject::Type()
     {
-        return ObjectType::ARRAY;
+        return OBJECT_ARRAY;
     }
     void ArrayObject::Mark()
     {
@@ -208,7 +208,7 @@ namespace lws
     }
     ObjectType TableObject::Type()
     {
-        return ObjectType::TABLE;
+        return OBJECT_TABLE;
     }
     void TableObject::Mark()
     {
@@ -271,7 +271,7 @@ namespace lws
     }
     ObjectType FunctionObject::Type()
     {
-        return ObjectType::FUNCTION;
+        return OBJECT_FUNCTION;
     }
     void FunctionObject::Mark()
     {
@@ -307,7 +307,7 @@ namespace lws
     }
     ObjectType RefObject::Type()
     {
-        return ObjectType::REF;
+        return OBJECT_REF;
     }
     void RefObject::Mark()
     {
@@ -365,7 +365,7 @@ namespace lws
     }
     ObjectType FieldObject::Type()
     {
-        return ObjectType::FIELD;
+        return OBJECT_FIELD;
     }
     void FieldObject::Mark()
     {

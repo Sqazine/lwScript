@@ -3,19 +3,19 @@ namespace lws
 {
     static std::unordered_map<std::string, TokenType> keywords =
         {
-            {"let", TokenType::LET},
-            {"if", TokenType::IF},
-            {"else", TokenType::ELSE},
-            {"true", TokenType::TRUE},
-            {"false", TokenType::FALSE},
-            {"nil", TokenType::NIL},
-            {"while", TokenType::WHILE},
-            {"for",TokenType::FOR},
-            {"fn", TokenType::FUNCTION},
-            {"field", TokenType::FIELD},
-            {"return", TokenType::RETURN},
-            {"static", TokenType::STATIC},
-            {"const", TokenType::CONST},
+            {"let", TOKEN_LET},
+            {"if", TOKEN_IF},
+            {"else", TOKEN_ELSE},
+            {"true", TOKEN_TRUE},
+            {"false", TOKEN_FALSE},
+            {"null", TOKEN_NULL},
+            {"while", TOKEN_WHILE},
+            {"for",TOKEN_FOR},
+            {"fn", TOKEN_FUNCTION},
+            {"field", TOKEN_FIELD},
+            {"return", TOKEN_RETURN},
+            {"static", TOKEN_STATIC},
+            {"const", TOKEN_CONST},
     };
 
     Lexer::Lexer()
@@ -36,7 +36,7 @@ namespace lws
             GenerateToken();
         }
 
-        AddToken(TokenType::END, "EOF");
+        AddToken(TOKEN_END, "EOF");
 
         return m_Tokens;
     }
@@ -47,34 +47,34 @@ namespace lws
         switch (c)
         {
         case '(':
-            AddToken(TokenType::LPAREN);
+            AddToken(TOKEN_LPAREN);
             break;
         case ')':
-            AddToken(TokenType::RPAREN);
+            AddToken(TOKEN_RPAREN);
             break;
         case '[':
-            AddToken(TokenType::LBRACKET);
+            AddToken(TOKEN_LBRACKET);
             break;
         case ']':
-            AddToken(TokenType::RBRACKET);
+            AddToken(TOKEN_RBRACKET);
             break;
         case '{':
-            AddToken(TokenType::LBRACE);
+            AddToken(TOKEN_LBRACE);
             break;
         case '}':
-            AddToken(TokenType::RBRACE);
+            AddToken(TOKEN_RBRACE);
             break;
         case '.':
-            AddToken(TokenType::DOT);
+            AddToken(TOKEN_DOT);
             break;
         case ',':
-            AddToken(TokenType::COMMA);
+            AddToken(TOKEN_COMMA);
             break;
         case ':':
-            AddToken(TokenType::COLON);
+            AddToken(TOKEN_COLON);
             break;
         case ';':
-            AddToken(TokenType::SEMICOLON);
+            AddToken(TOKEN_SEMICOLON);
             break;
         case '\"':
             String();
@@ -88,21 +88,21 @@ namespace lws
             break;
         case '+':
             if (IsMatchCurCharAndStepOnce('='))
-                AddToken(TokenType::PLUS_EQUAL);
+                AddToken(TOKEN_PLUS_EQUAL);
             else
-                AddToken(TokenType::PLUS);
+                AddToken(TOKEN_PLUS);
             break;
         case '-':
             if (IsMatchCurCharAndStepOnce('='))
-                AddToken(TokenType::MINUS_EQUAL);
+                AddToken(TOKEN_MINUS_EQUAL);
             else
-                AddToken(TokenType::MINUS);
+                AddToken(TOKEN_MINUS);
             break;
         case '*':
             if (IsMatchCurCharAndStepOnce('='))
-                AddToken(TokenType::ASTERISK_EQUAL);
+                AddToken(TOKEN_ASTERISK_EQUAL);
             else
-                AddToken(TokenType::ASTERISK);
+                AddToken(TOKEN_ASTERISK);
             break;
         case '/':
             if (IsMatchCurCharAndStepOnce('/'))
@@ -124,80 +124,80 @@ namespace lws
                 GetCurCharAndStepOnce(); // eat '/'
             }
             else if (IsMatchCurCharAndStepOnce('='))
-                AddToken(TokenType::SLASH_EQUAL);
+                AddToken(TOKEN_SLASH_EQUAL);
             else
-                AddToken(TokenType::SLASH);
+                AddToken(TOKEN_SLASH);
             break;
         case '%':
             if (IsMatchCurCharAndStepOnce('='))
-                AddToken(TokenType::PERCENT_EQUAL);
-            AddToken(TokenType::PERCENT);
+                AddToken(TOKEN_PERCENT_EQUAL);
+            AddToken(TOKEN_PERCENT);
             break;
         case '~':
-            AddToken(TokenType::TILDE);
+            AddToken(TOKEN_TILDE);
             break;
         case '!':
             if (IsMatchCurCharAndStepOnce('='))
-                AddToken(TokenType::BANG_EQUAL);
+                AddToken(TOKEN_BANG_EQUAL);
             else
-                AddToken(TokenType::BANG);
+                AddToken(TOKEN_BANG);
             break;
         case '&':
             if (IsMatchCurCharAndStepOnce('&'))
-                AddToken(TokenType::AMPERSAND_AMPERSAND);
+                AddToken(TOKEN_AMPERSAND_AMPERSAND);
             else if (IsMatchCurCharAndStepOnce('='))
-                AddToken(TokenType::AMPERSAND_EQUAL);
+                AddToken(TOKEN_AMPERSAND_EQUAL);
             else
-                AddToken(TokenType::AMPERSAND);
+                AddToken(TOKEN_AMPERSAND);
             break;
         case '|':
             if (IsMatchCurCharAndStepOnce('|'))
-                AddToken(TokenType::VBAR_VBAR);
+                AddToken(TOKEN_VBAR_VBAR);
             else if (IsMatchCurCharAndStepOnce('='))
-                AddToken(TokenType::VBAR_EQUAL);
+                AddToken(TOKEN_VBAR_EQUAL);
             else
-                AddToken(TokenType::VBAR);
+                AddToken(TOKEN_VBAR);
             break;
         case '^':
             if (IsMatchCurCharAndStepOnce('='))
-                AddToken(TokenType::CARET_EQUAL);
+                AddToken(TOKEN_CARET_EQUAL);
             else
-                AddToken(TokenType::CARET);
+                AddToken(TOKEN_CARET);
             break;
         case '<':
             if (IsMatchCurCharAndStepOnce('='))
-                AddToken(TokenType::LESS_EQUAL);
+                AddToken(TOKEN_LESS_EQUAL);
             else if (IsMatchCurCharAndStepOnce('<'))
             {
                 if (IsMatchCurCharAndStepOnce('='))
-                    AddToken(TokenType::LESS_LESS_EQUAL);
+                    AddToken(TOKEN_LESS_LESS_EQUAL);
                 else
-                    AddToken(TokenType::LESS_LESS);
+                    AddToken(TOKEN_LESS_LESS);
             }
             else
-                AddToken(TokenType::LESS);
+                AddToken(TOKEN_LESS);
             break;
         case '>':
             if (IsMatchCurCharAndStepOnce('='))
-                AddToken(TokenType::GREATER_EQUAL);
+                AddToken(TOKEN_GREATER_EQUAL);
             else if (IsMatchCurCharAndStepOnce('>'))
             {
                 if (IsMatchCurCharAndStepOnce('='))
-                    AddToken(TokenType::GREATER_GREATER_EQUAL);
+                    AddToken(TOKEN_GREATER_GREATER_EQUAL);
                 else
-                    AddToken(TokenType::GREATER_GREATER);
+                    AddToken(TOKEN_GREATER_GREATER);
             }
             else
-                AddToken(TokenType::GREATER);
+                AddToken(TOKEN_GREATER);
             break;
         case '=':
             if (IsMatchCurCharAndStepOnce('='))
-                AddToken(TokenType::EQUAL_EQUAL);
+                AddToken(TOKEN_EQUAL_EQUAL);
             else
-                AddToken(TokenType::EQUAL);
+                AddToken(TOKEN_EQUAL);
             break;
         case '?':
-            AddToken(TokenType::QUESTION);
+            AddToken(TOKEN_QUESTION);
             break;
         default:
             if (IsNumber(c))
@@ -313,7 +313,7 @@ namespace lws
                 Assert("[line " + std::to_string(m_Line) + "]:Number cannot end with '.'");
         }
 
-        AddToken(TokenType::NUMBER);
+        AddToken(TOKEN_NUMBER);
     }
 
     void Lexer::Identifier()
@@ -333,7 +333,7 @@ namespace lws
             }
 
         if (!isKeyWord)
-            AddToken(TokenType::IDENTIFIER, literal);
+            AddToken(TOKEN_IDENTIFIER, literal);
     }
 
     void Lexer::String()
@@ -350,6 +350,6 @@ namespace lws
 
         GetCurCharAndStepOnce(); //eat the second '\"'
 
-        AddToken(TokenType::STRING, m_Source.substr(m_StartPos + 1, m_CurPos - m_StartPos - 2));
+        AddToken(TOKEN_STRING, m_Source.substr(m_StartPos + 1, m_CurPos - m_StartPos - 2));
     }
 }

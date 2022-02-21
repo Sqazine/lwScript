@@ -10,7 +10,7 @@ namespace lws
 #define TO_INT_OBJ(obj) ((IntNumObject *)obj)
 #define TO_REAL_OBJ(obj) ((RealNumObject *)obj)
 #define TO_STR_OBJ(obj) ((StrObject *)obj)
-#define TO_NIL_OBJ(obj) ((NilObject *)obj)
+#define TO_NULL_OBJ(obj) ((NullObject *)obj)
 #define TO_BOOL_OBJ(obj) ((BoolObject *)obj)
 #define TO_ARRAY_OBJ(obj) ((ArrayObject *)obj)
 #define TO_TABLE_OBJ(obj) ((TableObject *)obj)
@@ -18,29 +18,29 @@ namespace lws
 #define TO_FIELD_OBJ(obj) ((FieldObject *)obj)
 #define TO_REF_OBJ(obj) ((RefObject *)obj)
 
-#define IS_INT_OBJ(obj) (obj->Type() == ObjectType::INT)
-#define IS_REAL_OBJ(obj) (obj->Type() == ObjectType::REAL)
-#define IS_STR_OBJ(obj) (obj->Type() == ObjectType::STR)
-#define IS_BOOL_OBJ(obj) (obj->Type() == ObjectType::BOOL)
-#define IS_NIL_OBJ(obj) (obj->Type() == ObjectType::NIL)
-#define IS_ARRAY_OBJ(obj) (obj->Type() == ObjectType::ARRAY)
-#define IS_TABLE_OBJ(obj) (obj->Type() == ObjectType::TABLE)
-#define IS_FUNCTION_OBJ(obj) (obj->Type() == ObjectType::FUNCTION)
-#define IS_FIELD_OBJ(obj) (obj->Type() == ObjectType::FIELD)
-#define IS_REF_OBJ(obj) (obj->Type() == ObjectType::REF)
+#define IS_INT_OBJ(obj) (obj->Type() == OBJECT_INT)
+#define IS_REAL_OBJ(obj) (obj->Type() == OBJECT_REAL)
+#define IS_STR_OBJ(obj) (obj->Type() == OBJECT_STR)
+#define IS_BOOL_OBJ(obj) (obj->Type() == OBJECT_BOOL)
+#define IS_NULL_OBJ(obj) (obj->Type() == OBJECT_NULL)
+#define IS_ARRAY_OBJ(obj) (obj->Type() == OBJECT_ARRAY)
+#define IS_TABLE_OBJ(obj) (obj->Type() == OBJECT_TABLE)
+#define IS_FUNCTION_OBJ(obj) (obj->Type() == OBJECT_FUNCTION)
+#define IS_FIELD_OBJ(obj) (obj->Type() == OBJECT_FIELD)
+#define IS_REF_OBJ(obj) (obj->Type() == OBJECT_REF)
 
-	enum class ObjectType
+	enum ObjectType
 	{
-		INT,
-		REAL,
-		STR,
-		BOOL,
-		NIL,
-		ARRAY,
-		TABLE,
-		FUNCTION,
-		FIELD,
-		REF
+		OBJECT_INT,
+		OBJECT_REAL,
+		OBJECT_STR,
+		OBJECT_BOOL,
+		OBJECT_NULL,
+		OBJECT_ARRAY,
+		OBJECT_TABLE,
+		OBJECT_FUNCTION,
+		OBJECT_FIELD,
+		OBJECT_REF
 	};
 
 	struct Object
@@ -95,7 +95,7 @@ namespace lws
 		~StrObject() {}
 
 		std::string Stringify() override { return value; }
-		ObjectType Type() override { return ObjectType::STR; }
+		ObjectType Type() override { return OBJECT_STR; }
 		void Mark() override { marked = true; }
 		void UnMark() override { marked = false; }
 		bool IsEqualTo(Object *other) override
@@ -123,18 +123,18 @@ namespace lws
 		bool value;
 	};
 
-	struct NilObject : public Object
+	struct NullObject : public Object
 	{
-		NilObject() {}
-		~NilObject() {}
+		NullObject() {}
+		~NullObject() {}
 
-		std::string Stringify() override { return "nil"; }
-		ObjectType Type() override { return ObjectType::NIL; }
+		std::string Stringify() override { return "null"; }
+		ObjectType Type() override { return OBJECT_NULL; }
 		void Mark() override { marked = true; }
 		void UnMark() override { marked = false; }
 		bool IsEqualTo(Object *other) override
 		{
-			if (!IS_NIL_OBJ(other))
+			if (!IS_NULL_OBJ(other))
 				return false;
 			return true;
 		}

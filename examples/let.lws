@@ -4,4 +4,4 @@ let c;
 b=20;
 println("{}",a);//10
 println("{}",b);//20
-println("{}",c);//"nil"
+println("{}",c);//"null"

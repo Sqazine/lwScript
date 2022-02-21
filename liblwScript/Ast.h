@@ -5,38 +5,38 @@
 #include <memory>
 namespace lws
 {
-	enum class AstType
+	enum AstType
 	{
 		// expr
-		INT,
-		REAL,
-		STR,
-		NIL,
-		BOOL,
-		NOT,
-		IDENTIFIER,
-		GROUP,
-		ARRAY,
-		TABLE,
-		PREFIX,
-		INFIX,
-		CONDITION,
-		INDEX,
-		REF,
-		LAMBDA,
-		FUNCTION_CALL,
-		FIELD_CALL,
-		NEW,
+		AST_INT,
+		AST_REAL,
+		AST_STR,
+		AST_NULL,
+		AST_BOOL,
+		AST_NOT,
+		AST_IDENTIFIER,
+		AST_GROUP,
+		AST_ARRAY,
+		AST_TABLE,
+		AST_PREFIX,
+		AST_INFIX,
+		AST_CONDITION,
+		AST_INDEX,
+		AST_REF,
+		AST_LAMBDA,
+		AST_FUNCTION_CALL,
+		AST_FIELD_CALL,
+		AST_NEW,
 		// stmt
-		LET,
-		EXPR,
-		RETURN,
-		IF,
-		SCOPE,
-		WHILE,
-		FUNCTION,
-		FIELD,
-		ASTSTMTS,
+		AST_LET,
+		AST_EXPR,
+		AST_RETURN,
+		AST_IF,
+		AST_SCOPE,
+		AST_WHILE,
+		AST_FUNCTION,
+		AST_FIELD,
+		AST_ASTSTMTS,
 	};
 
 	struct AstNode
@@ -93,10 +93,10 @@ namespace lws
 		std::string value;
 	};
 
-	struct NilExpr : public Expr
+	struct NullExpr : public Expr
 	{
-		NilExpr();
-		~NilExpr();
+		NullExpr();
+		~NullExpr();
 
 		std::string Stringify() override;
 		AstType Type() override;

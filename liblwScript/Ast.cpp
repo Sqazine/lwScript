@@ -22,7 +22,7 @@ namespace lws
     }
     AstType IntNumExpr::Type()
     {
-        return AstType::INT;
+        return AST_INT;
     }
 
     RealNumExpr::RealNumExpr()
@@ -42,7 +42,7 @@ namespace lws
     }
     AstType RealNumExpr::Type()
     {
-        return AstType::REAL;
+        return AST_REAL;
     }
 
     StrExpr::StrExpr()
@@ -64,23 +64,23 @@ namespace lws
 
     AstType StrExpr::Type()
     {
-        return AstType::STR;
+        return AST_STR;
     }
 
-    NilExpr::NilExpr()
+    NullExpr::NullExpr()
     {
     }
-    NilExpr::~NilExpr()
+    NullExpr::~NullExpr()
     {
     }
 
-    std::string NilExpr::Stringify()
+    std::string NullExpr::Stringify()
     {
-        return "nil";
+        return "null";
     }
-    AstType NilExpr::Type()
+    AstType NullExpr::Type()
     {
-        return AstType::NIL;
+        return AST_NULL;
     }
 
     BoolExpr::BoolExpr()
@@ -101,7 +101,7 @@ namespace lws
     }
     AstType BoolExpr::Type()
     {
-        return AstType::BOOL;
+        return AST_BOOL;
     }
 
     IdentifierExpr::IdentifierExpr()
@@ -121,7 +121,7 @@ namespace lws
     }
     AstType IdentifierExpr::Type()
     {
-        return AstType::IDENTIFIER;
+        return AST_IDENTIFIER;
     }
 
     ArrayExpr::ArrayExpr()
@@ -150,7 +150,7 @@ namespace lws
     }
     AstType ArrayExpr::Type()
     {
-        return AstType::ARRAY;
+        return AST_ARRAY;
     }
 
     TableExpr::TableExpr()
@@ -180,7 +180,7 @@ namespace lws
     }
     AstType TableExpr::Type()
     {
-        return AstType::TABLE;
+        return AST_TABLE;
     }
 
     GroupExpr::GroupExpr()
@@ -200,7 +200,7 @@ namespace lws
     }
     AstType GroupExpr::Type()
     {
-        return AstType::GROUP;
+        return AST_GROUP;
     }
 
     PrefixExpr::PrefixExpr()
@@ -223,7 +223,7 @@ namespace lws
     }
     AstType PrefixExpr::Type()
     {
-        return AstType::PREFIX;
+        return AST_PREFIX;
     }
 
     InfixExpr::InfixExpr()
@@ -249,7 +249,7 @@ namespace lws
     }
     AstType InfixExpr::Type()
     {
-        return AstType::INFIX;
+        return AST_INFIX;
     }
 
     ConditionExpr::ConditionExpr()
@@ -278,7 +278,7 @@ namespace lws
     }
     AstType ConditionExpr::Type()
     {
-        return AstType::CONDITION;
+        return AST_CONDITION;
     }
 
     IndexExpr::IndexExpr()
@@ -303,7 +303,7 @@ namespace lws
 
     AstType IndexExpr::Type()
     {
-        return AstType::INDEX;
+        return AST_INDEX;
     }
 
     RefExpr::RefExpr()
@@ -323,7 +323,7 @@ namespace lws
 
     AstType RefExpr::Type()
     {
-        return AstType::REF;
+        return AST_REF;
     }
 
     LambdaExpr::LambdaExpr()
@@ -357,7 +357,7 @@ namespace lws
     }
     AstType LambdaExpr::Type()
     {
-        return AstType::LAMBDA;
+        return AST_LAMBDA;
     }
 
     FunctionCallExpr::FunctionCallExpr()
@@ -385,7 +385,7 @@ namespace lws
     }
     AstType FunctionCallExpr::Type()
     {
-        return AstType::FUNCTION_CALL;
+        return AST_FUNCTION_CALL;
     }
 
     FieldCallExpr::FieldCallExpr()
@@ -406,7 +406,7 @@ namespace lws
     }
     AstType FieldCallExpr::Type()
     {
-        return AstType::FIELD_CALL;
+        return AST_FIELD_CALL;
     }
 
     //----------------------Statements-----------------------------
@@ -431,7 +431,7 @@ namespace lws
     }
     AstType ExprStmt::Type()
     {
-        return AstType::EXPR;
+        return AST_EXPR;
     }
 
     LetStmt::LetStmt()
@@ -460,7 +460,7 @@ namespace lws
 
     AstType LetStmt::Type()
     {
-        return AstType::LET;
+        return AST_LET;
     }
 
     ReturnStmt::ReturnStmt()
@@ -483,7 +483,7 @@ namespace lws
     }
     AstType ReturnStmt::Type()
     {
-        return AstType::RETURN;
+        return AST_RETURN;
     }
 
     IfStmt::IfStmt()
@@ -516,7 +516,7 @@ namespace lws
     }
     AstType IfStmt::Type()
     {
-        return AstType::IF;
+        return AST_IF;
     }
 
     ScopeStmt::ScopeStmt()
@@ -540,7 +540,7 @@ namespace lws
 
     AstType ScopeStmt::Type()
     {
-        return AstType::SCOPE;
+        return AST_SCOPE;
     }
 
     WhileStmt::WhileStmt()
@@ -565,7 +565,7 @@ namespace lws
     }
     AstType WhileStmt::Type()
     {
-        return AstType::WHILE;
+        return AST_WHILE;
     }
 
     FunctionStmt::FunctionStmt()
@@ -599,7 +599,7 @@ namespace lws
     }
     AstType FunctionStmt::Type()
     {
-        return AstType::FUNCTION;
+        return AST_FUNCTION;
     }
 
     FieldStmt::FieldStmt()
@@ -638,7 +638,7 @@ namespace lws
     }
     AstType FieldStmt::Type()
     {
-        return AstType::FIELD;
+        return AST_FIELD;
     }
 
     AstStmts::AstStmts()
@@ -660,6 +660,6 @@ namespace lws
     }
     AstType AstStmts::Type()
     {
-        return AstType::ASTSTMTS;
+        return AST_ASTSTMTS;
     }
 }
