@@ -575,7 +575,7 @@ namespace lws
 		Consume(TOKEN_LBRACKET, "Expect '['.");
 		auto indexExpr = new IndexExpr();
 		indexExpr->ds = prefixExpr;
-		indexExpr->index = ParseExpr(Precedence::INFIX);
+		indexExpr->index = ParseExpr();
 		Consume(TOKEN_RBRACKET, "Expect ']'.");
 		return indexExpr;
 	}
