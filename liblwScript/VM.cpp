@@ -132,12 +132,12 @@ namespace lws
 		return object;
 	}
 
-	FieldObject *VM::CreateFieldObject(std::string_view name, const std::unordered_map<std::string, Object *> &members,const std::vector<std::pair<std::string, FieldObject*>>& containedFields)
+	FieldObject *VM::CreateFieldObject(std::string_view name, const std::unordered_map<std::string, Object *> &members, const std::vector<std::pair<std::string, FieldObject *>> &containedFields)
 	{
 		if (curObjCount == maxObjCount)
 			Gc();
 
-		FieldObject *object = new FieldObject(name, members,containedFields);
+		FieldObject *object = new FieldObject(name, members, containedFields);
 		object->marked = false;
 
 		object->next = firstObject;
@@ -164,12 +164,12 @@ namespace lws
 		return object;
 	}
 
-	RefObject *VM::CreateRefObject(std::string_view name,Object* index)
+	RefObject *VM::CreateRefObject(std::string_view name, Object *index)
 	{
 		if (curObjCount == maxObjCount)
 			Gc();
 
-		RefObject *refObject = new RefObject(name,index);
+		RefObject *refObject = new RefObject(name, index);
 		refObject->marked = false;
 
 		refObject->next = firstObject;
@@ -227,8 +227,8 @@ namespace lws
 			PushObject(TO_REAL_OBJ(left)->value op TO_REAL_OBJ(right)->value ? CreateBoolObject(true) : CreateBoolObject(false)); \
 		else if (IS_BOOL_OBJ(right) && IS_BOOL_OBJ(left))                                                                         \
 			PushObject(TO_BOOL_OBJ(left)->value op TO_BOOL_OBJ(right)->value ? CreateBoolObject(true) : CreateBoolObject(false)); \
-		else if (IS_NULL_OBJ(right) && IS_NULL_OBJ(left))                                                                           \
-			PushObject(TO_NULL_OBJ(left) op TO_NULL_OBJ(right) ? CreateBoolObject(true) : CreateBoolObject(false));                 \
+		else if (IS_NULL_OBJ(right) && IS_NULL_OBJ(left))                                                                         \
+			PushObject(TO_NULL_OBJ(left) op TO_NULL_OBJ(right) ? CreateBoolObject(true) : CreateBoolObject(false));               \
 		else                                                                                                                      \
 			PushObject(CreateBoolObject(false));                                                                                  \
 	} while (0);
@@ -365,7 +365,45 @@ namespace lws
 				Object *variable = m_Context->GetVariableByName(name);
 
 				if (IS_REF_OBJ(variable))
-					m_Context->AssignVariableByName(TO_REF_OBJ(variable)->name, value);
+				{
+					auto refObject = TO_REF_OBJ(variable);
+					if (refObject->index == nullptr)
+						m_Context->AssignVariableByName(refObject->name, value);
+					else
+					{
+						variable = m_Context->GetVariableByName(refObject->name);
+						auto index = refObject->index;
+						if (IS_ARRAY_OBJ(variable))
+						{
+							ArrayObject *arrayObject = TO_ARRAY_OBJ(variable);
+							if (!IS_INT_OBJ(index))
+								Assert("Invalid index op.The index type of the array object must ba a int num type,but got:" + index->Stringify());
+
+							int64_t iIndex = TO_INT_OBJ(index)->value;
+
+							if (iIndex < 0 || iIndex >= (int64_t)arrayObject->elements.size())
+								Assert("Index out of array range,array size:" + std::to_string(arrayObject->elements.size()) + ",index:" + std::to_string(iIndex));
+
+							arrayObject->elements[iIndex] = value;
+						}
+						else if (IS_TABLE_OBJ(variable))
+						{
+							TableObject *tableObject = TO_TABLE_OBJ(variable);
+							bool existed = false;
+							for (auto [key, value] : tableObject->elements)
+								if (key->IsEqualTo(index))
+								{
+									tableObject->elements[key] = value;
+									existed = true;
+									break;
+								}
+							if (!existed)
+								tableObject->elements[index] = value;
+						}
+						else
+							Assert("Invalid index op.The indexed object isn't a array object or a table object:" + index->Stringify());
+					}
+				}
 				else
 					m_Context->AssignVariableByName(name, value);
 				break;
@@ -386,8 +424,45 @@ namespace lws
 				}
 				else if (IS_REF_OBJ(varObject))
 				{
-					varObject = m_Context->GetVariableByName(TO_REF_OBJ(varObject)->name);
-					PushObject(varObject);
+					auto refObject = TO_REF_OBJ(varObject);
+					varObject = m_Context->GetVariableByName(refObject->name);
+
+					if (refObject->index == nullptr)
+						PushObject(varObject);
+					else
+					{
+						auto index = refObject->index;
+						if (IS_ARRAY_OBJ(varObject))
+						{
+							ArrayObject *arrayObject = TO_ARRAY_OBJ(varObject);
+							if (!IS_INT_OBJ(index))
+								Assert("Invalid index op.The index type of the array object must ba a int num type,but got:" + index->Stringify());
+
+							int64_t iIndex = (int64_t)TO_INT_OBJ(index)->value;
+
+							if (iIndex < 0 || iIndex >= (int64_t)arrayObject->elements.size())
+								Assert("Index out of array range,array size:" + std::to_string(arrayObject->elements.size()) + ",index:" + std::to_string(iIndex));
+
+							PushObject(arrayObject->elements[iIndex]);
+						}
+						else if (IS_TABLE_OBJ(varObject))
+						{
+							TableObject *tableObject = TO_TABLE_OBJ(varObject);
+
+							bool hasValue = false;
+							for (const auto [key, value] : tableObject->elements)
+								if (key->IsEqualTo(index))
+								{
+									PushObject(value);
+									hasValue = true;
+									break;
+								}
+							if (!hasValue)
+								PushObject(CreateNullObject());
+						}
+						else
+							Assert("Invalid index op.The indexed object isn't a array object or a table object:" + index->Stringify());
+					}
 				}
 				else
 					PushObject(varObject);
@@ -419,8 +494,8 @@ namespace lws
 			{
 				std::string name = frame->m_Strings[frame->m_Codes[++ip]];
 
-				std::unordered_map<std::string, Object*> members;
-				std::vector<std::pair<std::string, FieldObject*>> containedFields;
+				std::unordered_map<std::string, Object *> members;
+				std::vector<std::pair<std::string, FieldObject *>> containedFields;
 
 				for (auto value : m_Context->GetValues())
 				{
@@ -430,7 +505,7 @@ namespace lws
 						members[value.first] = value.second;
 				}
 
-				PushObject(CreateFieldObject(name, members,containedFields));
+				PushObject(CreateFieldObject(name, members, containedFields));
 				break;
 			}
 			case OP_GET_INDEX_VAR:
@@ -509,10 +584,10 @@ namespace lws
 			case OP_GET_FIELD_VAR:
 			{
 				std::string memberName = frame->m_Strings[frame->m_Codes[++ip]];
-				Object* stackTop = PopObject();
+				Object *stackTop = PopObject();
 				if (!IS_FIELD_OBJ(stackTop))
 					Assert("Not a field object of the callee of:" + memberName);
-				FieldObject* fieldObj = TO_FIELD_OBJ(stackTop);
+				FieldObject *fieldObj = TO_FIELD_OBJ(stackTop);
 				PushObject(fieldObj->GetMemberByName(memberName));
 				break;
 			}
@@ -656,6 +731,12 @@ namespace lws
 			case OP_REF_VARIABLE:
 			{
 				PushObject(CreateRefObject(frame->m_Strings[frame->m_Codes[++ip]]));
+				break;
+			}
+			case OP_REF_INDEX:
+			{
+				auto index = PopObject();
+				PushObject(CreateRefObject(frame->m_Strings[frame->m_Codes[++ip]], index));
 				break;
 			}
 			default:

@@ -492,6 +492,15 @@ namespace lws
 			size_t offset = frame->AddString(((IdentifierExpr *)expr->refExpr)->literal);
 			frame->AddOpCode(offset);
 		}
+		else if (expr->refExpr->Type() == AST_INDEX)
+		{
+			CompileExpr(((IndexExpr *)expr->refExpr)->index, frame);
+			if (((IndexExpr *)expr->refExpr)->ds->Type() != AST_IDENTIFIER)
+				Assert("Invalid reference object,only left value can be referenced.");
+			frame->AddOpCode(OP_REF_INDEX);
+			size_t offset = frame->AddString(((IdentifierExpr *)(((IndexExpr *)expr->refExpr)->ds))->literal);
+			frame->AddOpCode(offset);
+		}
 		else
 			Assert("Invalid reference object.");
 	}

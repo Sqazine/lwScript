@@ -56,6 +56,7 @@ namespace lws
 		OP_FUNCTION_CALL,
 		OP_CONDITION,
 		OP_REF_VARIABLE,
+		OP_REF_INDEX,
 	};
 
 	enum class FrameType

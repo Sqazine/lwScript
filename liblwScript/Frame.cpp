@@ -322,6 +322,9 @@ namespace lws
 			case OP_REF_VARIABLE:
 				BINARY_INSTR_STRINGIFY(OP_REF_VARIABLE, m_Strings);
 				break;
+			case OP_REF_INDEX:
+				BINARY_INSTR_STRINGIFY(OP_REF_INDEX, m_Strings);
+				break;
 			default:
 				UNARY_INSTR_STRINGIFY(OP_UNKNOWN);
 				break;
