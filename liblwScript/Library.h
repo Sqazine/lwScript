@@ -31,6 +31,12 @@ namespace lws
         DataStructure(class VM* vm);
     };
 
+    class Memory : public Library
+    {
+    public:
+        Memory(class VM *vm);
+    };
+
     class LibraryManager
     {
     public:

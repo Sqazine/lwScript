@@ -62,7 +62,7 @@ namespace lws
 
 			if (args.size() != 1) //formatting output
 			{
-				int32_t pos = (int32_t)content.find("{}");
+				size_t pos = content.find("{}");
 				size_t argpos = 1;
 				while (pos != std::string::npos)
 				{
@@ -74,7 +74,7 @@ namespace lws
 				}
 			}
 
-			int32_t pos = (int32_t)content.find("\\n");
+			size_t pos = content.find("\\n");
 			while (pos != std::string::npos)
 			{
 				content[pos] = '\n';
@@ -82,7 +82,7 @@ namespace lws
 				pos = content.find("\\n");
 			}
 
-			pos = (int32_t)content.find("\\t");
+			pos = content.find("\\t");
 			while (pos != std::string::npos)
 			{
 				content[pos] = '\t';
@@ -90,7 +90,7 @@ namespace lws
 				pos = content.find("\\t");
 			}
 
-			pos = (int32_t)content.find("\\r");
+			pos = content.find("\\r");
 			while (pos != std::string::npos)
 			{
 				content[pos] = '\r';
@@ -124,7 +124,7 @@ namespace lws
 
 			if (args.size() != 1) //formatting output
 			{
-				int32_t pos = (int32_t)content.find("{}");
+				size_t pos = (int32_t)content.find("{}");
 				size_t argpos = 1;
 				while (pos != std::string::npos)
 				{
@@ -136,7 +136,7 @@ namespace lws
 				}
 			}
 
-			int32_t pos = (int32_t)content.find("\\n");
+			size_t pos = content.find("\\n");
 			while (pos != std::string::npos)
 			{
 				content[pos] = '\n';
@@ -144,7 +144,7 @@ namespace lws
 				pos = content.find("\\n");
 			}
 
-			pos = (int32_t)content.find("\\t");
+			pos = content.find("\\t");
 			while (pos != std::string::npos)
 			{
 				content[pos] = '\t';
@@ -152,7 +152,7 @@ namespace lws
 				pos = content.find("\\t");
 			}
 
-			pos = (int32_t)content.find("\\r");
+			pos = content.find("\\r");
 			while (pos != std::string::npos)
 			{
 				content[pos] = '\r';
@@ -284,6 +284,17 @@ namespace lws
 		};
 	}
 
+	Memory::Memory(VM *vm)
+		: Library(vm)
+	{
+		m_NativeFunctions["addressof"] = [this](std::vector<Object *> args) -> Object *
+		{
+			if (args.empty() || args.size() != 1)
+				Assert("[Native function 'addressof']:Expect 1 arguments.");
+
+			return m_VMHandle->CreateStrObject(PointerAddressToString(args[0]));
+		};
+	}
 
 	std::unordered_map<std::string, Library*> LibraryManager::m_Libraries;
 

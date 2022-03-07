@@ -23,6 +23,11 @@ namespace lws
 
 		void ResetStatus();
 		Object *Execute(Frame *frame);
+	private:
+		friend class Linrary;
+		friend class DataStructure;
+		friend class Memory;
+		friend class IO;
 
 		RealNumObject *CreateRealNumObject(double value = 0.0);
 		IntNumObject *CreateIntNumObject(int64_t value = 0);
@@ -37,7 +42,6 @@ namespace lws
 
 		void Gc();
 
-	private:
 		std::function<Object *(std::vector<Object *>)> GetNativeFunction(std::string_view fnName);
 		bool HasNativeFunction(std::string_view name);
 

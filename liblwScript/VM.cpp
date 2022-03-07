@@ -9,6 +9,7 @@ namespace lws
 		ResetStatus();
 		LibraryManager::RegisterLibrary("IO", new IO(this));
 		LibraryManager::RegisterLibrary("DataStructure", new DataStructure(this));
+		LibraryManager::RegisterLibrary("Memory", new Memory(this));
 	}
 	VM::~VM()
 	{

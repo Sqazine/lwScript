@@ -189,7 +189,7 @@ namespace lws
 
 	struct RefObject : public Object
 	{
-		RefObject(std::string_view name,Object* index=nullptr);
+		RefObject(std::string_view name, Object *index = nullptr);
 		~RefObject();
 
 		std::string Stringify() override;
