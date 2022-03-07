@@ -8,7 +8,7 @@ namespace lws
 		: m_ParentFrame(nullptr)
 	{
 	}
-	Frame::Frame(Frame* parentFrame)
+	Frame::Frame(Frame *parentFrame)
 		: m_ParentFrame(parentFrame)
 	{
 	}
@@ -44,10 +44,9 @@ namespace lws
 		return m_Strings.size() - 1;
 	}
 
-
-	uint64_t Frame::AddLambdaFrame(Frame* frame)
+	uint64_t Frame::AddLambdaFrame(Frame *frame)
 	{
-		Frame* rootFrame = this;
+		Frame *rootFrame = this;
 		//lambda frame save to rootframe
 		if (rootFrame->m_ParentFrame)
 		{
@@ -58,11 +57,11 @@ namespace lws
 		return rootFrame->m_LambdaFrames.size() - 1;
 	}
 
-	Frame* Frame::GetLambdaFrame(uint64_t idx)
+	Frame *Frame::GetLambdaFrame(uint64_t idx)
 	{
 		if (m_ParentFrame)
 		{
-			Frame* rootFrame = this;
+			Frame *rootFrame = this;
 			while (rootFrame->m_ParentFrame)
 				rootFrame = rootFrame->m_ParentFrame;
 			return rootFrame->GetLambdaFrame(idx);
@@ -77,7 +76,7 @@ namespace lws
 	{
 		if (m_ParentFrame)
 		{
-			Frame* rootFrame = this;
+			Frame *rootFrame = this;
 			while (rootFrame->m_ParentFrame)
 				rootFrame = rootFrame->m_ParentFrame;
 			return rootFrame->HasLambdaFrame(idx);
@@ -88,7 +87,7 @@ namespace lws
 			return false;
 	}
 
-	void Frame::AddFunctionFrame(std::string_view name, Frame* frame)
+	void Frame::AddFunctionFrame(std::string_view name, Frame *frame)
 	{
 		auto iter = m_FunctionFrames.find(name.data());
 		if (iter != m_FunctionFrames.end())
@@ -96,7 +95,7 @@ namespace lws
 		m_FunctionFrames[name.data()] = frame;
 	}
 
-	Frame* Frame::GetFunctionFrame(std::string_view name)
+	Frame *Frame::GetFunctionFrame(std::string_view name)
 	{
 		auto iter = m_FunctionFrames.find(name.data());
 		if (iter != m_FunctionFrames.end())
@@ -118,7 +117,7 @@ namespace lws
 			return false;
 	}
 
-	void Frame::AddFieldFrame(std::string_view name, Frame* frame)
+	void Frame::AddFieldFrame(std::string_view name, Frame *frame)
 	{
 		auto iter = m_FieldFrames.find(name.data());
 
@@ -128,7 +127,7 @@ namespace lws
 		m_FieldFrames[name.data()] = frame;
 	}
 
-	Frame* Frame::GetFieldFrame(std::string_view name)
+	Frame *Frame::GetFieldFrame(std::string_view name)
 	{
 		auto iter = m_FieldFrames.find(name.data());
 		if (iter != m_FieldFrames.end())
@@ -156,10 +155,10 @@ namespace lws
 		for (size_t i = 0; i < depth; ++i)
 			interval += "\t";
 
-#define SINGLE_INSTR_STRINGIFY(op) \
+#define UNARY_INSTR_STRINGIFY(op) \
 	result << interval << "\t" << std::setfill('0') << std::setw(8) << i << "     " << (#op) << "\n"
 
-#define CONSTANT_INSTR_STRINGIFY(op, vec) \
+#define BINARY_INSTR_STRINGIFY(op, vec) \
 	result << interval << "\t" << std::setfill('0') << std::setw(8) << i << "     " << (#op) << "     " << vec[m_Codes[++i]] << "\n"
 
 		std::stringstream result;
@@ -189,142 +188,142 @@ namespace lws
 			switch (m_Codes[i])
 			{
 			case OP_RETURN:
-				SINGLE_INSTR_STRINGIFY(OP_RETURN);
+				UNARY_INSTR_STRINGIFY(OP_RETURN);
 				break;
 			case OP_NEW_REAL:
-				CONSTANT_INSTR_STRINGIFY(OP_NEW_REAL, m_RealNums);
+				BINARY_INSTR_STRINGIFY(OP_NEW_REAL, m_RealNums);
 				break;
 			case OP_NEW_INT:
-				CONSTANT_INSTR_STRINGIFY(OP_NEW_INT, m_IntNums);
+				BINARY_INSTR_STRINGIFY(OP_NEW_INT, m_IntNums);
 				break;
 			case OP_NEW_STR:
-				CONSTANT_INSTR_STRINGIFY(OP_NEW_STR, m_Strings);
+				BINARY_INSTR_STRINGIFY(OP_NEW_STR, m_Strings);
 				break;
 			case OP_NEW_TRUE:
-				SINGLE_INSTR_STRINGIFY(OP_NEW_TRUE);
+				UNARY_INSTR_STRINGIFY(OP_NEW_TRUE);
 				break;
 			case OP_NEW_FALSE:
-				SINGLE_INSTR_STRINGIFY(OP_NEW_FALSE);
+				UNARY_INSTR_STRINGIFY(OP_NEW_FALSE);
 				break;
 			case OP_NEW_NULL:
-				SINGLE_INSTR_STRINGIFY(OP_NEW_NULL);
+				UNARY_INSTR_STRINGIFY(OP_NEW_NULL);
 				break;
 			case OP_NEG:
-				SINGLE_INSTR_STRINGIFY(OP_NEG);
+				UNARY_INSTR_STRINGIFY(OP_NEG);
 				break;
 			case OP_ADD:
-				SINGLE_INSTR_STRINGIFY(OP_ADD);
+				UNARY_INSTR_STRINGIFY(OP_ADD);
 				break;
 			case OP_SUB:
-				SINGLE_INSTR_STRINGIFY(OP_SUB);
+				UNARY_INSTR_STRINGIFY(OP_SUB);
 				break;
 			case OP_MUL:
-				SINGLE_INSTR_STRINGIFY(OP_MUL);
+				UNARY_INSTR_STRINGIFY(OP_MUL);
 				break;
 			case OP_DIV:
-				SINGLE_INSTR_STRINGIFY(OP_DIV);
+				UNARY_INSTR_STRINGIFY(OP_DIV);
 				break;
 			case OP_MOD:
-				SINGLE_INSTR_STRINGIFY(OP_MOD);
+				UNARY_INSTR_STRINGIFY(OP_MOD);
 				break;
 			case OP_BIT_AND:
-				SINGLE_INSTR_STRINGIFY(OP_BIT_AND);
+				UNARY_INSTR_STRINGIFY(OP_BIT_AND);
 				break;
 			case OP_BIT_OR:
-				SINGLE_INSTR_STRINGIFY(OP_BIT_OR);
+				UNARY_INSTR_STRINGIFY(OP_BIT_OR);
 				break;
 			case OP_BIT_XOR:
-				SINGLE_INSTR_STRINGIFY(OP_BIT_XOR);
+				UNARY_INSTR_STRINGIFY(OP_BIT_XOR);
 				break;
 			case OP_BIT_NOT:
-				SINGLE_INSTR_STRINGIFY(OP_BIT_NOT);
+				UNARY_INSTR_STRINGIFY(OP_BIT_NOT);
 				break;
 			case OP_BIT_LEFT_SHIFT:
-				SINGLE_INSTR_STRINGIFY(OP_BIT_LEFT_SHIFT);
+				UNARY_INSTR_STRINGIFY(OP_BIT_LEFT_SHIFT);
 				break;
 			case OP_BIT_RIGHT_SHIFT:
-				SINGLE_INSTR_STRINGIFY(OP_BIT_RIGHT_SHIFT);
+				UNARY_INSTR_STRINGIFY(OP_BIT_RIGHT_SHIFT);
 				break;
 			case OP_GREATER:
-				SINGLE_INSTR_STRINGIFY(OP_GREATER);
+				UNARY_INSTR_STRINGIFY(OP_GREATER);
 				break;
 			case OP_LESS:
-				SINGLE_INSTR_STRINGIFY(OP_LESS);
+				UNARY_INSTR_STRINGIFY(OP_LESS);
 				break;
 			case OP_EQUAL:
-				SINGLE_INSTR_STRINGIFY(OP_EQUAL);
+				UNARY_INSTR_STRINGIFY(OP_EQUAL);
 				break;
 			case OP_NOT:
-				SINGLE_INSTR_STRINGIFY(OP_NOT);
+				UNARY_INSTR_STRINGIFY(OP_NOT);
 				break;
 			case OP_AND:
-				SINGLE_INSTR_STRINGIFY(OP_AND);
+				UNARY_INSTR_STRINGIFY(OP_AND);
 				break;
 			case OP_OR:
-				SINGLE_INSTR_STRINGIFY(OP_OR);
+				UNARY_INSTR_STRINGIFY(OP_OR);
 				break;
 			case OP_GET_VAR:
-				CONSTANT_INSTR_STRINGIFY(OP_GET_VAR, m_Strings);
+				BINARY_INSTR_STRINGIFY(OP_GET_VAR, m_Strings);
 				break;
 			case OP_NEW_VAR:
-				CONSTANT_INSTR_STRINGIFY(OP_NEW_VAR, m_Strings);
+				BINARY_INSTR_STRINGIFY(OP_NEW_VAR, m_Strings);
 				break;
 			case OP_SET_VAR:
-				CONSTANT_INSTR_STRINGIFY(OP_SET_VAR, m_Strings);
+				BINARY_INSTR_STRINGIFY(OP_SET_VAR, m_Strings);
 				break;
 			case OP_NEW_ARRAY:
-				CONSTANT_INSTR_STRINGIFY(OP_NEW_ARRAY, m_IntNums);
+				BINARY_INSTR_STRINGIFY(OP_NEW_ARRAY, m_IntNums);
 				break;
 			case OP_NEW_TABLE:
-				CONSTANT_INSTR_STRINGIFY(OP_NEW_TABLE, m_IntNums);
+				BINARY_INSTR_STRINGIFY(OP_NEW_TABLE, m_IntNums);
 				break;
 			case OP_NEW_LAMBDA:
-				CONSTANT_INSTR_STRINGIFY(OP_NEW_LAMBDA, m_IntNums);
+				BINARY_INSTR_STRINGIFY(OP_NEW_LAMBDA, m_IntNums);
 				break;
 			case OP_NEW_FIELD:
-				CONSTANT_INSTR_STRINGIFY(OP_NEW_FIELD, m_Strings);
+				BINARY_INSTR_STRINGIFY(OP_NEW_FIELD, m_Strings);
 				break;
 			case OP_GET_INDEX_VAR:
-				SINGLE_INSTR_STRINGIFY(OP_GET_INDEX_VAR);
+				UNARY_INSTR_STRINGIFY(OP_GET_INDEX_VAR);
 				break;
 			case OP_SET_INDEX_VAR:
-				SINGLE_INSTR_STRINGIFY(OP_SET_INDEX_VAR);
+				UNARY_INSTR_STRINGIFY(OP_SET_INDEX_VAR);
 				break;
 			case OP_GET_FIELD_VAR:
-				CONSTANT_INSTR_STRINGIFY(OP_GET_FIELD_VAR, m_Strings);
+				BINARY_INSTR_STRINGIFY(OP_GET_FIELD_VAR, m_Strings);
 				break;
 			case OP_SET_FIELD_VAR:
-				CONSTANT_INSTR_STRINGIFY(OP_SET_FIELD_VAR, m_Strings);
+				BINARY_INSTR_STRINGIFY(OP_SET_FIELD_VAR, m_Strings);
 				break;
 			case OP_GET_FIELD_FUNCTION:
-				CONSTANT_INSTR_STRINGIFY(OP_GET_FIELD_FUNCTION, m_Strings);
+				BINARY_INSTR_STRINGIFY(OP_GET_FIELD_FUNCTION, m_Strings);
 				break;
 			case OP_GET_FUNCTION:
-				CONSTANT_INSTR_STRINGIFY(OP_GET_FUNCTION, m_Strings);
+				BINARY_INSTR_STRINGIFY(OP_GET_FUNCTION, m_Strings);
 				break;
 			case OP_ENTER_SCOPE:
-				SINGLE_INSTR_STRINGIFY(OP_ENTER_SCOPE);
+				UNARY_INSTR_STRINGIFY(OP_ENTER_SCOPE);
 				break;
 			case OP_EXIT_SCOPE:
-				SINGLE_INSTR_STRINGIFY(OP_EXIT_SCOPE);
+				UNARY_INSTR_STRINGIFY(OP_EXIT_SCOPE);
 				break;
 			case OP_JUMP:
-				CONSTANT_INSTR_STRINGIFY(OP_JUMP, m_IntNums);
+				BINARY_INSTR_STRINGIFY(OP_JUMP, m_IntNums);
 				break;
 			case OP_JUMP_IF_FALSE:
-				CONSTANT_INSTR_STRINGIFY(OP_JUMP_IF_FALSE, m_IntNums);
+				BINARY_INSTR_STRINGIFY(OP_JUMP_IF_FALSE, m_IntNums);
 				break;
 			case OP_FUNCTION_CALL:
-				SINGLE_INSTR_STRINGIFY(OP_FUNCTION_CALL);
+				UNARY_INSTR_STRINGIFY(OP_FUNCTION_CALL);
 				break;
 			case OP_CONDITION:
-				SINGLE_INSTR_STRINGIFY(OP_CONDITION);
+				UNARY_INSTR_STRINGIFY(OP_CONDITION);
 				break;
-			case OP_REF:
-				SINGLE_INSTR_STRINGIFY(OP_REF);
+			case OP_REF_VARIABLE:
+				BINARY_INSTR_STRINGIFY(OP_REF_VARIABLE, m_Strings);
 				break;
 			default:
-				SINGLE_INSTR_STRINGIFY(OP_UNKNOWN);
+				UNARY_INSTR_STRINGIFY(OP_UNKNOWN);
 				break;
 			}
 		}
@@ -347,9 +346,9 @@ namespace lws
 		for (auto [key, value] : m_FunctionFrames)
 			value->Clear();
 
-		std::vector<Frame*>().swap(m_LambdaFrames);
-		std::unordered_map<std::string, Frame*>().swap(m_FieldFrames);
-		std::unordered_map<std::string, Frame*>().swap(m_FunctionFrames);
+		std::vector<Frame *>().swap(m_LambdaFrames);
+		std::unordered_map<std::string, Frame *>().swap(m_FieldFrames);
+		std::unordered_map<std::string, Frame *>().swap(m_FunctionFrames);
 		if (m_ParentFrame)
 			m_ParentFrame = nullptr;
 	}
@@ -367,7 +366,7 @@ namespace lws
 	{
 	}
 
-	const std::string& NativeFunctionFrame::GetName() const
+	const std::string &NativeFunctionFrame::GetName() const
 	{
 		return m_NativeFuntionName;
 	}

@@ -33,7 +33,7 @@ namespace lws
 		TableObject *CreateTableObject(const std::unordered_map<Object *, Object *> &elements = {});
 		FieldObject *CreateFieldObject(std::string_view name, const std::unordered_map<std::string, Object *> &members, const std::vector<std::pair<std::string, FieldObject*>>& containedFields = {});
 		FunctionObject *CreateFunctionObject(int64_t frameIdx);
-		RefObject *CreateRefObject(std::string_view address);
+		RefObject *CreateRefObject(std::string_view name,Object* index=nullptr);
 
 		void Gc();
 

@@ -1,0 +1,30 @@
+let a=10;
+let b=&a;
+println("{}",b);//10
+b=100;
+println("{}",a);//100
+
+a=[1,2,3,4,5,6,7];
+println("{}",b);//[1,2,3,4,5,6,7]
+
+
+field vec2
+{
+    let x=10,y=8;
+
+    fn sqLength()
+    {
+        return this.x*this.x+this.y*this.y;
+    }
+}
+
+fn resetVec(v2,x,y)
+{
+    v2.x=x;
+    v2.y=y;
+}
+
+let c=vec2;
+resetVec(&c,100,300);
+
+println("{}",c);//vec2{x=100 y=200}

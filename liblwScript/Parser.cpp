@@ -539,7 +539,7 @@ namespace lws
 
 	Expr* Parser::ParseRefExpr()
 	{
-		Consume(TOKEN_AMPERSAND, "Expect 'ref' keyword.");
+		Consume(TOKEN_AMPERSAND, "Expect '&'.");
 		return new RefExpr(ParseExpr(Precedence::PREFIX));
 	}
 

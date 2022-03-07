@@ -15,9 +15,6 @@ namespace lws
         void AssignVariableByName(std::string_view name, struct Object *value);
         struct Object *GetVariableByName(std::string_view name);
 
-        void AssignVariableByAddress(std::string_view address, struct Object* value);
-        struct Object* GetVariableByAddress(std::string_view address);
-
         Context *GetUpContext();
         void SetUpContext(Context *env);
 

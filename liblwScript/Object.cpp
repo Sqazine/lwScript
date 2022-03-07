@@ -293,8 +293,8 @@ namespace lws
         return frameIndex == TO_FUNCTION_OBJ(other)->frameIndex;
     }
 
-    RefObject::RefObject(std::string_view address)
-        : address(address)
+    RefObject::RefObject(std::string_view name,Object* index)
+        : name(name),index(index)
     {
     }
     RefObject::~RefObject()
@@ -303,7 +303,10 @@ namespace lws
 
     std::string RefObject::Stringify()
     {
-        return address;
+        std::string result = name;
+        if(index)
+            result += "[" + index->Stringify() + "]";
+        return result;
     }
     ObjectType RefObject::Type()
     {
@@ -325,7 +328,7 @@ namespace lws
     {
         if (!IS_REF_OBJ(other))
             return false;
-        return address == TO_REF_OBJ(other)->address;
+        return name == TO_REF_OBJ(other)->name;
     }
 
     FieldObject::FieldObject()
@@ -436,35 +439,6 @@ namespace lws
                 }
             }
         }
-        return nullptr;
-    }
-
-    Object *FieldObject::GetMemberByAddress(std::string_view address)
-    {
-        if (!members.empty())
-        {
-            for (auto [key, value] : members)
-                if (PointerAddressToString(value) == address)
-                    return value;
-        }
-
-        if (!containedFields.empty()) // in contained field
-        {
-            for (const auto &containedField : containedFields)
-            {
-                // the contained field self
-                if (PointerAddressToString(containedField.second) == address)
-                    return containedField.second;
-                else // the member in contained field
-                {
-                    auto member = containedField.second->GetMemberByAddress(address);
-                    if (member)
-                        return member;
-                }
-            }
-        }
-
-        Assert("No Object's address:" + std::string(address) + "in field:" + std::string(name.data()));
         return nullptr;
     }
 }

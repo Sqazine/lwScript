@@ -189,7 +189,7 @@ namespace lws
 
 	struct RefObject : public Object
 	{
-		RefObject(std::string_view address);
+		RefObject(std::string_view name,Object* index=nullptr);
 		~RefObject();
 
 		std::string Stringify() override;
@@ -198,7 +198,8 @@ namespace lws
 		void UnMark() override;
 		bool IsEqualTo(Object *other) override;
 
-		std::string address;
+		std::string name;
+		Object *index;
 	};
 	struct FieldObject : public Object
 	{
@@ -216,7 +217,6 @@ namespace lws
 
 		void AssignMemberByName(std::string_view name, Object *value);
 		Object *GetMemberByName(std::string_view name);
-		Object *GetMemberByAddress(std::string_view address);
 
 		std::string name;
 		std::unordered_map<std::string, Object *> members;
