@@ -1,0 +1,40 @@
+field Biology
+{
+    let health=100;
+}
+
+field Animal:Biology
+{
+    let moveSpeed=5;
+}
+
+field Flyable:Biology
+{
+    let flySpeed=10;
+
+    fn SetHealth(h)
+    {
+        this.health=h;
+    }
+}
+
+field Sparrow:Animal,Flyable
+{
+    
+}
+
+
+let a=Sparrow;
+println("{}",a.health);//100
+println("{}",a.flySpeed);//10
+
+a.SetHealth(1000);
+println("{}",a.health);//1000
+
+/*
+               ---Animal---
+               |          |
+    Sparroe-----          |----Biology(health)  //means member 'health' only an instance copy,avoid some oop languages's multiple inheritance
+               |          |
+               ---Flyable--
+*/

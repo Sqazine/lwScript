@@ -629,9 +629,34 @@ namespace lws
 						Assert("No lambda object:" + memberName + " in field:" + fieldType);
 					PushFrame(fieldFrame->GetLambdaFrame(TO_FUNCTION_OBJ(lambdaObject)->frameIndex));
 				}
-				else
-					Assert("No function in field:" + memberName);
+				else if (!fieldObj->containedFields.empty())//get contained fields' function
+				{
+					for(const auto& containedField:fieldObj->containedFields)
+					{
+						fieldType = containedField.second->name;
+						fieldFrame = nullptr;
+						if (frame->HasFieldFrame(fieldType)) //function:function add(){return 10;}
+							fieldFrame = frame->GetFieldFrame(fieldType);
+						else
+							Assert("No field declaration:" + fieldType);
 
+						if (fieldFrame->HasFunctionFrame(memberName))
+							{
+								PushFrame(fieldFrame->GetFunctionFrame(memberName));
+								break;
+							}
+						else if (fieldObj->GetMemberByName(memberName) != nullptr) //lambda:let add=function(){return 10;}
+						{
+							Object *lambdaObject = fieldObj->GetMemberByName(memberName);
+							if (!IS_FUNCTION_OBJ(lambdaObject))
+								Assert("No lambda object:" + memberName + " in field:" + fieldType);
+							PushFrame(fieldFrame->GetLambdaFrame(TO_FUNCTION_OBJ(lambdaObject)->frameIndex));
+							break;
+						}
+					}	
+				}
+				else 
+					Assert("No function in field:" + memberName);
 				break;
 			}
 			case OP_ENTER_SCOPE:
