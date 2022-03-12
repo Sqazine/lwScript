@@ -119,6 +119,36 @@ namespace lws
         return value == TO_BOOL_OBJ(other)->value;
     }
 
+    NullObject::NullObject()
+    {
+    }
+    NullObject::~NullObject()
+    {
+    }
+
+    std::string NullObject::Stringify()
+    {
+        return "null";
+    }
+    ObjectType NullObject::Type()
+    {
+        return OBJECT_NULL;
+    }
+    void NullObject::Mark()
+    {
+        marked = true;
+    }
+    void NullObject::UnMark()
+    {
+        marked = false;
+    }
+    bool NullObject::IsEqualTo(Object *other)
+    {
+        if (!IS_NULL_OBJ(other))
+            return false;
+        return true;
+    }
+
     ArrayObject::ArrayObject()
     {
     }
@@ -293,8 +323,8 @@ namespace lws
         return frameIndex == TO_LAMBDA_OBJ(other)->frameIndex;
     }
 
-    RefObject::RefObject(std::string_view name,Object* index)
-        : name(name),index(index)
+    RefObject::RefObject(std::string_view name, Object *index)
+        : name(name), index(index)
     {
     }
     RefObject::~RefObject()
@@ -304,7 +334,7 @@ namespace lws
     std::string RefObject::Stringify()
     {
         std::string result = name;
-        if(index)
+        if (index)
             result += "[" + index->Stringify() + "]";
         return result;
     }

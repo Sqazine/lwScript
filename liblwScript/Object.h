@@ -125,19 +125,14 @@ namespace lws
 
 	struct NullObject : public Object
 	{
-		NullObject() {}
-		~NullObject() {}
+		NullObject();
+		~NullObject();
 
-		std::string Stringify() override { return "null"; }
-		ObjectType Type() override { return OBJECT_NULL; }
-		void Mark() override { marked = true; }
-		void UnMark() override { marked = false; }
-		bool IsEqualTo(Object *other) override
-		{
-			if (!IS_NULL_OBJ(other))
-				return false;
-			return true;
-		}
+		std::string Stringify() override;
+		ObjectType Type() override;
+		void Mark() override;
+		void UnMark() override;
+		bool IsEqualTo(Object *other) override;
 	};
 
 	struct ArrayObject : public Object
