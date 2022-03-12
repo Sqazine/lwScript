@@ -77,6 +77,16 @@ namespace lws
 		Frame(Frame *parentFrame);
 		virtual ~Frame();
 
+		std::string Stringify(int depth = 0);
+
+		void Clear();
+
+		virtual FrameType Type();
+
+	private:
+		friend class VM;
+		friend class Compiler;
+
 		void AddOpCode(uint64_t code);
 
 		uint64_t AddRealNum(double value);
@@ -94,16 +104,6 @@ namespace lws
 		void AddFieldFrame(std::string_view name, Frame *frame);
 		Frame *GetFieldFrame(std::string_view name);
 		bool HasFieldFrame(std::string_view name);
-
-		std::string Stringify(int depth = 0);
-
-		void Clear();
-
-		virtual FrameType Type();
-
-	private:
-		friend class VM;
-		friend class Compiler;
 
 		std::vector<uint64_t> mCodes;
 
