@@ -23,7 +23,7 @@ namespace lws
         friend class VM;
         friend struct FieldObject;
 
-        std::unordered_map<std::string, struct Object *> m_Values;
-        Context *m_UpContext;
+        std::unordered_map<std::string, struct Object *> mValues;
+        Context *mUpContext;
     };
 }

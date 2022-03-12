@@ -15,8 +15,8 @@ namespace lws
         virtual bool HasNativeFunction(std::string_view name);
 
     protected:
-        std::unordered_map<std::string, std::function<Object *(std::vector<Object *>)>> m_NativeFunctions;
-        class VM *m_VMHandle;
+        std::unordered_map<std::string, std::function<Object *(std::vector<Object *>)>> mNativeFunctions;
+        class VM *mVMHandle;
     };
   
     class IO:public Library
@@ -45,6 +45,6 @@ namespace lws
     private:
         LibraryManager() {}
         friend class VM;
-        static std::unordered_map<std::string,Library*> m_Libraries;
+        static std::unordered_map<std::string,Library*> mLibraries;
     };
 }

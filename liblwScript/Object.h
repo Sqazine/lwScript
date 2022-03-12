@@ -14,7 +14,7 @@ namespace lws
 #define TO_BOOL_OBJ(obj) ((BoolObject *)obj)
 #define TO_ARRAY_OBJ(obj) ((ArrayObject *)obj)
 #define TO_TABLE_OBJ(obj) ((TableObject *)obj)
-#define TO_FUNCTION_OBJ(obj) ((FunctionObject *)obj)
+#define TO_LAMBDA_OBJ(obj) ((LambdaObject *)obj)
 #define TO_FIELD_OBJ(obj) ((FieldObject *)obj)
 #define TO_REF_OBJ(obj) ((RefObject *)obj)
 
@@ -25,7 +25,7 @@ namespace lws
 #define IS_NULL_OBJ(obj) (obj->Type() == OBJECT_NULL)
 #define IS_ARRAY_OBJ(obj) (obj->Type() == OBJECT_ARRAY)
 #define IS_TABLE_OBJ(obj) (obj->Type() == OBJECT_TABLE)
-#define IS_FUNCTION_OBJ(obj) (obj->Type() == OBJECT_FUNCTION)
+#define IS_LAMBDA_OBJ(obj) (obj->Type() == OBJECT_LAMBDA)
 #define IS_FIELD_OBJ(obj) (obj->Type() == OBJECT_FIELD)
 #define IS_REF_OBJ(obj) (obj->Type() == OBJECT_REF)
 
@@ -38,7 +38,7 @@ namespace lws
 		OBJECT_NULL,
 		OBJECT_ARRAY,
 		OBJECT_TABLE,
-		OBJECT_FUNCTION,
+		OBJECT_LAMBDA,
 		OBJECT_FIELD,
 		OBJECT_REF
 	};
@@ -171,11 +171,11 @@ namespace lws
 		std::unordered_map<Object *, Object *> elements;
 	};
 
-	struct FunctionObject : public Object
+	struct LambdaObject : public Object
 	{
-		FunctionObject();
-		FunctionObject(int64_t frameIndex);
-		~FunctionObject();
+		LambdaObject();
+		LambdaObject(int64_t frameIndex);
+		~LambdaObject();
 
 		std::string Stringify() override;
 		ObjectType Type() override;

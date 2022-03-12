@@ -29,16 +29,16 @@ namespace lws
     const std::vector<Token> &Lexer::GenerateTokens(std::string_view src)
     {
         ResetStatus();
-        m_Source = src;
+        mSource = src;
         while (!IsAtEnd())
         {
-            m_StartPos = m_CurPos;
+            mStartPos = mCurPos;
             GenerateToken();
         }
 
         AddToken(TOKEN_END, "EOF");
 
-        return m_Tokens;
+        return mTokens;
     }
     void Lexer::GenerateToken()
     {
@@ -84,7 +84,7 @@ namespace lws
         case '\r':
             break;
         case '\n':
-            m_Line++;
+            mLine++;
             break;
         case '+':
             if (IsMatchCurCharAndStepOnce('='))
@@ -109,7 +109,7 @@ namespace lws
             {
                 while (!IsMatchCurChar('\n') && !IsAtEnd())
                     GetCurCharAndStepOnce();
-                m_Line++;
+                mLine++;
                 break;
             }
             else if (IsMatchCurCharAndStepOnce('*'))
@@ -117,7 +117,7 @@ namespace lws
                 while (!IsMatchCurChar('*') && !IsMatchNextChar('/') && !IsAtEnd())
                 {
                     if (IsMatchCurChar('\n'))
-                        m_Line++;
+                        mLine++;
                     GetCurCharAndStepOnce();
                 }
                 GetCurCharAndStepOnce(); //eat '*'
@@ -206,7 +206,7 @@ namespace lws
                 Identifier();
             else
             {
-                auto literal= m_Source.substr(m_StartPos, m_CurPos - m_StartPos);
+                auto literal= mSource.substr(mStartPos, mCurPos - mStartPos);
                 std::cout << "Unknown literal:" << literal << std::endl;
                 exit(1);
             }
@@ -216,9 +216,9 @@ namespace lws
 
     void Lexer::ResetStatus()
     {
-        m_StartPos = m_CurPos = 0;
-        m_Line = 1;
-        std::vector<Token>().swap(m_Tokens);
+        mStartPos = mCurPos = 0;
+        mLine = 1;
+        std::vector<Token>().swap(mTokens);
     }
 
     bool Lexer::IsMatchCurChar(char c)
@@ -229,7 +229,7 @@ namespace lws
     {
         bool result = GetCurChar() == c;
         if (result)
-            m_CurPos++;
+            mCurPos++;
         return result;
     }
 
@@ -241,49 +241,49 @@ namespace lws
     {
         bool result = GetNextChar() == c;
         if (result)
-            m_CurPos++;
+            mCurPos++;
         return result;
     }
 
     char Lexer::GetNextCharAndStepOnce()
     {
-        if (m_CurPos + 1 < m_Source.size())
-            return m_Source[++m_CurPos];
+        if (mCurPos + 1 < mSource.size())
+            return mSource[++mCurPos];
         return '\0';
     }
     char Lexer::GetNextChar()
     {
-        if (m_CurPos + 1 < m_Source.size())
-            return m_Source[m_CurPos + 1];
+        if (mCurPos + 1 < mSource.size())
+            return mSource[mCurPos + 1];
         return '\0';
     }
     char Lexer::GetCurCharAndStepOnce()
     {
         if (!IsAtEnd())
-            return m_Source[m_CurPos++];
+            return mSource[mCurPos++];
         return '\0';
     }
 
     char Lexer::GetCurChar()
     {
         if (!IsAtEnd())
-            return m_Source[m_CurPos];
+            return mSource[mCurPos];
         return '\0';
     }
 
     void Lexer::AddToken(TokenType type)
     {
-        auto literal = m_Source.substr(m_StartPos, m_CurPos - m_StartPos);
-        m_Tokens.emplace_back(Token(type, literal, m_Line));
+        auto literal = mSource.substr(mStartPos, mCurPos - mStartPos);
+        mTokens.emplace_back(Token(type, literal, mLine));
     }
     void Lexer::AddToken(TokenType type, std::string_view literal)
     {
-        m_Tokens.emplace_back(Token(type, literal, m_Line));
+        mTokens.emplace_back(Token(type, literal, mLine));
     }
 
     bool Lexer::IsAtEnd()
     {
-        return m_CurPos >= m_Source.size();
+        return mCurPos >= mSource.size();
     }
 
     bool Lexer::IsNumber(char c)
@@ -310,7 +310,7 @@ namespace lws
                 while (IsNumber(GetCurChar()))
                     GetCurCharAndStepOnce();
             else
-                Assert("[line " + std::to_string(m_Line) + "]:Number cannot end with '.'");
+                Assert("[line " + std::to_string(mLine) + "]:Number cannot end with '.'");
         }
 
         AddToken(TOKEN_NUMBER);
@@ -321,7 +321,7 @@ namespace lws
         while (IsLetterOrNumber(GetCurChar()))
             GetCurCharAndStepOnce();
 
-        std::string literal = m_Source.substr(m_StartPos, m_CurPos - m_StartPos);
+        std::string literal = mSource.substr(mStartPos, mCurPos - mStartPos);
 
         bool isKeyWord = false;
         for (const auto &[key, value] : keywords)
@@ -341,15 +341,15 @@ namespace lws
         while (!IsMatchCurChar('\"') && !IsAtEnd())
         {
             if (IsMatchCurChar('\n'))
-                m_Line++;
+                mLine++;
             GetCurCharAndStepOnce();
         }
 
         if (IsAtEnd())
-            std::cout << "[line " << m_Line << "]:Uniterminated string." << std::endl;
+            std::cout << "[line " << mLine << "]:Uniterminated string." << std::endl;
 
         GetCurCharAndStepOnce(); //eat the second '\"'
 
-        AddToken(TOKEN_STRING, m_Source.substr(m_StartPos + 1, m_CurPos - m_StartPos - 2));
+        AddToken(TOKEN_STRING, mSource.substr(mStartPos + 1, mCurPos - mStartPos - 2));
     }
 }

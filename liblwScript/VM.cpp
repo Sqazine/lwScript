@@ -4,7 +4,7 @@
 namespace lws
 {
 	VM::VM()
-		: m_Context(nullptr)
+		: mContext(nullptr)
 	{
 		ResetStatus();
 		LibraryManager::RegisterLibrary("IO", new IO(this));
@@ -13,10 +13,10 @@ namespace lws
 	}
 	VM::~VM()
 	{
-		if (m_Context)
+		if (mContext)
 		{
-			delete m_Context;
-			m_Context = nullptr;
+			delete mContext;
+			mContext = nullptr;
 		}
 		sp = 0;
 		fp = 0;
@@ -149,12 +149,12 @@ namespace lws
 		return object;
 	}
 
-	FunctionObject *VM::CreateFunctionObject(int64_t frameIdx)
+	LambdaObject *VM::CreateLambdaObject(int64_t frameIdx)
 	{
 		if (curObjCount == maxObjCount)
 			Gc();
 
-		FunctionObject *object = new FunctionObject(frameIdx);
+		LambdaObject *object = new LambdaObject(frameIdx);
 		object->marked = false;
 
 		object->next = firstObject;
@@ -246,28 +246,28 @@ namespace lws
 			Assert("Invalid op:" + left->Stringify() + (#op) + right->Stringify());                                                    \
 	} while (0);
 
-		for (size_t ip = 0; ip < frame->m_Codes.size(); ++ip)
+		for (size_t ip = 0; ip < frame->mCodes.size(); ++ip)
 		{
-			uint64_t instruction = frame->m_Codes[ip];
+			uint64_t instruction = frame->mCodes[ip];
 			switch (instruction)
 			{
 			case OP_RETURN:
-				if (m_Context->m_UpContext)
+				if (mContext->mUpContext)
 				{
-					Context *tmp = m_Context->GetUpContext();
-					delete m_Context;
-					m_Context = tmp;
+					Context *tmp = mContext->GetUpContext();
+					delete mContext;
+					mContext = tmp;
 				}
 				return PopObject();
 				break;
 			case OP_NEW_REAL:
-				PushObject(CreateRealNumObject(frame->m_RealNums[frame->m_Codes[++ip]]));
+				PushObject(CreateRealNumObject(frame->mRealNums[frame->mCodes[++ip]]));
 				break;
 			case OP_NEW_INT:
-				PushObject(CreateIntNumObject(frame->m_IntNums[frame->m_Codes[++ip]]));
+				PushObject(CreateIntNumObject(frame->mIntNums[frame->mCodes[++ip]]));
 				break;
 			case OP_NEW_STR:
-				PushObject(CreateStrObject(frame->m_Strings[frame->m_Codes[++ip]]));
+				PushObject(CreateStrObject(frame->mStrings[frame->mCodes[++ip]]));
 				break;
 			case OP_NEW_TRUE:
 				PushObject(CreateBoolObject(true));
@@ -355,24 +355,24 @@ namespace lws
 			case OP_NEW_VAR:
 			{
 				Object *value = PopObject();
-				m_Context->DefineVariableByName(frame->m_Strings[frame->m_Codes[++ip]], value);
+				mContext->DefineVariableByName(frame->mStrings[frame->mCodes[++ip]], value);
 				break;
 			}
 			case OP_SET_VAR:
 			{
-				std::string name = frame->m_Strings[frame->m_Codes[++ip]];
+				std::string name = frame->mStrings[frame->mCodes[++ip]];
 
 				Object *value = PopObject();
-				Object *variable = m_Context->GetVariableByName(name);
+				Object *variable = mContext->GetVariableByName(name);
 
 				if (IS_REF_OBJ(variable))
 				{
 					auto refObject = TO_REF_OBJ(variable);
 					if (refObject->index == nullptr)
-						m_Context->AssignVariableByName(refObject->name, value);
+						mContext->AssignVariableByName(refObject->name, value);
 					else
 					{
-						variable = m_Context->GetVariableByName(refObject->name);
+						variable = mContext->GetVariableByName(refObject->name);
 						auto index = refObject->index;
 						if (IS_ARRAY_OBJ(variable))
 						{
@@ -406,14 +406,14 @@ namespace lws
 					}
 				}
 				else
-					m_Context->AssignVariableByName(name, value);
+					mContext->AssignVariableByName(name, value);
 				break;
 			}
 			case OP_GET_VAR:
 			{
-				std::string name = frame->m_Strings[frame->m_Codes[++ip]];
+				std::string name = frame->mStrings[frame->mCodes[++ip]];
 
-				Object *varObject = m_Context->GetVariableByName(name);
+				Object *varObject = mContext->GetVariableByName(name);
 
 				//create a field object
 				if (varObject == nullptr)
@@ -426,7 +426,7 @@ namespace lws
 				else if (IS_REF_OBJ(varObject))
 				{
 					auto refObject = TO_REF_OBJ(varObject);
-					varObject = m_Context->GetVariableByName(refObject->name);
+					varObject = mContext->GetVariableByName(refObject->name);
 
 					if (refObject->index == nullptr)
 						PushObject(varObject);
@@ -472,7 +472,7 @@ namespace lws
 			case OP_NEW_ARRAY:
 			{
 				std::vector<Object *> elements;
-				int64_t arraySize = (int64_t)frame->m_IntNums[frame->m_Codes[++ip]];
+				int64_t arraySize = (int64_t)frame->mIntNums[frame->mCodes[++ip]];
 				for (int64_t i = 0; i < arraySize; ++i)
 					elements.insert(elements.begin(), PopObject());
 				PushObject(CreateArrayObject(elements));
@@ -481,7 +481,7 @@ namespace lws
 			case OP_NEW_TABLE:
 			{
 				std::unordered_map<Object *, Object *> elements;
-				int64_t tableSize = (int64_t)frame->m_IntNums[frame->m_Codes[++ip]];
+				int64_t tableSize = (int64_t)frame->mIntNums[frame->mCodes[++ip]];
 				for (int64_t i = 0; i < tableSize; ++i)
 				{
 					Object *key = PopObject();
@@ -493,12 +493,12 @@ namespace lws
 			}
 			case OP_NEW_FIELD:
 			{
-				std::string name = frame->m_Strings[frame->m_Codes[++ip]];
+				std::string name = frame->mStrings[frame->mCodes[++ip]];
 
 				std::unordered_map<std::string, Object *> members;
 				std::vector<std::pair<std::string, FieldObject *>> containedFields;
 
-				for (auto value : m_Context->GetValues())
+				for (auto value : mContext->GetValues())
 				{
 					if (value.first.find_first_of(containedFieldPrefixID) == 0 && IS_FIELD_OBJ(value.second))
 						containedFields.emplace_back(std::make_pair(value.first.substr(containedFieldPrefixID.size()), TO_FIELD_OBJ(value.second)));
@@ -584,7 +584,7 @@ namespace lws
 			}
 			case OP_GET_FIELD_VAR:
 			{
-				std::string memberName = frame->m_Strings[frame->m_Codes[++ip]];
+				std::string memberName = frame->mStrings[frame->mCodes[++ip]];
 				Object *stackTop = PopObject();
 				if (!IS_FIELD_OBJ(stackTop))
 					Assert("Not a field object of the callee of:" + memberName);
@@ -594,7 +594,7 @@ namespace lws
 			}
 			case OP_SET_FIELD_VAR:
 			{
-				std::string memberName = frame->m_Strings[frame->m_Codes[++ip]];
+				std::string memberName = frame->mStrings[frame->mCodes[++ip]];
 				Object *stackTop = PopObject();
 				if (!IS_FIELD_OBJ(stackTop))
 					Assert("Not a field object of the callee of:" + memberName);
@@ -607,7 +607,7 @@ namespace lws
 			}
 			case OP_GET_FIELD_FUNCTION:
 			{
-				std::string memberName = frame->m_Strings[frame->m_Codes[++ip]];
+				std::string memberName = frame->mStrings[frame->mCodes[++ip]];
 				Object *stackTop = PopObject();
 				if (!IS_FIELD_OBJ(stackTop))
 					Assert("Not a fleid object of the callee of:" + memberName);
@@ -625,9 +625,9 @@ namespace lws
 				else if (fieldObj->GetMemberByName(memberName) != nullptr) //lambda:let add=function(){return 10;}
 				{
 					Object *lambdaObject = fieldObj->GetMemberByName(memberName);
-					if (!IS_FUNCTION_OBJ(lambdaObject))
+					if (!IS_LAMBDA_OBJ(lambdaObject))
 						Assert("No lambda object:" + memberName + " in field:" + fieldType);
-					PushFrame(fieldFrame->GetLambdaFrame(TO_FUNCTION_OBJ(lambdaObject)->frameIndex));
+					PushFrame(fieldFrame->GetLambdaFrame(TO_LAMBDA_OBJ(lambdaObject)->frameIndex));
 				}
 				else if (!fieldObj->containedFields.empty())//get contained fields' function
 				{
@@ -648,9 +648,9 @@ namespace lws
 						else if (fieldObj->GetMemberByName(memberName) != nullptr) //lambda:let add=function(){return 10;}
 						{
 							Object *lambdaObject = fieldObj->GetMemberByName(memberName);
-							if (!IS_FUNCTION_OBJ(lambdaObject))
+							if (!IS_LAMBDA_OBJ(lambdaObject))
 								Assert("No lambda object:" + memberName + " in field:" + fieldType);
-							PushFrame(fieldFrame->GetLambdaFrame(TO_FUNCTION_OBJ(lambdaObject)->frameIndex));
+							PushFrame(fieldFrame->GetLambdaFrame(TO_LAMBDA_OBJ(lambdaObject)->frameIndex));
 							break;
 						}
 					}	
@@ -661,20 +661,20 @@ namespace lws
 			}
 			case OP_ENTER_SCOPE:
 			{
-				m_Context = new Context(m_Context);
+				mContext = new Context(mContext);
 				break;
 			}
 			case OP_EXIT_SCOPE:
 			{
-				Context *tmp = m_Context->GetUpContext();
-				delete m_Context;
-				m_Context = tmp;
+				Context *tmp = mContext->GetUpContext();
+				delete mContext;
+				mContext = tmp;
 				break;
 			}
 			case OP_JUMP_IF_FALSE:
 			{
 				bool isJump = !TO_BOOL_OBJ(PopObject())->value;
-				uint64_t address = (uint64_t)(frame->m_IntNums[frame->m_Codes[++ip]]);
+				uint64_t address = (uint64_t)(frame->mIntNums[frame->mCodes[++ip]]);
 
 				if (isJump)
 					ip = address;
@@ -682,21 +682,21 @@ namespace lws
 			}
 			case OP_JUMP:
 			{
-				uint64_t address = (uint64_t)(frame->m_IntNums[frame->m_Codes[++ip]]);
+				uint64_t address = (uint64_t)(frame->mIntNums[frame->mCodes[++ip]]);
 				ip = address;
 				break;
 			}
 			case OP_GET_FUNCTION:
 			{
-				std::string fnName = frame->m_Strings[frame->m_Codes[++ip]];
+				std::string fnName = frame->mStrings[frame->mCodes[++ip]];
 				if (frame->HasFunctionFrame(fnName)) //function:function add(){return 10;}
 					PushFrame(frame->GetFunctionFrame(fnName));
-				else if (m_Context->GetVariableByName(fnName) != nullptr) //lambda:let add=function(){return 10;}
+				else if (mContext->GetVariableByName(fnName) != nullptr) //lambda:let add=function(){return 10;}
 				{
-					Object *lambdaObject = m_Context->GetVariableByName(fnName);
-					if (!IS_FUNCTION_OBJ(lambdaObject))
+					Object *lambdaObject = mContext->GetVariableByName(fnName);
+					if (!IS_LAMBDA_OBJ(lambdaObject))
 						Assert("Not a lambda object of " + fnName);
-					PushFrame(frame->GetLambdaFrame(TO_FUNCTION_OBJ(lambdaObject)->frameIndex));
+					PushFrame(frame->GetLambdaFrame(TO_LAMBDA_OBJ(lambdaObject)->frameIndex));
 				}
 				else if (HasNativeFunction(fnName))
 					PushFrame(new NativeFunctionFrame(fnName));
@@ -708,10 +708,10 @@ namespace lws
 			{
 				Object *stackTop = PopObject();
 
-				if (IS_FUNCTION_OBJ(stackTop)) //if stack is a function object then execute it
+				if (IS_LAMBDA_OBJ(stackTop)) //if stack is a function object then execute it
 				{
 					IntNumObject *argCount = TO_INT_OBJ(PopObject());
-					Object *executeResult = Execute(frame->GetLambdaFrame(TO_FUNCTION_OBJ(stackTop)->frameIndex));
+					Object *executeResult = Execute(frame->GetLambdaFrame(TO_LAMBDA_OBJ(stackTop)->frameIndex));
 					PushObject(executeResult);
 				}
 				else //else execute function
@@ -752,17 +752,17 @@ namespace lws
 				break;
 			}
 			case OP_NEW_LAMBDA:
-				PushObject(CreateFunctionObject(frame->m_IntNums[frame->m_Codes[++ip]]));
+				PushObject(CreateLambdaObject(frame->mIntNums[frame->mCodes[++ip]]));
 				break;
 			case OP_REF_VARIABLE:
 			{
-				PushObject(CreateRefObject(frame->m_Strings[frame->m_Codes[++ip]]));
+				PushObject(CreateRefObject(frame->mStrings[frame->mCodes[++ip]]));
 				break;
 			}
 			case OP_REF_INDEX:
 			{
 				auto index = PopObject();
-				PushObject(CreateRefObject(frame->m_Strings[frame->m_Codes[++ip]], index));
+				PushObject(CreateRefObject(frame->mStrings[frame->mCodes[++ip]], index));
 				break;
 			}
 			default:
@@ -781,26 +781,26 @@ namespace lws
 		curObjCount = 0;
 		maxObjCount = INIT_OBJ_NUM_MAX;
 
-		std::array<Object *, STACK_MAX>().swap(m_ObjectStack);
+		std::array<Object *, STACK_MAX>().swap(mObjectStack);
 
-		if (m_Context != nullptr)
+		if (mContext != nullptr)
 		{
-			delete m_Context;
-			m_Context = nullptr;
+			delete mContext;
+			mContext = nullptr;
 		}
-		m_Context = new Context();
+		mContext = new Context();
 	}
 
 	std::function<Object *(std::vector<Object *>)> VM::GetNativeFunction(std::string_view fnName)
 	{
-		for (const auto lib : LibraryManager::m_Libraries)
+		for (const auto lib : LibraryManager::mLibraries)
 			if (lib.second->HasNativeFunction(fnName))
 				return lib.second->GetNativeFunction(fnName);
 		return nullptr;
 	}
 	bool VM::HasNativeFunction(std::string_view name)
 	{
-		for (const auto lib : LibraryManager::m_Libraries)
+		for (const auto lib : LibraryManager::mLibraries)
 			if (lib.second->HasNativeFunction(name))
 				return true;
 		return false;
@@ -808,20 +808,20 @@ namespace lws
 
 	void VM::PushObject(Object *object)
 	{
-		m_ObjectStack[sp++] = object;
+		mObjectStack[sp++] = object;
 	}
 	Object *VM::PopObject()
 	{
-		return m_ObjectStack[--sp];
+		return mObjectStack[--sp];
 	}
 
 	void VM::PushFrame(Frame *frame)
 	{
-		m_FrameStack[fp++] = frame;
+		mFrameStack[fp++] = frame;
 	}
 	Frame *VM::PopFrame()
 	{
-		return m_FrameStack[--fp];
+		return mFrameStack[--fp];
 	}
 
 	bool VM::IsFrameStackEmpty()
@@ -835,7 +835,7 @@ namespace lws
 
 		//mark all object which in stack;
 		for (size_t i = 0; i < sp; ++i)
-			m_ObjectStack[i]->Mark();
+			mObjectStack[i]->Mark();
 
 		//sweep objects which is not reachable
 		Object **object = &firstObject;

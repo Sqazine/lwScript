@@ -1,7 +1,7 @@
 #include "Parser.h"
 namespace lws
 {
-	std::unordered_map<TokenType, PrefixFn> Parser::m_PrefixFunctions =
+	std::unordered_map<TokenType, PrefixFn> Parser::mPrefixFunctions =
 	{
 		{TOKEN_IDENTIFIER, &Parser::ParseIdentifierExpr},
 		{TOKEN_NUMBER, &Parser::ParseNumExpr},
@@ -19,7 +19,7 @@ namespace lws
 		{TOKEN_FUNCTION,&Parser::ParseLambdaExpr},
 	};
 
-	std::unordered_map<TokenType, InfixFn> Parser::m_InfixFunctions =
+	std::unordered_map<TokenType, InfixFn> Parser::mInfixFunctions =
 	{
 		{TOKEN_EQUAL, &Parser::ParseInfixExpr},
 		{TOKEN_PLUS_EQUAL, &Parser::ParseInfixExpr},
@@ -56,7 +56,7 @@ namespace lws
 		{TOKEN_DOT, &Parser::ParseFieldCallExpr},
 	};
 
-	std::unordered_map<TokenType, Precedence> Parser::m_Precedence =
+	std::unordered_map<TokenType, Precedence> Parser::mPrecedence =
 	{
 		{TOKEN_EQUAL, Precedence::ASSIGN},
 		{TOKEN_PLUS_EQUAL, Precedence::ASSIGN},
@@ -93,7 +93,7 @@ namespace lws
 		{TOKEN_DOT, Precedence::INFIX},
 	};
 
-	std::unordered_map<Precedence, Associativity> Parser::m_Associativity =
+	std::unordered_map<Precedence, Associativity> Parser::mAssociativity =
 	{
 		{Precedence::LOWEST,Associativity::L2R},
 		{Precedence::ASSIGN,Associativity::R2L},
@@ -114,48 +114,48 @@ namespace lws
 	};
 
 	Parser::Parser()
-		: m_Stmts(nullptr)
+		: mStmts(nullptr)
 	{
 
 	}
 	Parser::~Parser()
 	{
-		if (m_Stmts != nullptr)
+		if (mStmts != nullptr)
 		{
-			delete m_Stmts;
-			m_Stmts = nullptr;
+			delete mStmts;
+			mStmts = nullptr;
 		}
 
-		std::unordered_map<TokenType, PrefixFn>().swap(m_PrefixFunctions);
-		std::unordered_map<TokenType, InfixFn>().swap(m_InfixFunctions);
-		std::unordered_map<TokenType, Precedence>().swap(m_Precedence);
+		std::unordered_map<TokenType, PrefixFn>().swap(mPrefixFunctions);
+		std::unordered_map<TokenType, InfixFn>().swap(mInfixFunctions);
+		std::unordered_map<TokenType, Precedence>().swap(mPrecedence);
 	}
 
 	Stmt* Parser::Parse(const std::vector<Token>& tokens)
 	{
 		ResetStatus();
-		m_Tokens = tokens;
+		mTokens = tokens;
 
 		return ParseAstStmts();
 	}
 
 	void Parser::ResetStatus()
 	{
-		m_CurPos = 0;
+		mCurPos = 0;
 
-		if (m_Stmts != nullptr)
+		if (mStmts != nullptr)
 		{
-			delete m_Stmts;
-			m_Stmts = nullptr;
+			delete mStmts;
+			mStmts = nullptr;
 		}
-		m_Stmts = new AstStmts();
+		mStmts = new AstStmts();
 	}
 
 	Stmt* Parser::ParseAstStmts()
 	{
 		while (!IsMatchCurToken(TOKEN_END))
-			m_Stmts->stmts.emplace_back(ParseStmt());
-		return m_Stmts;
+			mStmts->stmts.emplace_back(ParseStmt());
+		return mStmts;
 	}
 
 	Stmt* Parser::ParseStmt()
@@ -422,21 +422,21 @@ namespace lws
 
 	Expr* Parser::ParseExpr(Precedence precedence)
 	{
-		if (m_PrefixFunctions.find(GetCurToken().type) == m_PrefixFunctions.end())
+		if (mPrefixFunctions.find(GetCurToken().type) == mPrefixFunctions.end())
 		{
 			std::cout << "no prefix definition for:" << GetCurTokenAndStepOnce().literal << std::endl;
 			return new NullExpr();
 		}
-		auto prefixFn = m_PrefixFunctions[GetCurToken().type];
+		auto prefixFn = mPrefixFunctions[GetCurToken().type];
 
 		auto leftExpr = (this->*prefixFn)();
 
 		while (!IsMatchCurToken(TOKEN_SEMICOLON) && (GetCurTokenAssociativity() == Associativity::L2R ? precedence < GetCurTokenPrecedence() : precedence <= GetCurTokenPrecedence()))
 		{
-			if (m_InfixFunctions.find(GetCurToken().type) == m_InfixFunctions.end())
+			if (mInfixFunctions.find(GetCurToken().type) == mInfixFunctions.end())
 				return leftExpr;
 
-			auto infixFn = m_InfixFunctions[GetCurToken().type];
+			auto infixFn = mInfixFunctions[GetCurToken().type];
 
 			leftExpr = (this->*infixFn)(leftExpr);
 		}
@@ -609,47 +609,47 @@ namespace lws
 	Token Parser::GetCurToken()
 	{
 		if (!IsAtEnd())
-			return m_Tokens[m_CurPos];
-		return m_Tokens.back();
+			return mTokens[mCurPos];
+		return mTokens.back();
 	}
 	Token Parser::GetCurTokenAndStepOnce()
 	{
 		if (!IsAtEnd())
-			return m_Tokens[m_CurPos++];
-		return m_Tokens.back();
+			return mTokens[mCurPos++];
+		return mTokens.back();
 	}
 
 	Precedence Parser::GetCurTokenPrecedence()
 	{
-		if (m_Precedence.find(GetCurToken().type) != m_Precedence.end())
-			return m_Precedence[GetCurToken().type];
+		if (mPrecedence.find(GetCurToken().type) != mPrecedence.end())
+			return mPrecedence[GetCurToken().type];
 		return Precedence::LOWEST;
 	}
 
 	Associativity Parser::GetCurTokenAssociativity()
 	{
-		if (m_Associativity.find(GetCurTokenPrecedence()) != m_Associativity.end())
-			return m_Associativity[GetCurTokenPrecedence()];
+		if (mAssociativity.find(GetCurTokenPrecedence()) != mAssociativity.end())
+			return mAssociativity[GetCurTokenPrecedence()];
 		return Associativity::L2R;
 	}
 
 	Token Parser::GetNextToken()
 	{
-		if (m_CurPos + 1 < (int32_t)m_Tokens.size())
-			return m_Tokens[m_CurPos + 1];
-		return m_Tokens.back();
+		if (mCurPos + 1 < (int32_t)mTokens.size())
+			return mTokens[mCurPos + 1];
+		return mTokens.back();
 	}
 	Token Parser::GetNextTokenAndStepOnce()
 	{
-		if (m_CurPos + 1 < (int32_t)m_Tokens.size())
-			return m_Tokens[++m_CurPos];
-		return m_Tokens.back();
+		if (mCurPos + 1 < (int32_t)mTokens.size())
+			return mTokens[++mCurPos];
+		return mTokens.back();
 	}
 
 	Precedence Parser::GetNextTokenPrecedence()
 	{
-		if (m_Precedence.find(GetNextToken().type) != m_Precedence.end())
-			return m_Precedence[GetNextToken().type];
+		if (mPrecedence.find(GetNextToken().type) != mPrecedence.end())
+			return mPrecedence[GetNextToken().type];
 		return Precedence::LOWEST;
 	}
 
@@ -662,7 +662,7 @@ namespace lws
 	{
 		if (IsMatchCurToken(type))
 		{
-			m_CurPos++;
+			mCurPos++;
 			return true;
 		}
 		return false;
@@ -677,7 +677,7 @@ namespace lws
 	{
 		if (IsMatchNextToken(type))
 		{
-			m_CurPos++;
+			mCurPos++;
 			return true;
 		}
 		return false;
@@ -704,6 +704,6 @@ namespace lws
 
 	bool Parser::IsAtEnd()
 	{
-		return m_CurPos >= (int32_t)m_Tokens.size();
+		return mCurPos >= (int32_t)mTokens.size();
 	}
 }

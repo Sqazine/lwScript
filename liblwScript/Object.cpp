@@ -253,44 +253,44 @@ namespace lws
         return true;
     }
 
-    FunctionObject::FunctionObject()
+    LambdaObject::LambdaObject()
         : frameIndex(0)
     {
     }
-    FunctionObject::FunctionObject(int64_t frameIndex)
+    LambdaObject::LambdaObject(int64_t frameIndex)
         : frameIndex(frameIndex)
     {
     }
-    FunctionObject::~FunctionObject()
+    LambdaObject::~LambdaObject()
     {
     }
 
-    std::string FunctionObject::Stringify()
+    std::string LambdaObject::Stringify()
     {
-        return "lambda";
+        return "lambda function";
     }
-    ObjectType FunctionObject::Type()
+    ObjectType LambdaObject::Type()
     {
-        return OBJECT_FUNCTION;
+        return OBJECT_LAMBDA;
     }
-    void FunctionObject::Mark()
+    void LambdaObject::Mark()
     {
         if (marked)
             return;
         marked = true;
     }
-    void FunctionObject::UnMark()
+    void LambdaObject::UnMark()
     {
         if (!marked)
             return;
         marked = false;
     }
 
-    bool FunctionObject::IsEqualTo(Object *other)
+    bool LambdaObject::IsEqualTo(Object *other)
     {
-        if (!IS_FUNCTION_OBJ(other))
+        if (!IS_LAMBDA_OBJ(other))
             return false;
-        return frameIndex == TO_FUNCTION_OBJ(other)->frameIndex;
+        return frameIndex == TO_LAMBDA_OBJ(other)->frameIndex;
     }
 
     RefObject::RefObject(std::string_view name,Object* index)

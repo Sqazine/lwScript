@@ -78,12 +78,10 @@ namespace lws
 		virtual ~Frame();
 
 		void AddOpCode(uint64_t code);
-		uint64_t GetOpCodeSize() const;
 
 		uint64_t AddRealNum(double value);
 		uint64_t AddIntNum(int64_t value);
 		uint64_t AddString(std::string_view value);
-
 
 		uint64_t AddLambdaFrame(Frame *frame);
 		Frame *GetLambdaFrame(uint64_t idx);
@@ -107,17 +105,17 @@ namespace lws
 		friend class VM;
 		friend class Compiler;
 
-		std::vector<uint64_t> m_Codes;
+		std::vector<uint64_t> mCodes;
 
-		std::vector<double> m_RealNums;
-		std::vector<int64_t> m_IntNums;
-		std::vector<std::string> m_Strings;
+		std::vector<double> mRealNums;
+		std::vector<int64_t> mIntNums;
+		std::vector<std::string> mStrings;
 
-		std::vector<Frame *> m_LambdaFrames;
-		std::unordered_map<std::string, Frame *> m_FunctionFrames;
-		std::unordered_map<std::string, Frame *> m_FieldFrames;
+		std::vector<Frame *> mLambdaFrames;
+		std::unordered_map<std::string, Frame *> mFunctionFrames;
+		std::unordered_map<std::string, Frame *> mFieldFrames;
 
-		Frame *m_ParentFrame;
+		Frame *mParentFrame;
 	};
 
 	class NativeFunctionFrame : public Frame
@@ -131,6 +129,6 @@ namespace lws
 		FrameType Type() override;
 
 	private:
-		std::string m_NativeFuntionName;
+		std::string mNativeFuntionName;
 	};
 }

@@ -37,7 +37,7 @@ namespace lws
 		ArrayObject *CreateArrayObject(const std::vector<Object *> &elements = {});
 		TableObject *CreateTableObject(const std::unordered_map<Object *, Object *> &elements = {});
 		FieldObject *CreateFieldObject(std::string_view name, const std::unordered_map<std::string, Object *> &members, const std::vector<std::pair<std::string, FieldObject*>>& containedFields = {});
-		FunctionObject *CreateFunctionObject(int64_t frameIdx);
+		LambdaObject *CreateLambdaObject(int64_t frameIdx);
 		RefObject *CreateRefObject(std::string_view name,Object* index=nullptr);
 
 		void Gc();
@@ -53,15 +53,15 @@ namespace lws
 		bool IsFrameStackEmpty();
 
 		uint64_t sp;
-		std::array<Object *, STACK_MAX> m_ObjectStack;
+		std::array<Object *, STACK_MAX> mObjectStack;
 
 		uint64_t fp;
-		std::array<Frame *, STACK_MAX> m_FrameStack;
+		std::array<Frame *, STACK_MAX> mFrameStack;
 
 		Object *firstObject;
 		int curObjCount;
 		int maxObjCount;
 
-		Context *m_Context;
+		Context *mContext;
 	};
 }

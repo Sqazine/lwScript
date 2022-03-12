@@ -44,10 +44,10 @@ namespace lws
 		void Identifier();
 		void String();
 
-		uint64_t m_StartPos;
-		uint64_t m_CurPos;
-		uint64_t m_Line;
-		std::string m_Source;
-		std::vector<Token> m_Tokens;
+		uint64_t mStartPos;
+		uint64_t mCurPos;
+		uint64_t mLine;
+		std::string mSource;
+		std::vector<Token> mTokens;
 	};
 }

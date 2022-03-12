@@ -5,27 +5,27 @@
 namespace lws
 {
 	Compiler::Compiler()
-		: m_RootFrame(new Frame())
+		: mRootFrame(new Frame())
 	{
 	}
 	Compiler::~Compiler()
 	{
-		if (m_RootFrame)
+		if (mRootFrame)
 		{
-			delete m_RootFrame;
-			m_RootFrame = nullptr;
+			delete mRootFrame;
+			mRootFrame = nullptr;
 		}
 	}
 
 	Frame *Compiler::Compile(Stmt *stmt)
 	{
-		CompileAstStmts((AstStmts *)stmt, m_RootFrame);
-		return m_RootFrame;
+		CompileAstStmts((AstStmts *)stmt, mRootFrame);
+		return mRootFrame;
 	}
 
 	void Compiler::ResetStatus()
 	{
-		m_RootFrame->Clear();
+		mRootFrame->Clear();
 	}
 
 	void Compiler::CompileAstStmts(AstStmts *stmt, Frame *frame)
@@ -112,16 +112,16 @@ namespace lws
 		uint64_t jmpOffset = frame->AddIntNum(0);
 		frame->AddOpCode(jmpOffset);
 
-		frame->m_IntNums[jmpIfFalseOffset] = frame->GetOpCodeSize() - 1;
+		frame->mIntNums[jmpIfFalseOffset] = frame->mCodes.size() - 1;
 
 		if (stmt->elseBranch)
 			CompileStmt(stmt->elseBranch, frame);
 
-		frame->m_IntNums[jmpOffset] = frame->GetOpCodeSize() - 1;
+		frame->mIntNums[jmpOffset] = frame->mCodes.size() - 1;
 	}
 	void Compiler::CompileWhileStmt(WhileStmt *stmt, Frame *frame)
 	{
-		uint64_t jmpAddress = frame->GetOpCodeSize() - 1;
+		uint64_t jmpAddress = frame->mCodes.size() - 1;
 		CompileExpr(stmt->condition, frame);
 
 		frame->AddOpCode(OP_JUMP_IF_FALSE);
@@ -134,7 +134,7 @@ namespace lws
 		uint64_t offset = frame->AddIntNum(jmpAddress);
 		frame->AddOpCode(offset);
 
-		frame->m_IntNums[jmpIfFalseOffset] = frame->GetOpCodeSize() - 1;
+		frame->mIntNums[jmpIfFalseOffset] = frame->mCodes.size() - 1;
 	}
 
 	void Compiler::CompileFunctionStmt(FunctionStmt *stmt, Frame *frame)

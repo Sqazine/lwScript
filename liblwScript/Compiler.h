@@ -56,6 +56,6 @@ namespace lws
 		void CompileFunctionCallExpr(FunctionCallExpr *expr, Frame *frame);
 		void CompileFieldCallExpr(FieldCallExpr *expr, Frame *frame, ObjectState state = READ);
 
-		Frame* m_RootFrame;
+		Frame* mRootFrame;
 	};
 }

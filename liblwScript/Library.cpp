@@ -5,25 +5,25 @@ namespace lws
 {
 
 	Library::Library(VM* vm)
-		: m_VMHandle(vm)
+		: mVMHandle(vm)
 	{
 	}
 	Library::~Library()
 	{
-		std::unordered_map<std::string, std::function<Object* (std::vector<Object*>)>>().swap(m_NativeFunctions);
+		std::unordered_map<std::string, std::function<Object* (std::vector<Object*>)>>().swap(mNativeFunctions);
 	}
 
 	void Library::AddNativeFunction(std::string_view name, std::function<Object* (std::vector<Object*>)> fn)
 	{
-		auto iter = m_NativeFunctions.find(name.data());
-		if (iter != m_NativeFunctions.end())
+		auto iter = mNativeFunctions.find(name.data());
+		if (iter != mNativeFunctions.end())
 			Assert(std::string("Already exists native function:") + name.data());
-		m_NativeFunctions[name.data()] = fn;
+		mNativeFunctions[name.data()] = fn;
 	}
 	std::function<Object* (std::vector<Object*>)> Library::GetNativeFunction(std::string_view fnName)
 	{
-		auto iter = m_NativeFunctions.find(fnName.data());
-		if (iter != m_NativeFunctions.end())
+		auto iter = mNativeFunctions.find(fnName.data());
+		if (iter != mNativeFunctions.end())
 			return iter->second;
 		Assert(std::string("No native function:") + fnName.data());
 
@@ -31,8 +31,8 @@ namespace lws
 	}
 	bool Library::HasNativeFunction(std::string_view name)
 	{
-		auto iter = m_NativeFunctions.find(name.data());
-		if (iter != m_NativeFunctions.end())
+		auto iter = mNativeFunctions.find(name.data());
+		if (iter != mNativeFunctions.end())
 			return true;
 		return false;
 	}
@@ -40,7 +40,7 @@ namespace lws
 	IO::IO(VM* vm)
 		: Library(vm)
 	{
-		m_NativeFunctions["print"] = [this](std::vector<Object*> args) -> Object*
+		mNativeFunctions["print"] = [this](std::vector<Object*> args) -> Object*
 		{
 			if (args.empty())
 				return nullptr;
@@ -102,7 +102,7 @@ namespace lws
 			return nullptr;
 		};
 
-		m_NativeFunctions["println"] = [this](std::vector<Object*> args) -> Object*
+		mNativeFunctions["println"] = [this](std::vector<Object*> args) -> Object*
 		{
 			if (args.empty())
 				return nullptr;
@@ -168,23 +168,23 @@ namespace lws
 	DataStructure::DataStructure(VM* vm)
 		: Library(vm)
 	{
-		m_NativeFunctions["sizeof"] = [this](std::vector<Object*> args) -> Object*
+		mNativeFunctions["sizeof"] = [this](std::vector<Object*> args) -> Object*
 		{
 			if (args.empty() || args.size() > 1)
 				Assert("[Native function 'sizeof']:Expect a argument.");
 
 			if (IS_ARRAY_OBJ(args[0]))
-				return m_VMHandle->CreateIntNumObject(TO_ARRAY_OBJ(args[0])->elements.size());
+				return mVMHandle->CreateIntNumObject(TO_ARRAY_OBJ(args[0])->elements.size());
 			else if (IS_TABLE_OBJ(args[0]))
-				return m_VMHandle->CreateIntNumObject(TO_TABLE_OBJ(args[0])->elements.size());
+				return mVMHandle->CreateIntNumObject(TO_TABLE_OBJ(args[0])->elements.size());
 			else if (IS_STR_OBJ(args[0]))
-				return m_VMHandle->CreateIntNumObject(TO_STR_OBJ(args[0])->value.size());
+				return mVMHandle->CreateIntNumObject(TO_STR_OBJ(args[0])->value.size());
 			else
 				Assert("[Native function 'sizeof']:Expect a array,table ot string argument.");
 			return nullptr;
 		};
 
-		m_NativeFunctions["insert"] = [this](std::vector<Object*> args) -> Object*
+		mNativeFunctions["insert"] = [this](std::vector<Object*> args) -> Object*
 		{
 			if (args.empty() || args.size() != 3)
 				Assert("[Native function 'insert']:Expect 3 arguments,the arg0 must be array,table or string object.The arg1 is the index object.The arg2 is the value object.");
@@ -230,7 +230,7 @@ namespace lws
 			return nullptr;
 		};
 
-		m_NativeFunctions["erase"] = [this](std::vector<Object*> args) -> Object*
+		mNativeFunctions["erase"] = [this](std::vector<Object*> args) -> Object*
 		{
 			if (args.empty() || args.size() != 2)
 				Assert("[Native function 'erase']:Expect 2 arguments,the arg0 must be array,table or string object.The arg1 is the corresponding index object.");
@@ -287,27 +287,27 @@ namespace lws
 	Memory::Memory(VM *vm)
 		: Library(vm)
 	{
-		m_NativeFunctions["addressof"] = [this](std::vector<Object *> args) -> Object *
+		mNativeFunctions["addressof"] = [this](std::vector<Object *> args) -> Object *
 		{
 			if (args.empty() || args.size() != 1)
 				Assert("[Native function 'addressof']:Expect 1 arguments.");
 
-			return m_VMHandle->CreateStrObject(PointerAddressToString(args[0]));
+			return mVMHandle->CreateStrObject(PointerAddressToString(args[0]));
 		};
 	}
 
-	std::unordered_map<std::string, Library*> LibraryManager::m_Libraries;
+	std::unordered_map<std::string, Library*> LibraryManager::mLibraries;
 
 	void LibraryManager::RegisterLibrary(std::string_view name, Library* lib)
 	{
-		auto iter = m_Libraries.find(name.data());
-		if (iter != m_Libraries.end())
+		auto iter = mLibraries.find(name.data());
+		if (iter != mLibraries.end())
 			Assert("Already exists a native function library:" + std::string(name));
-		m_Libraries[name.data()] = lib;
+		mLibraries[name.data()] = lib;
 	}
 	bool LibraryManager::HasNativeFunction(std::string_view name)
 	{
-		for (const auto& lib : m_Libraries)
+		for (const auto& lib : mLibraries)
 			if (lib.second->HasNativeFunction(name))
 				return true;
 		return false;
