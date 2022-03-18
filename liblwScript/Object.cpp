@@ -376,11 +376,11 @@ namespace lws
 
     std::string FieldObject::Stringify()
     {
-        std::string result = name;
+        std::string result ="instance of field:\n"+name;
 
         if (!containedFields.empty())
         {
-            result += ":\n";
+            result += ":";
             for (const auto &containedField : containedFields)
                 result += containedField.first + ",";
             result = result.substr(0, result.size() - 1);
@@ -388,11 +388,11 @@ namespace lws
 
         if (!members.empty())
         {
-            result += "{\n";
+            result += "\n{\n";
             for (const auto &[key, value] : members)
-                result += key + "=" + value->Stringify() + "\n";
+                result += "    "+key+"\n";
             result = result.substr(0, result.size() - 1);
-            result += "}\n";
+            result += "\n}";
         }
         return result;
     }

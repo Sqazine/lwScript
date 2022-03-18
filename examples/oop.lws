@@ -1,0 +1,86 @@
+
+field Shape
+{
+    fn init(x,y)
+    {
+        this.x=x;
+        this.y=y;
+    }
+
+    fn area()
+    {
+        return 0;
+    }
+
+    let x=0;
+    let y=0;
+}
+
+let s1=Shape;
+s1.init(10,8);
+println(s1);
+println(s1.area());//0.0
+
+
+field Rectangle:Shape
+{
+    fn init(x,y,w,h)
+    {
+        this.x=x;
+        this.y=y;
+        this.width=w;
+        this.height=h;
+    }
+
+    fn area()
+    {
+         return this.width*this.height;
+    }
+
+    let width;
+    let height;
+}
+
+let r1=Rectangle;
+r1.init(10,10,3,5);
+println(r1);
+println(r1.area());//15
+
+
+field Square:Rectangle
+{
+    fn init(x,y,side)
+    {
+        this.x=x;
+        this.y=y;
+        this.width=side;
+        this.height=side;
+    }
+}
+
+let sq1=Square;
+sq1.init(10,10,3);
+println(sq1);
+println(sq1.area());//9
+
+field Circle:Shape
+{
+    fn init(x,y,r)
+    {
+        this.x=x;
+        this.y=y;
+        this.radius=r;
+    }
+
+    fn area()
+    {
+         return this.radius*this.radius;
+    }
+
+    let radius;
+}
+
+let c1=Circle;
+c1.init(10,10,4);
+println(c1);
+println(c1.area());//16
