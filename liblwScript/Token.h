@@ -65,6 +65,13 @@ namespace lws
 		TOKEN_RETURN,				 // return
 		TOKEN_STATIC,				 // static
 		TOKEN_CONST,				 // const
+		TOKEN_IMPORT,				 // import
+		TOKEN_EXPORT,				 // export
+		TOKEN_MODULE,				 // module
+		TOKEN_TRY,					 // try
+		TOKEN_CATCH,				 // catch
+		TOKEN_SWITCH,				 // switch
+		TOKEN_CASE,					 // case
 		TOKEN_END
 	};
 
