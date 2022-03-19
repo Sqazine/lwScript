@@ -12,7 +12,7 @@ namespace lws
 	{
 		auto iter = mValues.find(name.data());
 		if (iter != mValues.end())
-			Assert("Redefined variable:" + std::string(name) + " in current context.");
+			Assert("Redefined variable:(" + std::string(name) + ") in current context.");
 		else
 		{
 			ObjectDesc desc;
@@ -27,7 +27,7 @@ namespace lws
 	{
 		auto iter = mValues.find(name.data());
 		if (iter != mValues.end())
-			Assert("Redefined variable:" + std::string(name) + " in current context.");
+			Assert("Redefined variable:(" + std::string(name) + ") in current context.");
 		else
 			mValues[name.data()] = objectDesc;
 	}
@@ -37,13 +37,15 @@ namespace lws
 		auto iter = mValues.find(name.data());
 		if (iter != mValues.end())
 		{
-			if(iter->second.type!=ObjectDescType::CONST)
-			mValues[name.data()].object=value;
+			if (iter->second.type != ObjectDescType::CONST)
+				mValues[name.data()].object = value;
+			else
+				Assert("const variable:(" + std::string(name) + ") cannot be assigned");
 		}
 		else if (mUpContext != nullptr)
 			mUpContext->AssignVariableByName(name, value);
 		else
-			Assert("Undefine variable:" + std::string(name) + " in current context");
+			Assert("Undefine variable:(" + std::string(name) + ") in current context");
 	}
 
 	Object *Context::GetVariableByName(std::string_view name)
@@ -55,7 +57,6 @@ namespace lws
 			return mUpContext->GetVariableByName(name);
 		return nullptr;
 	}
-
 
 	Context *Context::GetUpContext()
 	{

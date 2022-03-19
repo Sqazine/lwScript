@@ -87,7 +87,13 @@ namespace lws
 		for (auto [key, value] : stmt->variables)
 		{
 			CompileExpr(value, frame);
-			CompileExpr(key, frame, VAR_INIT);
+			if(value->Type()==AST_LAMBDA)//for lambda expr,add the argument count to the identifier
+			{
+				auto newIdentifier =new IdentifierExpr(((IdentifierExpr *)key)->literal + functionNameAndArgumentConnector +std::to_string(((LambdaExpr *)value)->parameters.size()));
+				CompileExpr(newIdentifier, frame, VAR_INIT);
+			}
+			else
+				CompileExpr(key, frame, VAR_INIT);
 		}
 	}
 
@@ -96,7 +102,13 @@ namespace lws
 		for (auto [key, value] : stmt->consts)
 		{
 			CompileExpr(value, frame);
-			CompileExpr(key, frame, CONST_INIT);
+			if (value->Type() == AST_LAMBDA) //for lambda expr,add the argument count to the identifier
+			{
+				auto newIdentifier = new IdentifierExpr(((IdentifierExpr *)key)->literal + functionNameAndArgumentConnector + std::to_string(((LambdaExpr *)value)->parameters.size()));
+				CompileExpr(newIdentifier, frame, CONST_INIT);
+			}
+			else
+				CompileExpr(key, frame, CONST_INIT);
 		}
 	}
 
@@ -547,7 +559,7 @@ namespace lws
 
 		if (expr->name->Type() == AST_IDENTIFIER && !LibraryManager::HasNativeFunction(((IdentifierExpr *)expr->name)->literal))
 		{
-			IdentifierExpr *tmpIden = new IdentifierExpr(((IdentifierExpr *)expr->name)->literal + std::to_string(expr->arguments.size()));
+			IdentifierExpr *tmpIden = new IdentifierExpr(((IdentifierExpr *)expr->name)->literal + functionNameAndArgumentConnector + std::to_string(expr->arguments.size()));
 			CompileExpr(tmpIden, frame, FUNCTION_READ);
 		}
 		else if (expr->name->Type() == AST_FIELD_CALL)
@@ -559,7 +571,7 @@ namespace lws
 			if (fieldCallExpr->callMember->Type() == AST_FIELD_CALL) //continuous field call such as a.b.c;
 				CompileExpr(((FieldCallExpr *)fieldCallExpr->callMember)->callee, frame, FIELD_MEMBER_READ);
 
-			IdentifierExpr *tmpIden = new IdentifierExpr(((IdentifierExpr *)fieldCallExpr->callMember)->literal + std::to_string(expr->arguments.size()));
+			IdentifierExpr *tmpIden = new IdentifierExpr(((IdentifierExpr *)fieldCallExpr->callMember)->literal + functionNameAndArgumentConnector + std::to_string(expr->arguments.size()));
 			CompileExpr(tmpIden, frame, FIELD_FUNCTION_READ);
 		}
 		else
