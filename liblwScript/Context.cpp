@@ -8,20 +8,38 @@ namespace lws
 	Context::Context(Context *upContext) : mUpContext(upContext) {}
 	Context::~Context() {}
 
-	void Context::DefineVariableByName(std::string_view name, Object *value)
+	void Context::DefineVariableByName(std::string_view name, ObjectDescType objDescType, Object *value)
 	{
 		auto iter = mValues.find(name.data());
 		if (iter != mValues.end())
 			Assert("Redefined variable:" + std::string(name) + " in current context.");
 		else
-			mValues[name.data()] = value;
+		{
+			ObjectDesc desc;
+			desc.type = objDescType;
+			desc.object = value;
+
+			mValues[name.data()] = desc;
+		}
+	}
+
+	void Context::DefineVariableByName(std::string_view name, const ObjectDesc &objectDesc)
+	{
+		auto iter = mValues.find(name.data());
+		if (iter != mValues.end())
+			Assert("Redefined variable:" + std::string(name) + " in current context.");
+		else
+			mValues[name.data()] = objectDesc;
 	}
 
 	void Context::AssignVariableByName(std::string_view name, Object *value)
 	{
 		auto iter = mValues.find(name.data());
 		if (iter != mValues.end())
-			mValues[name.data()] = value;
+		{
+			if(iter->second.type!=ObjectDescType::CONST)
+			mValues[name.data()].object=value;
+		}
 		else if (mUpContext != nullptr)
 			mUpContext->AssignVariableByName(name, value);
 		else
@@ -32,11 +50,12 @@ namespace lws
 	{
 		auto iter = mValues.find(name.data());
 		if (iter != mValues.end())
-			return iter->second;
+			return iter->second.object;
 		if (mUpContext != nullptr)
 			return mUpContext->GetVariableByName(name);
 		return nullptr;
 	}
+
 
 	Context *Context::GetUpContext()
 	{
@@ -46,10 +65,5 @@ namespace lws
 	void Context::SetUpContext(Context *env)
 	{
 		mUpContext = env;
-	}
-
-	const std::unordered_map<std::string, struct Object *> &Context::GetValues() const
-	{
-		return mValues;
 	}
 }

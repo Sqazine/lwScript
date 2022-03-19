@@ -29,6 +29,7 @@ namespace lws
 		AST_NEW,
 		// stmt
 		AST_LET,
+		AST_CONST,
 		AST_EXPR,
 		AST_RETURN,
 		AST_IF,
@@ -295,6 +296,18 @@ namespace lws
 		AstType Type() override;
 
 		std::unordered_map<IdentifierExpr *, Expr *> variables;
+	};
+
+	struct ConstStmt:public Stmt
+	{
+		ConstStmt();
+		ConstStmt(const std::unordered_map<IdentifierExpr *, Expr *> &consts);
+		~ConstStmt();
+
+		std::string Stringify() override;
+		AstType Type() override;
+
+		std::unordered_map<IdentifierExpr *, Expr *> consts;
 	};
 
 	struct ReturnStmt : public Stmt

@@ -53,6 +53,7 @@ namespace lws
 		Stmt* ParseStmt();
 		Stmt* ParseExprStmt();
 		Stmt* ParseLetStmt();
+		Stmt* ParseConstStmt();
 		Stmt* ParseReturnStmt();
 		Stmt* ParseIfStmt();
 		Stmt* ParseScopeStmt();

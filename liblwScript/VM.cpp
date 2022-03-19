@@ -355,7 +355,13 @@ namespace lws
 			case OP_NEW_VAR:
 			{
 				Object *value = PopObject();
-				mContext->DefineVariableByName(frame->mStrings[frame->mCodes[++ip]], value);
+				mContext->DefineVariableByName(frame->mStrings[frame->mCodes[++ip]], ObjectDescType::VARIABLE,value);
+				break;
+			}
+			case OP_NEW_CONST:
+			{
+				Object *value = PopObject();
+				mContext->DefineVariableByName(frame->mStrings[frame->mCodes[++ip]], ObjectDescType::CONST, value);
 				break;
 			}
 			case OP_SET_VAR:
@@ -498,12 +504,12 @@ namespace lws
 				std::unordered_map<std::string, Object *> members;
 				std::vector<std::pair<std::string, FieldObject *>> containedFields;
 
-				for (auto value : mContext->GetValues())
+				for (auto value : mContext->mValues)
 				{
-					if (value.first.find_first_of(containedFieldPrefixID) == 0 && IS_FIELD_OBJ(value.second))
-						containedFields.emplace_back(std::make_pair(value.first.substr(containedFieldPrefixID.size()), TO_FIELD_OBJ(value.second)));
+					if (value.first.find_first_of(containedFieldPrefixID) == 0 && IS_FIELD_OBJ(value.second.object))
+						containedFields.emplace_back(std::make_pair(value.first.substr(containedFieldPrefixID.size()), TO_FIELD_OBJ(value.second.object)));
 					else
-						members[value.first] = value.second;
+						members[value.first] = value.second.object;
 				}
 
 				PushObject(CreateFieldObject(name, members, containedFields));

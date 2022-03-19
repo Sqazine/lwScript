@@ -21,6 +21,7 @@ namespace lws
 		OP_NEW_TABLE,
 		OP_NEW_LAMBDA,
 		OP_NEW_FIELD,
+		OP_NEW_CONST,
 		OP_NEW_VAR,
 		OP_GET_VAR,
 		OP_SET_VAR,

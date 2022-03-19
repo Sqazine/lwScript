@@ -3,6 +3,18 @@
 #include <unordered_map>
 namespace lws
 {
+    enum class ObjectDescType
+    {
+        CONST,
+        VARIABLE
+    };
+
+    struct ObjectDesc
+    {
+        ObjectDescType type;
+        struct Object *object;
+    };
+
     class Context
     {
     public:
@@ -10,20 +22,18 @@ namespace lws
         Context(Context *upContext);
         ~Context();
 
-        void DefineVariableByName(std::string_view name, struct Object *value);
-
+        void DefineVariableByName(std::string_view name, ObjectDescType objDescType, struct Object *value);
+        void DefineVariableByName(std::string_view name, const ObjectDesc& objectDesc);
         void AssignVariableByName(std::string_view name, struct Object *value);
         struct Object *GetVariableByName(std::string_view name);
 
         Context *GetUpContext();
         void SetUpContext(Context *env);
-
-        const std::unordered_map<std::string, struct Object*>& GetValues() const;
     private:
         friend class VM;
         friend struct FieldObject;
 
-        std::unordered_map<std::string, struct Object *> mValues;
+        std::unordered_map<std::string, ObjectDesc> mValues;
         Context *mUpContext;
     };
 }

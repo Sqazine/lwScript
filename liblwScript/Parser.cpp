@@ -162,6 +162,8 @@ namespace lws
 	{
 		if (IsMatchCurToken(TOKEN_LET))
 			return ParseLetStmt();
+		else if(IsMatchCurToken(TOKEN_CONST))
+			return ParseConstStmt();
 		else if (IsMatchCurToken(TOKEN_RETURN))
 			return ParseReturnStmt();
 		else if (IsMatchCurToken(TOKEN_IF))
@@ -211,6 +213,32 @@ namespace lws
 		Consume(TOKEN_SEMICOLON, "Expect ';' after let stmt.");
 
 		return new LetStmt(variables);
+	}
+
+	Stmt *Parser::ParseConstStmt()
+	{
+		Consume(TOKEN_CONST, "Expect 'const' key word");
+
+		std::unordered_map<IdentifierExpr *, Expr *> consts;
+
+		auto name = (IdentifierExpr *)ParseIdentifierExpr();
+		Expr *value = new NullExpr();
+		if (IsMatchCurTokenAndStepOnce(TOKEN_EQUAL))
+			value = ParseExpr();
+		consts[name] = value;
+
+		while (IsMatchCurTokenAndStepOnce(TOKEN_COMMA))
+		{
+			auto name = (IdentifierExpr *)ParseIdentifierExpr();
+			Expr *value = new NullExpr();
+			if (IsMatchCurTokenAndStepOnce(TOKEN_EQUAL))
+				value = ParseExpr();
+			consts[name] = value;
+		}
+
+		Consume(TOKEN_SEMICOLON, "Expect ';' after const stmt.");
+
+		return new ConstStmt(consts);
 	}
 
 	Stmt* Parser::ParseReturnStmt()

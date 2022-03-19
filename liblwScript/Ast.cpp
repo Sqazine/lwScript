@@ -463,6 +463,35 @@ namespace lws
         return AST_LET;
     }
 
+    ConstStmt::ConstStmt()
+    {
+    }
+    ConstStmt::ConstStmt(const std::unordered_map<IdentifierExpr *, Expr *> &consts)
+        : consts(consts)
+    {
+    }
+    ConstStmt::~ConstStmt()
+    {
+        std::unordered_map<IdentifierExpr *, Expr *>().swap(consts);
+    }
+
+    std::string ConstStmt::Stringify()
+    {
+        std::string result = "const ";
+        if (!consts.empty())
+        {
+            for (auto [key, value] : consts)
+                result += key->Stringify() + "=" + value->Stringify() + ",";
+            result = result.substr(0, result.size() - 1);
+        }
+        return result + ";";
+    }
+
+    AstType ConstStmt::Type()
+    {
+        return AST_CONST;
+    }
+
     ReturnStmt::ReturnStmt()
         : expr(nullptr)
     {

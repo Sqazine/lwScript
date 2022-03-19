@@ -257,6 +257,9 @@ namespace lws
 			case OP_OR:
 				UNARY_INSTR_STRINGIFY(OP_OR);
 				break;
+			case OP_NEW_CONST:
+				BINARY_INSTR_STRINGIFY(OP_NEW_CONST, mStrings);
+				break;
 			case OP_GET_VAR:
 				BINARY_INSTR_STRINGIFY(OP_GET_VAR, mStrings);
 				break;

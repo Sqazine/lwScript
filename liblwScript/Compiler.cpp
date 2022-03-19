@@ -47,6 +47,9 @@ namespace lws
 		case AST_LET:
 			CompileLetStmt((LetStmt *)stmt, frame);
 			break;
+		case AST_CONST:
+			CompileConstStmt((ConstStmt *)stmt, frame);
+			break;
 		case AST_SCOPE:
 			CompileScopeStmt((ScopeStmt *)stmt, frame);
 			break;
@@ -84,7 +87,16 @@ namespace lws
 		for (auto [key, value] : stmt->variables)
 		{
 			CompileExpr(value, frame);
-			CompileExpr(key, frame, INIT);
+			CompileExpr(key, frame, VAR_INIT);
+		}
+	}
+
+	void Compiler::CompileConstStmt(ConstStmt *stmt, Frame *frame)
+	{
+		for (auto [key, value] : stmt->consts)
+		{
+			CompileExpr(value, frame);
+			CompileExpr(key, frame, CONST_INIT);
 		}
 	}
 
@@ -144,7 +156,7 @@ namespace lws
 		functionFrame->AddOpCode(OP_ENTER_SCOPE);
 
 		for (int64_t i = stmt->parameters.size() - 1; i >= 0; --i)
-			CompileIdentifierExpr(stmt->parameters[i], functionFrame, INIT);
+			CompileIdentifierExpr(stmt->parameters[i], functionFrame, VAR_INIT);
 
 		for (const auto &s : stmt->body->stmts)
 			CompileStmt(s, functionFrame);
@@ -161,7 +173,7 @@ namespace lws
 		lambdaFrame->AddOpCode(OP_ENTER_SCOPE);
 
 		for (int64_t i = stmt->parameters.size() - 1; i >= 0; --i)
-			CompileIdentifierExpr(stmt->parameters[i], lambdaFrame, INIT);
+			CompileIdentifierExpr(stmt->parameters[i], lambdaFrame, VAR_INIT);
 
 		for (const auto &s : stmt->body->stmts)
 			CompileStmt(s, lambdaFrame);
@@ -181,9 +193,9 @@ namespace lws
 
 		for (const auto &containedField : stmt->containedFields)
 		{
-			CompileIdentifierExpr(containedField, fieldFrame, READ);
+			CompileIdentifierExpr(containedField, fieldFrame, VAR_READ);
 			IdentifierExpr *instanceIdetExpr = new IdentifierExpr(containedFieldPrefixID + containedField->literal);
-			CompileIdentifierExpr(instanceIdetExpr, fieldFrame, INIT);
+			CompileIdentifierExpr(instanceIdetExpr, fieldFrame, VAR_INIT);
 		}
 
 		for (auto &letStmt : stmt->letStmts)
@@ -307,12 +319,14 @@ namespace lws
 
 	void Compiler::CompileIdentifierExpr(IdentifierExpr *expr, Frame *frame, ObjectState state)
 	{
-		if (state == READ)
+		if (state == VAR_READ)
 			frame->AddOpCode(OP_GET_VAR);
-		else if (state == WRITE)
+		else if (state == VAR_WRITE)
 			frame->AddOpCode(OP_SET_VAR);
-		else if (state == INIT)
+		else if (state == VAR_INIT)
 			frame->AddOpCode(OP_NEW_VAR);
+		else if (state == CONST_INIT)
+			frame->AddOpCode(OP_NEW_CONST);
 		else if (state == FIELD_MEMBER_READ)
 			frame->AddOpCode(OP_GET_FIELD_VAR);
 		else if (state == FIELD_MEMBER_WRITE)
@@ -357,9 +371,9 @@ namespace lws
 	{
 		CompileExpr(expr->ds, frame);
 		CompileExpr(expr->index, frame);
-		if (state == READ)
+		if (state == VAR_READ)
 			frame->AddOpCode(OP_GET_INDEX_VAR);
-		else if (state == WRITE)
+		else if (state == VAR_WRITE)
 			frame->AddOpCode(OP_SET_INDEX_VAR);
 	}
 
@@ -382,7 +396,7 @@ namespace lws
 			if (expr->right->Type() == AST_INFIX && ((InfixExpr *)expr->right)->op == "=") //continuous assignment such as a=b=c;
 				CompileExpr(((InfixExpr *)expr->right)->left, frame);
 
-			CompileExpr(expr->left, frame, WRITE);
+			CompileExpr(expr->left, frame, VAR_WRITE);
 		}
 		else
 		{
@@ -437,47 +451,47 @@ namespace lws
 			else if (expr->op == "+=")
 			{
 				frame->AddOpCode(OP_ADD);
-				CompileExpr(expr->left, frame, WRITE);
+				CompileExpr(expr->left, frame, VAR_WRITE);
 			}
 			else if (expr->op == "-=")
 			{
 				frame->AddOpCode(OP_SUB);
-				CompileExpr(expr->left, frame, WRITE);
+				CompileExpr(expr->left, frame, VAR_WRITE);
 			}
 			else if (expr->op == "*=")
 			{
 				frame->AddOpCode(OP_MUL);
-				CompileExpr(expr->left, frame, WRITE);
+				CompileExpr(expr->left, frame, VAR_WRITE);
 			}
 			else if (expr->op == "/=")
 			{
 				frame->AddOpCode(OP_DIV);
-				CompileExpr(expr->left, frame, WRITE);
+				CompileExpr(expr->left, frame, VAR_WRITE);
 			}
 			else if (expr->op == "&=")
 			{
 				frame->AddOpCode(OP_BIT_AND);
-				CompileExpr(expr->left, frame, WRITE);
+				CompileExpr(expr->left, frame, VAR_WRITE);
 			}
 			else if (expr->op == "|=")
 			{
 				frame->AddOpCode(OP_BIT_OR);
-				CompileExpr(expr->left, frame, WRITE);
+				CompileExpr(expr->left, frame, VAR_WRITE);
 			}
 			else if (expr->op == "^=")
 			{
 				frame->AddOpCode(OP_BIT_XOR);
-				CompileExpr(expr->left, frame, WRITE);
+				CompileExpr(expr->left, frame, VAR_WRITE);
 			}
 			else if (expr->op == "<<=")
 			{
 				frame->AddOpCode(OP_BIT_LEFT_SHIFT);
-				CompileExpr(expr->left, frame, WRITE);
+				CompileExpr(expr->left, frame, VAR_WRITE);
 			}
 			else if (expr->op == ">>=")
 			{
 				frame->AddOpCode(OP_BIT_RIGHT_SHIFT);
-				CompileExpr(expr->left, frame, WRITE);
+				CompileExpr(expr->left, frame, VAR_WRITE);
 			}
 			else
 				Assert("Unknown binary op:" + expr->op);
@@ -561,9 +575,9 @@ namespace lws
 		if (expr->callMember->Type() == AST_FIELD_CALL) //continuous field call such as a.b.c;
 			CompileExpr(((FieldCallExpr *)expr->callMember)->callee, frame, FIELD_MEMBER_READ);
 
-		if (state == READ)
+		if (state == VAR_READ)
 			CompileExpr(expr->callMember, frame, FIELD_MEMBER_READ);
-		else if (state == WRITE)
+		else if (state == VAR_WRITE)
 			CompileExpr(expr->callMember, frame, FIELD_MEMBER_WRITE);
 	}
 }

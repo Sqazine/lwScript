@@ -8,9 +8,10 @@ namespace lws
 {
 	enum ObjectState
 	{
-		INIT,
-		READ,
-		WRITE,
+		CONST_INIT,
+		VAR_INIT,
+		VAR_READ,
+		VAR_WRITE,
 		FUNCTION_READ,
 		FIELD_FUNCTION_READ,
 		FIELD_MEMBER_READ,
@@ -31,30 +32,31 @@ namespace lws
 		void CompileReturnStmt(ReturnStmt *stmt, Frame *frame);
 		void CompileExprStmt(ExprStmt *stmt, Frame *frame);
 		void CompileLetStmt(LetStmt *stmt, Frame *frame);
+		void CompileConstStmt(ConstStmt *stmt, Frame *frame);
 		void CompileScopeStmt(ScopeStmt *stmt, Frame *frame);
 		void CompileIfStmt(IfStmt *stmt, Frame *frame);
 		void CompileWhileStmt(WhileStmt *stmt, Frame *frame);
 		void CompileFunctionStmt(FunctionStmt* stmt, Frame* frame);
 		void CompileFieldStmt(FieldStmt *stmt, Frame *frame);
 
-		void CompileExpr(Expr *expr, Frame *frame, ObjectState state = READ);
+		void CompileExpr(Expr *expr, Frame *frame, ObjectState state = VAR_READ);
 		void CompileIntNumExpr(IntNumExpr *expr, Frame *frame);
 		void CompileRealNumExpr(RealNumExpr *expr, Frame *frame);
 		void CompileStrExpr(StrExpr *expr, Frame *frame);
 		void CompileBoolExpr(BoolExpr *expr, Frame *frame);
 		void CompileNullExpr(NullExpr *expr, Frame *frame);
-		void CompileIdentifierExpr(IdentifierExpr *expr, Frame *frame, ObjectState state = READ);
+		void CompileIdentifierExpr(IdentifierExpr *expr, Frame *frame, ObjectState state = VAR_READ);
 		void CompileGroupExpr(GroupExpr *expr, Frame *frame);
 		void CompileArrayExpr(ArrayExpr *expr, Frame *frame);
 		void CompileTableExpr(TableExpr *expr, Frame *frame);
-		void CompileIndexExpr(IndexExpr *expr, Frame *frame, ObjectState state = READ);
+		void CompileIndexExpr(IndexExpr *expr, Frame *frame, ObjectState state = VAR_READ);
 		void CompilePrefixExpr(PrefixExpr *expr, Frame *frame);
 		void CompileInfixExpr(InfixExpr *expr, Frame *frame);
 		void CompileRefExpr(RefExpr *expr, Frame *frame);
 		void CompileLambdaExpr(LambdaExpr *stmt, Frame *frame);
 		void CompileConditionExpr(ConditionExpr *expr, Frame *frame);
 		void CompileFunctionCallExpr(FunctionCallExpr *expr, Frame *frame);
-		void CompileFieldCallExpr(FieldCallExpr *expr, Frame *frame, ObjectState state = READ);
+		void CompileFieldCallExpr(FieldCallExpr *expr, Frame *frame, ObjectState state = VAR_READ);
 
 		Frame* mRootFrame;
 	};
