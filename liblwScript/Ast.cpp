@@ -83,6 +83,38 @@ namespace lws
         return AST_NULL;
     }
 
+    BreakExpr::BreakExpr()
+    {
+    }
+    BreakExpr::~BreakExpr()
+    {
+    }
+
+    std::string BreakExpr::Stringify()
+    {
+        return "break";
+    }
+    AstType BreakExpr::Type()
+    {
+        return AST_BREAK;
+    }
+
+    ContinueExpr::ContinueExpr()
+    {
+    }
+    ContinueExpr::~ContinueExpr()
+    {
+    }
+
+    std::string ContinueExpr::Stringify()
+    {
+        return "continue";
+    }
+    AstType ContinueExpr::Type()
+    {
+        return AST_CONTINUE;
+    }
+
     BoolExpr::BoolExpr()
         : value(false)
     {

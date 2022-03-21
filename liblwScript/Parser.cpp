@@ -2,121 +2,122 @@
 namespace lws
 {
 	std::unordered_map<TokenType, PrefixFn> Parser::mPrefixFunctions =
-	{
-		{TOKEN_IDENTIFIER, &Parser::ParseIdentifierExpr},
-		{TOKEN_NUMBER, &Parser::ParseNumExpr},
-		{TOKEN_STRING, &Parser::ParseStrExpr},
-		{TOKEN_NULL, &Parser::ParseNullExpr},
-		{TOKEN_TRUE, &Parser::ParseTrueExpr},
-		{TOKEN_FALSE, &Parser::ParseFalseExpr},
-		{TOKEN_MINUS, &Parser::ParsePrefixExpr},
-		{TOKEN_TILDE, &Parser::ParsePrefixExpr},
-		{TOKEN_BANG, &Parser::ParsePrefixExpr},
-		{TOKEN_LPAREN, &Parser::ParseGroupExpr},
-		{TOKEN_LBRACKET, &Parser::ParseArrayExpr},
-		{TOKEN_LBRACE, &Parser::ParseTableExpr},
-		{TOKEN_AMPERSAND, &Parser::ParseRefExpr},
-		{TOKEN_FUNCTION,&Parser::ParseLambdaExpr},
+		{
+			{TOKEN_IDENTIFIER, &Parser::ParseIdentifierExpr},
+			{TOKEN_NUMBER, &Parser::ParseNumExpr},
+			{TOKEN_STRING, &Parser::ParseStrExpr},
+			{TOKEN_NULL, &Parser::ParseNullExpr},
+			{TOKEN_TRUE, &Parser::ParseTrueExpr},
+			{TOKEN_FALSE, &Parser::ParseFalseExpr},
+			{TOKEN_MINUS, &Parser::ParsePrefixExpr},
+			{TOKEN_TILDE, &Parser::ParsePrefixExpr},
+			{TOKEN_BANG, &Parser::ParsePrefixExpr},
+			{TOKEN_LPAREN, &Parser::ParseGroupExpr},
+			{TOKEN_LBRACKET, &Parser::ParseArrayExpr},
+			{TOKEN_LBRACE, &Parser::ParseTableExpr},
+			{TOKEN_AMPERSAND, &Parser::ParseRefExpr},
+			{TOKEN_FUNCTION, &Parser::ParseLambdaExpr},
+			{TOKEN_CONTINUE, &Parser::ParseContinueExpr},
+			{TOKEN_BREAK, &Parser::ParseBreakExpr},
 	};
 
 	std::unordered_map<TokenType, InfixFn> Parser::mInfixFunctions =
-	{
-		{TOKEN_EQUAL, &Parser::ParseInfixExpr},
-		{TOKEN_PLUS_EQUAL, &Parser::ParseInfixExpr},
-		{TOKEN_MINUS_EQUAL, &Parser::ParseInfixExpr},
-		{TOKEN_ASTERISK_EQUAL, &Parser::ParseInfixExpr},
-		{TOKEN_SLASH_EQUAL, &Parser::ParseInfixExpr},
-		{TOKEN_PERCENT_EQUAL, &Parser::ParseInfixExpr},
-		{TOKEN_AMPERSAND_EQUAL, &Parser::ParseInfixExpr},
-		{TOKEN_VBAR_EQUAL, &Parser::ParseInfixExpr},
-		{TOKEN_CARET_EQUAL, &Parser::ParseInfixExpr},
-		{TOKEN_LESS_LESS_EQUAL, &Parser::ParseInfixExpr},
-		{TOKEN_GREATER_GREATER_EQUAL, &Parser::ParseInfixExpr},
-		{TOKEN_QUESTION, &Parser::ParseConditionExpr},
-		{TOKEN_VBAR_VBAR, &Parser::ParseInfixExpr},
-		{TOKEN_AMPERSAND_AMPERSAND, &Parser::ParseInfixExpr},
-		{TOKEN_VBAR, &Parser::ParseInfixExpr},
-		{TOKEN_CARET, &Parser::ParseInfixExpr},
-		{TOKEN_AMPERSAND, &Parser::ParseInfixExpr},
-		{TOKEN_LESS_LESS, &Parser::ParseInfixExpr},
-		{TOKEN_GREATER_GREATER, &Parser::ParseInfixExpr},
-		{TOKEN_EQUAL_EQUAL, &Parser::ParseInfixExpr},
-		{TOKEN_BANG_EQUAL, &Parser::ParseInfixExpr},
-		{TOKEN_LESS, &Parser::ParseInfixExpr},
-		{TOKEN_LESS_EQUAL, &Parser::ParseInfixExpr},
-		{TOKEN_GREATER, &Parser::ParseInfixExpr},
-		{TOKEN_GREATER_EQUAL, &Parser::ParseInfixExpr},
-		{TOKEN_PLUS, &Parser::ParseInfixExpr},
-		{TOKEN_MINUS, &Parser::ParseInfixExpr},
-		{TOKEN_ASTERISK, &Parser::ParseInfixExpr},
-		{TOKEN_SLASH, &Parser::ParseInfixExpr},
-		{TOKEN_PERCENT, &Parser::ParseInfixExpr},
-		{TOKEN_LPAREN, &Parser::ParseFunctionCallExpr},
-		{TOKEN_LBRACKET, &Parser::ParseIndexExpr},
-		{TOKEN_DOT, &Parser::ParseFieldCallExpr},
+		{
+			{TOKEN_EQUAL, &Parser::ParseInfixExpr},
+			{TOKEN_PLUS_EQUAL, &Parser::ParseInfixExpr},
+			{TOKEN_MINUS_EQUAL, &Parser::ParseInfixExpr},
+			{TOKEN_ASTERISK_EQUAL, &Parser::ParseInfixExpr},
+			{TOKEN_SLASH_EQUAL, &Parser::ParseInfixExpr},
+			{TOKEN_PERCENT_EQUAL, &Parser::ParseInfixExpr},
+			{TOKEN_AMPERSAND_EQUAL, &Parser::ParseInfixExpr},
+			{TOKEN_VBAR_EQUAL, &Parser::ParseInfixExpr},
+			{TOKEN_CARET_EQUAL, &Parser::ParseInfixExpr},
+			{TOKEN_LESS_LESS_EQUAL, &Parser::ParseInfixExpr},
+			{TOKEN_GREATER_GREATER_EQUAL, &Parser::ParseInfixExpr},
+			{TOKEN_QUESTION, &Parser::ParseConditionExpr},
+			{TOKEN_VBAR_VBAR, &Parser::ParseInfixExpr},
+			{TOKEN_AMPERSAND_AMPERSAND, &Parser::ParseInfixExpr},
+			{TOKEN_VBAR, &Parser::ParseInfixExpr},
+			{TOKEN_CARET, &Parser::ParseInfixExpr},
+			{TOKEN_AMPERSAND, &Parser::ParseInfixExpr},
+			{TOKEN_LESS_LESS, &Parser::ParseInfixExpr},
+			{TOKEN_GREATER_GREATER, &Parser::ParseInfixExpr},
+			{TOKEN_EQUAL_EQUAL, &Parser::ParseInfixExpr},
+			{TOKEN_BANG_EQUAL, &Parser::ParseInfixExpr},
+			{TOKEN_LESS, &Parser::ParseInfixExpr},
+			{TOKEN_LESS_EQUAL, &Parser::ParseInfixExpr},
+			{TOKEN_GREATER, &Parser::ParseInfixExpr},
+			{TOKEN_GREATER_EQUAL, &Parser::ParseInfixExpr},
+			{TOKEN_PLUS, &Parser::ParseInfixExpr},
+			{TOKEN_MINUS, &Parser::ParseInfixExpr},
+			{TOKEN_ASTERISK, &Parser::ParseInfixExpr},
+			{TOKEN_SLASH, &Parser::ParseInfixExpr},
+			{TOKEN_PERCENT, &Parser::ParseInfixExpr},
+			{TOKEN_LPAREN, &Parser::ParseFunctionCallExpr},
+			{TOKEN_LBRACKET, &Parser::ParseIndexExpr},
+			{TOKEN_DOT, &Parser::ParseFieldCallExpr},
 	};
 
 	std::unordered_map<TokenType, Precedence> Parser::mPrecedence =
-	{
-		{TOKEN_EQUAL, Precedence::ASSIGN},
-		{TOKEN_PLUS_EQUAL, Precedence::ASSIGN},
-		{TOKEN_MINUS_EQUAL, Precedence::ASSIGN},
-		{TOKEN_ASTERISK_EQUAL, Precedence::ASSIGN},
-		{TOKEN_SLASH_EQUAL, Precedence::ASSIGN},
-		{TOKEN_PERCENT_EQUAL, Precedence::ASSIGN},
-		{TOKEN_AMPERSAND_EQUAL, Precedence::ASSIGN},
-		{TOKEN_VBAR_EQUAL, Precedence::ASSIGN},
-		{TOKEN_CARET_EQUAL, Precedence::ASSIGN},
-		{TOKEN_LESS_LESS_EQUAL, Precedence::ASSIGN},
-		{TOKEN_GREATER_GREATER_EQUAL, Precedence::ASSIGN},
-		{TOKEN_VBAR_VBAR, Precedence::OR},
-		{TOKEN_AMPERSAND_AMPERSAND, Precedence::AND},
-		{TOKEN_QUESTION, Precedence::CONDITION},
-		{TOKEN_VBAR, Precedence::BIT_OR},
-		{TOKEN_CARET, Precedence::BIT_XOR},
-		{TOKEN_AMPERSAND, Precedence::BIT_AND},
-		{TOKEN_EQUAL_EQUAL, Precedence::EQUAL},
-		{TOKEN_BANG_EQUAL, Precedence::EQUAL},
-		{TOKEN_LESS, Precedence::COMPARE},
-		{TOKEN_LESS_EQUAL, Precedence::COMPARE},
-		{TOKEN_GREATER, Precedence::COMPARE},
-		{TOKEN_GREATER_EQUAL, Precedence::COMPARE},
-		{TOKEN_LESS_LESS, Precedence::BIT_SHIFT},
-		{TOKEN_GREATER_GREATER, Precedence::BIT_SHIFT},
-		{TOKEN_PLUS, Precedence::ADD_PLUS},
-		{TOKEN_MINUS, Precedence::ADD_PLUS},
-		{TOKEN_ASTERISK, Precedence::MUL_DIV_MOD},
-		{TOKEN_SLASH, Precedence::MUL_DIV_MOD},
-		{TOKEN_PERCENT, Precedence::MUL_DIV_MOD},
-		{TOKEN_LBRACKET, Precedence::INFIX},
-		{TOKEN_LPAREN, Precedence::INFIX},
-		{TOKEN_DOT, Precedence::INFIX},
+		{
+			{TOKEN_EQUAL, Precedence::ASSIGN},
+			{TOKEN_PLUS_EQUAL, Precedence::ASSIGN},
+			{TOKEN_MINUS_EQUAL, Precedence::ASSIGN},
+			{TOKEN_ASTERISK_EQUAL, Precedence::ASSIGN},
+			{TOKEN_SLASH_EQUAL, Precedence::ASSIGN},
+			{TOKEN_PERCENT_EQUAL, Precedence::ASSIGN},
+			{TOKEN_AMPERSAND_EQUAL, Precedence::ASSIGN},
+			{TOKEN_VBAR_EQUAL, Precedence::ASSIGN},
+			{TOKEN_CARET_EQUAL, Precedence::ASSIGN},
+			{TOKEN_LESS_LESS_EQUAL, Precedence::ASSIGN},
+			{TOKEN_GREATER_GREATER_EQUAL, Precedence::ASSIGN},
+			{TOKEN_VBAR_VBAR, Precedence::OR},
+			{TOKEN_AMPERSAND_AMPERSAND, Precedence::AND},
+			{TOKEN_QUESTION, Precedence::CONDITION},
+			{TOKEN_VBAR, Precedence::BIT_OR},
+			{TOKEN_CARET, Precedence::BIT_XOR},
+			{TOKEN_AMPERSAND, Precedence::BIT_AND},
+			{TOKEN_EQUAL_EQUAL, Precedence::EQUAL},
+			{TOKEN_BANG_EQUAL, Precedence::EQUAL},
+			{TOKEN_LESS, Precedence::COMPARE},
+			{TOKEN_LESS_EQUAL, Precedence::COMPARE},
+			{TOKEN_GREATER, Precedence::COMPARE},
+			{TOKEN_GREATER_EQUAL, Precedence::COMPARE},
+			{TOKEN_LESS_LESS, Precedence::BIT_SHIFT},
+			{TOKEN_GREATER_GREATER, Precedence::BIT_SHIFT},
+			{TOKEN_PLUS, Precedence::ADD_PLUS},
+			{TOKEN_MINUS, Precedence::ADD_PLUS},
+			{TOKEN_ASTERISK, Precedence::MUL_DIV_MOD},
+			{TOKEN_SLASH, Precedence::MUL_DIV_MOD},
+			{TOKEN_PERCENT, Precedence::MUL_DIV_MOD},
+			{TOKEN_LBRACKET, Precedence::INFIX},
+			{TOKEN_LPAREN, Precedence::INFIX},
+			{TOKEN_DOT, Precedence::INFIX},
 	};
 
 	std::unordered_map<Precedence, Associativity> Parser::mAssociativity =
-	{
-		{Precedence::LOWEST,Associativity::L2R},
-		{Precedence::ASSIGN,Associativity::R2L},
-		{Precedence::CONDITION,Associativity::L2R},
-		{Precedence::OR,Associativity::L2R},
-		{Precedence::AND,Associativity::L2R},
-		{Precedence::BIT_OR,Associativity::L2R},
-		{Precedence::BIT_XOR,Associativity::L2R},
-		{Precedence::BIT_AND,Associativity::L2R},
-		{Precedence::EQUAL,Associativity::L2R},
-		{Precedence::COMPARE,Associativity::L2R},
-		{Precedence::BIT_SHIFT,Associativity::L2R},
-		{Precedence::ADD_PLUS,Associativity::L2R},
-		{Precedence::MUL_DIV_MOD,Associativity::L2R},
-		{Precedence::PREFIX,Associativity::R2L},
-		{Precedence::INFIX,Associativity::L2R},
+		{
+			{Precedence::LOWEST, Associativity::L2R},
+			{Precedence::ASSIGN, Associativity::R2L},
+			{Precedence::CONDITION, Associativity::L2R},
+			{Precedence::OR, Associativity::L2R},
+			{Precedence::AND, Associativity::L2R},
+			{Precedence::BIT_OR, Associativity::L2R},
+			{Precedence::BIT_XOR, Associativity::L2R},
+			{Precedence::BIT_AND, Associativity::L2R},
+			{Precedence::EQUAL, Associativity::L2R},
+			{Precedence::COMPARE, Associativity::L2R},
+			{Precedence::BIT_SHIFT, Associativity::L2R},
+			{Precedence::ADD_PLUS, Associativity::L2R},
+			{Precedence::MUL_DIV_MOD, Associativity::L2R},
+			{Precedence::PREFIX, Associativity::R2L},
+			{Precedence::INFIX, Associativity::L2R},
 
 	};
 
 	Parser::Parser()
 		: mStmts(nullptr)
 	{
-
 	}
 	Parser::~Parser()
 	{
@@ -131,7 +132,7 @@ namespace lws
 		std::unordered_map<TokenType, Precedence>().swap(mPrecedence);
 	}
 
-	Stmt* Parser::Parse(const std::vector<Token>& tokens)
+	Stmt *Parser::Parse(const std::vector<Token> &tokens)
 	{
 		ResetStatus();
 		mTokens = tokens;
@@ -151,18 +152,18 @@ namespace lws
 		mStmts = new AstStmts();
 	}
 
-	Stmt* Parser::ParseAstStmts()
+	Stmt *Parser::ParseAstStmts()
 	{
 		while (!IsMatchCurToken(TOKEN_END))
 			mStmts->stmts.emplace_back(ParseStmt());
 		return mStmts;
 	}
 
-	Stmt* Parser::ParseStmt()
+	Stmt *Parser::ParseStmt()
 	{
 		if (IsMatchCurToken(TOKEN_LET))
 			return ParseLetStmt();
-		else if(IsMatchCurToken(TOKEN_CONST))
+		else if (IsMatchCurToken(TOKEN_CONST))
 			return ParseConstStmt();
 		else if (IsMatchCurToken(TOKEN_RETURN))
 			return ParseReturnStmt();
@@ -174,7 +175,7 @@ namespace lws
 			return ParseWhileStmt();
 		else if (IsMatchCurToken(TOKEN_FOR))
 			return ParseForStmt();
-		else  if (IsMatchCurToken(TOKEN_FUNCTION))
+		else if (IsMatchCurToken(TOKEN_FUNCTION))
 			return ParseFunctionStmt();
 		else if (IsMatchCurToken(TOKEN_FIELD))
 			return ParseFieldStmt();
@@ -182,29 +183,29 @@ namespace lws
 			return ParseExprStmt();
 	}
 
-	Stmt* Parser::ParseExprStmt()
+	Stmt *Parser::ParseExprStmt()
 	{
 		auto exprStmt = new ExprStmt(ParseExpr());
 		Consume(TOKEN_SEMICOLON, "Expect ';' after expr stmt.");
 		return exprStmt;
 	}
 
-	Stmt* Parser::ParseLetStmt()
+	Stmt *Parser::ParseLetStmt()
 	{
 		Consume(TOKEN_LET, "Expect 'let' key word");
 
-		std::unordered_map<IdentifierExpr*, Expr*> variables;
+		std::unordered_map<IdentifierExpr *, Expr *> variables;
 
-		auto name = (IdentifierExpr*)ParseIdentifierExpr();
-		Expr* value = new NullExpr();
+		auto name = (IdentifierExpr *)ParseIdentifierExpr();
+		Expr *value = new NullExpr();
 		if (IsMatchCurTokenAndStepOnce(TOKEN_EQUAL))
 			value = ParseExpr();
 		variables[name] = value;
 
 		while (IsMatchCurTokenAndStepOnce(TOKEN_COMMA))
 		{
-			auto name = (IdentifierExpr*)ParseIdentifierExpr();
-			Expr* value = new NullExpr();
+			auto name = (IdentifierExpr *)ParseIdentifierExpr();
+			Expr *value = new NullExpr();
 			if (IsMatchCurTokenAndStepOnce(TOKEN_EQUAL))
 				value = ParseExpr();
 			variables[name] = value;
@@ -241,7 +242,7 @@ namespace lws
 		return new ConstStmt(consts);
 	}
 
-	Stmt* Parser::ParseReturnStmt()
+	Stmt *Parser::ParseReturnStmt()
 	{
 		Consume(TOKEN_RETURN, "Expect 'return' key word.");
 
@@ -254,7 +255,7 @@ namespace lws
 		return returnStmt;
 	}
 
-	Stmt* Parser::ParseIfStmt()
+	Stmt *Parser::ParseIfStmt()
 	{
 		Consume(TOKEN_IF, "Expect 'if' key word.");
 		Consume(TOKEN_LPAREN, "Expect '(' after 'if'.");
@@ -273,7 +274,7 @@ namespace lws
 		return ifStmt;
 	}
 
-	Stmt* Parser::ParseScopeStmt()
+	Stmt *Parser::ParseScopeStmt()
 	{
 		Consume(TOKEN_LBRACE, "Expect '{'.");
 		auto scopeStmt = new ScopeStmt();
@@ -283,7 +284,7 @@ namespace lws
 		return scopeStmt;
 	}
 
-	Stmt* Parser::ParseWhileStmt()
+	Stmt *Parser::ParseWhileStmt()
 	{
 		Consume(TOKEN_WHILE, "Expect 'while' keyword.");
 		Consume(TOKEN_LPAREN, "Expect '(' after 'while'.");
@@ -299,7 +300,7 @@ namespace lws
 		return whileStmt;
 	}
 
-	Stmt* Parser::ParseForStmt()
+	Stmt *Parser::ParseForStmt()
 	{
 		//for(let i=0,j=0;i<10&&j<10;i=i+1,j=j+1)
 		//{
@@ -335,12 +336,12 @@ namespace lws
 			Consume(TOKEN_SEMICOLON, "Expect ';' after for stmt's initializer stmt");
 		}
 
-		Expr* condition = nullptr;
+		Expr *condition = nullptr;
 		if (!IsMatchCurToken(TOKEN_SEMICOLON))
 			condition = ParseExpr();
 		Consume(TOKEN_SEMICOLON, "Expect ';' after for stmt's condition expr.");
 
-		std::vector<Expr* > increment;
+		std::vector<Expr *> increment;
 		if (!IsMatchCurToken(TOKEN_RPAREN))
 		{
 			increment.emplace_back(ParseExpr());
@@ -349,7 +350,7 @@ namespace lws
 		}
 		Consume(TOKEN_RPAREN, "Expect ')' after for stmt's increment expr(s)");
 
-		std::vector<Stmt*> whileBodyStmts;
+		std::vector<Stmt *> whileBodyStmts;
 		whileBodyStmts.emplace_back(ParseStmt());
 		for (const auto expr : increment)
 			whileBodyStmts.emplace_back(new ExprStmt(expr));
@@ -363,23 +364,23 @@ namespace lws
 		return scopeStmt;
 	}
 
-	Stmt* Parser::ParseFunctionStmt()
+	Stmt *Parser::ParseFunctionStmt()
 	{
 		Consume(TOKEN_FUNCTION, "Expect 'function' keyword");
 
 		auto funcStmt = new FunctionStmt();
 
-		funcStmt->name = (IdentifierExpr*)ParseIdentifierExpr();
+		funcStmt->name = (IdentifierExpr *)ParseIdentifierExpr();
 
 		Consume(TOKEN_LPAREN, "Expect '(' after 'function' keyword");
 
 		if (!IsMatchCurToken(TOKEN_RPAREN)) //has parameter
 		{
-			IdentifierExpr* idenExpr = (IdentifierExpr*)ParseIdentifierExpr();
+			IdentifierExpr *idenExpr = (IdentifierExpr *)ParseIdentifierExpr();
 			funcStmt->parameters.emplace_back(idenExpr);
 			while (IsMatchCurTokenAndStepOnce(TOKEN_COMMA))
 			{
-				idenExpr = (IdentifierExpr*)ParseIdentifierExpr();
+				idenExpr = (IdentifierExpr *)ParseIdentifierExpr();
 				funcStmt->parameters.emplace_back(idenExpr);
 			}
 		}
@@ -387,12 +388,12 @@ namespace lws
 
 		funcStmt->name->literal += std::to_string(funcStmt->parameters.size());
 
-		funcStmt->body = (ScopeStmt*)ParseScopeStmt();
+		funcStmt->body = (ScopeStmt *)ParseScopeStmt();
 
 		return funcStmt;
 	}
 
-	Expr* Parser::ParseLambdaExpr()
+	Expr *Parser::ParseLambdaExpr()
 	{
 		Consume(TOKEN_FUNCTION, "Expect 'fn' keyword");
 
@@ -402,33 +403,45 @@ namespace lws
 
 		if (!IsMatchCurToken(TOKEN_RPAREN)) //has parameter
 		{
-			IdentifierExpr* idenExpr = (IdentifierExpr*)ParseIdentifierExpr();
+			IdentifierExpr *idenExpr = (IdentifierExpr *)ParseIdentifierExpr();
 			lambdaExpr->parameters.emplace_back(idenExpr);
 			while (IsMatchCurTokenAndStepOnce(TOKEN_COMMA))
 			{
-				idenExpr = (IdentifierExpr*)ParseIdentifierExpr();
+				idenExpr = (IdentifierExpr *)ParseIdentifierExpr();
 				lambdaExpr->parameters.emplace_back(idenExpr);
 			}
 		}
 		Consume(TOKEN_RPAREN, "Expect ')' after lambda expr's '('");
 
-		lambdaExpr->body = (ScopeStmt*)ParseScopeStmt();
+		lambdaExpr->body = (ScopeStmt *)ParseScopeStmt();
 
 		return lambdaExpr;
 	}
 
-	Stmt* Parser::ParseFieldStmt()
+	Expr *Parser::ParseBreakExpr()
+	{
+		Consume(TOKEN_BREAK, "Expect 'break' keyword");
+		return new BreakExpr();
+	}
+
+	Expr *Parser::ParseContinueExpr()
+	{
+		Consume(TOKEN_CONTINUE, "Expect 'continue' keyword");
+		return new ContinueExpr();
+	}
+
+	Stmt *Parser::ParseFieldStmt()
 	{
 		Consume(TOKEN_FIELD, "Expect 'field' keyword");
 
 		auto fieldStmt = new FieldStmt();
-		fieldStmt->name = ((IdentifierExpr*)ParseIdentifierExpr())->literal;
+		fieldStmt->name = ((IdentifierExpr *)ParseIdentifierExpr())->literal;
 
-		if(IsMatchCurTokenAndStepOnce(TOKEN_COLON))
+		if (IsMatchCurTokenAndStepOnce(TOKEN_COLON))
 		{
-				fieldStmt->containedFields.emplace_back((IdentifierExpr*)ParseIdentifierExpr());
-				while (IsMatchCurTokenAndStepOnce(TOKEN_COMMA))
-					fieldStmt->containedFields.emplace_back((IdentifierExpr*)ParseIdentifierExpr());
+			fieldStmt->containedFields.emplace_back((IdentifierExpr *)ParseIdentifierExpr());
+			while (IsMatchCurTokenAndStepOnce(TOKEN_COMMA))
+				fieldStmt->containedFields.emplace_back((IdentifierExpr *)ParseIdentifierExpr());
 		}
 
 		Consume(TOKEN_LBRACE, "Expect '{' after field name or contained field name");
@@ -436,11 +449,11 @@ namespace lws
 		while (!IsMatchCurToken(TOKEN_RBRACE))
 		{
 			if (IsMatchCurToken(TOKEN_LET))
-				fieldStmt->letStmts.emplace_back((LetStmt*)ParseLetStmt());
+				fieldStmt->letStmts.emplace_back((LetStmt *)ParseLetStmt());
 			else if (IsMatchCurToken(TOKEN_FUNCTION))
-				fieldStmt->fnStmts.emplace_back((FunctionStmt*)ParseFunctionStmt());
+				fieldStmt->fnStmts.emplace_back((FunctionStmt *)ParseFunctionStmt());
 			else
-				Consume({ TOKEN_LET ,TOKEN_FUNCTION }, "UnExpect identifier '" + GetCurToken().literal + "'.");
+				Consume({TOKEN_LET, TOKEN_FUNCTION}, "UnExpect identifier '" + GetCurToken().literal + "'.");
 		}
 
 		Consume(TOKEN_RBRACE, "Expect '}' after field stmt's '{'");
@@ -448,7 +461,7 @@ namespace lws
 		return fieldStmt;
 	}
 
-	Expr* Parser::ParseExpr(Precedence precedence)
+	Expr *Parser::ParseExpr(Precedence precedence)
 	{
 		if (mPrefixFunctions.find(GetCurToken().type) == mPrefixFunctions.end())
 		{
@@ -472,12 +485,12 @@ namespace lws
 		return leftExpr;
 	}
 
-	Expr* Parser::ParseIdentifierExpr()
+	Expr *Parser::ParseIdentifierExpr()
 	{
 		return new IdentifierExpr(Consume(TOKEN_IDENTIFIER, "Unexpect Identifier'" + GetCurToken().literal + "'.").literal);
 	}
 
-	Expr* Parser::ParseNumExpr()
+	Expr *Parser::ParseNumExpr()
 	{
 		std::string numLiteral = Consume(TOKEN_NUMBER, "Expexct a number literal.").literal;
 		if (numLiteral.find('.') != std::string::npos)
@@ -486,28 +499,28 @@ namespace lws
 			return new IntNumExpr(std::stoll(numLiteral));
 	}
 
-	Expr* Parser::ParseStrExpr()
+	Expr *Parser::ParseStrExpr()
 	{
 		return new StrExpr(Consume(TOKEN_STRING, "Expect a string literal.").literal);
 	}
 
-	Expr* Parser::ParseNullExpr()
+	Expr *Parser::ParseNullExpr()
 	{
 		Consume(TOKEN_NULL, "Expect 'null' keyword");
 		return new NullExpr();
 	}
-	Expr* Parser::ParseTrueExpr()
+	Expr *Parser::ParseTrueExpr()
 	{
 		Consume(TOKEN_TRUE, "Expect 'true' keyword");
 		return new BoolExpr(true);
 	}
-	Expr* Parser::ParseFalseExpr()
+	Expr *Parser::ParseFalseExpr()
 	{
 		Consume(TOKEN_FALSE, "Expect 'false' keyword");
 		return new BoolExpr(false);
 	}
 
-	Expr* Parser::ParseGroupExpr()
+	Expr *Parser::ParseGroupExpr()
 	{
 		Consume(TOKEN_LPAREN, "Expect '('.");
 		auto groupExpr = new GroupExpr(ParseExpr(Precedence::INFIX));
@@ -515,7 +528,7 @@ namespace lws
 		return groupExpr;
 	}
 
-	Expr* Parser::ParseArrayExpr()
+	Expr *Parser::ParseArrayExpr()
 	{
 		Consume(TOKEN_LBRACKET, "Expect '['.");
 
@@ -533,23 +546,23 @@ namespace lws
 		return arrayExpr;
 	}
 
-	Expr* Parser::ParseTableExpr()
+	Expr *Parser::ParseTableExpr()
 	{
 		Consume(TOKEN_LBRACE, "Expect '{'.");
 
-		std::unordered_map<Expr*, Expr*> elements;
+		std::unordered_map<Expr *, Expr *> elements;
 
 		if (!IsMatchCurToken(TOKEN_RBRACE))
 		{
-			Expr* key = ParseExpr();
+			Expr *key = ParseExpr();
 			Consume(TOKEN_COLON, "Expect ':' after table key.");
-			Expr* value = ParseExpr();
+			Expr *value = ParseExpr();
 			elements[key] = value;
 			while (IsMatchCurTokenAndStepOnce(TOKEN_COMMA))
 			{
-				Expr* key = ParseExpr();
+				Expr *key = ParseExpr();
 				Consume(TOKEN_COLON, "Expect ':' after table key.");
-				Expr* value = ParseExpr();
+				Expr *value = ParseExpr();
 				elements[key] = value;
 			}
 		}
@@ -557,7 +570,7 @@ namespace lws
 		return new TableExpr(elements);
 	}
 
-	Expr* Parser::ParsePrefixExpr()
+	Expr *Parser::ParsePrefixExpr()
 	{
 		auto prefixExpr = new PrefixExpr();
 		prefixExpr->op = GetCurTokenAndStepOnce().literal;
@@ -565,14 +578,13 @@ namespace lws
 		return prefixExpr;
 	}
 
-	Expr* Parser::ParseRefExpr()
+	Expr *Parser::ParseRefExpr()
 	{
 		Consume(TOKEN_AMPERSAND, "Expect '&'.");
 		return new RefExpr(ParseExpr(Precedence::PREFIX));
 	}
 
-
-	Expr* Parser::ParseInfixExpr(Expr* prefixExpr)
+	Expr *Parser::ParseInfixExpr(Expr *prefixExpr)
 	{
 		auto infixExpr = new InfixExpr();
 		infixExpr->left = prefixExpr;
@@ -584,9 +596,9 @@ namespace lws
 		return infixExpr;
 	}
 
-	Expr* Parser::ParseConditionExpr(Expr* prefixExpr)
+	Expr *Parser::ParseConditionExpr(Expr *prefixExpr)
 	{
-		ConditionExpr* conditionExpr = new ConditionExpr();
+		ConditionExpr *conditionExpr = new ConditionExpr();
 		conditionExpr->condition = prefixExpr;
 
 		Consume(TOKEN_QUESTION, "Expect '?'.");
@@ -598,7 +610,7 @@ namespace lws
 		return conditionExpr;
 	}
 
-	Expr* Parser::ParseIndexExpr(Expr* prefixExpr)
+	Expr *Parser::ParseIndexExpr(Expr *prefixExpr)
 	{
 		Consume(TOKEN_LBRACKET, "Expect '['.");
 		auto indexExpr = new IndexExpr();
@@ -608,7 +620,7 @@ namespace lws
 		return indexExpr;
 	}
 
-	Expr* Parser::ParseFunctionCallExpr(Expr* prefixExpr)
+	Expr *Parser::ParseFunctionCallExpr(Expr *prefixExpr)
 	{
 		auto funcCallExpr = new FunctionCallExpr();
 
@@ -625,7 +637,7 @@ namespace lws
 		return funcCallExpr;
 	}
 
-	Expr* Parser::ParseFieldCallExpr(Expr* prefixExpr)
+	Expr *Parser::ParseFieldCallExpr(Expr *prefixExpr)
 	{
 		Consume(TOKEN_DOT, "Expect '.'.");
 		auto fieldCallExpr = new FieldCallExpr();
@@ -716,17 +728,17 @@ namespace lws
 		if (IsMatchCurToken(type))
 			return GetCurTokenAndStepOnce();
 		Assert("[line " + std::to_string(GetCurToken().line) + "]:" + std::string(errMsg));
-		//avoid warning
+		//avoid C++ compiler warning
 		return Token(TOKEN_END, "", 0);
 	}
 
-	Token Parser::Consume(const std::vector<TokenType>& types, std::string_view errMsg)
+	Token Parser::Consume(const std::vector<TokenType> &types, std::string_view errMsg)
 	{
-		for (const auto& type : types)
+		for (const auto &type : types)
 			if (IsMatchCurToken(type))
 				return GetCurTokenAndStepOnce();
 		Assert("[line " + std::to_string(GetCurToken().line) + "]:" + std::string(errMsg));
-		//avoid warning
+		//avoid C++ compiler warning
 		return Token(TOKEN_END, "", 0);
 	}
 

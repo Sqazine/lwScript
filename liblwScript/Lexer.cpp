@@ -10,12 +10,14 @@ namespace lws
             {"false", TOKEN_FALSE},
             {"null", TOKEN_NULL},
             {"while", TOKEN_WHILE},
-            {"for",TOKEN_FOR},
+            {"for", TOKEN_FOR},
             {"fn", TOKEN_FUNCTION},
             {"field", TOKEN_FIELD},
             {"return", TOKEN_RETURN},
             {"static", TOKEN_STATIC},
             {"const", TOKEN_CONST},
+            {"break", TOKEN_BREAK},
+            {"continue", TOKEN_CONTINUE},
     };
 
     Lexer::Lexer()
@@ -206,7 +208,7 @@ namespace lws
                 Identifier();
             else
             {
-                auto literal= mSource.substr(mStartPos, mCurPos - mStartPos);
+                auto literal = mSource.substr(mStartPos, mCurPos - mStartPos);
                 std::cout << "Unknown literal:" << literal << std::endl;
                 exit(1);
             }

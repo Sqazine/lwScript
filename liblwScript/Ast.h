@@ -26,7 +26,8 @@ namespace lws
 		AST_LAMBDA,
 		AST_FUNCTION_CALL,
 		AST_FIELD_CALL,
-		AST_NEW,
+		AST_BREAK,
+		AST_CONTINUE,
 		// stmt
 		AST_LET,
 		AST_CONST,
@@ -98,6 +99,24 @@ namespace lws
 	{
 		NullExpr();
 		~NullExpr();
+
+		std::string Stringify() override;
+		AstType Type() override;
+	};
+
+	struct BreakExpr : public Expr
+	{
+		BreakExpr();
+		~BreakExpr();
+
+		std::string Stringify() override;
+		AstType Type() override;
+	};
+
+	struct ContinueExpr : public Expr
+	{
+		ContinueExpr();
+		~ContinueExpr();
 
 		std::string Stringify() override;
 		AstType Type() override;
