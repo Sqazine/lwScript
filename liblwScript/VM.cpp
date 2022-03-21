@@ -183,7 +183,7 @@ namespace lws
 
 	Object *VM::Execute(Frame *frame)
 	{
-		// + - * /
+// + - * /
 #define COMMON_BINARY(op)                                                                           \
 	do                                                                                              \
 	{                                                                                               \
@@ -200,6 +200,7 @@ namespace lws
 		else                                                                                        \
 			Assert("Invalid binary op:" + left->Stringify() + (#op) + right->Stringify());          \
 	} while (0);
+
 // & | % << >>
 #define INT_BINARY(op)                                                                           \
 	do                                                                                           \
@@ -229,7 +230,7 @@ namespace lws
 		else if (IS_BOOL_OBJ(right) && IS_BOOL_OBJ(left))                                                                         \
 			PushObject(TO_BOOL_OBJ(left)->value op TO_BOOL_OBJ(right)->value ? CreateBoolObject(true) : CreateBoolObject(false)); \
 		else if (IS_NULL_OBJ(right) && IS_NULL_OBJ(left))                                                                         \
-			PushObject(TO_NULL_OBJ(left) op TO_NULL_OBJ(right) ? CreateBoolObject(true) : CreateBoolObject(false));               \
+			PushObject(TO_NULL_OBJ(left)->value op TO_NULL_OBJ(right)->value ? CreateBoolObject(true) : CreateBoolObject(false)); \
 		else                                                                                                                      \
 			PushObject(CreateBoolObject(false));                                                                                  \
 	} while (0);
@@ -355,7 +356,7 @@ namespace lws
 			case OP_NEW_VAR:
 			{
 				Object *value = PopObject();
-				mContext->DefineVariableByName(frame->mStrings[frame->mCodes[++ip]], ObjectDescType::VARIABLE,value);
+				mContext->DefineVariableByName(frame->mStrings[frame->mCodes[++ip]], ObjectDescType::VARIABLE, value);
 				break;
 			}
 			case OP_NEW_CONST:
@@ -635,9 +636,9 @@ namespace lws
 						Assert("No lambda object:" + memberName + " in field:" + fieldType);
 					PushFrame(fieldFrame->GetLambdaFrame(TO_LAMBDA_OBJ(lambdaObject)->frameIndex));
 				}
-				else if (!fieldObj->containedFields.empty())//get contained fields' function
+				else if (!fieldObj->containedFields.empty()) //get contained fields' function
 				{
-					for(const auto& containedField:fieldObj->containedFields)
+					for (const auto &containedField : fieldObj->containedFields)
 					{
 						fieldType = containedField.second->name;
 						fieldFrame = nullptr;
@@ -647,10 +648,10 @@ namespace lws
 							Assert("No field declaration:" + fieldType);
 
 						if (fieldFrame->HasFunctionFrame(memberName))
-							{
-								PushFrame(fieldFrame->GetFunctionFrame(memberName));
-								break;
-							}
+						{
+							PushFrame(fieldFrame->GetFunctionFrame(memberName));
+							break;
+						}
 						else if (fieldObj->GetMemberByName(memberName) != nullptr) //lambda:let add=function(){return 10;}
 						{
 							Object *lambdaObject = fieldObj->GetMemberByName(memberName);
@@ -659,9 +660,9 @@ namespace lws
 							PushFrame(fieldFrame->GetLambdaFrame(TO_LAMBDA_OBJ(lambdaObject)->frameIndex));
 							break;
 						}
-					}	
+					}
 				}
-				else 
+				else
 					Assert("No function in field:" + memberName);
 				break;
 			}
