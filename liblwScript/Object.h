@@ -133,7 +133,6 @@ namespace lws
 		void Mark() override;
 		void UnMark() override;
 		bool IsEqualTo(Object *other) override;
-		uint8_t value;
 	};
 
 	struct ArrayObject : public Object

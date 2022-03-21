@@ -120,7 +120,6 @@ namespace lws
     }
 
     NullObject::NullObject()
-    :value(1)
     {
     }
     NullObject::~NullObject()

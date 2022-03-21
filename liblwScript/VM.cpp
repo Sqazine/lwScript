@@ -213,7 +213,7 @@ namespace lws
 			Assert("Invalid binary op:" + left->Stringify() + (#op) + right->Stringify());       \
 	} while (0);
 
-// > >= < <= == !=
+// > >= < <=
 #define COMPARE_BINARY(op)                                                                                                        \
 	do                                                                                                                            \
 	{                                                                                                                             \
@@ -227,10 +227,6 @@ namespace lws
 			PushObject(TO_INT_OBJ(left)->value op TO_REAL_OBJ(right)->value ? CreateBoolObject(true) : CreateBoolObject(false));  \
 		else if (IS_REAL_OBJ(right) && IS_REAL_OBJ(left))                                                                         \
 			PushObject(TO_REAL_OBJ(left)->value op TO_REAL_OBJ(right)->value ? CreateBoolObject(true) : CreateBoolObject(false)); \
-		else if (IS_BOOL_OBJ(right) && IS_BOOL_OBJ(left))                                                                         \
-			PushObject(TO_BOOL_OBJ(left)->value op TO_BOOL_OBJ(right)->value ? CreateBoolObject(true) : CreateBoolObject(false)); \
-		else if (IS_NULL_OBJ(right) && IS_NULL_OBJ(left))                                                                         \
-			PushObject(TO_NULL_OBJ(left)->value op TO_NULL_OBJ(right)->value ? CreateBoolObject(true) : CreateBoolObject(false)); \
 		else                                                                                                                      \
 			PushObject(CreateBoolObject(false));                                                                                  \
 	} while (0);
@@ -344,15 +340,19 @@ namespace lws
 			case OP_LESS:
 				COMPARE_BINARY(<);
 				break;
-			case OP_EQUAL:
-				COMPARE_BINARY(==);
-				break;
 			case OP_AND:
 				LOGIC_BINARY(&&);
 				break;
 			case OP_OR:
 				LOGIC_BINARY(||);
 				break;
+			case OP_EQUAL:
+			{	
+				Object *left = PopObject();
+				Object *right = PopObject();
+				PushObject(CreateBoolObject(left->IsEqualTo(right)));
+				break;
+			}
 			case OP_NEW_VAR:
 			{
 				Object *value = PopObject();
