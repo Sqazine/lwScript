@@ -108,7 +108,5 @@ namespace lws
 
 		static std::unordered_map<TokenType, PrefixFn> mPrefixFunctions;
 		static std::unordered_map<TokenType, InfixFn> mInfixFunctions;
-		static std::unordered_map<TokenType, Precedence> mPrecedence;
-		static std::unordered_map<Precedence, Associativity> mAssociativity;
 	};
 }

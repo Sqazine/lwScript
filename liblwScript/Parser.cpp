@@ -1,6 +1,73 @@
 #include "Parser.h"
 namespace lws
 {
+	struct PrecedenceBinding
+	{
+		TokenType type;
+		Precedence precedence;
+	};
+
+	constexpr PrecedenceBinding precedenceTable[] = {
+		{TOKEN_EQUAL, Precedence::ASSIGN},
+		{TOKEN_PLUS_EQUAL, Precedence::ASSIGN},
+		{TOKEN_MINUS_EQUAL, Precedence::ASSIGN},
+		{TOKEN_ASTERISK_EQUAL, Precedence::ASSIGN},
+		{TOKEN_SLASH_EQUAL, Precedence::ASSIGN},
+		{TOKEN_PERCENT_EQUAL, Precedence::ASSIGN},
+		{TOKEN_AMPERSAND_EQUAL, Precedence::ASSIGN},
+		{TOKEN_VBAR_EQUAL, Precedence::ASSIGN},
+		{TOKEN_CARET_EQUAL, Precedence::ASSIGN},
+		{TOKEN_LESS_LESS_EQUAL, Precedence::ASSIGN},
+		{TOKEN_GREATER_GREATER_EQUAL, Precedence::ASSIGN},
+		{TOKEN_VBAR_VBAR, Precedence::OR},
+		{TOKEN_AMPERSAND_AMPERSAND, Precedence::AND},
+		{TOKEN_QUESTION, Precedence::CONDITION},
+		{TOKEN_VBAR, Precedence::BIT_OR},
+		{TOKEN_CARET, Precedence::BIT_XOR},
+		{TOKEN_AMPERSAND, Precedence::BIT_AND},
+		{TOKEN_EQUAL_EQUAL, Precedence::EQUAL},
+		{TOKEN_BANG_EQUAL, Precedence::EQUAL},
+		{TOKEN_LESS, Precedence::COMPARE},
+		{TOKEN_LESS_EQUAL, Precedence::COMPARE},
+		{TOKEN_GREATER, Precedence::COMPARE},
+		{TOKEN_GREATER_EQUAL, Precedence::COMPARE},
+		{TOKEN_LESS_LESS, Precedence::BIT_SHIFT},
+		{TOKEN_GREATER_GREATER, Precedence::BIT_SHIFT},
+		{TOKEN_PLUS, Precedence::ADD_PLUS},
+		{TOKEN_MINUS, Precedence::ADD_PLUS},
+		{TOKEN_ASTERISK, Precedence::MUL_DIV_MOD},
+		{TOKEN_SLASH, Precedence::MUL_DIV_MOD},
+		{TOKEN_PERCENT, Precedence::MUL_DIV_MOD},
+		{TOKEN_LBRACKET, Precedence::INFIX},
+		{TOKEN_LPAREN, Precedence::INFIX},
+		{TOKEN_DOT, Precedence::INFIX},
+	};
+
+	struct AssociativityBinding
+	{
+		Precedence precedence;
+		Associativity associativity;
+	};
+
+	constexpr AssociativityBinding associativityTable[] =
+		{
+			{Precedence::LOWEST, Associativity::L2R},
+			{Precedence::ASSIGN, Associativity::R2L},
+			{Precedence::CONDITION, Associativity::L2R},
+			{Precedence::OR, Associativity::L2R},
+			{Precedence::AND, Associativity::L2R},
+			{Precedence::BIT_OR, Associativity::L2R},
+			{Precedence::BIT_XOR, Associativity::L2R},
+			{Precedence::BIT_AND, Associativity::L2R},
+			{Precedence::EQUAL, Associativity::L2R},
+			{Precedence::COMPARE, Associativity::L2R},
+			{Precedence::BIT_SHIFT, Associativity::L2R},
+			{Precedence::ADD_PLUS, Associativity::L2R},
+			{Precedence::MUL_DIV_MOD, Associativity::L2R},
+			{Precedence::PREFIX, Associativity::R2L},
+			{Precedence::INFIX, Associativity::L2R},
+	};
+
 	std::unordered_map<TokenType, PrefixFn> Parser::mPrefixFunctions =
 		{
 			{TOKEN_IDENTIFIER, &Parser::ParseIdentifierExpr},
@@ -58,63 +125,6 @@ namespace lws
 			{TOKEN_DOT, &Parser::ParseFieldCallExpr},
 	};
 
-	std::unordered_map<TokenType, Precedence> Parser::mPrecedence =
-		{
-			{TOKEN_EQUAL, Precedence::ASSIGN},
-			{TOKEN_PLUS_EQUAL, Precedence::ASSIGN},
-			{TOKEN_MINUS_EQUAL, Precedence::ASSIGN},
-			{TOKEN_ASTERISK_EQUAL, Precedence::ASSIGN},
-			{TOKEN_SLASH_EQUAL, Precedence::ASSIGN},
-			{TOKEN_PERCENT_EQUAL, Precedence::ASSIGN},
-			{TOKEN_AMPERSAND_EQUAL, Precedence::ASSIGN},
-			{TOKEN_VBAR_EQUAL, Precedence::ASSIGN},
-			{TOKEN_CARET_EQUAL, Precedence::ASSIGN},
-			{TOKEN_LESS_LESS_EQUAL, Precedence::ASSIGN},
-			{TOKEN_GREATER_GREATER_EQUAL, Precedence::ASSIGN},
-			{TOKEN_VBAR_VBAR, Precedence::OR},
-			{TOKEN_AMPERSAND_AMPERSAND, Precedence::AND},
-			{TOKEN_QUESTION, Precedence::CONDITION},
-			{TOKEN_VBAR, Precedence::BIT_OR},
-			{TOKEN_CARET, Precedence::BIT_XOR},
-			{TOKEN_AMPERSAND, Precedence::BIT_AND},
-			{TOKEN_EQUAL_EQUAL, Precedence::EQUAL},
-			{TOKEN_BANG_EQUAL, Precedence::EQUAL},
-			{TOKEN_LESS, Precedence::COMPARE},
-			{TOKEN_LESS_EQUAL, Precedence::COMPARE},
-			{TOKEN_GREATER, Precedence::COMPARE},
-			{TOKEN_GREATER_EQUAL, Precedence::COMPARE},
-			{TOKEN_LESS_LESS, Precedence::BIT_SHIFT},
-			{TOKEN_GREATER_GREATER, Precedence::BIT_SHIFT},
-			{TOKEN_PLUS, Precedence::ADD_PLUS},
-			{TOKEN_MINUS, Precedence::ADD_PLUS},
-			{TOKEN_ASTERISK, Precedence::MUL_DIV_MOD},
-			{TOKEN_SLASH, Precedence::MUL_DIV_MOD},
-			{TOKEN_PERCENT, Precedence::MUL_DIV_MOD},
-			{TOKEN_LBRACKET, Precedence::INFIX},
-			{TOKEN_LPAREN, Precedence::INFIX},
-			{TOKEN_DOT, Precedence::INFIX},
-	};
-
-	std::unordered_map<Precedence, Associativity> Parser::mAssociativity =
-		{
-			{Precedence::LOWEST, Associativity::L2R},
-			{Precedence::ASSIGN, Associativity::R2L},
-			{Precedence::CONDITION, Associativity::L2R},
-			{Precedence::OR, Associativity::L2R},
-			{Precedence::AND, Associativity::L2R},
-			{Precedence::BIT_OR, Associativity::L2R},
-			{Precedence::BIT_XOR, Associativity::L2R},
-			{Precedence::BIT_AND, Associativity::L2R},
-			{Precedence::EQUAL, Associativity::L2R},
-			{Precedence::COMPARE, Associativity::L2R},
-			{Precedence::BIT_SHIFT, Associativity::L2R},
-			{Precedence::ADD_PLUS, Associativity::L2R},
-			{Precedence::MUL_DIV_MOD, Associativity::L2R},
-			{Precedence::PREFIX, Associativity::R2L},
-			{Precedence::INFIX, Associativity::L2R},
-
-	};
-
 	Parser::Parser()
 		: mStmts(nullptr)
 	{
@@ -129,7 +139,6 @@ namespace lws
 
 		std::unordered_map<TokenType, PrefixFn>().swap(mPrefixFunctions);
 		std::unordered_map<TokenType, InfixFn>().swap(mInfixFunctions);
-		std::unordered_map<TokenType, Precedence>().swap(mPrecedence);
 	}
 
 	Stmt *Parser::Parse(const std::vector<Token> &tokens)
@@ -661,15 +670,17 @@ namespace lws
 
 	Precedence Parser::GetCurTokenPrecedence()
 	{
-		if (mPrecedence.find(GetCurToken().type) != mPrecedence.end())
-			return mPrecedence[GetCurToken().type];
+		for (const auto &precedenceBinding : precedenceTable)
+			if (precedenceBinding.type == GetCurToken().type)
+				return precedenceBinding.precedence;
 		return Precedence::LOWEST;
 	}
 
 	Associativity Parser::GetCurTokenAssociativity()
 	{
-		if (mAssociativity.find(GetCurTokenPrecedence()) != mAssociativity.end())
-			return mAssociativity[GetCurTokenPrecedence()];
+		for (const auto &associativityBinding : associativityTable)
+			if (associativityBinding.precedence == GetCurTokenPrecedence())
+				return associativityBinding.associativity;
 		return Associativity::L2R;
 	}
 
@@ -688,8 +699,9 @@ namespace lws
 
 	Precedence Parser::GetNextTokenPrecedence()
 	{
-		if (mPrecedence.find(GetNextToken().type) != mPrecedence.end())
-			return mPrecedence[GetNextToken().type];
+		for (const auto &precedenceBinding : precedenceTable)
+			if (precedenceBinding.type == GetNextToken().type)
+				return precedenceBinding.precedence;
 		return Precedence::LOWEST;
 	}
 

@@ -1,23 +1,28 @@
 #include "Lexer.h"
 namespace lws
 {
-    static std::unordered_map<std::string, TokenType> keywords =
-        {
-            {"let", TOKEN_LET},
-            {"if", TOKEN_IF},
-            {"else", TOKEN_ELSE},
-            {"true", TOKEN_TRUE},
-            {"false", TOKEN_FALSE},
-            {"null", TOKEN_NULL},
-            {"while", TOKEN_WHILE},
-            {"for", TOKEN_FOR},
-            {"fn", TOKEN_FUNCTION},
-            {"field", TOKEN_FIELD},
-            {"return", TOKEN_RETURN},
-            {"static", TOKEN_STATIC},
-            {"const", TOKEN_CONST},
-            {"break", TOKEN_BREAK},
-            {"continue", TOKEN_CONTINUE},
+    struct Keyword
+    {
+        const char *name;
+        TokenType type;
+    };
+
+    constexpr Keyword keywords[] = {
+        {"let", TOKEN_LET},
+        {"if", TOKEN_IF},
+        {"else", TOKEN_ELSE},
+        {"true", TOKEN_TRUE},
+        {"false", TOKEN_FALSE},
+        {"null", TOKEN_NULL},
+        {"while", TOKEN_WHILE},
+        {"for", TOKEN_FOR},
+        {"fn", TOKEN_FUNCTION},
+        {"field", TOKEN_FIELD},
+        {"return", TOKEN_RETURN},
+        {"static", TOKEN_STATIC},
+        {"const", TOKEN_CONST},
+        {"break", TOKEN_BREAK},
+        {"continue", TOKEN_CONTINUE},
     };
 
     Lexer::Lexer()
@@ -326,10 +331,10 @@ namespace lws
         std::string literal = mSource.substr(mStartPos, mCurPos - mStartPos);
 
         bool isKeyWord = false;
-        for (const auto &[key, value] : keywords)
-            if (key.compare(literal) == 0)
+        for (const auto &keyword : keywords)
+            if (strcmp(keyword.name,literal.c_str())==0)
             {
-                AddToken(value, literal);
+                AddToken(keyword.type, literal);
                 isKeyWord = true;
                 break;
             }
