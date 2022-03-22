@@ -517,7 +517,7 @@ namespace lws
 				for (auto value : mContext->mValues)
 				{
 					if (value.first.find_first_of(containedFieldPrefixID) == 0 && IS_FIELD_OBJ(value.second.object))
-						containedFields.emplace_back(std::make_pair(value.first.substr(containedFieldPrefixID.size()), TO_FIELD_OBJ(value.second.object)));
+						containedFields.emplace_back(std::make_pair(value.first.substr(strlen(containedFieldPrefixID)), TO_FIELD_OBJ(value.second.object)));
 					else
 						members[value.first] = value.second.object;
 				}

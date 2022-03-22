@@ -1,4 +1,4 @@
 #pragma once
 #include <string>
-const std::string containedFieldPrefixID="instance__";
-const std::string functionNameAndArgumentConnector = "__";
+constexpr const char* containedFieldPrefixID="instance__";
+constexpr const char*  functionNameAndArgumentConnector = "__";
