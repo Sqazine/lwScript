@@ -394,9 +394,7 @@ namespace lws
 			}
 		}
 		Consume(TOKEN_RPAREN, "Expect ')' after function stmt's '('");
-
-		funcStmt->name->literal += std::to_string(funcStmt->parameters.size());
-
+		
 		funcStmt->body = (ScopeStmt *)ParseScopeStmt();
 
 		return funcStmt;

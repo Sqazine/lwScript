@@ -540,7 +540,10 @@ namespace lws
 
     std::string ReturnStmt::Stringify()
     {
-        return "return " + expr->Stringify() + ";";
+        if (expr)
+            return "return " + expr->Stringify() + ";";
+        else
+            return "return;";
     }
     AstType ReturnStmt::Type()
     {

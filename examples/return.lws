@@ -1,0 +1,10 @@
+fn check(x)
+{
+    if(x==null)
+        return;
+    return x;
+}
+
+println("{}",check("str"));//str
+println("{}",check(10));//10
+println("{}",check(null));//null

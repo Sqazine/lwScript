@@ -72,9 +72,12 @@ namespace lws
 	void Compiler::CompileReturnStmt(ReturnStmt *stmt, Frame *frame)
 	{
 		if (stmt->expr)
-			CompileExpr(stmt->expr, frame);
-
-		frame->AddOpCode(OP_RETURN);
+			{
+				CompileExpr(stmt->expr, frame);
+				frame->AddOpCode(OP_RETURN_OBJECT);
+			}
+			else
+				frame->AddOpCode(OP_RETURN);
 	}
 
 	void Compiler::CompileExprStmt(ExprStmt *stmt, Frame *frame)
@@ -175,7 +178,7 @@ namespace lws
 
 		functionFrame->AddOpCode(OP_EXIT_SCOPE);
 
-		frame->AddFunctionFrame(stmt->name->literal, functionFrame);
+		frame->AddFunctionFrame(stmt->name->literal + functionNameAndArgumentConnector+std::to_string(stmt->parameters.size()), functionFrame);
 	}
 
 	void Compiler::CompileLambdaExpr(LambdaExpr *stmt, Frame *frame)

@@ -248,7 +248,7 @@ namespace lws
 			uint64_t instruction = frame->mCodes[ip];
 			switch (instruction)
 			{
-			case OP_RETURN:
+			case OP_RETURN_OBJECT:
 				if (mContext->mUpContext)
 				{
 					Context *tmp = mContext->GetUpContext();
@@ -256,6 +256,15 @@ namespace lws
 					mContext = tmp;
 				}
 				return PopObject();
+				break;
+			case OP_RETURN:
+				if (mContext->mUpContext)
+				{
+					Context *tmp = mContext->GetUpContext();
+					delete mContext;
+					mContext = tmp;
+				}
+				return CreateNullObject();
 				break;
 			case OP_NEW_REAL:
 				PushObject(CreateRealNumObject(frame->mRealNums[frame->mCodes[++ip]]));
@@ -347,7 +356,7 @@ namespace lws
 				LOGIC_BINARY(||);
 				break;
 			case OP_EQUAL:
-			{	
+			{
 				Object *left = PopObject();
 				Object *right = PopObject();
 				PushObject(CreateBoolObject(left->IsEqualTo(right)));

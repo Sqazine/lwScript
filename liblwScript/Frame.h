@@ -33,6 +33,7 @@ namespace lws
 		OP_GET_FUNCTION,
 		OP_NEG,
 		OP_RETURN,
+		OP_RETURN_OBJECT,
 		OP_ADD,
 		OP_SUB,
 		OP_MUL,

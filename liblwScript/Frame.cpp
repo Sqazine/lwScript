@@ -185,6 +185,9 @@ namespace lws
 			case OP_RETURN:
 				UNARY_INSTR_STRINGIFY(OP_RETURN);
 				break;
+			case OP_RETURN_OBJECT:
+				UNARY_INSTR_STRINGIFY(OP_RETURN_OBJECT);
+				break;
 			case OP_NEW_REAL:
 				BINARY_INSTR_STRINGIFY(OP_NEW_REAL, mRealNums);
 				break;
