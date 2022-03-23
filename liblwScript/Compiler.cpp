@@ -34,7 +34,7 @@ namespace lws
 			CompileStmt(s, frame);
 	}
 
-	void Compiler::CompileStmt(Stmt *stmt, Frame *frame)
+	void Compiler::CompileStmt(Stmt *stmt, Frame *frame, uint64_t breakStmtAddressOffset, uint64_t continueStmtAddressOffset)
 	{
 		switch (stmt->Type())
 		{
@@ -51,13 +51,19 @@ namespace lws
 			CompileConstStmt((ConstStmt *)stmt, frame);
 			break;
 		case AST_SCOPE:
-			CompileScopeStmt((ScopeStmt *)stmt, frame);
+			CompileScopeStmt((ScopeStmt *)stmt, frame,breakStmtAddressOffset,continueStmtAddressOffset);
 			break;
 		case AST_IF:
-			CompileIfStmt((IfStmt *)stmt, frame);
+			CompileIfStmt((IfStmt *)stmt, frame,breakStmtAddressOffset,continueStmtAddressOffset);
 			break;
 		case AST_WHILE:
 			CompileWhileStmt((WhileStmt *)stmt, frame);
+			break;
+		case AST_BREAK:
+			CompileBreakStmt(breakStmtAddressOffset, frame);
+			break;
+		case AST_CONTINUE:
+			CompileContinueStmt(continueStmtAddressOffset, frame);
 			break;
 		case AST_FUNCTION:
 			CompileFunctionStmt((FunctionStmt *)stmt, frame);
@@ -72,12 +78,12 @@ namespace lws
 	void Compiler::CompileReturnStmt(ReturnStmt *stmt, Frame *frame)
 	{
 		if (stmt->expr)
-			{
-				CompileExpr(stmt->expr, frame);
-				frame->AddOpCode(OP_RETURN_OBJECT);
-			}
-			else
-				frame->AddOpCode(OP_RETURN);
+		{
+			CompileExpr(stmt->expr, frame);
+			frame->AddOpCode(OP_RETURN_OBJECT);
+		}
+		else
+			frame->AddOpCode(OP_RETURN);
 	}
 
 	void Compiler::CompileExprStmt(ExprStmt *stmt, Frame *frame)
@@ -90,9 +96,9 @@ namespace lws
 		for (auto [key, value] : stmt->variables)
 		{
 			CompileExpr(value, frame);
-			if(value->Type()==AST_LAMBDA)//for lambda expr,add the argument count to the identifier
+			if (value->Type() == AST_LAMBDA) //for lambda expr,add the argument count to the identifier
 			{
-				auto newIdentifier =new IdentifierExpr(((IdentifierExpr *)key)->literal + functionNameAndArgumentConnector +std::to_string(((LambdaExpr *)value)->parameters.size()));
+				auto newIdentifier = new IdentifierExpr(((IdentifierExpr *)key)->literal + functionNameAndArgumentConnector + std::to_string(((LambdaExpr *)value)->parameters.size()));
 				CompileExpr(newIdentifier, frame, VAR_INIT);
 			}
 			else
@@ -115,17 +121,17 @@ namespace lws
 		}
 	}
 
-	void Compiler::CompileScopeStmt(ScopeStmt *stmt, Frame *frame)
+	void Compiler::CompileScopeStmt(ScopeStmt *stmt, Frame *frame, uint64_t breakStmtAddressOffset, uint64_t continueStmtAddressOffset)
 	{
 		frame->AddOpCode(OP_ENTER_SCOPE);
 
 		for (const auto &s : stmt->stmts)
-			CompileStmt(s, frame);
+			CompileStmt(s, frame,breakStmtAddressOffset,continueStmtAddressOffset);
 
 		frame->AddOpCode(OP_EXIT_SCOPE);
 	}
 
-	void Compiler::CompileIfStmt(IfStmt *stmt, Frame *frame)
+	void Compiler::CompileIfStmt(IfStmt *stmt, Frame *frame,uint64_t breakStmtAddressOffset, uint64_t continueStmtAddressOffset)
 	{
 		CompileExpr(stmt->condition, frame);
 
@@ -133,7 +139,7 @@ namespace lws
 		uint64_t jmpIfFalseOffset = frame->AddIntNum(0);
 		frame->AddOpCode(jmpIfFalseOffset);
 
-		CompileStmt(stmt->thenBranch, frame);
+		CompileStmt(stmt->thenBranch, frame,breakStmtAddressOffset,continueStmtAddressOffset);
 
 		frame->AddOpCode(OP_JUMP);
 		uint64_t jmpOffset = frame->AddIntNum(0);
@@ -142,7 +148,7 @@ namespace lws
 		frame->mIntNums[jmpIfFalseOffset] = frame->mCodes.size() - 1;
 
 		if (stmt->elseBranch)
-			CompileStmt(stmt->elseBranch, frame);
+			CompileStmt(stmt->elseBranch, frame, breakStmtAddressOffset, continueStmtAddressOffset);
 
 		frame->mIntNums[jmpOffset] = frame->mCodes.size() - 1;
 	}
@@ -155,13 +161,24 @@ namespace lws
 		uint64_t jmpIfFalseOffset = frame->AddIntNum(0);
 		frame->AddOpCode(jmpIfFalseOffset);
 
-		CompileStmt(stmt->body, frame);
+		uint64_t offset = frame->AddIntNum(jmpAddress);
+
+		CompileStmt(stmt->body, frame, jmpIfFalseOffset, offset);
 
 		frame->AddOpCode(OP_JUMP);
-		uint64_t offset = frame->AddIntNum(jmpAddress);
 		frame->AddOpCode(offset);
 
 		frame->mIntNums[jmpIfFalseOffset] = frame->mCodes.size() - 1;
+	}
+
+	void Compiler::CompileBreakStmt(uint64_t addressOffset, Frame *frame)
+	{
+		CompileBreakAndContinueStmt(addressOffset, frame);
+	}
+
+	void Compiler::CompileContinueStmt(uint64_t addressOffset, Frame *frame)
+	{
+		CompileBreakAndContinueStmt(addressOffset, frame);
 	}
 
 	void Compiler::CompileFunctionStmt(FunctionStmt *stmt, Frame *frame)
@@ -178,7 +195,7 @@ namespace lws
 
 		functionFrame->AddOpCode(OP_EXIT_SCOPE);
 
-		frame->AddFunctionFrame(stmt->name->literal + functionNameAndArgumentConnector+std::to_string(stmt->parameters.size()), functionFrame);
+		frame->AddFunctionFrame(stmt->name->literal + functionNameAndArgumentConnector + std::to_string(stmt->parameters.size()), functionFrame);
 	}
 
 	void Compiler::CompileLambdaExpr(LambdaExpr *stmt, Frame *frame)
@@ -594,5 +611,11 @@ namespace lws
 			CompileExpr(expr->callMember, frame, FIELD_MEMBER_READ);
 		else if (state == VAR_WRITE)
 			CompileExpr(expr->callMember, frame, FIELD_MEMBER_WRITE);
+	}
+
+	void Compiler::CompileBreakAndContinueStmt(uint64_t addressOffset, Frame *frame)
+	{
+		frame->AddOpCode(OP_JUMP);
+		frame->AddOpCode(addressOffset);
 	}
 }

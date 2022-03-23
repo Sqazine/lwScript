@@ -26,8 +26,6 @@ namespace lws
 		AST_LAMBDA,
 		AST_FUNCTION_CALL,
 		AST_FIELD_CALL,
-		AST_BREAK,
-		AST_CONTINUE,
 		// stmt
 		AST_LET,
 		AST_CONST,
@@ -36,6 +34,8 @@ namespace lws
 		AST_IF,
 		AST_SCOPE,
 		AST_WHILE,
+		AST_BREAK,
+		AST_CONTINUE,
 		AST_FUNCTION,
 		AST_FIELD,
 		AST_ASTSTMTS,
@@ -99,24 +99,6 @@ namespace lws
 	{
 		NullExpr();
 		~NullExpr();
-
-		std::string Stringify() override;
-		AstType Type() override;
-	};
-
-	struct BreakExpr : public Expr
-	{
-		BreakExpr();
-		~BreakExpr();
-
-		std::string Stringify() override;
-		AstType Type() override;
-	};
-
-	struct ContinueExpr : public Expr
-	{
-		ContinueExpr();
-		~ContinueExpr();
 
 		std::string Stringify() override;
 		AstType Type() override;
@@ -376,6 +358,24 @@ namespace lws
 
 		Expr *condition;
 		Stmt *body;
+	};
+
+	struct BreakStmt : public Stmt
+	{
+		BreakStmt();
+		~BreakStmt();
+
+		std::string Stringify() override;
+		AstType Type() override;
+	};
+
+	struct ContinueStmt : public Stmt
+	{
+		ContinueStmt();
+		~ContinueStmt();
+
+		std::string Stringify() override;
+		AstType Type() override;
 	};
 
 	struct FunctionStmt : public Stmt

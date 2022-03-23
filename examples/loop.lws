@@ -1,0 +1,37 @@
+let a=0;
+
+while(a<100)
+{
+    println("{}",a);
+    a=a+1;
+}
+
+// 0.000000
+//...
+//...
+//...
+// 99.000000
+
+for(a=0;a<100;a=a+1)
+{
+    println("{}",a);
+    a=a+1;
+}
+
+for(a=0;a<10;a=a+1)
+{
+    if(a==5)
+        break;
+    println("{}",a);
+}
+
+
+for(a=0;a<10;a=a+1)
+{
+    if(a==5)
+    {
+        a=a+1;
+        continue;
+    }
+    println("{}",a);
+}

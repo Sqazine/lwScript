@@ -84,8 +84,6 @@ namespace lws
 			{TOKEN_LBRACE, &Parser::ParseTableExpr},
 			{TOKEN_AMPERSAND, &Parser::ParseRefExpr},
 			{TOKEN_FUNCTION, &Parser::ParseLambdaExpr},
-			{TOKEN_CONTINUE, &Parser::ParseContinueExpr},
-			{TOKEN_BREAK, &Parser::ParseBreakExpr},
 	};
 
 	std::unordered_map<TokenType, InfixFn> Parser::mInfixFunctions =
@@ -184,6 +182,10 @@ namespace lws
 			return ParseWhileStmt();
 		else if (IsMatchCurToken(TOKEN_FOR))
 			return ParseForStmt();
+		else if(IsMatchCurToken(TOKEN_BREAK))
+			return ParseBreakStmt();
+		else if(IsMatchCurToken(TOKEN_CONTINUE))
+			return ParseContinueStmt();
 		else if (IsMatchCurToken(TOKEN_FUNCTION))
 			return ParseFunctionStmt();
 		else if (IsMatchCurToken(TOKEN_FIELD))
@@ -373,6 +375,20 @@ namespace lws
 		return scopeStmt;
 	}
 
+	Stmt *Parser::ParseBreakStmt()
+	{
+		Consume(TOKEN_BREAK, "Expect 'break' keyword.");
+		Consume(TOKEN_SEMICOLON, "Expect ';' after 'break' keyword.");
+		return new BreakStmt();
+	}
+
+	Stmt *Parser::ParseContinueStmt()
+	{
+		Consume(TOKEN_CONTINUE, "Expect 'continue' keyword");
+		Consume(TOKEN_SEMICOLON, "Expect ';' after 'continue' keyword.");
+		return new ContinueStmt();
+	}
+
 	Stmt *Parser::ParseFunctionStmt()
 	{
 		Consume(TOKEN_FUNCTION, "Expect 'function' keyword");
@@ -423,18 +439,6 @@ namespace lws
 		lambdaExpr->body = (ScopeStmt *)ParseScopeStmt();
 
 		return lambdaExpr;
-	}
-
-	Expr *Parser::ParseBreakExpr()
-	{
-		Consume(TOKEN_BREAK, "Expect 'break' keyword");
-		return new BreakExpr();
-	}
-
-	Expr *Parser::ParseContinueExpr()
-	{
-		Consume(TOKEN_CONTINUE, "Expect 'continue' keyword");
-		return new ContinueExpr();
 	}
 
 	Stmt *Parser::ParseFieldStmt()

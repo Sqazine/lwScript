@@ -28,14 +28,16 @@ namespace lws
 		void ResetStatus();
 	private:
 		void CompileAstStmts(AstStmts *stmt, Frame *frame);
-		void CompileStmt(Stmt *stmt, Frame *frame);
+		void CompileStmt(Stmt *stmt, Frame *frame, uint64_t breakStmtAddressOffset=0, uint64_t continueStmtAddressOffset=0);
 		void CompileReturnStmt(ReturnStmt *stmt, Frame *frame);
 		void CompileExprStmt(ExprStmt *stmt, Frame *frame);
 		void CompileLetStmt(LetStmt *stmt, Frame *frame);
 		void CompileConstStmt(ConstStmt *stmt, Frame *frame);
-		void CompileScopeStmt(ScopeStmt *stmt, Frame *frame);
-		void CompileIfStmt(IfStmt *stmt, Frame *frame);
+		void CompileScopeStmt(ScopeStmt *stmt, Frame *frame, uint64_t breakStmtAddressOffset = 0, uint64_t continueStmtAddressOffset = 0);
+		void CompileIfStmt(IfStmt *stmt, Frame *frame, uint64_t breakStmtAddressOffset = 0, uint64_t continueStmtAddressOffset = 0);
 		void CompileWhileStmt(WhileStmt *stmt, Frame *frame);
+		void CompileBreakStmt(uint64_t addressOffset, Frame *frame);
+		void CompileContinueStmt(uint64_t addressOffset, Frame *frame);
 		void CompileFunctionStmt(FunctionStmt* stmt, Frame* frame);
 		void CompileFieldStmt(FieldStmt *stmt, Frame *frame);
 
@@ -57,6 +59,8 @@ namespace lws
 		void CompileConditionExpr(ConditionExpr *expr, Frame *frame);
 		void CompileFunctionCallExpr(FunctionCallExpr *expr, Frame *frame);
 		void CompileFieldCallExpr(FieldCallExpr *expr, Frame *frame, ObjectState state = VAR_READ);
+
+		void CompileBreakAndContinueStmt(uint64_t addressOffset, Frame *frame);
 
 		Frame* mRootFrame;
 	};

@@ -83,38 +83,6 @@ namespace lws
         return AST_NULL;
     }
 
-    BreakExpr::BreakExpr()
-    {
-    }
-    BreakExpr::~BreakExpr()
-    {
-    }
-
-    std::string BreakExpr::Stringify()
-    {
-        return "break";
-    }
-    AstType BreakExpr::Type()
-    {
-        return AST_BREAK;
-    }
-
-    ContinueExpr::ContinueExpr()
-    {
-    }
-    ContinueExpr::~ContinueExpr()
-    {
-    }
-
-    std::string ContinueExpr::Stringify()
-    {
-        return "continue";
-    }
-    AstType ContinueExpr::Type()
-    {
-        return AST_CONTINUE;
-    }
-
     BoolExpr::BoolExpr()
         : value(false)
     {
@@ -630,6 +598,38 @@ namespace lws
     AstType WhileStmt::Type()
     {
         return AST_WHILE;
+    }
+
+    BreakStmt::BreakStmt()
+    {
+    }
+    BreakStmt::~BreakStmt()
+    {
+    }
+
+    std::string BreakStmt::Stringify()
+    {
+        return "break;";
+    }
+    AstType BreakStmt::Type()
+    {
+        return AST_BREAK;
+    }
+
+    ContinueStmt::ContinueStmt()
+    {
+    }
+    ContinueStmt::~ContinueStmt()
+    {
+    }
+
+    std::string ContinueStmt::Stringify()
+    {
+        return "continue;";
+    }
+    AstType ContinueStmt::Type()
+    {
+        return AST_CONTINUE;
     }
 
     FunctionStmt::FunctionStmt()
