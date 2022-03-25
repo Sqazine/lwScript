@@ -576,11 +576,11 @@ namespace lws
     }
 
     WhileStmt::WhileStmt()
-        : condition(nullptr), body(nullptr)
+        : condition(nullptr), body(nullptr), increment(nullptr)
     {
     }
-    WhileStmt::WhileStmt(Expr *condition, Stmt *body)
-        : condition(condition), body(body)
+    WhileStmt::WhileStmt(Expr *condition, ScopeStmt *body, ScopeStmt *increment)
+        : condition(condition), body(body), increment(increment)
     {
     }
     WhileStmt::~WhileStmt()
@@ -589,11 +589,16 @@ namespace lws
         condition = nullptr;
         delete body;
         body = nullptr;
+        delete increment;
+        increment = nullptr;
     }
 
     std::string WhileStmt::Stringify()
     {
-        return "while(" + condition->Stringify() + ")" + body->Stringify();
+        std::string result = "while(" + condition->Stringify() + "){" + body->Stringify();
+        if (increment)
+            result += increment->Stringify();
+        return result += "}";
     }
     AstType WhileStmt::Type()
     {

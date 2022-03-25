@@ -350,14 +350,15 @@ namespace lws
 	struct WhileStmt : public Stmt
 	{
 		WhileStmt();
-		WhileStmt(Expr *condition, Stmt *body);
+		WhileStmt(Expr *condition, ScopeStmt *body,ScopeStmt* increment=nullptr);
 		~WhileStmt();
 
 		std::string Stringify() override;
 		AstType Type() override;
 
 		Expr *condition;
-		Stmt *body;
+		ScopeStmt *body;
+		ScopeStmt *increment;
 	};
 
 	struct BreakStmt : public Stmt

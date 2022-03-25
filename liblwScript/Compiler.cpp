@@ -139,7 +139,7 @@ namespace lws
 		uint64_t jmpIfFalseOffset = frame->AddIntNum(0);
 		frame->AddOpCode(jmpIfFalseOffset);
 
-		CompileStmt(stmt->thenBranch, frame,breakStmtAddressOffset,continueStmtAddressOffset);
+		CompileStmt(stmt->thenBranch, frame, jmpIfFalseOffset, continueStmtAddressOffset);
 
 		frame->AddOpCode(OP_JUMP);
 		uint64_t jmpOffset = frame->AddIntNum(0);
@@ -162,8 +162,15 @@ namespace lws
 		frame->AddOpCode(jmpIfFalseOffset);
 
 		uint64_t offset = frame->AddIntNum(jmpAddress);
-
-		CompileStmt(stmt->body, frame, jmpIfFalseOffset, offset);
+		if(!stmt->increment)
+			CompileStmt(stmt->body, frame, jmpIfFalseOffset, offset);
+		else
+		{
+			uint64_t incrementPartOffset = frame->AddIntNum(0);
+			CompileStmt(stmt->body, frame, jmpIfFalseOffset, incrementPartOffset);
+			frame->mIntNums[incrementPartOffset] = frame->mCodes.size() - 1;
+			CompileStmt(stmt->increment,frame);
+		}
 
 		frame->AddOpCode(OP_JUMP);
 		frame->AddOpCode(offset);

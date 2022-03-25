@@ -182,9 +182,9 @@ namespace lws
 			return ParseWhileStmt();
 		else if (IsMatchCurToken(TOKEN_FOR))
 			return ParseForStmt();
-		else if(IsMatchCurToken(TOKEN_BREAK))
+		else if (IsMatchCurToken(TOKEN_BREAK))
 			return ParseBreakStmt();
-		else if(IsMatchCurToken(TOKEN_CONTINUE))
+		else if (IsMatchCurToken(TOKEN_CONTINUE))
 			return ParseContinueStmt();
 		else if (IsMatchCurToken(TOKEN_FUNCTION))
 			return ParseFunctionStmt();
@@ -307,10 +307,10 @@ namespace lws
 		Consume(TOKEN_RPAREN, "Expect ')' after while stmt's condition.");
 
 		if (IsMatchCurToken(TOKEN_LBRACE)) //scope stmt:while(a<10){a=a+1;}
-			whileStmt->body = ParseScopeStmt();
+			whileStmt->body = (ScopeStmt*)ParseScopeStmt();
 		else //single stmt:while(a<10) a=a+1;
 		{
-			auto scopeStmt=new ScopeStmt();
+			auto scopeStmt = new ScopeStmt();
 			scopeStmt->stmts.emplace_back(ParseStmt());
 			whileStmt->body = scopeStmt;
 		}
@@ -334,8 +334,11 @@ namespace lws
 		//			{
 		//				...
 		//			}
-		//			i=i+1;
-		//			j=j+1;
+		//			increment part:
+		//			{
+		//				i=i+1;
+		//				j=j+1;
+		//			}
 		//		}
 		//}
 		Consume(TOKEN_FOR, "Expect 'for' keyword.");
@@ -379,12 +382,15 @@ namespace lws
 			scopeStmt->stmts.emplace_back(ParseStmt());
 			whileBodyStmts.emplace_back(scopeStmt);
 		}
-		for (const auto expr : increment)
-			whileBodyStmts.emplace_back(new ExprStmt(expr));
 
 		auto whileStmt = new WhileStmt();
 		whileStmt->condition = condition;
 		whileStmt->body = new ScopeStmt(whileBodyStmts);
+
+		std::vector<Stmt *> incrementStmts;
+		for (const auto expr : increment)
+			incrementStmts.emplace_back(new ExprStmt(expr));
+		whileStmt->increment = new ScopeStmt(incrementStmts);
 
 		scopeStmt->stmts.emplace_back(whileStmt);
 
@@ -426,7 +432,7 @@ namespace lws
 			}
 		}
 		Consume(TOKEN_RPAREN, "Expect ')' after function stmt's '('");
-		
+
 		funcStmt->body = (ScopeStmt *)ParseScopeStmt();
 
 		return funcStmt;
