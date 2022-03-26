@@ -48,7 +48,7 @@ namespace lws
 		Object() : marked(false), next(nullptr) {}
 		virtual ~Object() {}
 
-		virtual std::string Stringify() = 0;
+		virtual std::wstring Stringify() = 0;
 		virtual ObjectType Type() = 0;
 		virtual void Mark() = 0;
 		virtual void UnMark() = 0;
@@ -64,7 +64,7 @@ namespace lws
 		IntNumObject(int64_t value);
 		~IntNumObject();
 
-		std::string Stringify() override;
+		std::wstring Stringify() override;
 		ObjectType Type() override;
 		void Mark() override;
 		void UnMark() override;
@@ -79,7 +79,7 @@ namespace lws
 		RealNumObject(double value);
 		~RealNumObject();
 
-		std::string Stringify() override;
+		std::wstring Stringify() override;
 		ObjectType Type() override;
 		void Mark() override;
 		void UnMark() override;
@@ -91,10 +91,10 @@ namespace lws
 	struct StrObject : public Object
 	{
 		StrObject() {}
-		StrObject(std::string_view value) : value(value) {}
+		StrObject(std::wstring_view value) : value(value) {}
 		~StrObject() {}
 
-		std::string Stringify() override { return value; }
+		std::wstring Stringify() override { return value; }
 		ObjectType Type() override { return OBJECT_STR; }
 		void Mark() override { marked = true; }
 		void UnMark() override { marked = false; }
@@ -105,7 +105,7 @@ namespace lws
 			return value == TO_STR_OBJ(other)->value;
 		}
 
-		std::string value;
+		std::wstring value;
 	};
 
 	struct BoolObject : public Object
@@ -114,7 +114,7 @@ namespace lws
 		BoolObject(bool value);
 		~BoolObject();
 
-		std::string Stringify() override;
+		std::wstring Stringify() override;
 		ObjectType Type() override;
 		void Mark() override;
 		void UnMark() override;
@@ -128,7 +128,7 @@ namespace lws
 		NullObject();
 		~NullObject();
 
-		std::string Stringify() override;
+		std::wstring Stringify() override;
 		ObjectType Type() override;
 		void Mark() override;
 		void UnMark() override;
@@ -141,7 +141,7 @@ namespace lws
 		ArrayObject(const std::vector<Object *> &elements);
 		~ArrayObject();
 
-		std::string Stringify() override;
+		std::wstring Stringify() override;
 		ObjectType Type() override;
 		void Mark() override;
 		void UnMark() override;
@@ -157,7 +157,7 @@ namespace lws
 		TableObject(const std::unordered_map<Object *, Object *> &elements);
 		~TableObject();
 
-		std::string Stringify() override;
+		std::wstring Stringify() override;
 		ObjectType Type() override;
 		void Mark() override;
 		void UnMark() override;
@@ -172,7 +172,7 @@ namespace lws
 		LambdaObject(int64_t frameIndex);
 		~LambdaObject();
 
-		std::string Stringify() override;
+		std::wstring Stringify() override;
 		ObjectType Type() override;
 		void Mark() override;
 		void UnMark() override;
@@ -184,37 +184,37 @@ namespace lws
 
 	struct RefObject : public Object
 	{
-		RefObject(std::string_view name, Object *index = nullptr);
+		RefObject(std::wstring_view name, Object *index = nullptr);
 		~RefObject();
 
-		std::string Stringify() override;
+		std::wstring Stringify() override;
 		ObjectType Type() override;
 		void Mark() override;
 		void UnMark() override;
 		bool IsEqualTo(Object *other) override;
 
-		std::string name;
+		std::wstring name;
 		Object *index;
 	};
 	struct FieldObject : public Object
 	{
 		FieldObject();
-		FieldObject(std::string_view name,
-					const std::unordered_map<std::string, Object *> &members,
-					const std::vector<std::pair<std::string, FieldObject *>> &containedFields = {});
+		FieldObject(std::wstring_view name,
+					const std::unordered_map<std::wstring, Object *> &members,
+					const std::vector<std::pair<std::wstring, FieldObject *>> &containedFields = {});
 		~FieldObject();
 
-		std::string Stringify() override;
+		std::wstring Stringify() override;
 		ObjectType Type() override;
 		void Mark() override;
 		void UnMark() override;
 		bool IsEqualTo(Object *other) override;
 
-		void AssignMemberByName(std::string_view name, Object *value);
-		Object *GetMemberByName(std::string_view name);
+		void AssignMemberByName(std::wstring_view name, Object *value);
+		Object *GetMemberByName(std::wstring_view name);
 
-		std::string name;
-		std::unordered_map<std::string, Object *> members;
-		std::vector<std::pair<std::string, FieldObject *>> containedFields;
+		std::wstring name;
+		std::unordered_map<std::wstring, Object *> members;
+		std::vector<std::pair<std::wstring, FieldObject *>> containedFields;
 	};
 }

@@ -31,19 +31,19 @@ namespace lws
 
 		RealNumObject *CreateRealNumObject(double value = 0.0);
 		IntNumObject *CreateIntNumObject(int64_t value = 0);
-		StrObject *CreateStrObject(std::string_view value = "");
+		StrObject *CreateStrObject(std::wstring_view value = L"");
 		BoolObject *CreateBoolObject(bool value = false);
 		NullObject *CreateNullObject();
 		ArrayObject *CreateArrayObject(const std::vector<Object *> &elements = {});
 		TableObject *CreateTableObject(const std::unordered_map<Object *, Object *> &elements = {});
-		FieldObject *CreateFieldObject(std::string_view name, const std::unordered_map<std::string, Object *> &members, const std::vector<std::pair<std::string, FieldObject*>>& containedFields = {});
+		FieldObject *CreateFieldObject(std::wstring_view name, const std::unordered_map<std::wstring, Object *> &members, const std::vector<std::pair<std::wstring, FieldObject*>>& containedFields = {});
 		LambdaObject *CreateLambdaObject(int64_t frameIdx);
-		RefObject *CreateRefObject(std::string_view name,Object* index=nullptr);
+		RefObject *CreateRefObject(std::wstring_view name,Object* index=nullptr);
 
 		void Gc();
 
-		std::function<Object *(std::vector<Object *>)> GetNativeFunction(std::string_view fnName);
-		bool HasNativeFunction(std::string_view name);
+		std::function<Object *(std::vector<Object *>)> GetNativeFunction(std::wstring_view fnName);
+		bool HasNativeFunction(std::wstring_view name);
 
 		void PushObject(Object *object);
 		Object *PopObject();

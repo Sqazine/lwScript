@@ -98,7 +98,7 @@ namespace lws
 			CompileExpr(value, frame);
 			if (value->Type() == AST_LAMBDA) //for lambda expr,add the argument count to the identifier
 			{
-				auto newIdentifier = new IdentifierExpr(((IdentifierExpr *)key)->literal + functionNameAndArgumentConnector + std::to_string(((LambdaExpr *)value)->parameters.size()));
+				auto newIdentifier = new IdentifierExpr(((IdentifierExpr *)key)->literal + functionNameAndArgumentConnector + std::to_wstring(((LambdaExpr *)value)->parameters.size()));
 				CompileExpr(newIdentifier, frame, VAR_INIT);
 			}
 			else
@@ -113,7 +113,7 @@ namespace lws
 			CompileExpr(value, frame);
 			if (value->Type() == AST_LAMBDA) //for lambda expr,add the argument count to the identifier
 			{
-				auto newIdentifier = new IdentifierExpr(((IdentifierExpr *)key)->literal + functionNameAndArgumentConnector + std::to_string(((LambdaExpr *)value)->parameters.size()));
+				auto newIdentifier = new IdentifierExpr(((IdentifierExpr *)key)->literal + functionNameAndArgumentConnector + std::to_wstring(((LambdaExpr *)value)->parameters.size()));
 				CompileExpr(newIdentifier, frame, CONST_INIT);
 			}
 			else
@@ -202,7 +202,7 @@ namespace lws
 
 		functionFrame->AddOpCode(OP_EXIT_SCOPE);
 
-		frame->AddFunctionFrame(stmt->name->literal + functionNameAndArgumentConnector + std::to_string(stmt->parameters.size()), functionFrame);
+		frame->AddFunctionFrame(stmt->name->literal + functionNameAndArgumentConnector + std::to_wstring(stmt->parameters.size()), functionFrame);
 	}
 
 	void Compiler::CompileLambdaExpr(LambdaExpr *stmt, Frame *frame)
@@ -241,14 +241,14 @@ namespace lws
 		{
 			for (auto &variable : letStmt->variables)
 				if (variable.second->Type() == AST_LAMBDA)
-					((LambdaExpr *)variable.second)->parameters.emplace_back(new IdentifierExpr("this")); //add 'this' parameter for field lambda function
+					((LambdaExpr *)variable.second)->parameters.emplace_back(new IdentifierExpr(L"this")); //add 'this' parameter for field lambda function
 
 			CompileLetStmt(letStmt, fieldFrame);
 		}
 
 		for (const auto &functionStmt : stmt->fnStmts)
 		{
-			functionStmt->parameters.emplace_back(new IdentifierExpr("this")); //regisiter field instance to function
+			functionStmt->parameters.emplace_back(new IdentifierExpr(L"this")); //regisiter field instance to function
 
 			CompileFunctionStmt(functionStmt, fieldFrame);
 		}
@@ -419,20 +419,20 @@ namespace lws
 	void Compiler::CompilePrefixExpr(PrefixExpr *expr, Frame *frame)
 	{
 		CompileExpr(expr->right, frame);
-		if (expr->op == "-")
+		if (expr->op == L"-")
 			frame->AddOpCode(OP_NEG);
-		else if (expr->op == "~")
+		else if (expr->op == L"~")
 			frame->AddOpCode(OP_BIT_NOT);
-		else if (expr->op == "!")
+		else if (expr->op == L"!")
 			frame->AddOpCode(OP_NOT);
 	}
 
 	void Compiler::CompileInfixExpr(InfixExpr *expr, Frame *frame)
 	{
-		if (expr->op == "=")
+		if (expr->op == L"=")
 		{
 			CompileExpr(expr->right, frame);
-			if (expr->right->Type() == AST_INFIX && ((InfixExpr *)expr->right)->op == "=") //continuous assignment such as a=b=c;
+			if (expr->right->Type() == AST_INFIX && ((InfixExpr *)expr->right)->op == L"=") //continuous assignment such as a=b=c;
 				CompileExpr(((InfixExpr *)expr->right)->left, frame);
 
 			CompileExpr(expr->left, frame, VAR_WRITE);
@@ -442,98 +442,98 @@ namespace lws
 			CompileExpr(expr->right, frame);
 			CompileExpr(expr->left, frame);
 
-			if (expr->op == "+")
+			if (expr->op == L"+")
 				frame->AddOpCode(OP_ADD);
-			else if (expr->op == "-")
+			else if (expr->op == L"-")
 				frame->AddOpCode(OP_SUB);
-			else if (expr->op == "*")
+			else if (expr->op == L"*")
 				frame->AddOpCode(OP_MUL);
-			else if (expr->op == "/")
+			else if (expr->op == L"/")
 				frame->AddOpCode(OP_DIV);
-			else if (expr->op == "%")
+			else if (expr->op == L"%")
 				frame->AddOpCode(OP_MOD);
-			else if (expr->op == "&")
+			else if (expr->op == L"&")
 				frame->AddOpCode(OP_BIT_AND);
-			else if (expr->op == "|")
+			else if (expr->op == L"|")
 				frame->AddOpCode(OP_BIT_OR);
-			else if (expr->op == "^")
+			else if (expr->op == L"^")
 				frame->AddOpCode(OP_BIT_XOR);
-			else if (expr->op == "&&")
+			else if (expr->op == L"&&")
 				frame->AddOpCode(OP_AND);
-			else if (expr->op == "||")
+			else if (expr->op == L"||")
 				frame->AddOpCode(OP_OR);
-			else if (expr->op == ">")
+			else if (expr->op == L">")
 				frame->AddOpCode(OP_GREATER);
-			else if (expr->op == "<")
+			else if (expr->op == L"<")
 				frame->AddOpCode(OP_LESS);
-			else if (expr->op == ">=")
+			else if (expr->op == L">=")
 			{
 				frame->AddOpCode(OP_LESS);
 				frame->AddOpCode(OP_NOT);
 			}
-			else if (expr->op == "<=")
+			else if (expr->op == L"<=")
 			{
 				frame->AddOpCode(OP_GREATER);
 				frame->AddOpCode(OP_NOT);
 			}
-			else if (expr->op == "==")
+			else if (expr->op == L"==")
 				frame->AddOpCode(OP_EQUAL);
-			else if (expr->op == "!=")
+			else if (expr->op == L"!=")
 			{
 				frame->AddOpCode(OP_EQUAL);
 				frame->AddOpCode(OP_NOT);
 			}
-			else if (expr->op == "<<")
+			else if (expr->op == L"<<")
 				frame->AddOpCode(OP_BIT_LEFT_SHIFT);
-			else if (expr->op == ">>")
+			else if (expr->op == L">>")
 				frame->AddOpCode(OP_BIT_RIGHT_SHIFT);
-			else if (expr->op == "+=")
+			else if (expr->op == L"+=")
 			{
 				frame->AddOpCode(OP_ADD);
 				CompileExpr(expr->left, frame, VAR_WRITE);
 			}
-			else if (expr->op == "-=")
+			else if (expr->op == L"-=")
 			{
 				frame->AddOpCode(OP_SUB);
 				CompileExpr(expr->left, frame, VAR_WRITE);
 			}
-			else if (expr->op == "*=")
+			else if (expr->op == L"*=")
 			{
 				frame->AddOpCode(OP_MUL);
 				CompileExpr(expr->left, frame, VAR_WRITE);
 			}
-			else if (expr->op == "/=")
+			else if (expr->op == L"/=")
 			{
 				frame->AddOpCode(OP_DIV);
 				CompileExpr(expr->left, frame, VAR_WRITE);
 			}
-			else if (expr->op == "&=")
+			else if (expr->op == L"&=")
 			{
 				frame->AddOpCode(OP_BIT_AND);
 				CompileExpr(expr->left, frame, VAR_WRITE);
 			}
-			else if (expr->op == "|=")
+			else if (expr->op == L"|=")
 			{
 				frame->AddOpCode(OP_BIT_OR);
 				CompileExpr(expr->left, frame, VAR_WRITE);
 			}
-			else if (expr->op == "^=")
+			else if (expr->op == L"^=")
 			{
 				frame->AddOpCode(OP_BIT_XOR);
 				CompileExpr(expr->left, frame, VAR_WRITE);
 			}
-			else if (expr->op == "<<=")
+			else if (expr->op == L"<<=")
 			{
 				frame->AddOpCode(OP_BIT_LEFT_SHIFT);
 				CompileExpr(expr->left, frame, VAR_WRITE);
 			}
-			else if (expr->op == ">>=")
+			else if (expr->op == L">>=")
 			{
 				frame->AddOpCode(OP_BIT_RIGHT_SHIFT);
 				CompileExpr(expr->left, frame, VAR_WRITE);
 			}
 			else
-				Assert("Unknown binary op:" + expr->op);
+				Assert(L"Unknown binary op:" + expr->op);
 		}
 	}
 
@@ -549,13 +549,13 @@ namespace lws
 		{
 			CompileExpr(((IndexExpr *)expr->refExpr)->index, frame);
 			if (((IndexExpr *)expr->refExpr)->ds->Type() != AST_IDENTIFIER)
-				Assert("Invalid reference object,only left value can be referenced.");
+				Assert(L"Invalid reference object,only left value can be referenced.");
 			frame->AddOpCode(OP_REF_INDEX);
 			size_t offset = frame->AddString(((IdentifierExpr *)(((IndexExpr *)expr->refExpr)->ds))->literal);
 			frame->AddOpCode(offset);
 		}
 		else
-			Assert("Invalid reference object.");
+			Assert(L"Invalid reference object.");
 	}
 
 	void Compiler::CompileConditionExpr(ConditionExpr *expr, Frame *frame)
@@ -586,7 +586,7 @@ namespace lws
 
 		if (expr->name->Type() == AST_IDENTIFIER && !LibraryManager::HasNativeFunction(((IdentifierExpr *)expr->name)->literal))
 		{
-			IdentifierExpr *tmpIden = new IdentifierExpr(((IdentifierExpr *)expr->name)->literal + functionNameAndArgumentConnector + std::to_string(expr->arguments.size()));
+			IdentifierExpr *tmpIden = new IdentifierExpr(((IdentifierExpr *)expr->name)->literal + functionNameAndArgumentConnector + std::to_wstring(expr->arguments.size()));
 			CompileExpr(tmpIden, frame, FUNCTION_READ);
 		}
 		else if (expr->name->Type() == AST_FIELD_CALL)
@@ -598,7 +598,7 @@ namespace lws
 			if (fieldCallExpr->callMember->Type() == AST_FIELD_CALL) //continuous field call such as a.b.c;
 				CompileExpr(((FieldCallExpr *)fieldCallExpr->callMember)->callee, frame, FIELD_MEMBER_READ);
 
-			IdentifierExpr *tmpIden = new IdentifierExpr(((IdentifierExpr *)fieldCallExpr->callMember)->literal + functionNameAndArgumentConnector + std::to_string(expr->arguments.size()));
+			IdentifierExpr *tmpIden = new IdentifierExpr(((IdentifierExpr *)fieldCallExpr->callMember)->literal + functionNameAndArgumentConnector + std::to_wstring(expr->arguments.size()));
 			CompileExpr(tmpIden, frame, FIELD_FUNCTION_READ);
 		}
 		else

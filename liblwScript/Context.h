@@ -22,10 +22,10 @@ namespace lws
         Context(Context *upContext);
         ~Context();
 
-        void DefineVariableByName(std::string_view name, ObjectDescType objDescType, struct Object *value);
-        void DefineVariableByName(std::string_view name, const ObjectDesc& objectDesc);
-        void AssignVariableByName(std::string_view name, struct Object *value);
-        struct Object *GetVariableByName(std::string_view name);
+        void DefineVariableByName(std::wstring_view name, ObjectDescType objDescType, struct Object *value);
+        void DefineVariableByName(std::wstring_view name, const ObjectDesc& objectDesc);
+        void AssignVariableByName(std::wstring_view name, struct Object *value);
+        struct Object *GetVariableByName(std::wstring_view name);
 
         Context *GetUpContext();
         void SetUpContext(Context *env);
@@ -33,7 +33,7 @@ namespace lws
         friend class VM;
         friend struct FieldObject;
 
-        std::unordered_map<std::string, ObjectDesc> mValues;
+        std::unordered_map<std::wstring, ObjectDesc> mValues;
         Context *mUpContext;
     };
 }

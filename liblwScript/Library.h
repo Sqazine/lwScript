@@ -10,12 +10,12 @@ namespace lws
         Library(class VM *vm);
         ~Library();
 
-        virtual void AddNativeFunction(std::string_view name, std::function<Object *(std::vector<Object *>)> fn);
-        virtual std::function<Object *(std::vector<Object *>)> GetNativeFunction(std::string_view fnName);
-        virtual bool HasNativeFunction(std::string_view name);
+        virtual void AddNativeFunction(std::wstring_view name, std::function<Object *(std::vector<Object *>)> fn);
+        virtual std::function<Object *(std::vector<Object *>)> GetNativeFunction(std::wstring_view fnName);
+        virtual bool HasNativeFunction(std::wstring_view name);
 
     protected:
-        std::unordered_map<std::string, std::function<Object *(std::vector<Object *>)>> mNativeFunctions;
+        std::unordered_map<std::wstring, std::function<Object *(std::vector<Object *>)>> mNativeFunctions;
         class VM *mVMHandle;
     };
   
@@ -40,11 +40,11 @@ namespace lws
     class LibraryManager
     {
     public:
-         static void RegisterLibrary(std::string_view name,Library* lib);
-         static bool HasNativeFunction(std::string_view name);
+         static void RegisterLibrary(std::wstring_view name,Library* lib);
+         static bool HasNativeFunction(std::wstring_view name);
     private:
         LibraryManager() {}
         friend class VM;
-        static std::unordered_map<std::string,Library*> mLibraries;
+        static std::unordered_map<std::wstring,Library*> mLibraries;
     };
 }

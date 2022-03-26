@@ -8,11 +8,11 @@ namespace lws
 	Context::Context(Context *upContext) : mUpContext(upContext) {}
 	Context::~Context() {}
 
-	void Context::DefineVariableByName(std::string_view name, ObjectDescType objDescType, Object *value)
+	void Context::DefineVariableByName(std::wstring_view name, ObjectDescType objDescType, Object *value)
 	{
 		auto iter = mValues.find(name.data());
 		if (iter != mValues.end())
-			Assert("Redefined variable:(" + std::string(name) + ") in current context.");
+			Assert(L"Redefined variable:(" + std::wstring(name) + L") in current context.");
 		else
 		{
 			ObjectDesc desc;
@@ -23,16 +23,16 @@ namespace lws
 		}
 	}
 
-	void Context::DefineVariableByName(std::string_view name, const ObjectDesc &objectDesc)
+	void Context::DefineVariableByName(std::wstring_view name, const ObjectDesc &objectDesc)
 	{
 		auto iter = mValues.find(name.data());
 		if (iter != mValues.end())
-			Assert("Redefined variable:(" + std::string(name) + ") in current context.");
+			Assert(L"Redefined variable:(" + std::wstring(name) + L") in current context.");
 		else
 			mValues[name.data()] = objectDesc;
 	}
 
-	void Context::AssignVariableByName(std::string_view name, Object *value)
+	void Context::AssignVariableByName(std::wstring_view name, Object *value)
 	{
 		auto iter = mValues.find(name.data());
 		if (iter != mValues.end())
@@ -40,15 +40,15 @@ namespace lws
 			if (iter->second.type != ObjectDescType::CONST)
 				mValues[name.data()].object = value;
 			else
-				Assert("const variable:(" + std::string(name) + ") cannot be assigned");
+				Assert(L"const variable:(" + std::wstring(name) + L") cannot be assigned");
 		}
 		else if (mUpContext != nullptr)
 			mUpContext->AssignVariableByName(name, value);
 		else
-			Assert("Undefine variable:(" + std::string(name) + ") in current context");
+			Assert(L"Undefine variable:(" + std::wstring(name) + L") in current context");
 	}
 
-	Object *Context::GetVariableByName(std::string_view name)
+	Object *Context::GetVariableByName(std::wstring_view name)
 	{
 		auto iter = mValues.find(name.data());
 		if (iter != mValues.end())

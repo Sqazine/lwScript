@@ -79,15 +79,15 @@ namespace lws
 
 	struct Token
 	{
-		Token(TokenType type, std::string_view literal, uint64_t line) : type(type), literal(literal), line(line) {}
+		Token(TokenType type, std::wstring_view literal, uint64_t line) : type(type), literal(literal), line(line) {}
 
 		TokenType type;
-		std::string literal;
+		std::wstring literal;
 		uint64_t line;
 	};
 
-	inline std::ostream &operator<<(std::ostream &stream, const Token &token)
+	inline std::wostream &operator<<(std::wostream &stream, const Token &token)
 	{
-		return stream << token.literal << "," << token.line;
+		return stream << token.literal << L"," << token.line;
 	}
 }

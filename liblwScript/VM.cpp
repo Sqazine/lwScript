@@ -7,9 +7,9 @@ namespace lws
 		: mContext(nullptr)
 	{
 		ResetStatus();
-		LibraryManager::RegisterLibrary("IO", new IO(this));
-		LibraryManager::RegisterLibrary("DataStructure", new DataStructure(this));
-		LibraryManager::RegisterLibrary("Memory", new Memory(this));
+		LibraryManager::RegisterLibrary(L"IO", new IO(this));
+		LibraryManager::RegisterLibrary(L"DataStructure", new DataStructure(this));
+		LibraryManager::RegisterLibrary(L"Memory", new Memory(this));
 	}
 	VM::~VM()
 	{
@@ -55,7 +55,7 @@ namespace lws
 		return object;
 	}
 
-	StrObject *VM::CreateStrObject(std::string_view value)
+	StrObject *VM::CreateStrObject(std::wstring_view value)
 	{
 		if (curObjCount == maxObjCount)
 			Gc();
@@ -133,7 +133,7 @@ namespace lws
 		return object;
 	}
 
-	FieldObject *VM::CreateFieldObject(std::string_view name, const std::unordered_map<std::string, Object *> &members, const std::vector<std::pair<std::string, FieldObject *>> &containedFields)
+	FieldObject *VM::CreateFieldObject(std::wstring_view name, const std::unordered_map<std::wstring, Object *> &members, const std::vector<std::pair<std::wstring, FieldObject *>> &containedFields)
 	{
 		if (curObjCount == maxObjCount)
 			Gc();
@@ -165,7 +165,7 @@ namespace lws
 		return object;
 	}
 
-	RefObject *VM::CreateRefObject(std::string_view name, Object *index)
+	RefObject *VM::CreateRefObject(std::wstring_view name, Object *index)
 	{
 		if (curObjCount == maxObjCount)
 			Gc();
@@ -198,7 +198,7 @@ namespace lws
 		else if (IS_REAL_OBJ(right) && IS_REAL_OBJ(left))                                           \
 			PushObject(CreateRealNumObject(TO_REAL_OBJ(left)->value op TO_REAL_OBJ(right)->value)); \
 		else                                                                                        \
-			Assert("Invalid binary op:" + left->Stringify() + (#op) + right->Stringify());          \
+			Assert(L"Invalid binary op:" + left->Stringify() + (L#op) + right->Stringify());          \
 	} while (0);
 
 // & | % << >>
@@ -210,7 +210,7 @@ namespace lws
 		if (IS_INT_OBJ(right) && IS_INT_OBJ(left))                                               \
 			PushObject(CreateIntNumObject(TO_INT_OBJ(left)->value op TO_INT_OBJ(right)->value)); \
 		else                                                                                     \
-			Assert("Invalid binary op:" + left->Stringify() + (#op) + right->Stringify());       \
+			Assert(L"Invalid binary op:" + left->Stringify() + (L#op) + right->Stringify());       \
 	} while (0);
 
 // > >= < <=
@@ -240,7 +240,7 @@ namespace lws
 		if (IS_BOOL_OBJ(right) && IS_BOOL_OBJ(left))                                                                                   \
 			PushObject(((BoolObject *)left)->value op((BoolObject *)right)->value ? CreateBoolObject(true) : CreateBoolObject(false)); \
 		else                                                                                                                           \
-			Assert("Invalid op:" + left->Stringify() + (#op) + right->Stringify());                                                    \
+			Assert(L"Invalid op:" + left->Stringify() + (L#op) + right->Stringify());                                                    \
 	} while (0);
 
 		for (size_t ip = 0; ip < frame->mCodes.size(); ++ip)
@@ -292,7 +292,7 @@ namespace lws
 				else if (IS_INT_OBJ(object))
 					PushObject(CreateIntNumObject(-TO_INT_OBJ(object)->value));
 				else
-					Assert("Invalid op:'-'" + object->Stringify());
+					Assert(L"Invalid op:'-'" + object->Stringify());
 				break;
 			}
 			case OP_NOT:
@@ -301,7 +301,7 @@ namespace lws
 				if (IS_BOOL_OBJ(object))
 					PushObject(CreateBoolObject(!TO_BOOL_OBJ(object)->value));
 				else
-					Assert("Invalid op:'!'" + object->Stringify());
+					Assert(L"Invalid op:'!'" + object->Stringify());
 				break;
 			}
 			case OP_ADD:
@@ -334,7 +334,7 @@ namespace lws
 				if (IS_INT_OBJ(object))
 					PushObject(CreateIntNumObject(~TO_INT_OBJ(object)->value));
 				else
-					Assert("Invalid op:'~'" + object->Stringify());
+					Assert(L"Invalid op:'~'" + object->Stringify());
 				break;
 			}
 			case OP_BIT_LEFT_SHIFT:
@@ -376,7 +376,7 @@ namespace lws
 			}
 			case OP_SET_VAR:
 			{
-				std::string name = frame->mStrings[frame->mCodes[++ip]];
+				std::wstring name = frame->mStrings[frame->mCodes[++ip]];
 
 				Object *value = PopObject();
 				Object *variable = mContext->GetVariableByName(name);
@@ -394,12 +394,12 @@ namespace lws
 						{
 							ArrayObject *arrayObject = TO_ARRAY_OBJ(variable);
 							if (!IS_INT_OBJ(index))
-								Assert("Invalid index op.The index type of the array object must ba a int num type,but got:" + index->Stringify());
+								Assert(L"Invalid index op.The index type of the array object must ba a int num type,but got:" + index->Stringify());
 
 							int64_t iIndex = TO_INT_OBJ(index)->value;
 
 							if (iIndex < 0 || iIndex >= (int64_t)arrayObject->elements.size())
-								Assert("Index out of array range,array size:" + std::to_string(arrayObject->elements.size()) + ",index:" + std::to_string(iIndex));
+								Assert(L"Index out of array range,array size:" + std::to_wstring(arrayObject->elements.size()) + L",index:" + std::to_wstring(iIndex));
 
 							arrayObject->elements[iIndex] = value;
 						}
@@ -418,7 +418,7 @@ namespace lws
 								tableObject->elements[index] = value;
 						}
 						else
-							Assert("Invalid index op.The indexed object isn't a array object or a table object:" + index->Stringify());
+							Assert(L"Invalid index op.The indexed object isn't a array object or a table object:" + index->Stringify());
 					}
 				}
 				else
@@ -427,7 +427,7 @@ namespace lws
 			}
 			case OP_GET_VAR:
 			{
-				std::string name = frame->mStrings[frame->mCodes[++ip]];
+				std::wstring name = frame->mStrings[frame->mCodes[++ip]];
 
 				Object *varObject = mContext->GetVariableByName(name);
 
@@ -437,7 +437,7 @@ namespace lws
 					if (frame->HasFieldFrame(name))
 						PushObject(Execute(frame->GetFieldFrame(name)));
 					else
-						Assert("No field declaration:" + name);
+						Assert(L"No field declaration:" + name);
 				}
 				else if (IS_REF_OBJ(varObject))
 				{
@@ -453,12 +453,12 @@ namespace lws
 						{
 							ArrayObject *arrayObject = TO_ARRAY_OBJ(varObject);
 							if (!IS_INT_OBJ(index))
-								Assert("Invalid index op.The index type of the array object must ba a int num type,but got:" + index->Stringify());
+								Assert(L"Invalid index op.The index type of the array object must ba a int num type,but got:" + index->Stringify());
 
 							int64_t iIndex = (int64_t)TO_INT_OBJ(index)->value;
 
 							if (iIndex < 0 || iIndex >= (int64_t)arrayObject->elements.size())
-								Assert("Index out of array range,array size:" + std::to_string(arrayObject->elements.size()) + ",index:" + std::to_string(iIndex));
+								Assert(L"Index out of array range,array size:" + std::to_wstring(arrayObject->elements.size()) + L",index:" + std::to_wstring(iIndex));
 
 							PushObject(arrayObject->elements[iIndex]);
 						}
@@ -478,7 +478,7 @@ namespace lws
 								PushObject(CreateNullObject());
 						}
 						else
-							Assert("Invalid index op.The indexed object isn't a array object or a table object:" + index->Stringify());
+							Assert(L"Invalid index op.The indexed object isn't a array object or a table object:" + index->Stringify());
 					}
 				}
 				else
@@ -509,15 +509,15 @@ namespace lws
 			}
 			case OP_NEW_FIELD:
 			{
-				std::string name = frame->mStrings[frame->mCodes[++ip]];
+				std::wstring name = frame->mStrings[frame->mCodes[++ip]];
 
-				std::unordered_map<std::string, Object *> members;
-				std::vector<std::pair<std::string, FieldObject *>> containedFields;
+				std::unordered_map<std::wstring, Object *> members;
+				std::vector<std::pair<std::wstring, FieldObject *>> containedFields;
 
 				for (auto value : mContext->mValues)
 				{
 					if (value.first.find_first_of(containedFieldPrefixID) == 0 && IS_FIELD_OBJ(value.second.object))
-						containedFields.emplace_back(std::make_pair(value.first.substr(strlen(containedFieldPrefixID)), TO_FIELD_OBJ(value.second.object)));
+						containedFields.emplace_back(std::make_pair(value.first.substr(wcslen(containedFieldPrefixID)), TO_FIELD_OBJ(value.second.object)));
 					else
 						members[value.first] = value.second.object;
 				}
@@ -533,12 +533,12 @@ namespace lws
 				{
 					ArrayObject *arrayObject = TO_ARRAY_OBJ(object);
 					if (!IS_INT_OBJ(index))
-						Assert("Invalid index op.The index type of the array object must ba a int num type,but got:" + index->Stringify());
+						Assert(L"Invalid index op.The index type of the array object must ba a int num type,but got:" + index->Stringify());
 
 					int64_t iIndex = (int64_t)TO_INT_OBJ(index)->value;
 
 					if (iIndex < 0 || iIndex >= (int64_t)arrayObject->elements.size())
-						Assert("Index out of array range,array size:" + std::to_string(arrayObject->elements.size()) + ",index:" + std::to_string(iIndex));
+						Assert(L"Index out of array range,array size:" + std::to_wstring(arrayObject->elements.size()) + L",index:" + std::to_wstring(iIndex));
 
 					PushObject(arrayObject->elements[iIndex]);
 				}
@@ -558,7 +558,7 @@ namespace lws
 						PushObject(CreateNullObject());
 				}
 				else
-					Assert("Invalid index op.The indexed object isn't a array object or a table object:" + object->Stringify());
+					Assert(L"Invalid index op.The indexed object isn't a array object or a table object:" + object->Stringify());
 				break;
 			}
 			case OP_SET_INDEX_VAR:
@@ -571,12 +571,12 @@ namespace lws
 				{
 					ArrayObject *arrayObject = TO_ARRAY_OBJ(object);
 					if (!IS_INT_OBJ(index))
-						Assert("Invalid index op.The index type of the array object must ba a int num type,but got:" + index->Stringify());
+						Assert(L"Invalid index op.The index type of the array object must ba a int num type,but got:" + index->Stringify());
 
 					int64_t iIndex = TO_INT_OBJ(index)->value;
 
 					if (iIndex < 0 || iIndex >= (int64_t)arrayObject->elements.size())
-						Assert("Index out of array range,array size:" + std::to_string(arrayObject->elements.size()) + ",index:" + std::to_string(iIndex));
+						Assert(L"Index out of array range,array size:" + std::to_wstring(arrayObject->elements.size()) + L",index:" + std::to_wstring(iIndex));
 
 					arrayObject->elements[iIndex] = assigner;
 				}
@@ -595,25 +595,25 @@ namespace lws
 						tableObject->elements[index] = assigner;
 				}
 				else
-					Assert("Invalid index op.The indexed object isn't a array object or a table object:" + object->Stringify());
+					Assert(L"Invalid index op.The indexed object isn't a array object or a table object:" + object->Stringify());
 				break;
 			}
 			case OP_GET_FIELD_VAR:
 			{
-				std::string memberName = frame->mStrings[frame->mCodes[++ip]];
+				std::wstring memberName = frame->mStrings[frame->mCodes[++ip]];
 				Object *stackTop = PopObject();
 				if (!IS_FIELD_OBJ(stackTop))
-					Assert("Not a field object of the callee of:" + memberName);
+					Assert(L"Not a field object of the callee of:" + memberName);
 				FieldObject *fieldObj = TO_FIELD_OBJ(stackTop);
 				PushObject(fieldObj->GetMemberByName(memberName));
 				break;
 			}
 			case OP_SET_FIELD_VAR:
 			{
-				std::string memberName = frame->mStrings[frame->mCodes[++ip]];
+				std::wstring memberName = frame->mStrings[frame->mCodes[++ip]];
 				Object *stackTop = PopObject();
 				if (!IS_FIELD_OBJ(stackTop))
-					Assert("Not a field object of the callee of:" + memberName);
+					Assert(L"Not a field object of the callee of:" + memberName);
 				FieldObject *fieldObj = TO_FIELD_OBJ(stackTop);
 
 				Object *assigner = PopObject();
@@ -623,18 +623,18 @@ namespace lws
 			}
 			case OP_GET_FIELD_FUNCTION:
 			{
-				std::string memberName = frame->mStrings[frame->mCodes[++ip]];
+				std::wstring memberName = frame->mStrings[frame->mCodes[++ip]];
 				Object *stackTop = PopObject();
 				if (!IS_FIELD_OBJ(stackTop))
-					Assert("Not a fleid object of the callee of:" + memberName);
+					Assert(L"Not a fleid object of the callee of:" + memberName);
 				FieldObject *fieldObj = TO_FIELD_OBJ(stackTop);
-				std::string fieldType = fieldObj->name;
+				std::wstring fieldType = fieldObj->name;
 
 				Frame *fieldFrame = nullptr;
 				if (frame->HasFieldFrame(fieldType)) //function:function add(){return 10;}
 					fieldFrame = frame->GetFieldFrame(fieldType);
 				else
-					Assert("No field declaration:" + fieldType);
+					Assert(L"No field declaration:" + fieldType);
 
 				if (fieldFrame->HasFunctionFrame(memberName))
 					PushFrame(fieldFrame->GetFunctionFrame(memberName));
@@ -642,7 +642,7 @@ namespace lws
 				{
 					Object *lambdaObject = fieldObj->GetMemberByName(memberName);
 					if (!IS_LAMBDA_OBJ(lambdaObject))
-						Assert("No lambda object:" + memberName + " in field:" + fieldType);
+						Assert(L"No lambda object:" + memberName + L" in field:" + fieldType);
 					PushFrame(fieldFrame->GetLambdaFrame(TO_LAMBDA_OBJ(lambdaObject)->frameIndex));
 				}
 				else if (!fieldObj->containedFields.empty()) //get contained fields' function
@@ -654,7 +654,7 @@ namespace lws
 						if (frame->HasFieldFrame(fieldType)) //function:function add(){return 10;}
 							fieldFrame = frame->GetFieldFrame(fieldType);
 						else
-							Assert("No field declaration:" + fieldType);
+							Assert(L"No field declaration:" + fieldType);
 
 						if (fieldFrame->HasFunctionFrame(memberName))
 						{
@@ -665,14 +665,14 @@ namespace lws
 						{
 							Object *lambdaObject = fieldObj->GetMemberByName(memberName);
 							if (!IS_LAMBDA_OBJ(lambdaObject))
-								Assert("No lambda object:" + memberName + " in field:" + fieldType);
+								Assert(L"No lambda object:" + memberName + L" in field:" + fieldType);
 							PushFrame(fieldFrame->GetLambdaFrame(TO_LAMBDA_OBJ(lambdaObject)->frameIndex));
 							break;
 						}
 					}
 				}
 				else
-					Assert("No function in field:" + memberName);
+					Assert(L"No function in field:" + memberName);
 				break;
 			}
 			case OP_ENTER_SCOPE:
@@ -704,20 +704,20 @@ namespace lws
 			}
 			case OP_GET_FUNCTION:
 			{
-				std::string fnName = frame->mStrings[frame->mCodes[++ip]];
+				std::wstring fnName = frame->mStrings[frame->mCodes[++ip]];
 				if (frame->HasFunctionFrame(fnName)) //function:function add(){return 10;}
 					PushFrame(frame->GetFunctionFrame(fnName));
 				else if (mContext->GetVariableByName(fnName) != nullptr) //lambda:let add=function(){return 10;}
 				{
 					Object *lambdaObject = mContext->GetVariableByName(fnName);
 					if (!IS_LAMBDA_OBJ(lambdaObject))
-						Assert("Not a lambda object of " + fnName);
+						Assert(L"Not a lambda object of " + fnName);
 					PushFrame(frame->GetLambdaFrame(TO_LAMBDA_OBJ(lambdaObject)->frameIndex));
 				}
 				else if (HasNativeFunction(fnName))
 					PushFrame(new NativeFunctionFrame(fnName));
 				else
-					Assert("No function:" + fnName);
+					Assert(L"No function:" + fnName);
 				break;
 			}
 			case OP_FUNCTION_CALL:
@@ -760,7 +760,7 @@ namespace lws
 				Object *falseBranch = PopObject();
 
 				if (!IS_BOOL_OBJ(condition))
-					Assert("Not a bool expr of condition expr's '?'.");
+					Assert(L"Not a bool expr of condition expr's '?'.");
 				if (TO_BOOL_OBJ(condition)->value)
 					PushObject(trueBranch);
 				else
@@ -807,14 +807,14 @@ namespace lws
 		mContext = new Context();
 	}
 
-	std::function<Object *(std::vector<Object *>)> VM::GetNativeFunction(std::string_view fnName)
+	std::function<Object *(std::vector<Object *>)> VM::GetNativeFunction(std::wstring_view fnName)
 	{
 		for (const auto lib : LibraryManager::mLibraries)
 			if (lib.second->HasNativeFunction(fnName))
 				return lib.second->GetNativeFunction(fnName);
 		return nullptr;
 	}
-	bool VM::HasNativeFunction(std::string_view name)
+	bool VM::HasNativeFunction(std::wstring_view name)
 	{
 		for (const auto lib : LibraryManager::mLibraries)
 			if (lib.second->HasNativeFunction(name))
@@ -874,7 +874,7 @@ namespace lws
 		}
 
 #ifdef _DEBUG
-		std::cout << "Collected " << objNum - curObjCount << " objects," << curObjCount << " remaining." << std::endl;
+		std::wcout << "Collected " << objNum - curObjCount << " objects," << curObjCount << " remaining." << std::endl;
 #endif
 	}
 }

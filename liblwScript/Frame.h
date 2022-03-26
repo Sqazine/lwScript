@@ -79,7 +79,7 @@ namespace lws
 		Frame(Frame *parentFrame);
 		virtual ~Frame();
 
-		std::string Stringify(int depth = 0);
+		std::wstring Stringify(int depth = 0);
 
 		void Clear();
 
@@ -93,29 +93,29 @@ namespace lws
 
 		uint64_t AddRealNum(double value);
 		uint64_t AddIntNum(int64_t value);
-		uint64_t AddString(std::string_view value);
+		uint64_t AddString(std::wstring_view value);
 
 		uint64_t AddLambdaFrame(Frame *frame);
 		Frame *GetLambdaFrame(uint64_t idx);
 		bool HasLambdaFrame(uint64_t idx);
 
-		void AddFunctionFrame(std::string_view name, Frame *frame);
-		Frame *GetFunctionFrame(std::string_view name);
-		bool HasFunctionFrame(std::string_view name);
+		void AddFunctionFrame(std::wstring_view name, Frame *frame);
+		Frame *GetFunctionFrame(std::wstring_view name);
+		bool HasFunctionFrame(std::wstring_view name);
 
-		void AddFieldFrame(std::string_view name, Frame *frame);
-		Frame *GetFieldFrame(std::string_view name);
-		bool HasFieldFrame(std::string_view name);
+		void AddFieldFrame(std::wstring_view name, Frame *frame);
+		Frame *GetFieldFrame(std::wstring_view name);
+		bool HasFieldFrame(std::wstring_view name);
 
 		std::vector<uint64_t> mCodes;
 
 		std::vector<double> mRealNums;
 		std::vector<int64_t> mIntNums;
-		std::vector<std::string> mStrings;
+		std::vector<std::wstring> mStrings;
 
 		std::vector<Frame *> mLambdaFrames;
-		std::unordered_map<std::string, Frame *> mFunctionFrames;
-		std::unordered_map<std::string, Frame *> mFieldFrames;
+		std::unordered_map<std::wstring, Frame *> mFunctionFrames;
+		std::unordered_map<std::wstring, Frame *> mFieldFrames;
 
 		Frame *mParentFrame;
 	};
@@ -123,14 +123,14 @@ namespace lws
 	class NativeFunctionFrame : public Frame
 	{
 	public:
-		NativeFunctionFrame(std::string_view name);
+		NativeFunctionFrame(std::wstring_view name);
 		~NativeFunctionFrame();
 
-		const std::string &GetName() const;
+		const std::wstring &GetName() const;
 
 		FrameType Type() override;
 
 	private:
-		std::string mNativeFuntionName;
+		std::wstring mNativeFuntionName;
 	};
 }

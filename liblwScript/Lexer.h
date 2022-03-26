@@ -14,7 +14,7 @@ namespace lws
 		Lexer();
 		~Lexer();
 
-		const std::vector<Token> &ScanTokens(std::string_view src);
+		const std::vector<Token> &ScanTokens(std::wstring_view src);
 
 	private:
 		void ResetStatus();
@@ -26,19 +26,19 @@ namespace lws
 		bool IsMatchNextChar(char c);
 		bool IsMatchNextCharAndStepOnce(char c);
 
-		char GetNextCharAndStepOnce();
-		char GetNextChar();
-		char GetCurCharAndStepOnce();
-		char GetCurChar();
+		wchar_t GetNextCharAndStepOnce();
+		wchar_t GetNextChar();
+		wchar_t GetCurCharAndStepOnce();
+		wchar_t GetCurChar();
 
 		void AddToken(TokenType type);
-		void AddToken(TokenType type, std::string_view literal);
+		void AddToken(TokenType type, std::wstring_view literal);
 
 		bool IsAtEnd();
 
-		bool IsNumber(char c);
-		bool IsLetter(char c);
-		bool IsLetterOrNumber(char c);
+		bool IsNumber(wchar_t c);
+		bool IsLetter(wchar_t c,bool isAscii);
+		bool IsLetterOrNumber(wchar_t c, bool isAscii);
 
 		void Number();
 		void Identifier();
@@ -47,7 +47,7 @@ namespace lws
 		uint64_t mStartPos;
 		uint64_t mCurPos;
 		uint64_t mLine;
-		std::string mSource;
+		std::wstring mSource;
 		std::vector<Token> mTokens;
 	};
 }

@@ -33,7 +33,7 @@ namespace lws
 		return mIntNums.size() - 1;
 	}
 
-	uint64_t Frame::AddString(std::string_view value)
+	uint64_t Frame::AddString(std::wstring_view value)
 	{
 		mStrings.emplace_back(value);
 		return mStrings.size() - 1;
@@ -82,15 +82,15 @@ namespace lws
 			return false;
 	}
 
-	void Frame::AddFunctionFrame(std::string_view name, Frame *frame)
+	void Frame::AddFunctionFrame(std::wstring_view name, Frame *frame)
 	{
 		auto iter = mFunctionFrames.find(name.data());
 		if (iter != mFunctionFrames.end())
-			Assert("Redifinition function:" + std::string(name));
+			Assert(L"Redifinition function:" + std::wstring(name));
 		mFunctionFrames[name.data()] = frame;
 	}
 
-	Frame *Frame::GetFunctionFrame(std::string_view name)
+	Frame *Frame::GetFunctionFrame(std::wstring_view name)
 	{
 		auto iter = mFunctionFrames.find(name.data());
 		if (iter != mFunctionFrames.end())
@@ -101,7 +101,7 @@ namespace lws
 			return nullptr;
 	}
 
-	bool Frame::HasFunctionFrame(std::string_view name)
+	bool Frame::HasFunctionFrame(std::wstring_view name)
 	{
 		auto iter = mFunctionFrames.find(name.data());
 		if (iter != mFunctionFrames.end())
@@ -112,29 +112,29 @@ namespace lws
 			return false;
 	}
 
-	void Frame::AddFieldFrame(std::string_view name, Frame *frame)
+	void Frame::AddFieldFrame(std::wstring_view name, Frame *frame)
 	{
 		auto iter = mFieldFrames.find(name.data());
 
 		if (iter != mFieldFrames.end())
-			Assert(std::string("Redefinition struct:") + name.data());
+			Assert(std::wstring(L"Redefinition struct:") + name.data());
 
 		mFieldFrames[name.data()] = frame;
 	}
 
-	Frame *Frame::GetFieldFrame(std::string_view name)
+	Frame *Frame::GetFieldFrame(std::wstring_view name)
 	{
 		auto iter = mFieldFrames.find(name.data());
 		if (iter != mFieldFrames.end())
 			return iter->second;
 		else if (mParentFrame != nullptr)
 			return mParentFrame->GetFieldFrame(name);
-		Assert(std::string("No function:") + name.data());
+		Assert(std::wstring(L"No function:") + name.data());
 
 		return nullptr;
 	}
 
-	bool Frame::HasFieldFrame(std::string_view name)
+	bool Frame::HasFieldFrame(std::wstring_view name)
 	{
 		auto iter = mFieldFrames.find(name.data());
 		if (iter != mFieldFrames.end())
@@ -144,19 +144,19 @@ namespace lws
 		return false;
 	}
 
-	std::string Frame::Stringify(int depth)
+	std::wstring Frame::Stringify(int depth)
 	{
-		std::string interval;
+		std::wstring interval;
 		for (size_t i = 0; i < depth; ++i)
-			interval += "\t";
+			interval += L"\t";
 
 #define UNARY_INSTR_STRINGIFY(op) \
-	result << interval << "\t" << std::setfill('0') << std::setw(8) << i << "     " << (#op) << "\n"
+	result << interval << L"\t" << std::setfill(L'0') << std::setw(8) << i << L"     " << (#op) << L"\n"
 
 #define BINARY_INSTR_STRINGIFY(op, vec) \
-	result << interval << "\t" << std::setfill('0') << std::setw(8) << i << "     " << (#op) << "     " << vec[mCodes[++i]] << "\n"
+	result << interval << L"\t" << std::setfill(L'0') << std::setw(8) << i << L"     " << (#op) << L"     " << vec[mCodes[++i]] << L"\n"
 
-		std::stringstream result;
+		std::wstringstream result;
 
 		for (auto [key, value] : mFieldFrames)
 		{
@@ -339,7 +339,7 @@ namespace lws
 		std::vector<uint64_t>().swap(mCodes);
 		std::vector<double>().swap(mRealNums);
 		std::vector<int64_t>().swap(mIntNums);
-		std::vector<std::string>().swap(mStrings);
+		std::vector<std::wstring>().swap(mStrings);
 
 		for (auto funcFrame : mLambdaFrames)
 			funcFrame->Clear();
@@ -351,8 +351,8 @@ namespace lws
 			value->Clear();
 
 		std::vector<Frame *>().swap(mLambdaFrames);
-		std::unordered_map<std::string, Frame *>().swap(mFieldFrames);
-		std::unordered_map<std::string, Frame *>().swap(mFunctionFrames);
+		std::unordered_map<std::wstring, Frame *>().swap(mFieldFrames);
+		std::unordered_map<std::wstring, Frame *>().swap(mFunctionFrames);
 		if (mParentFrame)
 			mParentFrame = nullptr;
 	}
@@ -362,7 +362,7 @@ namespace lws
 		return FrameType::NORMAL;
 	}
 
-	NativeFunctionFrame::NativeFunctionFrame(std::string_view name)
+	NativeFunctionFrame::NativeFunctionFrame(std::wstring_view name)
 		: mNativeFuntionName(name)
 	{
 	}
@@ -370,7 +370,7 @@ namespace lws
 	{
 	}
 
-	const std::string &NativeFunctionFrame::GetName() const
+	const std::wstring &NativeFunctionFrame::GetName() const
 	{
 		return mNativeFuntionName;
 	}

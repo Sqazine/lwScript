@@ -46,7 +46,7 @@ namespace lws
 		AstNode() {}
 		virtual ~AstNode() {}
 
-		virtual std::string Stringify() = 0;
+		virtual std::wstring Stringify() = 0;
 		virtual AstType Type() = 0;
 	};
 
@@ -55,7 +55,7 @@ namespace lws
 		Expr() {}
 		virtual ~Expr() {}
 
-		virtual std::string Stringify() = 0;
+		virtual std::wstring Stringify() = 0;
 		virtual AstType Type() = 0;
 	};
 
@@ -65,7 +65,7 @@ namespace lws
 		IntNumExpr(int64_t value);
 		~IntNumExpr();
 
-		std::string Stringify() override;
+		std::wstring Stringify() override;
 		AstType Type() override;
 
 		int64_t value;
@@ -77,7 +77,7 @@ namespace lws
 		RealNumExpr(double value);
 		~RealNumExpr();
 
-		std::string Stringify() override;
+		std::wstring Stringify() override;
 		AstType Type() override;
 
 		double value;
@@ -86,13 +86,13 @@ namespace lws
 	struct StrExpr : public Expr
 	{
 		StrExpr();
-		StrExpr(std::string_view str);
+		StrExpr(std::wstring_view str);
 		~StrExpr();
 
-		std::string Stringify() override;
+		std::wstring Stringify() override;
 		AstType Type() override;
 
-		std::string value;
+		std::wstring value;
 	};
 
 	struct NullExpr : public Expr
@@ -100,7 +100,7 @@ namespace lws
 		NullExpr();
 		~NullExpr();
 
-		std::string Stringify() override;
+		std::wstring Stringify() override;
 		AstType Type() override;
 	};
 
@@ -110,7 +110,7 @@ namespace lws
 		BoolExpr(bool value);
 		~BoolExpr();
 
-		std::string Stringify() override;
+		std::wstring Stringify() override;
 		AstType Type() override;
 		bool value;
 	};
@@ -118,13 +118,13 @@ namespace lws
 	struct IdentifierExpr : public Expr
 	{
 		IdentifierExpr();
-		IdentifierExpr(std::string_view literal);
+		IdentifierExpr(std::wstring_view literal);
 		~IdentifierExpr();
 
-		std::string Stringify() override;
+		std::wstring Stringify() override;
 		AstType Type() override;
 
-		std::string literal;
+		std::wstring literal;
 	};
 
 	struct ArrayExpr : public Expr
@@ -133,7 +133,7 @@ namespace lws
 		ArrayExpr(std::vector<Expr *> elements);
 		~ArrayExpr();
 
-		std::string Stringify() override;
+		std::wstring Stringify() override;
 		AstType Type() override;
 
 		std::vector<Expr *> elements;
@@ -145,7 +145,7 @@ namespace lws
 		TableExpr(std::unordered_map<Expr *, Expr *> elements);
 		~TableExpr();
 
-		std::string Stringify() override;
+		std::wstring Stringify() override;
 		AstType Type() override;
 
 		std::unordered_map<Expr *, Expr *> elements;
@@ -157,7 +157,7 @@ namespace lws
 		GroupExpr(Expr *expr);
 		~GroupExpr();
 
-		std::string Stringify() override;
+		std::wstring Stringify() override;
 		AstType Type() override;
 
 		Expr *expr;
@@ -166,26 +166,26 @@ namespace lws
 	struct PrefixExpr : public Expr
 	{
 		PrefixExpr();
-		PrefixExpr(std::string_view op, Expr *right);
+		PrefixExpr(std::wstring_view op, Expr *right);
 		~PrefixExpr();
 
-		std::string Stringify() override;
+		std::wstring Stringify() override;
 		AstType Type() override;
 
-		std::string op;
+		std::wstring op;
 		Expr *right;
 	};
 
 	struct InfixExpr : public Expr
 	{
 		InfixExpr();
-		InfixExpr(std::string_view op, Expr *left, Expr *right);
+		InfixExpr(std::wstring_view op, Expr *left, Expr *right);
 		~InfixExpr();
 
-		std::string Stringify() override;
+		std::wstring Stringify() override;
 		AstType Type() override;
 
-		std::string op;
+		std::wstring op;
 		Expr *left;
 		Expr *right;
 	};
@@ -196,7 +196,7 @@ namespace lws
 		ConditionExpr(Expr *condition, Expr *left, Expr *right);
 		~ConditionExpr();
 
-		std::string Stringify() override;
+		std::wstring Stringify() override;
 		AstType Type() override;
 
 		Expr *condition;
@@ -209,7 +209,7 @@ namespace lws
 		IndexExpr();
 		IndexExpr(Expr *ds, Expr *index);
 		~IndexExpr();
-		std::string Stringify() override;
+		std::wstring Stringify() override;
 
 		AstType Type() override;
 
@@ -223,7 +223,7 @@ namespace lws
 		RefExpr(Expr *refExpr);
 		~RefExpr();
 
-		std::string Stringify() override;
+		std::wstring Stringify() override;
 		AstType Type() override;
 
 		Expr *refExpr;
@@ -234,7 +234,7 @@ namespace lws
 		LambdaExpr();
 		LambdaExpr(std::vector<IdentifierExpr *> parameters, struct ScopeStmt *body);
 		~LambdaExpr();
-		std::string Stringify() override;
+		std::wstring Stringify() override;
 		AstType Type() override;
 
 		std::vector<IdentifierExpr *> parameters;
@@ -247,7 +247,7 @@ namespace lws
 		FunctionCallExpr(Expr *name, std::vector<Expr *> arguments);
 		~FunctionCallExpr();
 
-		std::string Stringify() override;
+		std::wstring Stringify() override;
 		AstType Type() override;
 
 		Expr *name;
@@ -260,7 +260,7 @@ namespace lws
 		FieldCallExpr(Expr *callee, Expr *callMember);
 		~FieldCallExpr();
 
-		std::string Stringify() override;
+		std::wstring Stringify() override;
 		AstType Type() override;
 
 		Expr *callee;
@@ -272,7 +272,7 @@ namespace lws
 		Stmt() {}
 		virtual ~Stmt() {}
 
-		virtual std::string Stringify() = 0;
+		virtual std::wstring Stringify() = 0;
 		virtual AstType Type() = 0;
 	};
 
@@ -281,7 +281,7 @@ namespace lws
 		ExprStmt();
 		ExprStmt(Expr *expr);
 		~ExprStmt();
-		std::string Stringify() override;
+		std::wstring Stringify() override;
 		AstType Type() override;
 
 		Expr *expr;
@@ -293,7 +293,7 @@ namespace lws
 		LetStmt(const std::unordered_map<IdentifierExpr *, Expr *> &variables);
 		~LetStmt();
 
-		std::string Stringify() override;
+		std::wstring Stringify() override;
 		AstType Type() override;
 
 		std::unordered_map<IdentifierExpr *, Expr *> variables;
@@ -305,7 +305,7 @@ namespace lws
 		ConstStmt(const std::unordered_map<IdentifierExpr *, Expr *> &consts);
 		~ConstStmt();
 
-		std::string Stringify() override;
+		std::wstring Stringify() override;
 		AstType Type() override;
 
 		std::unordered_map<IdentifierExpr *, Expr *> consts;
@@ -317,7 +317,7 @@ namespace lws
 		ReturnStmt(Expr *expr);
 		~ReturnStmt();
 
-		std::string Stringify() override;
+		std::wstring Stringify() override;
 		AstType Type() override;
 
 		Expr *expr;
@@ -329,7 +329,7 @@ namespace lws
 		IfStmt(Expr *condition, Stmt *thenBranch, Stmt *elseBranch);
 		~IfStmt();
 
-		std::string Stringify() override;
+		std::wstring Stringify() override;
 		AstType Type() override;
 		Expr *condition;
 		Stmt *thenBranch;
@@ -342,7 +342,7 @@ namespace lws
 		ScopeStmt(std::vector<Stmt *> stmts);
 		~ScopeStmt();
 
-		std::string Stringify() override;
+		std::wstring Stringify() override;
 		AstType Type() override;
 		std::vector<Stmt *> stmts;
 	};
@@ -353,7 +353,7 @@ namespace lws
 		WhileStmt(Expr *condition, ScopeStmt *body,ScopeStmt* increment=nullptr);
 		~WhileStmt();
 
-		std::string Stringify() override;
+		std::wstring Stringify() override;
 		AstType Type() override;
 
 		Expr *condition;
@@ -366,7 +366,7 @@ namespace lws
 		BreakStmt();
 		~BreakStmt();
 
-		std::string Stringify() override;
+		std::wstring Stringify() override;
 		AstType Type() override;
 	};
 
@@ -375,7 +375,7 @@ namespace lws
 		ContinueStmt();
 		~ContinueStmt();
 
-		std::string Stringify() override;
+		std::wstring Stringify() override;
 		AstType Type() override;
 	};
 
@@ -385,7 +385,7 @@ namespace lws
 		FunctionStmt(IdentifierExpr *name, std::vector<IdentifierExpr *> parameters, ScopeStmt *body);
 		~FunctionStmt();
 
-		std::string Stringify() override;
+		std::wstring Stringify() override;
 		AstType Type() override;
 
 		IdentifierExpr *name;
@@ -396,16 +396,16 @@ namespace lws
 	struct FieldStmt : public Stmt
 	{
 		FieldStmt();
-		FieldStmt(std::string name,
+		FieldStmt(std::wstring name,
 				  std::vector<LetStmt *> letStmts,
 				  std::vector<FunctionStmt *> fnStmts,
 				  std::vector<IdentifierExpr *> containedFields = {});
 		~FieldStmt();
 
-		std::string Stringify() override;
+		std::wstring Stringify() override;
 		AstType Type() override;
 
-		std::string name;
+		std::wstring name;
 		std::vector<IdentifierExpr *> containedFields;
 		std::vector<LetStmt *> letStmts;
 		std::vector<FunctionStmt *> fnStmts;
@@ -417,7 +417,7 @@ namespace lws
 		AstStmts(std::vector<Stmt *> stmts);
 		~AstStmts();
 
-		std::string Stringify() override;
+		std::wstring Stringify() override;
 		AstType Type() override;
 
 		std::vector<Stmt *> stmts;

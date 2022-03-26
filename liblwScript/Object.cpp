@@ -14,9 +14,9 @@ namespace lws
     {
     }
 
-    std::string IntNumObject::Stringify()
+    std::wstring IntNumObject::Stringify()
     {
-        return std::to_string(value);
+        return std::to_wstring(value);
     }
     ObjectType IntNumObject::Type()
     {
@@ -53,9 +53,9 @@ namespace lws
     {
     }
 
-    std::string RealNumObject::Stringify()
+    std::wstring RealNumObject::Stringify()
     {
-        return std::to_string(value);
+        return std::to_wstring(value);
     }
     ObjectType RealNumObject::Type()
     {
@@ -92,9 +92,9 @@ namespace lws
     {
     }
 
-    std::string BoolObject::Stringify()
+    std::wstring BoolObject::Stringify()
     {
-        return value ? "true" : "false";
+        return value ? L"true" : L"false";
     }
     ObjectType BoolObject::Type()
     {
@@ -126,9 +126,9 @@ namespace lws
     {
     }
 
-    std::string NullObject::Stringify()
+    std::wstring NullObject::Stringify()
     {
-        return "null";
+        return L"null";
     }
     ObjectType NullObject::Type()
     {
@@ -160,16 +160,16 @@ namespace lws
     {
     }
 
-    std::string ArrayObject::Stringify()
+    std::wstring ArrayObject::Stringify()
     {
-        std::string result = "[";
+        std::wstring result = L"[";
         if (!elements.empty())
         {
             for (const auto &e : elements)
-                result += e->Stringify() + ",";
+                result += e->Stringify() + L",";
             result = result.substr(0, result.size() - 1);
         }
-        result += "]";
+        result += L"]";
         return result;
     }
     ObjectType ArrayObject::Type()
@@ -224,16 +224,16 @@ namespace lws
         std::unordered_map<Object *, Object *>().swap(elements);
     }
 
-    std::string TableObject::Stringify()
+    std::wstring TableObject::Stringify()
     {
-        std::string result = "{";
+        std::wstring result = L"{";
         if (!elements.empty())
         {
             for (auto [key, value] : elements)
-                result += key->Stringify() + ":" + value->Stringify() + ",";
+                result += key->Stringify() + L":" + value->Stringify() + L",";
             result = result.substr(0, result.size() - 1);
         }
-        result += "}";
+        result += L"}";
         return result;
     }
     ObjectType TableObject::Type()
@@ -295,9 +295,9 @@ namespace lws
     {
     }
 
-    std::string LambdaObject::Stringify()
+    std::wstring LambdaObject::Stringify()
     {
-        return "lambda function";
+        return L"lambda function";
     }
     ObjectType LambdaObject::Type()
     {
@@ -323,7 +323,7 @@ namespace lws
         return frameIndex == TO_LAMBDA_OBJ(other)->frameIndex;
     }
 
-    RefObject::RefObject(std::string_view name, Object *index)
+    RefObject::RefObject(std::wstring_view name, Object *index)
         : name(name), index(index)
     {
     }
@@ -331,11 +331,11 @@ namespace lws
     {
     }
 
-    std::string RefObject::Stringify()
+    std::wstring RefObject::Stringify()
     {
-        std::string result = name;
+        std::wstring result = name;
         if (index)
-            result += "[" + index->Stringify() + "]";
+            result += L"[" + index->Stringify() + L"]";
         return result;
     }
     ObjectType RefObject::Type()
@@ -364,9 +364,9 @@ namespace lws
     FieldObject::FieldObject()
     {
     }
-    FieldObject::FieldObject(std::string_view name,
-                             const std::unordered_map<std::string, Object *> &members,
-                             const std::vector<std::pair<std::string, FieldObject *>> &containedFields)
+    FieldObject::FieldObject(std::wstring_view name,
+                             const std::unordered_map<std::wstring, Object *> &members,
+                             const std::vector<std::pair<std::wstring, FieldObject *>> &containedFields)
         : name(name), members(members), containedFields(containedFields)
     {
     }
@@ -374,25 +374,25 @@ namespace lws
     {
     }
 
-    std::string FieldObject::Stringify()
+    std::wstring FieldObject::Stringify()
     {
-        std::string result ="instance of field:\n"+name;
+        std::wstring result =L"instance of field:\n"+name;
 
         if (!containedFields.empty())
         {
-            result += ":";
+            result += L":";
             for (const auto &containedField : containedFields)
-                result += containedField.first + ",";
+                result += containedField.first + L",";
             result = result.substr(0, result.size() - 1);
         }
 
         if (!members.empty())
         {
-            result += "\n{\n";
+            result += L"\n{\n";
             for (const auto &[key, value] : members)
-                result += "    "+key+"\n";
+                result += L"    "+key+L"\n";
             result = result.substr(0, result.size() - 1);
-            result += "\n}";
+            result += L"\n}";
         }
         return result;
     }
@@ -435,7 +435,7 @@ namespace lws
         return true;
     }
 
-    void FieldObject::AssignMemberByName(std::string_view name, Object *value)
+    void FieldObject::AssignMemberByName(std::wstring_view name, Object *value)
     {
         auto iter = members.find(name.data());
         if (iter != members.end())
@@ -446,10 +446,10 @@ namespace lws
                 containedField.second->AssignMemberByName(name, value);
         }
         else
-            Assert("Undefined field member:" + std::string(name));
+            Assert(L"Undefined field member:" + std::wstring(name));
     }
 
-    Object *FieldObject::GetMemberByName(std::string_view name)
+    Object *FieldObject::GetMemberByName(std::wstring_view name)
     {
         auto iter = members.find(name.data()); // variables in self scope
         if (iter != members.end())

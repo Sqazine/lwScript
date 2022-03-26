@@ -1,362 +1,383 @@
 #include "Lexer.h"
 namespace lws
 {
-    struct Keyword
-    {
-        const char *name;
-        TokenType type;
-    };
+	struct Keyword
+	{
+		const wchar_t* name;
+		TokenType type;
+	};
 
-    constexpr Keyword keywords[] = {
-        {"let", TOKEN_LET},
-        {"if", TOKEN_IF},
-        {"else", TOKEN_ELSE},
-        {"true", TOKEN_TRUE},
-        {"false", TOKEN_FALSE},
-        {"null", TOKEN_NULL},
-        {"while", TOKEN_WHILE},
-        {"for", TOKEN_FOR},
-        {"fn", TOKEN_FUNCTION},
-        {"field", TOKEN_FIELD},
-        {"return", TOKEN_RETURN},
-        {"static", TOKEN_STATIC},
-        {"const", TOKEN_CONST},
-        {"break", TOKEN_BREAK},
-        {"continue", TOKEN_CONTINUE},
-    };
+	constexpr Keyword keywords[] = {
+		{L"let", TOKEN_LET},
+		{L"if", TOKEN_IF},
+		{L"else", TOKEN_ELSE},
+		{L"true", TOKEN_TRUE},
+		{L"false", TOKEN_FALSE},
+		{L"null", TOKEN_NULL},
+		{L"while", TOKEN_WHILE},
+		{L"for", TOKEN_FOR},
+		{L"fn", TOKEN_FUNCTION},
+		{L"field", TOKEN_FIELD},
+		{L"return", TOKEN_RETURN},
+		{L"static", TOKEN_STATIC},
+		{L"const", TOKEN_CONST},
+		{L"break", TOKEN_BREAK},
+		{L"continue", TOKEN_CONTINUE},
+	};
 
-    Lexer::Lexer()
-    {
-        ResetStatus();
-    }
-    Lexer::~Lexer()
-    {
-    }
+	Lexer::Lexer()
+	{
+		ResetStatus();
+	}
+	Lexer::~Lexer()
+	{
+	}
 
-    const std::vector<Token> &Lexer::ScanTokens(std::string_view src)
-    {
-        ResetStatus();
-        mSource = src;
-        while (!IsAtEnd())
-        {
-            mStartPos = mCurPos;
-            ScanToken();
-        }
+	const std::vector<Token>& Lexer::ScanTokens(std::wstring_view src)
+	{
+		ResetStatus();
+		mSource = src;
+		while (!IsAtEnd())
+		{
+			mStartPos = mCurPos;
+			ScanToken();
+		}
 
-        AddToken(TOKEN_END, "EOF");
+		AddToken(TOKEN_END, L"EOF");
 
-        return mTokens;
-    }
-    void Lexer::ScanToken()
-    {
-        char c = GetCurCharAndStepOnce();
+		return mTokens;
+	}
+	void Lexer::ScanToken()
+	{
+		std::wstring c;
 
-        switch (c)
-        {
-        case '(':
-            AddToken(TOKEN_LPAREN);
-            break;
-        case ')':
-            AddToken(TOKEN_RPAREN);
-            break;
-        case '[':
-            AddToken(TOKEN_LBRACKET);
-            break;
-        case ']':
-            AddToken(TOKEN_RBRACKET);
-            break;
-        case '{':
-            AddToken(TOKEN_LBRACE);
-            break;
-        case '}':
-            AddToken(TOKEN_RBRACE);
-            break;
-        case '.':
-            AddToken(TOKEN_DOT);
-            break;
-        case ',':
-            AddToken(TOKEN_COMMA);
-            break;
-        case ':':
-            AddToken(TOKEN_COLON);
-            break;
-        case ';':
-            AddToken(TOKEN_SEMICOLON);
-            break;
-        case '\"':
-            String();
-            break;
-        case ' ':
-        case '\t':
-        case '\r':
-            break;
-        case '\n':
-            mLine++;
-            break;
-        case '+':
-            if (IsMatchCurCharAndStepOnce('='))
-                AddToken(TOKEN_PLUS_EQUAL);
-            else
-                AddToken(TOKEN_PLUS);
-            break;
-        case '-':
-            if (IsMatchCurCharAndStepOnce('='))
-                AddToken(TOKEN_MINUS_EQUAL);
-            else
-                AddToken(TOKEN_MINUS);
-            break;
-        case '*':
-            if (IsMatchCurCharAndStepOnce('='))
-                AddToken(TOKEN_ASTERISK_EQUAL);
-            else
-                AddToken(TOKEN_ASTERISK);
-            break;
-        case '/':
-            if (IsMatchCurCharAndStepOnce('/'))
-            {
-                while (!IsMatchCurChar('\n') && !IsAtEnd())
-                    GetCurCharAndStepOnce();
-                mLine++;
-                break;
-            }
-            else if (IsMatchCurCharAndStepOnce('*'))
-            {
-                while (!IsMatchCurChar('*') && !IsMatchNextChar('/') && !IsAtEnd())
-                {
-                    if (IsMatchCurChar('\n'))
-                        mLine++;
-                    GetCurCharAndStepOnce();
-                }
-                GetCurCharAndStepOnce(); //eat '*'
-                GetCurCharAndStepOnce(); // eat '/'
-            }
-            else if (IsMatchCurCharAndStepOnce('='))
-                AddToken(TOKEN_SLASH_EQUAL);
-            else
-                AddToken(TOKEN_SLASH);
-            break;
-        case '%':
-            if (IsMatchCurCharAndStepOnce('='))
-                AddToken(TOKEN_PERCENT_EQUAL);
-            AddToken(TOKEN_PERCENT);
-            break;
-        case '~':
-            AddToken(TOKEN_TILDE);
-            break;
-        case '!':
-            if (IsMatchCurCharAndStepOnce('='))
-                AddToken(TOKEN_BANG_EQUAL);
-            else
-                AddToken(TOKEN_BANG);
-            break;
-        case '&':
-            if (IsMatchCurCharAndStepOnce('&'))
-                AddToken(TOKEN_AMPERSAND_AMPERSAND);
-            else if (IsMatchCurCharAndStepOnce('='))
-                AddToken(TOKEN_AMPERSAND_EQUAL);
-            else
-                AddToken(TOKEN_AMPERSAND);
-            break;
-        case '|':
-            if (IsMatchCurCharAndStepOnce('|'))
-                AddToken(TOKEN_VBAR_VBAR);
-            else if (IsMatchCurCharAndStepOnce('='))
-                AddToken(TOKEN_VBAR_EQUAL);
-            else
-                AddToken(TOKEN_VBAR);
-            break;
-        case '^':
-            if (IsMatchCurCharAndStepOnce('='))
-                AddToken(TOKEN_CARET_EQUAL);
-            else
-                AddToken(TOKEN_CARET);
-            break;
-        case '<':
-            if (IsMatchCurCharAndStepOnce('='))
-                AddToken(TOKEN_LESS_EQUAL);
-            else if (IsMatchCurCharAndStepOnce('<'))
-            {
-                if (IsMatchCurCharAndStepOnce('='))
-                    AddToken(TOKEN_LESS_LESS_EQUAL);
-                else
-                    AddToken(TOKEN_LESS_LESS);
-            }
-            else
-                AddToken(TOKEN_LESS);
-            break;
-        case '>':
-            if (IsMatchCurCharAndStepOnce('='))
-                AddToken(TOKEN_GREATER_EQUAL);
-            else if (IsMatchCurCharAndStepOnce('>'))
-            {
-                if (IsMatchCurCharAndStepOnce('='))
-                    AddToken(TOKEN_GREATER_GREATER_EQUAL);
-                else
-                    AddToken(TOKEN_GREATER_GREATER);
-            }
-            else
-                AddToken(TOKEN_GREATER);
-            break;
-        case '=':
-            if (IsMatchCurCharAndStepOnce('='))
-                AddToken(TOKEN_EQUAL_EQUAL);
-            else
-                AddToken(TOKEN_EQUAL);
-            break;
-        case '?':
-            AddToken(TOKEN_QUESTION);
-            break;
-        default:
-            if (IsNumber(c))
-                Number();
-            else if (IsLetter(c))
-                Identifier();
-            else
-            {
-                auto literal = mSource.substr(mStartPos, mCurPos - mStartPos);
-                std::cout << "Unknown literal:" << literal << std::endl;
-                exit(1);
-            }
-            break;
-        }
-    }
+		wchar_t ch;
+		bool isAscii = true;
+		if (!isascii(GetCurChar()))
+		{
+			ch = GetCurChar();
+			isAscii = false;
+			while (!isascii(GetCurChar()))//not a ASCII char
+			{
+				c.append(1, ch);
+				ch = GetCurCharAndStepOnce();
+			}
+		}
+		else
+		{
+			ch = GetCurCharAndStepOnce();
+			c.append(1, ch);
+		}
 
-    void Lexer::ResetStatus()
-    {
-        mStartPos = mCurPos = 0;
-        mLine = 1;
-        std::vector<Token>().swap(mTokens);
-    }
+		if (c == L"(")
+			AddToken(TOKEN_LPAREN);
+		else if (c == L")")
+			AddToken(TOKEN_RPAREN);
+		else if (c == L"[")
+			AddToken(TOKEN_LBRACKET);
+		else if (c == L"]")
+			AddToken(TOKEN_RBRACKET);
+		else if (c == L"{")
+			AddToken(TOKEN_LBRACE);
+		else if (c == L"}")
+			AddToken(TOKEN_RBRACE);
+		else if (c == L".")
+			AddToken(TOKEN_DOT);
+		else if (c == L",")
+			AddToken(TOKEN_COMMA);
+		else if (c == L":")
+			AddToken(TOKEN_COLON);
+		else if (c == L";")
+			AddToken(TOKEN_SEMICOLON);
+		else if (c == L"~")
+			AddToken(TOKEN_TILDE);
+		else if (c == L"?")
+			AddToken(TOKEN_QUESTION);
+		else if (c == L"\"")
+			String();
+		else if (c == L" " || c == L"\t" || c == L"\r")
+		{
 
-    bool Lexer::IsMatchCurChar(char c)
-    {
-        return GetCurChar() == c;
-    }
-    bool Lexer::IsMatchCurCharAndStepOnce(char c)
-    {
-        bool result = GetCurChar() == c;
-        if (result)
-            mCurPos++;
-        return result;
-    }
+		}
+		else if (c == L"\n")
+			mLine++;
+		else if (c == L"+")
+		{
+			if (IsMatchCurCharAndStepOnce('='))
+				AddToken(TOKEN_PLUS_EQUAL);
+			else
+				AddToken(TOKEN_PLUS);
+		}
+		else if (c == L"-")
+		{
+			if (IsMatchCurCharAndStepOnce('='))
+				AddToken(TOKEN_MINUS_EQUAL);
+			else
+				AddToken(TOKEN_MINUS);
+		}
+		else if (c == L"*")
+		{
+			if (IsMatchCurCharAndStepOnce('='))
+				AddToken(TOKEN_ASTERISK_EQUAL);
+			else
+				AddToken(TOKEN_ASTERISK);
+		}
+		else if (c == L"/")
+		{
+			if (IsMatchCurCharAndStepOnce('/'))
+			{
+				while (!IsMatchCurChar('\n') && !IsAtEnd())
+					GetCurCharAndStepOnce();
+				mLine++;
+			}
+			else if (IsMatchCurCharAndStepOnce('*'))
+			{
+				while (!IsMatchCurChar('*') && !IsMatchNextChar('/') && !IsAtEnd())
+				{
+					if (IsMatchCurChar('\n'))
+						mLine++;
+					GetCurCharAndStepOnce();
+				}
+				GetCurCharAndStepOnce(); //eat '*'
+				GetCurCharAndStepOnce(); // eat '/'
+			}
+			else if (IsMatchCurCharAndStepOnce('='))
+				AddToken(TOKEN_SLASH_EQUAL);
+			else
+				AddToken(TOKEN_SLASH);
+		}
+		else if (c == L"%")
+		{
+			if (IsMatchCurCharAndStepOnce('='))
+				AddToken(TOKEN_PERCENT_EQUAL);
+			AddToken(TOKEN_PERCENT);
+		}
+		else if (c == L"!")
+		{
+			if (IsMatchCurCharAndStepOnce('='))
+				AddToken(TOKEN_BANG_EQUAL);
+			else
+				AddToken(TOKEN_BANG);
+		}
+		else if (c == L"&")
+		{
+			if (IsMatchCurCharAndStepOnce('&'))
+				AddToken(TOKEN_AMPERSAND_AMPERSAND);
+			else if (IsMatchCurCharAndStepOnce('='))
+				AddToken(TOKEN_AMPERSAND_EQUAL);
+			else
+				AddToken(TOKEN_AMPERSAND);
+		}
+		else if (c == L"|")
+		{
+			if (IsMatchCurCharAndStepOnce('|'))
+				AddToken(TOKEN_VBAR_VBAR);
+			else if (IsMatchCurCharAndStepOnce('='))
+				AddToken(TOKEN_VBAR_EQUAL);
+			else
+				AddToken(TOKEN_VBAR);
+		}
+		else if (c == L"^")
+		{
+			if (IsMatchCurCharAndStepOnce('='))
+				AddToken(TOKEN_CARET_EQUAL);
+			else
+				AddToken(TOKEN_CARET);
+		}
+		else if (c == L"<")
+		{
+			if (IsMatchCurCharAndStepOnce('='))
+				AddToken(TOKEN_LESS_EQUAL);
+			else if (IsMatchCurCharAndStepOnce('<'))
+			{
+				if (IsMatchCurCharAndStepOnce('='))
+					AddToken(TOKEN_LESS_LESS_EQUAL);
+				else
+					AddToken(TOKEN_LESS_LESS);
+			}
+			else
+				AddToken(TOKEN_LESS);
+		}
+		else if (c == L">")
+		{
+			if (IsMatchCurCharAndStepOnce('='))
+				AddToken(TOKEN_GREATER_EQUAL);
+			else if (IsMatchCurCharAndStepOnce('>'))
+			{
+				if (IsMatchCurCharAndStepOnce('='))
+					AddToken(TOKEN_GREATER_GREATER_EQUAL);
+				else
+					AddToken(TOKEN_GREATER_GREATER);
+			}
+			else
+				AddToken(TOKEN_GREATER);
+		}
+		else if (c == L"=")
+		{
+			if (IsMatchCurCharAndStepOnce('='))
+				AddToken(TOKEN_EQUAL_EQUAL);
+			else
+				AddToken(TOKEN_EQUAL);
+		}
+		else
+		{
+			if (IsNumber(ch))
+				Number();
+			else if (IsLetter(ch,isAscii))
+				Identifier();
+			else
+			{
+				auto literal = mSource.substr(mStartPos, mCurPos - mStartPos);
+				Assert(L"Unknown literal:" + literal);
+			}
+		}
 
-    bool Lexer::IsMatchNextChar(char c)
-    {
-        return GetNextChar() == c;
-    }
-    bool Lexer::IsMatchNextCharAndStepOnce(char c)
-    {
-        bool result = GetNextChar() == c;
-        if (result)
-            mCurPos++;
-        return result;
-    }
+	}
 
-    char Lexer::GetNextCharAndStepOnce()
-    {
-        if (mCurPos + 1 < mSource.size())
-            return mSource[++mCurPos];
-        return '\0';
-    }
-    char Lexer::GetNextChar()
-    {
-        if (mCurPos + 1 < mSource.size())
-            return mSource[mCurPos + 1];
-        return '\0';
-    }
-    char Lexer::GetCurCharAndStepOnce()
-    {
-        if (!IsAtEnd())
-            return mSource[mCurPos++];
-        return '\0';
-    }
+	void Lexer::ResetStatus()
+	{
+		mStartPos = mCurPos = 0;
+		mLine = 1;
+		std::vector<Token>().swap(mTokens);
+	}
 
-    char Lexer::GetCurChar()
-    {
-        if (!IsAtEnd())
-            return mSource[mCurPos];
-        return '\0';
-    }
+	bool Lexer::IsMatchCurChar(char c)
+	{
+		return GetCurChar() == c;
+	}
+	bool Lexer::IsMatchCurCharAndStepOnce(char c)
+	{
+		bool result = GetCurChar() == c;
+		if (result)
+			mCurPos++;
+		return result;
+	}
 
-    void Lexer::AddToken(TokenType type)
-    {
-        auto literal = mSource.substr(mStartPos, mCurPos - mStartPos);
-        mTokens.emplace_back(Token(type, literal, mLine));
-    }
-    void Lexer::AddToken(TokenType type, std::string_view literal)
-    {
-        mTokens.emplace_back(Token(type, literal, mLine));
-    }
+	bool Lexer::IsMatchNextChar(char c)
+	{
+		return GetNextChar() == c;
+	}
+	bool Lexer::IsMatchNextCharAndStepOnce(char c)
+	{
+		bool result = GetNextChar() == c;
+		if (result)
+			mCurPos++;
+		return result;
+	}
 
-    bool Lexer::IsAtEnd()
-    {
-        return mCurPos >= mSource.size();
-    }
+	wchar_t Lexer::GetNextCharAndStepOnce()
+	{
+		if (mCurPos + 1 < mSource.size())
+			return mSource[++mCurPos];
+		return '\0';
+	}
+	wchar_t Lexer::GetNextChar()
+	{
+		if (mCurPos + 1 < mSource.size())
+			return mSource[mCurPos + 1];
+		return '\0';
+	}
+	wchar_t Lexer::GetCurCharAndStepOnce()
+	{
+		if (!IsAtEnd())
+			return mSource[mCurPos++];
+		return '\0';
+	}
 
-    bool Lexer::IsNumber(char c)
-    {
-        return c >= '0' && c <= '9';
-    }
-    bool Lexer::IsLetter(char c)
-    {
-        return (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') || c == '_';
-    }
-    bool Lexer::IsLetterOrNumber(char c)
-    {
-        return IsLetter(c) || IsNumber(c);
-    }
+	wchar_t Lexer::GetCurChar()
+	{
+		if (!IsAtEnd())
+			return mSource[mCurPos];
+		return '\0';
+	}
 
-    void Lexer::Number()
-    {
-        while (IsNumber(GetCurChar()))
-            GetCurCharAndStepOnce();
+	void Lexer::AddToken(TokenType type)
+	{
+		auto literal = mSource.substr(mStartPos, mCurPos - mStartPos);
+		mTokens.emplace_back(Token(type, literal, mLine));
+	}
+	void Lexer::AddToken(TokenType type, std::wstring_view literal)
+	{
+		mTokens.emplace_back(Token(type, literal, mLine));
+	}
 
-        if (IsMatchCurCharAndStepOnce('.'))
-        {
-            if (IsNumber(GetCurChar()))
-                while (IsNumber(GetCurChar()))
-                    GetCurCharAndStepOnce();
-            else
-                Assert("[line " + std::to_string(mLine) + "]:Number cannot end with '.'");
-        }
+	bool Lexer::IsAtEnd()
+	{
+		return mCurPos >= mSource.size();
+	}
 
-        AddToken(TOKEN_NUMBER);
-    }
+	bool Lexer::IsNumber(wchar_t c)
+	{
+		return c >= L'0' && c <= L'9';
+	}
+	bool Lexer::IsLetter(wchar_t c, bool isAscii)
+	{
+		if (!isAscii)
+			return true;
+		return (c >= L'A' && c <= L'Z') || (c >= L'a' && c <= L'z') || c == L'_';
+	}
+	bool Lexer::IsLetterOrNumber(wchar_t c, bool isAscii)
+	{
+		return IsLetter(c,isAscii) || IsNumber(c);
+	}
 
-    void Lexer::Identifier()
-    {
-        while (IsLetterOrNumber(GetCurChar()))
-            GetCurCharAndStepOnce();
+	void Lexer::Number()
+	{
+		while (IsNumber(GetCurChar()))
+			GetCurCharAndStepOnce();
 
-        std::string literal = mSource.substr(mStartPos, mCurPos - mStartPos);
+		if (IsMatchCurCharAndStepOnce('.'))
+		{
+			if (IsNumber(GetCurChar()))
+				while (IsNumber(GetCurChar()))
+					GetCurCharAndStepOnce();
+			else
+				Assert(L"[line " + std::to_wstring(mLine) + L"]:Number cannot end with '.'");
+		}
 
-        bool isKeyWord = false;
-        for (const auto &keyword : keywords)
-            if (strcmp(keyword.name,literal.c_str())==0)
-            {
-                AddToken(keyword.type, literal);
-                isKeyWord = true;
-                break;
-            }
+		AddToken(TOKEN_NUMBER);
+	}
 
-        if (!isKeyWord)
-            AddToken(TOKEN_IDENTIFIER, literal);
-    }
+	void Lexer::Identifier()
+	{
+		wchar_t c = GetCurChar();
+		bool isAscii = isascii(c)?true:false;
+		while (IsLetterOrNumber(c, isAscii))
+		{
+			GetCurCharAndStepOnce();
+			c = GetCurChar();
+			isAscii = isascii(c) ? true : false;
+		}
 
-    void Lexer::String()
-    {
-        while (!IsMatchCurChar('\"') && !IsAtEnd())
-        {
-            if (IsMatchCurChar('\n'))
-                mLine++;
-            GetCurCharAndStepOnce();
-        }
+		std::wstring literal = mSource.substr(mStartPos, mCurPos - mStartPos);
 
-        if (IsAtEnd())
-            std::cout << "[line " << mLine << "]:Uniterminated string." << std::endl;
+		bool isKeyWord = false;
+		for (const auto& keyword : keywords)
+			if (wcscmp(keyword.name, literal.c_str()) == 0)
+			{
+				AddToken(keyword.type, literal);
+				isKeyWord = true;
+				break;
+			}
 
-        GetCurCharAndStepOnce(); //eat the second '\"'
+		if (!isKeyWord)
+			AddToken(TOKEN_IDENTIFIER, literal);
+	}
 
-        AddToken(TOKEN_STRING, mSource.substr(mStartPos + 1, mCurPos - mStartPos - 2));
-    }
+	void Lexer::String()
+	{
+		while (!IsMatchCurChar('\"') && !IsAtEnd())
+		{
+			if (IsMatchCurChar('\n'))
+				mLine++;
+			GetCurCharAndStepOnce();
+		}
+
+		if (IsAtEnd())
+			std::wcout << "[line " << mLine << "]:Uniterminated string." << std::endl;
+
+		GetCurCharAndStepOnce(); //eat the second '\"'
+
+		AddToken(TOKEN_STRING, mSource.substr(mStartPos + 1, mCurPos - mStartPos - 2));
+	}
 }

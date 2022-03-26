@@ -3,36 +3,48 @@
 #include <fstream>
 #include <sstream>
 #include <string_view>
-
+#include <cassert>
 namespace lws
 {
-    inline void Assert(std::string_view msg)
+    inline void Assert(std::wstring_view msg)
     {
-        std::cout << msg << std::endl;
-#ifndef _DEBUG
+        std::wcout << msg << std::endl;
+#ifdef _DEBUG
         assert(0);
 #else
         exit(1);
 #endif
     }
 
-    inline std::string ReadFile(std::string_view path)
+	inline void Assert(std::string_view msg)
+	{
+		std::cout << msg << std::endl;
+#ifdef _DEBUG
+		assert(0);
+#else
+		exit(1);
+#endif
+	}
+
+    inline std::wstring ReadFile(std::string_view path)
     {
-        std::fstream file;
+        std::wifstream file;
         file.open(path.data(), std::ios::in | std::ios::binary);
         if (!file.is_open())
-            Assert("Failed to open file:" + std::string(path));
+            Assert("Failed to open file:"+std::string(path));
 
-        std::stringstream sstream;
+        std::wstringstream sstream;
         sstream << file.rdbuf();
+  
+
         return sstream.str();
     }
 
-    inline std::string PointerAddressToString(void *pointer)
+    inline std::wstring PointerAddressToString(void *pointer)
     {
-        std::stringstream sstr;
+        std::wstringstream sstr;
         sstr << pointer;
-        std::string address = sstr.str();
+        std::wstring address = sstr.str();
         return address;
     }
 }

@@ -197,13 +197,13 @@ namespace lws
 	Stmt *Parser::ParseExprStmt()
 	{
 		auto exprStmt = new ExprStmt(ParseExpr());
-		Consume(TOKEN_SEMICOLON, "Expect ';' after expr stmt.");
+		Consume(TOKEN_SEMICOLON, L"Expect ';' after expr stmt.");
 		return exprStmt;
 	}
 
 	Stmt *Parser::ParseLetStmt()
 	{
-		Consume(TOKEN_LET, "Expect 'let' key word");
+		Consume(TOKEN_LET, L"Expect 'let' key word");
 
 		std::unordered_map<IdentifierExpr *, Expr *> variables;
 
@@ -222,14 +222,14 @@ namespace lws
 			variables[name] = value;
 		}
 
-		Consume(TOKEN_SEMICOLON, "Expect ';' after let stmt.");
+		Consume(TOKEN_SEMICOLON, L"Expect ';' after let stmt.");
 
 		return new LetStmt(variables);
 	}
 
 	Stmt *Parser::ParseConstStmt()
 	{
-		Consume(TOKEN_CONST, "Expect 'const' key word");
+		Consume(TOKEN_CONST, L"Expect 'const' key word");
 
 		std::unordered_map<IdentifierExpr *, Expr *> consts;
 
@@ -248,34 +248,34 @@ namespace lws
 			consts[name] = value;
 		}
 
-		Consume(TOKEN_SEMICOLON, "Expect ';' after const stmt.");
+		Consume(TOKEN_SEMICOLON, L"Expect ';' after const stmt.");
 
 		return new ConstStmt(consts);
 	}
 
 	Stmt *Parser::ParseReturnStmt()
 	{
-		Consume(TOKEN_RETURN, "Expect 'return' key word.");
+		Consume(TOKEN_RETURN, L"Expect 'return' key word.");
 
 		auto returnStmt = new ReturnStmt();
 
 		if (!IsMatchCurToken(TOKEN_SEMICOLON))
 			returnStmt->expr = ParseExpr();
 
-		Consume(TOKEN_SEMICOLON, "Expect ';' after return stmt");
+		Consume(TOKEN_SEMICOLON, L"Expect ';' after return stmt");
 		return returnStmt;
 	}
 
 	Stmt *Parser::ParseIfStmt()
 	{
-		Consume(TOKEN_IF, "Expect 'if' key word.");
-		Consume(TOKEN_LPAREN, "Expect '(' after 'if'.");
+		Consume(TOKEN_IF, L"Expect 'if' key word.");
+		Consume(TOKEN_LPAREN, L"Expect '(' after 'if'.");
 
 		auto ifStmt = new IfStmt();
 
 		ifStmt->condition = ParseExpr();
 
-		Consume(TOKEN_RPAREN, "Expect ')' after if condition");
+		Consume(TOKEN_RPAREN, L"Expect ')' after if condition");
 
 		ifStmt->thenBranch = ParseStmt();
 
@@ -287,24 +287,24 @@ namespace lws
 
 	Stmt *Parser::ParseScopeStmt()
 	{
-		Consume(TOKEN_LBRACE, "Expect '{'.");
+		Consume(TOKEN_LBRACE, L"Expect '{'.");
 		auto scopeStmt = new ScopeStmt();
 		while (!IsMatchCurToken(TOKEN_RBRACE))
 			scopeStmt->stmts.emplace_back(ParseStmt());
-		Consume(TOKEN_RBRACE, "Expect '}'.");
+		Consume(TOKEN_RBRACE, L"Expect '}'.");
 		return scopeStmt;
 	}
 
 	Stmt *Parser::ParseWhileStmt()
 	{
-		Consume(TOKEN_WHILE, "Expect 'while' keyword.");
-		Consume(TOKEN_LPAREN, "Expect '(' after 'while'.");
+		Consume(TOKEN_WHILE, L"Expect 'while' keyword.");
+		Consume(TOKEN_LPAREN, L"Expect '(' after 'while'.");
 
 		auto whileStmt = new WhileStmt();
 
 		whileStmt->condition = ParseExpr();
 
-		Consume(TOKEN_RPAREN, "Expect ')' after while stmt's condition.");
+		Consume(TOKEN_RPAREN, L"Expect ')' after while stmt's condition.");
 
 		if (IsMatchCurToken(TOKEN_LBRACE)) //scope stmt:while(a<10){a=a+1;}
 			whileStmt->body = (ScopeStmt*)ParseScopeStmt();
@@ -341,8 +341,8 @@ namespace lws
 		//			}
 		//		}
 		//}
-		Consume(TOKEN_FOR, "Expect 'for' keyword.");
-		Consume(TOKEN_LPAREN, "Expect '(' after 'for'.");
+		Consume(TOKEN_FOR, L"Expect 'for' keyword.");
+		Consume(TOKEN_LPAREN, L"Expect '(' after 'for'.");
 
 		//initializer
 		auto scopeStmt = new ScopeStmt();
@@ -356,13 +356,13 @@ namespace lws
 				while (IsMatchCurTokenAndStepOnce(TOKEN_COMMA))
 					scopeStmt->stmts.emplace_back(new ExprStmt(ParseExpr()));
 			}
-			Consume(TOKEN_SEMICOLON, "Expect ';' after for stmt's initializer stmt");
+			Consume(TOKEN_SEMICOLON, L"Expect ';' after for stmt's initializer stmt");
 		}
 
 		Expr *condition = nullptr;
 		if (!IsMatchCurToken(TOKEN_SEMICOLON))
 			condition = ParseExpr();
-		Consume(TOKEN_SEMICOLON, "Expect ';' after for stmt's condition expr.");
+		Consume(TOKEN_SEMICOLON, L"Expect ';' after for stmt's condition expr.");
 
 		std::vector<Expr *> increment;
 		if (!IsMatchCurToken(TOKEN_RPAREN))
@@ -371,7 +371,7 @@ namespace lws
 			while (IsMatchCurTokenAndStepOnce(TOKEN_COMMA))
 				increment.emplace_back(ParseExpr());
 		}
-		Consume(TOKEN_RPAREN, "Expect ')' after for stmt's increment expr(s)");
+		Consume(TOKEN_RPAREN, L"Expect ')' after for stmt's increment expr(s)");
 
 		std::vector<Stmt *> whileBodyStmts;
 		if (IsMatchCurToken(TOKEN_LBRACE)) //scope stmt for 'for' stmt:like for(a=0;a<10;a=a+1){println("{}",a);}
@@ -399,27 +399,27 @@ namespace lws
 
 	Stmt *Parser::ParseBreakStmt()
 	{
-		Consume(TOKEN_BREAK, "Expect 'break' keyword.");
-		Consume(TOKEN_SEMICOLON, "Expect ';' after 'break' keyword.");
+		Consume(TOKEN_BREAK, L"Expect 'break' keyword.");
+		Consume(TOKEN_SEMICOLON, L"Expect ';' after 'break' keyword.");
 		return new BreakStmt();
 	}
 
 	Stmt *Parser::ParseContinueStmt()
 	{
-		Consume(TOKEN_CONTINUE, "Expect 'continue' keyword");
-		Consume(TOKEN_SEMICOLON, "Expect ';' after 'continue' keyword.");
+		Consume(TOKEN_CONTINUE, L"Expect 'continue' keyword");
+		Consume(TOKEN_SEMICOLON, L"Expect ';' after 'continue' keyword.");
 		return new ContinueStmt();
 	}
 
 	Stmt *Parser::ParseFunctionStmt()
 	{
-		Consume(TOKEN_FUNCTION, "Expect 'function' keyword");
+		Consume(TOKEN_FUNCTION, L"Expect 'function' keyword");
 
 		auto funcStmt = new FunctionStmt();
 
 		funcStmt->name = (IdentifierExpr *)ParseIdentifierExpr();
 
-		Consume(TOKEN_LPAREN, "Expect '(' after 'function' keyword");
+		Consume(TOKEN_LPAREN, L"Expect '(' after 'function' keyword");
 
 		if (!IsMatchCurToken(TOKEN_RPAREN)) //has parameter
 		{
@@ -431,7 +431,7 @@ namespace lws
 				funcStmt->parameters.emplace_back(idenExpr);
 			}
 		}
-		Consume(TOKEN_RPAREN, "Expect ')' after function stmt's '('");
+		Consume(TOKEN_RPAREN, L"Expect ')' after function stmt's '('");
 
 		funcStmt->body = (ScopeStmt *)ParseScopeStmt();
 
@@ -440,11 +440,11 @@ namespace lws
 
 	Expr *Parser::ParseLambdaExpr()
 	{
-		Consume(TOKEN_FUNCTION, "Expect 'fn' keyword");
+		Consume(TOKEN_FUNCTION, L"Expect 'fn' keyword");
 
 		auto lambdaExpr = new LambdaExpr();
 
-		Consume(TOKEN_LPAREN, "Expect '(' after 'fn' keyword");
+		Consume(TOKEN_LPAREN, L"Expect '(' after 'fn' keyword");
 
 		if (!IsMatchCurToken(TOKEN_RPAREN)) //has parameter
 		{
@@ -456,7 +456,7 @@ namespace lws
 				lambdaExpr->parameters.emplace_back(idenExpr);
 			}
 		}
-		Consume(TOKEN_RPAREN, "Expect ')' after lambda expr's '('");
+		Consume(TOKEN_RPAREN, L"Expect ')' after lambda expr's '('");
 
 		lambdaExpr->body = (ScopeStmt *)ParseScopeStmt();
 
@@ -465,7 +465,7 @@ namespace lws
 
 	Stmt *Parser::ParseFieldStmt()
 	{
-		Consume(TOKEN_FIELD, "Expect 'field' keyword");
+		Consume(TOKEN_FIELD, L"Expect 'field' keyword");
 
 		auto fieldStmt = new FieldStmt();
 		fieldStmt->name = ((IdentifierExpr *)ParseIdentifierExpr())->literal;
@@ -477,7 +477,7 @@ namespace lws
 				fieldStmt->containedFields.emplace_back((IdentifierExpr *)ParseIdentifierExpr());
 		}
 
-		Consume(TOKEN_LBRACE, "Expect '{' after field name or contained field name");
+		Consume(TOKEN_LBRACE, L"Expect '{' after field name or contained field name");
 
 		while (!IsMatchCurToken(TOKEN_RBRACE))
 		{
@@ -486,10 +486,10 @@ namespace lws
 			else if (IsMatchCurToken(TOKEN_FUNCTION))
 				fieldStmt->fnStmts.emplace_back((FunctionStmt *)ParseFunctionStmt());
 			else
-				Consume({TOKEN_LET, TOKEN_FUNCTION}, "UnExpect identifier '" + GetCurToken().literal + "'.");
+				Consume({TOKEN_LET, TOKEN_FUNCTION}, L"UnExpect identifier '" + GetCurToken().literal + L"'.");
 		}
 
-		Consume(TOKEN_RBRACE, "Expect '}' after field stmt's '{'");
+		Consume(TOKEN_RBRACE, L"Expect '}' after field stmt's '{'");
 
 		return fieldStmt;
 	}
@@ -498,7 +498,7 @@ namespace lws
 	{
 		if (mPrefixFunctions.find(GetCurToken().type) == mPrefixFunctions.end())
 		{
-			std::cout << "no prefix definition for:" << GetCurTokenAndStepOnce().literal << std::endl;
+			std::wcout << L"no prefix definition for:" << GetCurTokenAndStepOnce().literal << std::endl;
 			return new NullExpr();
 		}
 		auto prefixFn = mPrefixFunctions[GetCurToken().type];
@@ -520,13 +520,13 @@ namespace lws
 
 	Expr *Parser::ParseIdentifierExpr()
 	{
-		return new IdentifierExpr(Consume(TOKEN_IDENTIFIER, "Unexpect Identifier'" + GetCurToken().literal + "'.").literal);
+		return new IdentifierExpr(Consume(TOKEN_IDENTIFIER, L"Unexpect Identifier'" + GetCurToken().literal + L"'.").literal);
 	}
 
 	Expr *Parser::ParseNumExpr()
 	{
-		std::string numLiteral = Consume(TOKEN_NUMBER, "Expexct a number literal.").literal;
-		if (numLiteral.find('.') != std::string::npos)
+		std::wstring numLiteral = Consume(TOKEN_NUMBER, L"Expexct a number literal.").literal;
+		if (numLiteral.find('.') != std::wstring::npos)
 			return new RealNumExpr(std::stod(numLiteral));
 		else
 			return new IntNumExpr(std::stoll(numLiteral));
@@ -534,36 +534,36 @@ namespace lws
 
 	Expr *Parser::ParseStrExpr()
 	{
-		return new StrExpr(Consume(TOKEN_STRING, "Expect a string literal.").literal);
+		return new StrExpr(Consume(TOKEN_STRING, L"Expect a string literal.").literal);
 	}
 
 	Expr *Parser::ParseNullExpr()
 	{
-		Consume(TOKEN_NULL, "Expect 'null' keyword");
+		Consume(TOKEN_NULL, L"Expect 'null' keyword");
 		return new NullExpr();
 	}
 	Expr *Parser::ParseTrueExpr()
 	{
-		Consume(TOKEN_TRUE, "Expect 'true' keyword");
+		Consume(TOKEN_TRUE, L"Expect 'true' keyword");
 		return new BoolExpr(true);
 	}
 	Expr *Parser::ParseFalseExpr()
 	{
-		Consume(TOKEN_FALSE, "Expect 'false' keyword");
+		Consume(TOKEN_FALSE, L"Expect 'false' keyword");
 		return new BoolExpr(false);
 	}
 
 	Expr *Parser::ParseGroupExpr()
 	{
-		Consume(TOKEN_LPAREN, "Expect '('.");
+		Consume(TOKEN_LPAREN, L"Expect '('.");
 		auto groupExpr = new GroupExpr(ParseExpr(Precedence::INFIX));
-		Consume(TOKEN_RPAREN, "Expect ')'.");
+		Consume(TOKEN_RPAREN, L"Expect ')'.");
 		return groupExpr;
 	}
 
 	Expr *Parser::ParseArrayExpr()
 	{
-		Consume(TOKEN_LBRACKET, "Expect '['.");
+		Consume(TOKEN_LBRACKET, L"Expect '['.");
 
 		auto arrayExpr = new ArrayExpr();
 		if (!IsMatchCurToken(TOKEN_RBRACKET))
@@ -574,32 +574,32 @@ namespace lws
 				arrayExpr->elements.emplace_back(ParseExpr());
 		}
 
-		Consume(TOKEN_RBRACKET, "Expect ']'.");
+		Consume(TOKEN_RBRACKET, L"Expect ']'.");
 
 		return arrayExpr;
 	}
 
 	Expr *Parser::ParseTableExpr()
 	{
-		Consume(TOKEN_LBRACE, "Expect '{'.");
+		Consume(TOKEN_LBRACE, L"Expect '{'.");
 
 		std::unordered_map<Expr *, Expr *> elements;
 
 		if (!IsMatchCurToken(TOKEN_RBRACE))
 		{
 			Expr *key = ParseExpr();
-			Consume(TOKEN_COLON, "Expect ':' after table key.");
+			Consume(TOKEN_COLON, L"Expect ':' after table key.");
 			Expr *value = ParseExpr();
 			elements[key] = value;
 			while (IsMatchCurTokenAndStepOnce(TOKEN_COMMA))
 			{
 				Expr *key = ParseExpr();
-				Consume(TOKEN_COLON, "Expect ':' after table key.");
+				Consume(TOKEN_COLON, L"Expect ':' after table key.");
 				Expr *value = ParseExpr();
 				elements[key] = value;
 			}
 		}
-		Consume(TOKEN_RBRACE, "Expect '}' after table.");
+		Consume(TOKEN_RBRACE, L"Expect '}' after table.");
 		return new TableExpr(elements);
 	}
 
@@ -613,7 +613,7 @@ namespace lws
 
 	Expr *Parser::ParseRefExpr()
 	{
-		Consume(TOKEN_AMPERSAND, "Expect '&'.");
+		Consume(TOKEN_AMPERSAND, L"Expect '&'.");
 		return new RefExpr(ParseExpr(Precedence::PREFIX));
 	}
 
@@ -634,10 +634,10 @@ namespace lws
 		ConditionExpr *conditionExpr = new ConditionExpr();
 		conditionExpr->condition = prefixExpr;
 
-		Consume(TOKEN_QUESTION, "Expect '?'.");
+		Consume(TOKEN_QUESTION, L"Expect '?'.");
 
 		conditionExpr->trueBranch = ParseExpr(Precedence::CONDITION);
-		Consume(TOKEN_COLON, "Expect ':' in condition expr");
+		Consume(TOKEN_COLON, L"Expect ':' in condition expr");
 		conditionExpr->falseBranch = ParseExpr(Precedence::CONDITION);
 
 		return conditionExpr;
@@ -645,11 +645,11 @@ namespace lws
 
 	Expr *Parser::ParseIndexExpr(Expr *prefixExpr)
 	{
-		Consume(TOKEN_LBRACKET, "Expect '['.");
+		Consume(TOKEN_LBRACKET, L"Expect '['.");
 		auto indexExpr = new IndexExpr();
 		indexExpr->ds = prefixExpr;
 		indexExpr->index = ParseExpr();
-		Consume(TOKEN_RBRACKET, "Expect ']'.");
+		Consume(TOKEN_RBRACKET, L"Expect ']'.");
 		return indexExpr;
 	}
 
@@ -658,21 +658,21 @@ namespace lws
 		auto funcCallExpr = new FunctionCallExpr();
 
 		funcCallExpr->name = prefixExpr;
-		Consume(TOKEN_LPAREN, "Expect '('.");
+		Consume(TOKEN_LPAREN, L"Expect '('.");
 		if (!IsMatchCurToken(TOKEN_RPAREN)) //has arguments
 		{
 			funcCallExpr->arguments.emplace_back(ParseExpr());
 			while (IsMatchCurTokenAndStepOnce(TOKEN_COMMA))
 				funcCallExpr->arguments.emplace_back(ParseExpr());
 		}
-		Consume(TOKEN_RPAREN, "Expect ')'.");
+		Consume(TOKEN_RPAREN, L"Expect ')'.");
 
 		return funcCallExpr;
 	}
 
 	Expr *Parser::ParseFieldCallExpr(Expr *prefixExpr)
 	{
-		Consume(TOKEN_DOT, "Expect '.'.");
+		Consume(TOKEN_DOT, L"Expect '.'.");
 		auto fieldCallExpr = new FieldCallExpr();
 		fieldCallExpr->callee = prefixExpr;
 		fieldCallExpr->callMember = ParseExpr(Precedence::INFIX);
@@ -759,23 +759,23 @@ namespace lws
 		return false;
 	}
 
-	Token Parser::Consume(TokenType type, std::string_view errMsg)
+	Token Parser::Consume(TokenType type, std::wstring_view errMsg)
 	{
 		if (IsMatchCurToken(type))
 			return GetCurTokenAndStepOnce();
-		Assert("[line " + std::to_string(GetCurToken().line) + "]:" + std::string(errMsg));
+		Assert(L"[line " + std::to_wstring(GetCurToken().line) + L"]:" + std::wstring(errMsg));
 		//avoid C++ compiler warning
-		return Token(TOKEN_END, "", 0);
+		return Token(TOKEN_END, L"", 0);
 	}
 
-	Token Parser::Consume(const std::vector<TokenType> &types, std::string_view errMsg)
+	Token Parser::Consume(const std::vector<TokenType> &types, std::wstring_view errMsg)
 	{
 		for (const auto &type : types)
 			if (IsMatchCurToken(type))
 				return GetCurTokenAndStepOnce();
-		Assert("[line " + std::to_string(GetCurToken().line) + "]:" + std::string(errMsg));
+		Assert(L"[line " + std::to_wstring(GetCurToken().line) + L"]:" + std::wstring(errMsg));
 		//avoid C++ compiler warning
-		return Token(TOKEN_END, "", 0);
+		return Token(TOKEN_END, L"", 0);
 	}
 
 	bool Parser::IsAtEnd()

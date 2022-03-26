@@ -1,4 +1,4 @@
 #pragma once
 #include <string>
-constexpr const char* containedFieldPrefixID="instance__";
-constexpr const char*  functionNameAndArgumentConnector = "__";
+constexpr const wchar_t* containedFieldPrefixID=L"instance__";
+constexpr const wchar_t*  functionNameAndArgumentConnector = L"__";

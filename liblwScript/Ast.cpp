@@ -16,9 +16,9 @@ namespace lws
     {
     }
 
-    std::string IntNumExpr::Stringify()
+    std::wstring IntNumExpr::Stringify()
     {
-        return std::to_string(value);
+        return std::to_wstring(value);
     }
     AstType IntNumExpr::Type()
     {
@@ -36,9 +36,9 @@ namespace lws
     RealNumExpr::~RealNumExpr()
     {
     }
-    std::string RealNumExpr::Stringify()
+    std::wstring RealNumExpr::Stringify()
     {
-        return std::to_string(value);
+        return std::to_wstring(value);
     }
     AstType RealNumExpr::Type()
     {
@@ -48,7 +48,7 @@ namespace lws
     StrExpr::StrExpr()
     {
     }
-    StrExpr::StrExpr(std::string_view str)
+    StrExpr::StrExpr(std::wstring_view str)
         : value(str)
     {
     }
@@ -57,9 +57,9 @@ namespace lws
     {
     }
 
-    std::string StrExpr::Stringify()
+    std::wstring StrExpr::Stringify()
     {
-        return "\"" + value + "\"";
+        return L"\"" + value + L"\"";
     }
 
     AstType StrExpr::Type()
@@ -74,9 +74,9 @@ namespace lws
     {
     }
 
-    std::string NullExpr::Stringify()
+    std::wstring NullExpr::Stringify()
     {
-        return "null";
+        return L"null";
     }
     AstType NullExpr::Type()
     {
@@ -95,9 +95,9 @@ namespace lws
     {
     }
 
-    std::string BoolExpr::Stringify()
+    std::wstring BoolExpr::Stringify()
     {
-        return value ? "true" : "false";
+        return value ? L"true" : L"false";
     }
     AstType BoolExpr::Type()
     {
@@ -107,7 +107,7 @@ namespace lws
     IdentifierExpr::IdentifierExpr()
     {
     }
-    IdentifierExpr::IdentifierExpr(std::string_view literal)
+    IdentifierExpr::IdentifierExpr(std::wstring_view literal)
         : literal(literal)
     {
     }
@@ -115,7 +115,7 @@ namespace lws
     {
     }
 
-    std::string IdentifierExpr::Stringify()
+    std::wstring IdentifierExpr::Stringify()
     {
         return literal;
     }
@@ -135,17 +135,17 @@ namespace lws
         std::vector<Expr *>().swap(elements);
     }
 
-    std::string ArrayExpr::Stringify()
+    std::wstring ArrayExpr::Stringify()
     {
-        std::string result = "[";
+        std::wstring result = L"[";
 
         if (!elements.empty())
         {
             for (auto e : elements)
-                result += e->Stringify() + ",";
+                result += e->Stringify() + L",";
             result = result.substr(0, result.size() - 1);
         }
-        result += "]";
+        result += L"]";
         return result;
     }
     AstType ArrayExpr::Type()
@@ -165,17 +165,17 @@ namespace lws
         std::unordered_map<Expr *, Expr *>().swap(elements);
     }
 
-    std::string TableExpr::Stringify()
+    std::wstring TableExpr::Stringify()
     {
-        std::string result = "{";
+        std::wstring result = L"{";
 
         if (!elements.empty())
         {
             for (auto [key, value] : elements)
-                result += key->Stringify() + ":" + value->Stringify();
+                result += key->Stringify() + L":" + value->Stringify();
             result = result.substr(0, result.size() - 1);
         }
-        result += "}";
+        result += L"}";
         return result;
     }
     AstType TableExpr::Type()
@@ -194,9 +194,9 @@ namespace lws
     GroupExpr::~GroupExpr()
     {
     }
-    std::string GroupExpr::Stringify()
+    std::wstring GroupExpr::Stringify()
     {
-        return "(" + expr->Stringify() + ")";
+        return L"(" + expr->Stringify() + L")";
     }
     AstType GroupExpr::Type()
     {
@@ -207,7 +207,7 @@ namespace lws
         : right(nullptr)
     {
     }
-    PrefixExpr::PrefixExpr(std::string_view op, Expr *right)
+    PrefixExpr::PrefixExpr(std::wstring_view op, Expr *right)
         : op(op), right(right)
     {
     }
@@ -217,7 +217,7 @@ namespace lws
         right = nullptr;
     }
 
-    std::string PrefixExpr::Stringify()
+    std::wstring PrefixExpr::Stringify()
     {
         return op + right->Stringify();
     }
@@ -230,7 +230,7 @@ namespace lws
         : left(nullptr), right(nullptr)
     {
     }
-    InfixExpr::InfixExpr(std::string_view op, Expr *left, Expr *right)
+    InfixExpr::InfixExpr(std::wstring_view op, Expr *left, Expr *right)
         : op(op), left(left), right(right)
     {
     }
@@ -243,7 +243,7 @@ namespace lws
         right = nullptr;
     }
 
-    std::string InfixExpr::Stringify()
+    std::wstring InfixExpr::Stringify()
     {
         return left->Stringify() + op + right->Stringify();
     }
@@ -272,9 +272,9 @@ namespace lws
         trueBranch = nullptr;
     }
 
-    std::string ConditionExpr::Stringify()
+    std::wstring ConditionExpr::Stringify()
     {
-        return condition->Stringify() + "?" + trueBranch->Stringify() + ":" + falseBranch->Stringify();
+        return condition->Stringify() + L"?" + trueBranch->Stringify() + L":" + falseBranch->Stringify();
     }
     AstType ConditionExpr::Type()
     {
@@ -296,9 +296,9 @@ namespace lws
         delete index;
         index = nullptr;
     }
-    std::string IndexExpr::Stringify()
+    std::wstring IndexExpr::Stringify()
     {
-        return ds->Stringify() + "[" + index->Stringify() + "]";
+        return ds->Stringify() + L"[" + index->Stringify() + L"]";
     }
 
     AstType IndexExpr::Type()
@@ -316,9 +316,9 @@ namespace lws
     {
     }
 
-    std::string RefExpr::Stringify()
+    std::wstring RefExpr::Stringify()
     {
-        return "&" + refExpr->Stringify();
+        return L"&" + refExpr->Stringify();
     }
 
     AstType RefExpr::Type()
@@ -342,16 +342,16 @@ namespace lws
         body = nullptr;
     }
 
-    std::string LambdaExpr::Stringify()
+    std::wstring LambdaExpr::Stringify()
     {
-        std::string result = "fn(";
+        std::wstring result = L"fn(";
         if (!parameters.empty())
         {
             for (auto param : parameters)
-                result += param->Stringify() + ",";
+                result += param->Stringify() + L",";
             result = result.substr(0, result.size() - 1);
         }
-        result += ")";
+        result += L")";
         result += body->Stringify();
         return result;
     }
@@ -370,17 +370,17 @@ namespace lws
     FunctionCallExpr::~FunctionCallExpr()
     {
     }
-    std::string FunctionCallExpr::Stringify()
+    std::wstring FunctionCallExpr::Stringify()
     {
-        std::string result = name->Stringify() + "(";
+        std::wstring result = name->Stringify() + L"(";
 
         if (!arguments.empty())
         {
             for (const auto &arg : arguments)
-                result += arg->Stringify() + ",";
+                result += arg->Stringify() + L",";
             result = result.substr(0, result.size() - 1);
         }
-        result += ")";
+        result += L")";
         return result;
     }
     AstType FunctionCallExpr::Type()
@@ -400,9 +400,9 @@ namespace lws
     {
     }
 
-    std::string FieldCallExpr::Stringify()
+    std::wstring FieldCallExpr::Stringify()
     {
-        return callee->Stringify() + "." + callMember->Stringify();
+        return callee->Stringify() + L"." + callMember->Stringify();
     }
     AstType FieldCallExpr::Type()
     {
@@ -425,9 +425,9 @@ namespace lws
         expr = nullptr;
     }
 
-    std::string ExprStmt::Stringify()
+    std::wstring ExprStmt::Stringify()
     {
-        return expr->Stringify() + ";";
+        return expr->Stringify() + L";";
     }
     AstType ExprStmt::Type()
     {
@@ -446,16 +446,16 @@ namespace lws
         std::unordered_map<IdentifierExpr *, Expr *>().swap(variables);
     }
 
-    std::string LetStmt::Stringify()
+    std::wstring LetStmt::Stringify()
     {
-        std::string result = "let ";
+        std::wstring result = L"let ";
         if (!variables.empty())
         {
             for (auto [key, value] : variables)
-                result += key->Stringify() + "=" + value->Stringify() + ",";
+                result += key->Stringify() + L"=" + value->Stringify() + L",";
             result = result.substr(0, result.size() - 1);
         }
-        return result + ";";
+        return result + L";";
     }
 
     AstType LetStmt::Type()
@@ -475,16 +475,16 @@ namespace lws
         std::unordered_map<IdentifierExpr *, Expr *>().swap(consts);
     }
 
-    std::string ConstStmt::Stringify()
+    std::wstring ConstStmt::Stringify()
     {
-        std::string result = "const ";
+        std::wstring result = L"const ";
         if (!consts.empty())
         {
             for (auto [key, value] : consts)
-                result += key->Stringify() + "=" + value->Stringify() + ",";
+                result += key->Stringify() + L"=" + value->Stringify() + L",";
             result = result.substr(0, result.size() - 1);
         }
-        return result + ";";
+        return result + L";";
     }
 
     AstType ConstStmt::Type()
@@ -506,12 +506,12 @@ namespace lws
         expr = nullptr;
     }
 
-    std::string ReturnStmt::Stringify()
+    std::wstring ReturnStmt::Stringify()
     {
         if (expr)
-            return "return " + expr->Stringify() + ";";
+            return L"return " + expr->Stringify() + L";";
         else
-            return "return;";
+            return L"return;";
     }
     AstType ReturnStmt::Type()
     {
@@ -538,12 +538,12 @@ namespace lws
         elseBranch = nullptr;
     }
 
-    std::string IfStmt::Stringify()
+    std::wstring IfStmt::Stringify()
     {
-        std::string result;
-        result = "if(" + condition->Stringify() + ")" + thenBranch->Stringify();
+        std::wstring result;
+        result = L"if(" + condition->Stringify() + L")" + thenBranch->Stringify();
         if (elseBranch != nullptr)
-            result += "else " + elseBranch->Stringify();
+            result += L"else " + elseBranch->Stringify();
         return result;
     }
     AstType IfStmt::Type()
@@ -561,12 +561,12 @@ namespace lws
         std::vector<Stmt *>().swap(stmts);
     }
 
-    std::string ScopeStmt::Stringify()
+    std::wstring ScopeStmt::Stringify()
     {
-        std::string result = "{";
+        std::wstring result = L"{";
         for (const auto &stmt : stmts)
             result += stmt->Stringify();
-        result += "}";
+        result += L"}";
         return result;
     }
 
@@ -593,12 +593,12 @@ namespace lws
         increment = nullptr;
     }
 
-    std::string WhileStmt::Stringify()
+    std::wstring WhileStmt::Stringify()
     {
-        std::string result = "while(" + condition->Stringify() + "){" + body->Stringify();
+        std::wstring result = L"while(" + condition->Stringify() + L"){" + body->Stringify();
         if (increment)
             result += increment->Stringify();
-        return result += "}";
+        return result += L"}";
     }
     AstType WhileStmt::Type()
     {
@@ -612,9 +612,9 @@ namespace lws
     {
     }
 
-    std::string BreakStmt::Stringify()
+    std::wstring BreakStmt::Stringify()
     {
-        return "break;";
+        return L"break;";
     }
     AstType BreakStmt::Type()
     {
@@ -628,9 +628,9 @@ namespace lws
     {
     }
 
-    std::string ContinueStmt::Stringify()
+    std::wstring ContinueStmt::Stringify()
     {
-        return "continue;";
+        return L"continue;";
     }
     AstType ContinueStmt::Type()
     {
@@ -653,16 +653,16 @@ namespace lws
         body = nullptr;
     }
 
-    std::string FunctionStmt::Stringify()
+    std::wstring FunctionStmt::Stringify()
     {
-        std::string result = "fn " + name->Stringify() + "(";
+        std::wstring result = L"fn " + name->Stringify() + L"(";
         if (!parameters.empty())
         {
             for (auto param : parameters)
-                result += param->Stringify() + ",";
+                result += param->Stringify() + L",";
             result = result.substr(0, result.size() - 1);
         }
-        result += ")";
+        result += L")";
         result += body->Stringify();
         return result;
     }
@@ -674,7 +674,7 @@ namespace lws
     FieldStmt::FieldStmt()
     {
     }
-    FieldStmt::FieldStmt(std::string name,
+    FieldStmt::FieldStmt(std::wstring name,
                          std::vector<LetStmt *> letStmts,
                          std::vector<FunctionStmt *> fnStmts,
                          std::vector<IdentifierExpr *> containedFields)
@@ -688,22 +688,22 @@ namespace lws
         std::vector<FunctionStmt *>().swap(fnStmts);
     }
 
-    std::string FieldStmt::Stringify()
+    std::wstring FieldStmt::Stringify()
     {
-        std::string result = "field " + name;
+        std::wstring result = L"field " + name;
         if (!containedFields.empty())
         {
-            result += ":";
+            result += L":";
             for (const auto &containedField : containedFields)
-                result += containedField->Stringify() + ",";
+                result += containedField->Stringify() + L",";
             result = result.substr(0, result.size() - 1);
         }
-        result += "{\n";
+        result += L"{";
         for (auto letStmt : letStmts)
-            result += letStmt->Stringify() + "\n";
+            result += letStmt->Stringify();
         for (auto fnStmt : fnStmts)
-            result += fnStmt->Stringify() + "\n";
-        return result + "}";
+            result += fnStmt->Stringify();
+        return result + L"}";
     }
     AstType FieldStmt::Type()
     {
@@ -720,9 +720,9 @@ namespace lws
         std::vector<Stmt *>().swap(stmts);
     }
 
-    std::string AstStmts::Stringify()
+    std::wstring AstStmts::Stringify()
     {
-        std::string result;
+        std::wstring result;
         for (const auto &stmt : stmts)
             result += stmt->Stringify();
         return result;
