@@ -32,4 +32,9 @@ fn resetVec(v2,x,y)
 let c=vec2;
 resetVec(&c,100,300);
 
-println("{}",c);//vec2{x=100 y=300}
+println("{}",c);
+//vec2
+//{
+//    x
+//    y
+//}
