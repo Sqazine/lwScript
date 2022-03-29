@@ -323,42 +323,42 @@ namespace lws
         return frameIndex == TO_LAMBDA_OBJ(other)->frameIndex;
     }
 
-    RefObject::RefObject(std::wstring_view name, Object *index)
+    RefVarObject::RefVarObject(std::wstring_view name, Object *index)
         : name(name), index(index)
     {
     }
-    RefObject::~RefObject()
+    RefVarObject::~RefVarObject()
     {
     }
 
-    std::wstring RefObject::Stringify()
+    std::wstring RefVarObject::Stringify()
     {
         std::wstring result = name;
         if (index)
             result += L"[" + index->Stringify() + L"]";
         return result;
     }
-    ObjectType RefObject::Type()
+    ObjectType RefVarObject::Type()
     {
-        return OBJECT_REF;
+        return OBJECT_REF_VAR;
     }
-    void RefObject::Mark()
+    void RefVarObject::Mark()
     {
         if (marked)
             return;
         marked = true;
     }
-    void RefObject::UnMark()
+    void RefVarObject::UnMark()
     {
         if (!marked)
             return;
         marked = false;
     }
-    bool RefObject::IsEqualTo(Object *other)
+    bool RefVarObject::IsEqualTo(Object *other)
     {
-        if (!IS_REF_OBJ(other))
+        if (!IS_REF_VAR_OBJ(other))
             return false;
-        return name == TO_REF_OBJ(other)->name;
+        return name == TO_REF_VAR_OBJ(other)->name;
     }
 
     FieldObject::FieldObject()
@@ -470,5 +470,62 @@ namespace lws
             }
         }
         return nullptr;
+    }
+    Object* FieldObject::GetMemberByAddress(std::wstring_view address)
+    {
+		if (!members.empty())
+		{
+			for (auto [key, value] : members)
+				if (PointerAddressToString(value) == address)
+					return value;
+		}
+
+		if (!containedFields.empty()) // in contained field
+		{
+			for (const auto& containedField : containedFields)
+			{
+				// the contained field self
+				if (PointerAddressToString(containedField.second) == address)
+					return containedField.second;
+				else // the member in contained field
+				{
+					auto member = containedField.second->GetMemberByAddress(address);
+					if (member)
+						return member;
+				}
+			}
+		}
+
+		Assert(L"No Object's address:" + std::wstring(address) + L"in field:" + std::wstring(name.data()));
+		return nullptr;
+    }
+    RefObjObject::RefObjObject(std::wstring_view address)
+        :address(address)
+    {
+    }
+    RefObjObject::~RefObjObject()
+    {
+    }
+    std::wstring RefObjObject::Stringify()
+    {
+        return L"&"+address;
+    }
+    ObjectType RefObjObject::Type()
+    {
+        return OBJECT_REF_OBJ;
+    }
+    void RefObjObject::Mark()
+    {
+        marked = true;
+    }
+    void RefObjObject::UnMark()
+    {
+        marked = false;
+    }
+    bool RefObjObject::IsEqualTo(Object* other)
+    {
+        if (!IS_REF_OBJ_OBJ(other))
+            return false;
+        return address == TO_REF_OBJ_OBJ(other)->address;
     }
 }

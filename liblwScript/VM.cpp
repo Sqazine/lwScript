@@ -165,12 +165,28 @@ namespace lws
 		return object;
 	}
 
-	RefObject *VM::CreateRefObject(std::wstring_view name, Object *index)
+	RefVarObject *VM::CreateRefVarObject(std::wstring_view name, Object *index)
 	{
 		if (curObjCount == maxObjCount)
 			Gc();
 
-		RefObject *refObject = new RefObject(name, index);
+		RefVarObject *refObject = new RefVarObject(name, index);
+		refObject->marked = false;
+
+		refObject->next = firstObject;
+		firstObject = refObject;
+
+		curObjCount++;
+
+		return refObject;
+	}
+
+	RefObjObject* VM::CreateRefObjObject(std::wstring_view address)
+	{
+		if (curObjCount == maxObjCount)
+			Gc();
+
+		RefObjObject* refObject = new RefObjObject(address);
 		refObject->marked = false;
 
 		refObject->next = firstObject;
@@ -381,9 +397,9 @@ namespace lws
 				Object *value = PopObject();
 				Object *variable = mContext->GetVariableByName(name);
 
-				if (IS_REF_OBJ(variable))
+				if (IS_REF_VAR_OBJ(variable))
 				{
-					auto refObject = TO_REF_OBJ(variable);
+					auto refObject = TO_REF_VAR_OBJ(variable);
 					if (refObject->index == nullptr)
 						mContext->AssignVariableByName(refObject->name, value);
 					else
@@ -421,6 +437,11 @@ namespace lws
 							Assert(L"Invalid index op.The indexed object isn't a array object or a table object:" + index->Stringify());
 					}
 				}
+				else if (IS_REF_OBJ_OBJ(variable))
+				{
+					mContext->AssignVariableByAddress(TO_REF_OBJ_OBJ(variable)->address, value);
+					TO_REF_OBJ_OBJ(variable)->address = PointerAddressToString(value);//update ref address
+				}
 				else
 					mContext->AssignVariableByName(name, value);
 				break;
@@ -439,9 +460,9 @@ namespace lws
 					else
 						Assert(L"No field declaration:" + name);
 				}
-				else if (IS_REF_OBJ(varObject))
+				else if (IS_REF_VAR_OBJ(varObject))
 				{
-					auto refObject = TO_REF_OBJ(varObject);
+					auto refObject = TO_REF_VAR_OBJ(varObject);
 					varObject = mContext->GetVariableByName(refObject->name);
 
 					if (refObject->index == nullptr)
@@ -480,6 +501,11 @@ namespace lws
 						else
 							Assert(L"Invalid index op.The indexed object isn't a array object or a table object:" + index->Stringify());
 					}
+				}
+				else if (IS_REF_OBJ_OBJ(varObject))
+				{
+					varObject = mContext->GetVariableByAddress(TO_REF_OBJ_OBJ(varObject)->address);
+					PushObject(varObject);
 				}
 				else
 					PushObject(varObject);
@@ -772,15 +798,18 @@ namespace lws
 				break;
 			case OP_REF_VARIABLE:
 			{
-				PushObject(CreateRefObject(frame->mStrings[frame->mCodes[++ip]]));
+				PushObject(CreateRefVarObject(frame->mStrings[frame->mCodes[++ip]]));
 				break;
 			}
 			case OP_REF_INDEX:
 			{
 				auto index = PopObject();
-				PushObject(CreateRefObject(frame->mStrings[frame->mCodes[++ip]], index));
+				PushObject(CreateRefVarObject(frame->mStrings[frame->mCodes[++ip]], index));
 				break;
 			}
+			case OP_REF_OBJECT:
+				PushObject(CreateRefObjObject(PointerAddressToString(PopObject())));
+				break;
 			default:
 				break;
 			}

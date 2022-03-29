@@ -525,25 +525,31 @@ namespace lws
 		}
 	}
 
-	void Compiler::CompileRefExpr(RefExpr *expr, Frame *frame)
+	void Compiler::CompileRefExpr(RefExpr *expr, Frame *frame,ReferenceType type)
 	{
-		if (expr->refExpr->Type() == AST_IDENTIFIER)
+		if (type == ReferenceType::VARIABLE)
 		{
-			frame->AddOpCode(OP_REF_VARIABLE);
-			size_t offset = frame->AddString(((IdentifierExpr *)expr->refExpr)->literal);
-			frame->AddOpCode(offset);
-		}
-		else if (expr->refExpr->Type() == AST_INDEX)
-		{
-			CompileExpr(((IndexExpr *)expr->refExpr)->index, frame);
-			if (((IndexExpr *)expr->refExpr)->ds->Type() != AST_IDENTIFIER)
-				Assert(L"Invalid reference object,only left value can be referenced.");
-			frame->AddOpCode(OP_REF_INDEX);
-			size_t offset = frame->AddString(((IdentifierExpr *)(((IndexExpr *)expr->refExpr)->ds))->literal);
-			frame->AddOpCode(offset);
+			if (expr->refExpr->Type() == AST_IDENTIFIER)
+			{
+				frame->AddOpCode(OP_REF_VARIABLE);
+				size_t offset = frame->AddString(((IdentifierExpr*)expr->refExpr)->literal);
+				frame->AddOpCode(offset);
+			}
+			else if (expr->refExpr->Type() == AST_INDEX)
+			{
+				CompileExpr(((IndexExpr*)expr->refExpr)->index, frame);
+				if (((IndexExpr*)expr->refExpr)->ds->Type() != AST_IDENTIFIER)
+					Assert(L"Invalid reference object,only left value can be referenced.");
+				frame->AddOpCode(OP_REF_INDEX);
+				size_t offset = frame->AddString(((IdentifierExpr*)(((IndexExpr*)expr->refExpr)->ds))->literal);
+				frame->AddOpCode(offset);
+			}
 		}
 		else
-			Assert(L"Invalid reference object.");
+		{
+			CompileExpr(expr->refExpr, frame);
+			frame->AddOpCode(OP_REF_OBJECT);
+		}
 	}
 
 	void Compiler::CompileConditionExpr(ConditionExpr *expr, Frame *frame)
@@ -564,7 +570,7 @@ namespace lws
 		int64_t extraArgCount = 0;
 		if (expr->name->Type() == AST_FIELD_CALL)
 		{
-			CompileRefExpr(new RefExpr(((FieldCallExpr *)expr->name)->callee), frame);
+			CompileRefExpr(new RefExpr(((FieldCallExpr *)expr->name)->callee), frame,ReferenceType::OBJECT);
 			extraArgCount++;
 		}
 		//argument count
@@ -586,7 +592,7 @@ namespace lws
 			if (fieldCallExpr->callMember->Type() == AST_FIELD_CALL) //continuous field call such as a.b.c;
 				CompileExpr(((FieldCallExpr *)fieldCallExpr->callMember)->callee, frame, FIELD_MEMBER_READ);
 
-			IdentifierExpr *tmpIden = new IdentifierExpr(((IdentifierExpr *)fieldCallExpr->callMember)->literal + functionNameAndArgumentConnector + std::to_wstring(expr->arguments.size()));
+			IdentifierExpr *tmpIden = new IdentifierExpr(((IdentifierExpr *)fieldCallExpr->callMember)->literal + functionNameAndArgumentConnector + std::to_wstring(expr->arguments.size()+1));//+1 for adding 'this' to parameter count
 			CompileExpr(tmpIden, frame, FIELD_FUNCTION_READ);
 		}
 		else

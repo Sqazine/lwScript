@@ -58,6 +58,103 @@ namespace lws
 		return nullptr;
 	}
 
+	void Context::AssignVariableByAddress(std::wstring_view address, Object* value)
+	{
+		for (auto [contextKey, contextValue] : mValues)
+		{
+			if (PointerAddressToString(contextValue.object) == address)
+			{
+				if (contextValue.type != ObjectDescType::CONST)
+				{
+					mValues[contextKey].object = value;
+					return;
+				}
+				else
+					Assert(L"const variable at address:(" + std::wstring(address) + L") cannot be assigned");
+			}
+			else if (IS_ARRAY_OBJ(contextValue.object))
+			{
+				ArrayObject* array = TO_ARRAY_OBJ(contextValue.object);
+				if (contextValue.type != ObjectDescType::CONST) {
+					for (size_t i = 0; i < array->elements.size(); ++i)
+						if (PointerAddressToString(array->elements[i]) == address)
+						{
+							array->elements[i] = value;
+							return;
+						}
+				}
+				else
+					Assert(L"const variable at address:(" + std::wstring(address) + L") cannot be assigned");
+			}
+			else if (IS_TABLE_OBJ(contextValue.object))
+			{
+				TableObject* table = TO_TABLE_OBJ(contextValue.object);
+				if (contextValue.type != ObjectDescType::CONST) {
+					for (auto [tableKey, tableValue] : table->elements)
+						if (PointerAddressToString(tableValue) == address)
+						{
+							table->elements[tableKey] = value;
+							return;
+						}
+				}
+				else
+					Assert(L"const variable at address:(" + std::wstring(address) + L") cannot be assigned");
+			}
+			else if (IS_FIELD_OBJ(contextValue.object))
+			{
+				FieldObject* field = TO_FIELD_OBJ(contextValue.object);
+				if (contextValue.type != ObjectDescType::CONST) {
+					for (auto [classMemberKey, classMemberValue] : field->members)
+						if (PointerAddressToString(classMemberValue) == address)
+						{
+							field->members[classMemberKey] = value;
+							return;
+						}
+				}
+				else
+					Assert(L"const variable at address:(" + std::wstring(address) + L") cannot be assigned");
+			}
+		}
+
+		if (mUpContext)
+			mUpContext->AssignVariableByAddress(address, value);
+		else
+			Assert(L"Undefine variable(address:" + std::wstring(address) + L") in current context");
+	}
+
+	Object* Context::GetVariableByAddress(std::wstring_view address)
+	{
+		for (auto [contextKey, contextValue] : mValues)
+		{
+			if (PointerAddressToString(contextValue.object) == address)
+				return contextValue.object;
+			else if (IS_ARRAY_OBJ(contextValue.object))
+			{
+				ArrayObject* array = TO_ARRAY_OBJ(contextValue.object);
+				for (size_t i = 0; i < array->elements.size(); ++i)
+					if (PointerAddressToString(array->elements[i]) == address)
+						return array->elements[i];
+			}
+			else if (IS_TABLE_OBJ(contextValue.object))
+			{
+				TableObject* table = TO_TABLE_OBJ(contextValue.object);
+				for (auto [tableKey, tableValue] : table->elements)
+					if (PointerAddressToString(tableValue) == address)
+						return table->elements[tableKey];
+			}
+			else if (IS_FIELD_OBJ(contextValue.object))
+			{
+				FieldObject* field = TO_FIELD_OBJ(contextValue.object);
+				return field->GetMemberByAddress(address);
+			}
+		}
+
+		if (mUpContext)
+			return mUpContext->GetVariableByAddress(address);
+
+		return nullptr;
+	}
+
 	Context *Context::GetUpContext()
 	{
 		return mUpContext;

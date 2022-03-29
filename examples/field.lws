@@ -27,14 +27,12 @@ a.vec3.vec2.x=1000;
 
 println("{}",a);
 
-//field instance Vec4:
-//vec3=field instance Vec3:
-//     vec2=field instance Vec2:
-//          x=1000
-//          y=0
-//
-//     z=0
-//w=0
+//instance of field:
+//Vec4
+//{
+//    vec3
+//    w
+//}
 
 println("{}",a.vec3.vec2.x);// 1000.000000
 
