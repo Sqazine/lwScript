@@ -96,13 +96,7 @@ namespace lws
 		for (auto [key, value] : stmt->variables)
 		{
 			CompileExpr(value, frame);
-			if (value->Type() == AST_LAMBDA) //for lambda expr,add the argument count to the identifier
-			{
-				auto newIdentifier = new IdentifierExpr(((IdentifierExpr *)key)->literal + functionNameAndArgumentConnector + std::to_wstring(((LambdaExpr *)value)->parameters.size()));
-				CompileExpr(newIdentifier, frame, VAR_INIT);
-			}
-			else
-				CompileExpr(key, frame, VAR_INIT);
+			CompileExpr(key, frame, VAR_INIT);
 		}
 	}
 
@@ -111,13 +105,7 @@ namespace lws
 		for (auto [key, value] : stmt->consts)
 		{
 			CompileExpr(value, frame);
-			if (value->Type() == AST_LAMBDA) //for lambda expr,add the argument count to the identifier
-			{
-				auto newIdentifier = new IdentifierExpr(((IdentifierExpr *)key)->literal + functionNameAndArgumentConnector + std::to_wstring(((LambdaExpr *)value)->parameters.size()));
-				CompileExpr(newIdentifier, frame, CONST_INIT);
-			}
-			else
-				CompileExpr(key, frame, CONST_INIT);
+			CompileExpr(key, frame, CONST_INIT);
 		}
 	}
 
