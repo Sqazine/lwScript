@@ -48,9 +48,12 @@ namespace lws
 
 		virtual std::wstring Stringify() = 0;
 		virtual AstType Type() = 0;
+
+		uint64_t line{1};
+		uint64_t column{1};
 	};
 
-	struct Expr
+	struct Expr:public AstNode
 	{
 		Expr() {}
 		virtual ~Expr() {}
@@ -130,141 +133,141 @@ namespace lws
 	struct ArrayExpr : public Expr
 	{
 		ArrayExpr();
-		ArrayExpr(std::vector<Expr *> elements);
+		ArrayExpr(std::vector<Expr*> elements);
 		~ArrayExpr();
 
 		std::wstring Stringify() override;
 		AstType Type() override;
 
-		std::vector<Expr *> elements;
+		std::vector<Expr*> elements;
 	};
 
 	struct TableExpr : public Expr
 	{
 		TableExpr();
-		TableExpr(std::unordered_map<Expr *, Expr *> elements);
+		TableExpr(std::unordered_map<Expr*, Expr*> elements);
 		~TableExpr();
 
 		std::wstring Stringify() override;
 		AstType Type() override;
 
-		std::unordered_map<Expr *, Expr *> elements;
+		std::unordered_map<Expr*, Expr*> elements;
 	};
 
 	struct GroupExpr : public Expr
 	{
 		GroupExpr();
-		GroupExpr(Expr *expr);
+		GroupExpr(Expr* expr);
 		~GroupExpr();
 
 		std::wstring Stringify() override;
 		AstType Type() override;
 
-		Expr *expr;
+		Expr* expr;
 	};
 
 	struct PrefixExpr : public Expr
 	{
 		PrefixExpr();
-		PrefixExpr(std::wstring_view op, Expr *right);
+		PrefixExpr(std::wstring_view op, Expr* right);
 		~PrefixExpr();
 
 		std::wstring Stringify() override;
 		AstType Type() override;
 
 		std::wstring op;
-		Expr *right;
+		Expr* right;
 	};
 
 	struct InfixExpr : public Expr
 	{
 		InfixExpr();
-		InfixExpr(std::wstring_view op, Expr *left, Expr *right);
+		InfixExpr(std::wstring_view op, Expr* left, Expr* right);
 		~InfixExpr();
 
 		std::wstring Stringify() override;
 		AstType Type() override;
 
 		std::wstring op;
-		Expr *left;
-		Expr *right;
+		Expr* left;
+		Expr* right;
 	};
 
 	struct ConditionExpr : public Expr
 	{
 		ConditionExpr();
-		ConditionExpr(Expr *condition, Expr *left, Expr *right);
+		ConditionExpr(Expr* condition, Expr* left, Expr* right);
 		~ConditionExpr();
 
 		std::wstring Stringify() override;
 		AstType Type() override;
 
-		Expr *condition;
-		Expr *trueBranch;
-		Expr *falseBranch;
+		Expr* condition;
+		Expr* trueBranch;
+		Expr* falseBranch;
 	};
 
 	struct IndexExpr : public Expr
 	{
 		IndexExpr();
-		IndexExpr(Expr *ds, Expr *index);
+		IndexExpr(Expr* ds, Expr* index);
 		~IndexExpr();
 		std::wstring Stringify() override;
 
 		AstType Type() override;
 
-		Expr *ds;
-		Expr *index;
+		Expr* ds;
+		Expr* index;
 	};
 
 	struct RefExpr : public Expr
 	{
 		RefExpr();
-		RefExpr(Expr *refExpr);
+		RefExpr(Expr* refExpr);
 		~RefExpr();
 
 		std::wstring Stringify() override;
 		AstType Type() override;
 
-		Expr *refExpr;
+		Expr* refExpr;
 	};
 
 	struct LambdaExpr : public Expr
 	{
 		LambdaExpr();
-		LambdaExpr(std::vector<IdentifierExpr *> parameters, struct ScopeStmt *body);
+		LambdaExpr(std::vector<IdentifierExpr*> parameters, struct ScopeStmt* body);
 		~LambdaExpr();
 		std::wstring Stringify() override;
 		AstType Type() override;
 
-		std::vector<IdentifierExpr *> parameters;
-		struct ScopeStmt *body;
+		std::vector<IdentifierExpr*> parameters;
+		struct ScopeStmt* body;
 	};
 
 	struct FunctionCallExpr : public Expr
 	{
 		FunctionCallExpr();
-		FunctionCallExpr(Expr *name, std::vector<Expr *> arguments);
+		FunctionCallExpr(Expr* name, std::vector<Expr*> arguments);
 		~FunctionCallExpr();
 
 		std::wstring Stringify() override;
 		AstType Type() override;
 
-		Expr *name;
-		std::vector<Expr *> arguments;
+		Expr* name;
+		std::vector<Expr*> arguments;
 	};
 
 	struct FieldCallExpr : public Expr
 	{
 		FieldCallExpr();
-		FieldCallExpr(Expr *callee, Expr *callMember);
+		FieldCallExpr(Expr* callee, Expr* callMember);
 		~FieldCallExpr();
 
 		std::wstring Stringify() override;
 		AstType Type() override;
 
-		Expr *callee;
-		Expr *callMember;
+		Expr* callee;
+		Expr* callMember;
 	};
 
 	struct Stmt : public AstNode
@@ -279,86 +282,86 @@ namespace lws
 	struct ExprStmt : public Stmt
 	{
 		ExprStmt();
-		ExprStmt(Expr *expr);
+		ExprStmt(Expr* expr);
 		~ExprStmt();
 		std::wstring Stringify() override;
 		AstType Type() override;
 
-		Expr *expr;
+		Expr* expr;
 	};
 
 	struct LetStmt : public Stmt
 	{
 		LetStmt();
-		LetStmt(const std::unordered_map<IdentifierExpr *, Expr *> &variables);
+		LetStmt(const std::unordered_map<IdentifierExpr*, Expr*>& variables);
 		~LetStmt();
 
 		std::wstring Stringify() override;
 		AstType Type() override;
 
-		std::unordered_map<IdentifierExpr *, Expr *> variables;
+		std::unordered_map<IdentifierExpr*, Expr*> variables;
 	};
 
-	struct ConstStmt:public Stmt
+	struct ConstStmt :public Stmt
 	{
 		ConstStmt();
-		ConstStmt(const std::unordered_map<IdentifierExpr *, Expr *> &consts);
+		ConstStmt(const std::unordered_map<IdentifierExpr*, Expr*>& consts);
 		~ConstStmt();
 
 		std::wstring Stringify() override;
 		AstType Type() override;
 
-		std::unordered_map<IdentifierExpr *, Expr *> consts;
+		std::unordered_map<IdentifierExpr*, Expr*> consts;
 	};
 
 	struct ReturnStmt : public Stmt
 	{
 		ReturnStmt();
-		ReturnStmt(Expr *expr);
+		ReturnStmt(Expr* expr);
 		~ReturnStmt();
 
 		std::wstring Stringify() override;
 		AstType Type() override;
 
-		Expr *expr;
+		Expr* expr;
 	};
 
 	struct IfStmt : public Stmt
 	{
 		IfStmt();
-		IfStmt(Expr *condition, Stmt *thenBranch, Stmt *elseBranch);
+		IfStmt(Expr* condition, Stmt* thenBranch, Stmt* elseBranch);
 		~IfStmt();
 
 		std::wstring Stringify() override;
 		AstType Type() override;
-		Expr *condition;
-		Stmt *thenBranch;
-		Stmt *elseBranch;
+		Expr* condition;
+		Stmt* thenBranch;
+		Stmt* elseBranch;
 	};
 
 	struct ScopeStmt : public Stmt
 	{
 		ScopeStmt();
-		ScopeStmt(std::vector<Stmt *> stmts);
+		ScopeStmt(std::vector<Stmt*> stmts);
 		~ScopeStmt();
 
 		std::wstring Stringify() override;
 		AstType Type() override;
-		std::vector<Stmt *> stmts;
+		std::vector<Stmt*> stmts;
 	};
 
 	struct WhileStmt : public Stmt
 	{
 		WhileStmt();
-		WhileStmt(Expr *condition, ScopeStmt *body,ScopeStmt* increment=nullptr);
+		WhileStmt(Expr* condition, ScopeStmt* body, ScopeStmt* increment = nullptr);
 		~WhileStmt();
 
 		std::wstring Stringify() override;
 		AstType Type() override;
 
-		Expr *condition;
-		ScopeStmt *body;
-		ScopeStmt *increment;
+		Expr* condition;
+		ScopeStmt* body;
+		ScopeStmt* increment;
 	};
 
 	struct BreakStmt : public Stmt
@@ -382,44 +385,44 @@ namespace lws
 	struct FunctionStmt : public Stmt
 	{
 		FunctionStmt();
-		FunctionStmt(IdentifierExpr *name, std::vector<IdentifierExpr *> parameters, ScopeStmt *body);
+		FunctionStmt(IdentifierExpr* name, std::vector<IdentifierExpr*> parameters, ScopeStmt* body);
 		~FunctionStmt();
 
 		std::wstring Stringify() override;
 		AstType Type() override;
 
-		IdentifierExpr *name;
-		std::vector<IdentifierExpr *> parameters;
-		ScopeStmt *body;
+		IdentifierExpr* name;
+		std::vector<IdentifierExpr*> parameters;
+		ScopeStmt* body;
 	};
 
 	struct FieldStmt : public Stmt
 	{
 		FieldStmt();
 		FieldStmt(std::wstring name,
-				  std::vector<LetStmt *> letStmts,
-				  std::vector<FunctionStmt *> fnStmts,
-				  std::vector<IdentifierExpr *> containedFields = {});
+			std::vector<LetStmt*> letStmts,
+			std::vector<FunctionStmt*> fnStmts,
+			std::vector<IdentifierExpr*> containedFields = {});
 		~FieldStmt();
 
 		std::wstring Stringify() override;
 		AstType Type() override;
 
 		std::wstring name;
-		std::vector<IdentifierExpr *> containedFields;
-		std::vector<LetStmt *> letStmts;
-		std::vector<FunctionStmt *> fnStmts;
+		std::vector<IdentifierExpr*> containedFields;
+		std::vector<LetStmt*> letStmts;
+		std::vector<FunctionStmt*> fnStmts;
 	};
 
 	struct AstStmts : public Stmt
 	{
 		AstStmts();
-		AstStmts(std::vector<Stmt *> stmts);
+		AstStmts(std::vector<Stmt*> stmts);
 		~AstStmts();
 
 		std::wstring Stringify() override;
 		AstType Type() override;
 
-		std::vector<Stmt *> stmts;
+		std::vector<Stmt*> stmts;
 	};
 }

@@ -3,7 +3,7 @@ namespace lws
 {
 	struct Keyword
 	{
-		const wchar_t* name;
+		const wchar_t *name;
 		TokenType type;
 	};
 
@@ -33,7 +33,7 @@ namespace lws
 	{
 	}
 
-	const std::vector<Token>& Lexer::ScanTokens(std::wstring_view src)
+	const std::vector<Token> &Lexer::ScanTokens(std::wstring_view src)
 	{
 		ResetStatus();
 		mSource = src;
@@ -57,7 +57,7 @@ namespace lws
 		{
 			ch = GetCurChar();
 			isAscii = false;
-			while (!isascii(GetCurChar()))//not a ASCII char
+			while (!isascii(GetCurChar())) // not a ASCII char
 			{
 				c.append(1, ch);
 				ch = GetCurCharAndStepOnce();
@@ -97,7 +97,6 @@ namespace lws
 			String();
 		else if (c == L" " || c == L"\t" || c == L"\r")
 		{
-
 		}
 		else if (c == L"\n")
 			mLine++;
@@ -138,7 +137,7 @@ namespace lws
 						mLine++;
 					GetCurCharAndStepOnce();
 				}
-				GetCurCharAndStepOnce(); //eat '*'
+				GetCurCharAndStepOnce(); // eat '*'
 				GetCurCharAndStepOnce(); // eat '/'
 			}
 			else if (IsMatchCurCharAndStepOnce('='))
@@ -223,7 +222,7 @@ namespace lws
 		{
 			if (IsNumber(ch))
 				Number();
-			else if (IsLetter(ch,isAscii))
+			else if (IsLetter(ch, isAscii))
 				Identifier();
 			else
 			{
@@ -231,7 +230,6 @@ namespace lws
 				Assert(L"Unknown literal:" + literal);
 			}
 		}
-
 	}
 
 	void Lexer::ResetStatus()
@@ -294,11 +292,11 @@ namespace lws
 	void Lexer::AddToken(TokenType type)
 	{
 		auto literal = mSource.substr(mStartPos, mCurPos - mStartPos);
-		mTokens.emplace_back(Token(type, literal, mLine));
+		mTokens.emplace_back(type, literal, mLine, mStartPos+1);//+1 means that the column beginning front 1
 	}
 	void Lexer::AddToken(TokenType type, std::wstring_view literal)
 	{
-		mTokens.emplace_back(Token(type, literal, mLine));
+		mTokens.emplace_back(type, literal, mLine, mStartPos+1);
 	}
 
 	bool Lexer::IsAtEnd()
@@ -318,7 +316,7 @@ namespace lws
 	}
 	bool Lexer::IsLetterOrNumber(wchar_t c, bool isAscii)
 	{
-		return IsLetter(c,isAscii) || IsNumber(c);
+		return IsLetter(c, isAscii) || IsNumber(c);
 	}
 
 	void Lexer::Number()
@@ -341,7 +339,7 @@ namespace lws
 	void Lexer::Identifier()
 	{
 		wchar_t c = GetCurChar();
-		bool isAscii = isascii(c)?true:false;
+		bool isAscii = isascii(c) ? true : false;
 		while (IsLetterOrNumber(c, isAscii))
 		{
 			GetCurCharAndStepOnce();
@@ -352,7 +350,7 @@ namespace lws
 		std::wstring literal = mSource.substr(mStartPos, mCurPos - mStartPos);
 
 		bool isKeyWord = false;
-		for (const auto& keyword : keywords)
+		for (const auto &keyword : keywords)
 			if (wcscmp(keyword.name, literal.c_str()) == 0)
 			{
 				AddToken(keyword.type, literal);
@@ -376,7 +374,7 @@ namespace lws
 		if (IsAtEnd())
 			std::wcout << "[line " << mLine << "]:Uniterminated string." << std::endl;
 
-		GetCurCharAndStepOnce(); //eat the second '\"'
+		GetCurCharAndStepOnce(); // eat the second '\"'
 
 		AddToken(TOKEN_STRING, mSource.substr(mStartPos + 1, mCurPos - mStartPos - 2));
 	}
