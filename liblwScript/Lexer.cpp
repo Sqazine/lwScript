@@ -102,94 +102,102 @@ namespace lws
 			mLine++;
 		else if (c == L"+")
 		{
-			if (IsMatchCurCharAndStepOnce('='))
+			if (IsMatchCurCharAndStepOnce(L'='))
 				AddToken(TOKEN_PLUS_EQUAL);
 			else
 				AddToken(TOKEN_PLUS);
 		}
 		else if (c == L"-")
 		{
-			if (IsMatchCurCharAndStepOnce('='))
+			if (IsMatchCurCharAndStepOnce(L'='))
 				AddToken(TOKEN_MINUS_EQUAL);
 			else
 				AddToken(TOKEN_MINUS);
 		}
 		else if (c == L"*")
 		{
-			if (IsMatchCurCharAndStepOnce('='))
+			if (IsMatchCurCharAndStepOnce(L'='))
 				AddToken(TOKEN_ASTERISK_EQUAL);
 			else
 				AddToken(TOKEN_ASTERISK);
 		}
 		else if (c == L"/")
 		{
-			if (IsMatchCurCharAndStepOnce('/'))
+			if (IsMatchCurCharAndStepOnce(L'/'))
 			{
 				while (!IsMatchCurChar('\n') && !IsAtEnd())
 					GetCurCharAndStepOnce();
 				mLine++;
 			}
-			else if (IsMatchCurCharAndStepOnce('*'))
+			else if (IsMatchCurCharAndStepOnce(L'*'))
 			{
-				while (!IsMatchCurChar('*') && !IsMatchNextChar('/') && !IsAtEnd())
+				while (!IsAtEnd())
 				{
-					if (IsMatchCurChar('\n'))
+					if (IsMatchCurChar(L'\n'))
 						mLine++;
+					std::wcout << GetCurChar() << std::endl;
 					GetCurCharAndStepOnce();
+					if (IsMatchCurChar(L'*'))
+					{
+						GetCurCharAndStepOnce();
+						if (IsMatchCurChar(L'/'))
+						{
+							GetCurCharAndStepOnce();
+							break;
+						}
+					}
 				}
-				GetCurCharAndStepOnce(); // eat '*'
-				GetCurCharAndStepOnce(); // eat '/'
 			}
-			else if (IsMatchCurCharAndStepOnce('='))
+			else if (IsMatchCurCharAndStepOnce(L'='))
 				AddToken(TOKEN_SLASH_EQUAL);
 			else
 				AddToken(TOKEN_SLASH);
 		}
 		else if (c == L"%")
 		{
-			if (IsMatchCurCharAndStepOnce('='))
+			if (IsMatchCurCharAndStepOnce(L'='))
 				AddToken(TOKEN_PERCENT_EQUAL);
 			AddToken(TOKEN_PERCENT);
 		}
 		else if (c == L"!")
 		{
-			if (IsMatchCurCharAndStepOnce('='))
+			if (IsMatchCurCharAndStepOnce(L'='))
 				AddToken(TOKEN_BANG_EQUAL);
 			else
 				AddToken(TOKEN_BANG);
 		}
 		else if (c == L"&")
 		{
-			if (IsMatchCurCharAndStepOnce('&'))
+			if (IsMatchCurCharAndStepOnce(L'&'))
 				AddToken(TOKEN_AMPERSAND_AMPERSAND);
-			else if (IsMatchCurCharAndStepOnce('='))
+			else if (IsMatchCurCharAndStepOnce(L'='))
 				AddToken(TOKEN_AMPERSAND_EQUAL);
 			else
 				AddToken(TOKEN_AMPERSAND);
 		}
 		else if (c == L"|")
 		{
-			if (IsMatchCurCharAndStepOnce('|'))
+			if (IsMatchCurCharAndStepOnce(L'|'))
 				AddToken(TOKEN_VBAR_VBAR);
-			else if (IsMatchCurCharAndStepOnce('='))
+			else if (IsMatchCurCharAndStepOnce(L'='))
 				AddToken(TOKEN_VBAR_EQUAL);
 			else
 				AddToken(TOKEN_VBAR);
 		}
 		else if (c == L"^")
 		{
-			if (IsMatchCurCharAndStepOnce('='))
+			if (IsMatchCurCharAndStepOnce(L'='))
 				AddToken(TOKEN_CARET_EQUAL);
 			else
 				AddToken(TOKEN_CARET);
 		}
 		else if (c == L"<")
 		{
-			if (IsMatchCurCharAndStepOnce('='))
+			if (IsMatchCurCharAndStepOnce(L'='))
 				AddToken(TOKEN_LESS_EQUAL);
-			else if (IsMatchCurCharAndStepOnce('<'))
+			else if (IsMatchCurCharAndStepOnce(L'<'))
 			{
-				if (IsMatchCurCharAndStepOnce('='))
+				if (IsMatchCurCharAndStepOnce(L'='))
 					AddToken(TOKEN_LESS_LESS_EQUAL);
 				else
 					AddToken(TOKEN_LESS_LESS);
@@ -199,11 +207,11 @@ namespace lws
 		}
 		else if (c == L">")
 		{
-			if (IsMatchCurCharAndStepOnce('='))
+			if (IsMatchCurCharAndStepOnce(L'='))
 				AddToken(TOKEN_GREATER_EQUAL);
-			else if (IsMatchCurCharAndStepOnce('>'))
+			else if (IsMatchCurCharAndStepOnce(L'>'))
 			{
-				if (IsMatchCurCharAndStepOnce('='))
+				if (IsMatchCurCharAndStepOnce(L'='))
 					AddToken(TOKEN_GREATER_GREATER_EQUAL);
 				else
 					AddToken(TOKEN_GREATER_GREATER);
@@ -213,7 +221,7 @@ namespace lws
 		}
 		else if (c == L"=")
 		{
-			if (IsMatchCurCharAndStepOnce('='))
+			if (IsMatchCurCharAndStepOnce(L'='))
 				AddToken(TOKEN_EQUAL_EQUAL);
 			else
 				AddToken(TOKEN_EQUAL);
@@ -239,11 +247,11 @@ namespace lws
 		std::vector<Token>().swap(mTokens);
 	}
 
-	bool Lexer::IsMatchCurChar(char c)
+	bool Lexer::IsMatchCurChar(wchar_t c)
 	{
 		return GetCurChar() == c;
 	}
-	bool Lexer::IsMatchCurCharAndStepOnce(char c)
+	bool Lexer::IsMatchCurCharAndStepOnce(wchar_t c)
 	{
 		bool result = GetCurChar() == c;
 		if (result)
@@ -251,11 +259,11 @@ namespace lws
 		return result;
 	}
 
-	bool Lexer::IsMatchNextChar(char c)
+	bool Lexer::IsMatchNextChar(wchar_t c)
 	{
 		return GetNextChar() == c;
 	}
-	bool Lexer::IsMatchNextCharAndStepOnce(char c)
+	bool Lexer::IsMatchNextCharAndStepOnce(wchar_t c)
 	{
 		bool result = GetNextChar() == c;
 		if (result)
@@ -267,36 +275,36 @@ namespace lws
 	{
 		if (mCurPos + 1 < mSource.size())
 			return mSource[++mCurPos];
-		return '\0';
+		return L'\0';
 	}
 	wchar_t Lexer::GetNextChar()
 	{
 		if (mCurPos + 1 < mSource.size())
 			return mSource[mCurPos + 1];
-		return '\0';
+		return L'\0';
 	}
 	wchar_t Lexer::GetCurCharAndStepOnce()
 	{
 		if (!IsAtEnd())
 			return mSource[mCurPos++];
-		return '\0';
+		return L'\0';
 	}
 
 	wchar_t Lexer::GetCurChar()
 	{
 		if (!IsAtEnd())
 			return mSource[mCurPos];
-		return '\0';
+		return L'\0';
 	}
 
 	void Lexer::AddToken(TokenType type)
 	{
 		auto literal = mSource.substr(mStartPos, mCurPos - mStartPos);
-		mTokens.emplace_back(type, literal, mLine, mStartPos+1);//+1 means that the column beginning front 1
+		mTokens.emplace_back(type, literal, mLine, mStartPos + 1); //+1 means that the column beginning front 1
 	}
 	void Lexer::AddToken(TokenType type, std::wstring_view literal)
 	{
-		mTokens.emplace_back(type, literal, mLine, mStartPos+1);
+		mTokens.emplace_back(type, literal, mLine, mStartPos + 1);
 	}
 
 	bool Lexer::IsAtEnd()
@@ -324,7 +332,7 @@ namespace lws
 		while (IsNumber(GetCurChar()))
 			GetCurCharAndStepOnce();
 
-		if (IsMatchCurCharAndStepOnce('.'))
+		if (IsMatchCurCharAndStepOnce(L'.'))
 		{
 			if (IsNumber(GetCurChar()))
 				while (IsNumber(GetCurChar()))
@@ -364,9 +372,9 @@ namespace lws
 
 	void Lexer::String()
 	{
-		while (!IsMatchCurChar('\"') && !IsAtEnd())
+		while (!IsMatchCurChar(L'\"') && !IsAtEnd())
 		{
-			if (IsMatchCurChar('\n'))
+			if (IsMatchCurChar(L'\n'))
 				mLine++;
 			GetCurCharAndStepOnce();
 		}

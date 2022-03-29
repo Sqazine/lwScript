@@ -21,10 +21,10 @@ namespace lws
 
 		void ScanToken();
 
-		bool IsMatchCurChar(char c);
-		bool IsMatchCurCharAndStepOnce(char c);
-		bool IsMatchNextChar(char c);
-		bool IsMatchNextCharAndStepOnce(char c);
+		bool IsMatchCurChar(wchar_t c);
+		bool IsMatchCurCharAndStepOnce(wchar_t c);
+		bool IsMatchNextChar(wchar_t c);
+		bool IsMatchNextCharAndStepOnce(wchar_t c);
 
 		wchar_t GetNextCharAndStepOnce();
 		wchar_t GetNextChar();
