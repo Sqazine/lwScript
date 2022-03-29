@@ -124,11 +124,15 @@ namespace lws
 
 	Object* Context::GetVariableByAddress(std::wstring_view address)
 	{
+		//first:search the suitable context value in address
 		for (auto [contextKey, contextValue] : mValues)
-		{
 			if (PointerAddressToString(contextValue.object) == address)
 				return contextValue.object;
-			else if (IS_ARRAY_OBJ(contextValue.object))
+
+		//second:search the address in the specific object value
+		for (auto [contextKey, contextValue] : mValues)
+		{
+			if (IS_ARRAY_OBJ(contextValue.object))
 			{
 				ArrayObject* array = TO_ARRAY_OBJ(contextValue.object);
 				for (size_t i = 0; i < array->elements.size(); ++i)
