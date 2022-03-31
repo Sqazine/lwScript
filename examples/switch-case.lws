@@ -1,0 +1,11 @@
+let a=1;
+switch(a)
+{
+    case 1:
+    {
+        println("{}",a);
+    }
+    default:
+        println("{}",0);
+}
+

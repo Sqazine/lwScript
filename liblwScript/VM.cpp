@@ -458,7 +458,7 @@ namespace lws
 					if (frame->HasFieldFrame(name))
 						PushObject(Execute(frame->GetFieldFrame(name)));
 					else
-						Assert(L"No field declaration:" + name);
+						Assert(L"No field or variable declaration:" + name);
 				}
 				else if (IS_REF_VAR_OBJ(varObject))
 				{

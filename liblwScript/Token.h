@@ -74,6 +74,7 @@ namespace lws
 		TOKEN_CATCH,				 // catch
 		TOKEN_SWITCH,				 // switch
 		TOKEN_CASE,					 // case
+		TOKEN_DEFAULT,				 // default
 		TOKEN_END
 	};
 

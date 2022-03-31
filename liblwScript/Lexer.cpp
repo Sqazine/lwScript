@@ -23,6 +23,9 @@ namespace lws
 		{L"const", TOKEN_CONST},
 		{L"break", TOKEN_BREAK},
 		{L"continue", TOKEN_CONTINUE},
+		{L"switch", TOKEN_SWITCH},
+		{L"case", TOKEN_CASE},
+		{L"default", TOKEN_DEFAULT},
 	};
 
 	Lexer::Lexer()

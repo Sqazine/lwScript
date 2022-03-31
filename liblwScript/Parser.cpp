@@ -186,6 +186,8 @@ namespace lws
 			return ParseBreakStmt();
 		else if (IsMatchCurToken(TOKEN_CONTINUE))
 			return ParseContinueStmt();
+		else if(IsMatchCurToken(TOKEN_SWITCH))
+			return ParseSwitchStmt();
 		else if (IsMatchCurToken(TOKEN_FUNCTION))
 			return ParseFunctionStmt();
 		else if (IsMatchCurToken(TOKEN_FIELD))
@@ -446,6 +448,64 @@ namespace lws
 		
 		return continueStmt;
 	}
+
+	Stmt *Parser::ParseSwitchStmt()
+	{
+		auto ifStmt = new IfStmt();
+		ifStmt->line = GetCurToken().line;
+		ifStmt->column = GetCurToken().column;
+
+		Consume(TOKEN_SWITCH, L"Expect 'switch' keyword.");
+		Consume(TOKEN_LPAREN, L"Expect '(' after 'switch' keyword.");
+		auto switchExpr= ParseIdentifierExpr();
+		Consume(TOKEN_RPAREN, L"Expect ')' after switch's expression.");
+		Consume(TOKEN_LBRACE, L"Expect '{' after 'switch' keyword.");
+
+		if(IsMatchCurTokenAndStepOnce(TOKEN_CASE))//the first case
+		{
+			auto conditionExpr = ParseExpr();
+			Consume(TOKEN_COLON, L"Expect ':' after case's condition expr.");
+			
+			ifStmt->condition = new InfixExpr(L"==", switchExpr, conditionExpr);
+			ifStmt->condition->line = GetCurToken().line;
+			ifStmt->condition->column = GetCurToken().column;
+
+			auto thenBranch = new ScopeStmt();
+			thenBranch->line = GetCurToken().line;
+			thenBranch->column = GetCurToken().column;
+			
+			if(IsMatchCurTokenAndStepOnce(TOKEN_LBRACE))
+			{
+				while(!IsMatchCurToken(TOKEN_RBRACE))
+					thenBranch->stmts.emplace_back(ParseStmt());
+				Consume(TOKEN_RBRACE, L"Expect '}' at the end of case block while has multiple statement");
+			}
+			else
+				thenBranch->stmts.emplace_back(ParseStmt());
+			ifStmt->thenBranch = thenBranch;
+		}
+
+		if(IsMatchCurTokenAndStepOnce(TOKEN_DEFAULT))
+		{
+			Consume(TOKEN_COLON, L"Expect ':' after case's condition expr.");
+			auto elseBranch = new ScopeStmt();
+			elseBranch->line = GetCurToken().line;
+			elseBranch->column = GetCurToken().column;
+			if (IsMatchCurTokenAndStepOnce(TOKEN_LBRACE))
+			{
+				while (!IsMatchCurToken(TOKEN_RBRACE))
+					elseBranch->stmts.emplace_back(ParseStmt());
+				Consume(TOKEN_RBRACE, L"Expect '}' at the end of default block while has multiple statement");
+			}
+			else
+				elseBranch->stmts.emplace_back(ParseStmt());
+
+			ifStmt->elseBranch = elseBranch;
+		}
+
+		Consume(TOKEN_RBRACE, L"Expect '}' after switch stmt");
+		return ifStmt;
+	}	
 
 	Stmt *Parser::ParseFunctionStmt()
 	{
