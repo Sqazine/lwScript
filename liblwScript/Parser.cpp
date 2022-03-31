@@ -186,7 +186,7 @@ namespace lws
 			return ParseBreakStmt();
 		else if (IsMatchCurToken(TOKEN_CONTINUE))
 			return ParseContinueStmt();
-		else if(IsMatchCurToken(TOKEN_SWITCH))
+		else if (IsMatchCurToken(TOKEN_SWITCH))
 			return ParseSwitchStmt();
 		else if (IsMatchCurToken(TOKEN_FUNCTION))
 			return ParseFunctionStmt();
@@ -203,7 +203,7 @@ namespace lws
 		exprStmt->column = GetCurToken().column;
 
 		exprStmt->expr = ParseExpr();
-		
+
 		Consume(TOKEN_SEMICOLON, L"Expect ';' after expr stmt.");
 		return exprStmt;
 	}
@@ -213,7 +213,6 @@ namespace lws
 		auto letStmt = new LetStmt();
 		letStmt->line = GetCurToken().line;
 		letStmt->column = GetCurToken().column;
-
 
 		Consume(TOKEN_LET, L"Expect 'let' key word");
 
@@ -442,10 +441,10 @@ namespace lws
 		auto continueStmt = new ContinueStmt();
 		continueStmt->line = GetCurToken().line;
 		continueStmt->column = GetCurToken().column;
-		
+
 		Consume(TOKEN_CONTINUE, L"Expect 'continue' keyword");
 		Consume(TOKEN_SEMICOLON, L"Expect ';' after 'continue' keyword.");
-		
+
 		return continueStmt;
 	}
 
@@ -457,55 +456,106 @@ namespace lws
 
 		Consume(TOKEN_SWITCH, L"Expect 'switch' keyword.");
 		Consume(TOKEN_LPAREN, L"Expect '(' after 'switch' keyword.");
-		auto switchExpr= ParseIdentifierExpr();
+		auto switchExpr = ParseIdentifierExpr();
 		Consume(TOKEN_RPAREN, L"Expect ')' after switch's expression.");
 		Consume(TOKEN_LBRACE, L"Expect '{' after 'switch' keyword.");
 
-		if(IsMatchCurTokenAndStepOnce(TOKEN_CASE))//the first case
+		IfStmt *loopIfStmt = ifStmt;
+		bool hasCaseSituation = false;
+		if (IsMatchCurTokenAndStepOnce(TOKEN_CASE)) //the first case
 		{
+			hasCaseSituation = true;
+
 			auto conditionExpr = ParseExpr();
 			Consume(TOKEN_COLON, L"Expect ':' after case's condition expr.");
-			
-			ifStmt->condition = new InfixExpr(L"==", switchExpr, conditionExpr);
-			ifStmt->condition->line = GetCurToken().line;
-			ifStmt->condition->column = GetCurToken().column;
+
+			loopIfStmt->condition = new InfixExpr(L"==", switchExpr, conditionExpr);
+			loopIfStmt->condition->line = GetCurToken().line;
+			loopIfStmt->condition->column = GetCurToken().column;
 
 			auto thenBranch = new ScopeStmt();
 			thenBranch->line = GetCurToken().line;
 			thenBranch->column = GetCurToken().column;
-			
-			if(IsMatchCurTokenAndStepOnce(TOKEN_LBRACE))
-			{
-				while(!IsMatchCurToken(TOKEN_RBRACE))
-					thenBranch->stmts.emplace_back(ParseStmt());
-				Consume(TOKEN_RBRACE, L"Expect '}' at the end of case block while has multiple statement");
-			}
-			else
-				thenBranch->stmts.emplace_back(ParseStmt());
-			ifStmt->thenBranch = thenBranch;
-		}
 
-		if(IsMatchCurTokenAndStepOnce(TOKEN_DEFAULT))
-		{
-			Consume(TOKEN_COLON, L"Expect ':' after case's condition expr.");
-			auto elseBranch = new ScopeStmt();
-			elseBranch->line = GetCurToken().line;
-			elseBranch->column = GetCurToken().column;
 			if (IsMatchCurTokenAndStepOnce(TOKEN_LBRACE))
 			{
 				while (!IsMatchCurToken(TOKEN_RBRACE))
-					elseBranch->stmts.emplace_back(ParseStmt());
-				Consume(TOKEN_RBRACE, L"Expect '}' at the end of default block while has multiple statement");
+					thenBranch->stmts.emplace_back(ParseStmt());
+				Consume(TOKEN_RBRACE, L"Expect '}' at the end of case block while has multiple statements.");
 			}
 			else
-				elseBranch->stmts.emplace_back(ParseStmt());
+				thenBranch->stmts.emplace_back(ParseStmt());
+			loopIfStmt->thenBranch = thenBranch;
 
-			ifStmt->elseBranch = elseBranch;
+			while (IsMatchCurTokenAndStepOnce(TOKEN_CASE))
+			{
+				auto ifStmt = new IfStmt();
+				ifStmt->column = GetCurToken().column;
+				ifStmt->line = GetCurToken().line;
+
+				auto conditionExpr = ParseExpr();
+				Consume(TOKEN_COLON, L"Expect ':' after case's condition expr.");
+
+				ifStmt->condition = new InfixExpr(L"==", switchExpr, conditionExpr);
+				ifStmt->condition->line = GetCurToken().line;
+				ifStmt->condition->column = GetCurToken().column;
+
+				auto thenBranch = new ScopeStmt();
+				thenBranch->line = GetCurToken().line;
+				thenBranch->column = GetCurToken().column;
+
+				if (IsMatchCurTokenAndStepOnce(TOKEN_LBRACE))
+				{
+					while (!IsMatchCurToken(TOKEN_RBRACE))
+						thenBranch->stmts.emplace_back(ParseStmt());
+					Consume(TOKEN_RBRACE, L"Expect '}' at the end of case block while has multiple statements.");
+				}
+				else
+					thenBranch->stmts.emplace_back(ParseStmt());
+				ifStmt->thenBranch = thenBranch;
+				loopIfStmt->elseBranch = ifStmt;
+				loopIfStmt = ifStmt;
+			}
+		}
+
+		if (IsMatchCurTokenAndStepOnce(TOKEN_DEFAULT))
+		{
+			Consume(TOKEN_COLON, L"Expect ':' after case's condition expr.");
+			if (hasCaseSituation)
+			{
+				auto elseBranch = new ScopeStmt();
+				elseBranch->line = GetCurToken().line;
+				elseBranch->column = GetCurToken().column;
+				if (IsMatchCurTokenAndStepOnce(TOKEN_LBRACE))
+				{
+					while (!IsMatchCurToken(TOKEN_RBRACE))
+						elseBranch->stmts.emplace_back(ParseStmt());
+					Consume(TOKEN_RBRACE, L"Expect '}' at the end of default block while has multiple statement");
+				}
+				else
+					elseBranch->stmts.emplace_back(ParseStmt());
+
+				loopIfStmt->elseBranch = elseBranch;
+			}
+			else
+			{
+				auto scopeStmt = new ScopeStmt();
+				if (IsMatchCurTokenAndStepOnce(TOKEN_LBRACE))
+				{
+					while (!IsMatchCurToken(TOKEN_RBRACE))
+						scopeStmt->stmts.emplace_back(ParseStmt());
+					Consume(TOKEN_RBRACE, L"Expect '}' at the end of default block while has multiple statement");
+				}
+				else
+					scopeStmt->stmts.emplace_back(ParseStmt());
+				Consume(TOKEN_RBRACE, L"Expect '}' after switch stmt");
+				return scopeStmt;
+			}
 		}
 
 		Consume(TOKEN_RBRACE, L"Expect '}' after switch stmt");
 		return ifStmt;
-	}	
+	}
 
 	Stmt *Parser::ParseFunctionStmt()
 	{
@@ -637,14 +687,14 @@ namespace lws
 		std::wstring numLiteral = Consume(TOKEN_NUMBER, L"Expexct a number literal.").literal;
 		if (numLiteral.find('.') != std::wstring::npos)
 		{
-			auto realNumExpr= new RealNumExpr(std::stod(numLiteral));
+			auto realNumExpr = new RealNumExpr(std::stod(numLiteral));
 			realNumExpr->line = line;
 			realNumExpr->column = column;
 			return realNumExpr;
 		}
 		else
 		{
-			auto intNumExpr=new IntNumExpr(std::stoll(numLiteral));
+			auto intNumExpr = new IntNumExpr(std::stoll(numLiteral));
 			intNumExpr->line = line;
 			intNumExpr->column = column;
 			return intNumExpr;
@@ -663,7 +713,7 @@ namespace lws
 
 	Expr *Parser::ParseNullExpr()
 	{
-		auto token=Consume(TOKEN_NULL, L"Expect 'null' keyword");
+		auto token = Consume(TOKEN_NULL, L"Expect 'null' keyword");
 		auto nullExpr = new NullExpr();
 		nullExpr->line = token.line;
 		nullExpr->column = token.column;
@@ -671,7 +721,7 @@ namespace lws
 	}
 	Expr *Parser::ParseTrueExpr()
 	{
-		auto token=Consume(TOKEN_TRUE, L"Expect 'true' keyword");
+		auto token = Consume(TOKEN_TRUE, L"Expect 'true' keyword");
 		auto trueExpr = new BoolExpr(true);
 		trueExpr->line = token.line;
 		trueExpr->column = token.column;
@@ -679,7 +729,7 @@ namespace lws
 	}
 	Expr *Parser::ParseFalseExpr()
 	{
-		auto token=Consume(TOKEN_FALSE, L"Expect 'false' keyword");
+		auto token = Consume(TOKEN_FALSE, L"Expect 'false' keyword");
 		auto falseExpr = new BoolExpr(false);
 		falseExpr->line = token.line;
 		falseExpr->column = token.column;
@@ -688,7 +738,7 @@ namespace lws
 
 	Expr *Parser::ParseGroupExpr()
 	{
-		auto token=Consume(TOKEN_LPAREN, L"Expect '('.");
+		auto token = Consume(TOKEN_LPAREN, L"Expect '('.");
 		auto groupExpr = new GroupExpr();
 		groupExpr->column = token.column;
 		groupExpr->line = token.line;
@@ -758,7 +808,7 @@ namespace lws
 
 	Expr *Parser::ParseRefExpr()
 	{
-		auto token=Consume(TOKEN_AMPERSAND, L"Expect '&'.");
+		auto token = Consume(TOKEN_AMPERSAND, L"Expect '&'.");
 		auto refExpr = new RefExpr();
 		refExpr->line = token.line;
 		refExpr->column = token.column;
@@ -784,7 +834,7 @@ namespace lws
 	Expr *Parser::ParseConditionExpr(Expr *prefixExpr)
 	{
 		ConditionExpr *conditionExpr = new ConditionExpr();
-		
+
 		conditionExpr->column = GetCurToken().column;
 		conditionExpr->line = GetCurToken().line;
 
@@ -927,7 +977,7 @@ namespace lws
 		if (IsMatchCurToken(type))
 			return GetCurTokenAndStepOnce();
 		Token token = GetCurToken();
-		Assert(L"[line:" + std::to_wstring(token.line)+L",column:" + std::to_wstring(token.column) + L"]:" + std::wstring(errMsg));
+		Assert(L"[line:" + std::to_wstring(token.line) + L",column:" + std::to_wstring(token.column) + L"]:" + std::wstring(errMsg));
 		// avoid C++ compiler warning
 		return Token(TOKEN_END, L"", -1, -1);
 	}
