@@ -392,7 +392,7 @@ namespace lws
     {
     }
     FieldObject::FieldObject(std::wstring_view name,
-                             const std::unordered_map<std::wstring, Object *> &members,
+                             const std::unordered_map<std::wstring, ObjectDesc> &members,
                              const std::vector<std::pair<std::wstring, FieldObject *>> &containedFields)
         : name(name), members(members), containedFields(containedFields)
     {
@@ -417,7 +417,12 @@ namespace lws
         {
             result += L"\n{\n";
             for (const auto &[key, value] : members)
-                result += L"    " + key + L"\n";
+            {
+                if (value.type == ObjectDescType::CONST)
+                    result += L"    const  " + key + L"\n";
+                else
+                    result += L"    let  " + key + L"\n";
+            }
             result = result.substr(0, result.size() - 1);
             result += L"\n}";
         }
@@ -433,7 +438,7 @@ namespace lws
             return;
         marked = true;
         for (auto [key, value] : members)
-            value->Mark();
+            value.object->Mark();
         for (auto &containedField : containedFields)
             containedField.second->Mark();
     }
@@ -443,7 +448,7 @@ namespace lws
             return;
         marked = false;
         for (auto [key, value] : members)
-            value->UnMark();
+            value.object->UnMark();
         for (auto &containedField : containedFields)
             containedField.second->UnMark();
     }
@@ -457,7 +462,7 @@ namespace lws
 
         for (auto [key1, value1] : members)
             for (auto [key2, value2] : TO_FIELD_OBJ(other)->members)
-                if (key1 != key2 || !value1->IsEqualTo(value2))
+                if (key1 != key2 || !value1.object->IsEqualTo(value2.object))
                     return false;
         return true;
     }
@@ -466,7 +471,12 @@ namespace lws
     {
         auto iter = members.find(name.data());
         if (iter != members.end())
-            members[name.data()] = value;
+        {
+            if (members[name.data()].type != ObjectDescType::CONST)
+                members[name.data()].object = value;
+            else
+                Assert(L"The member:" + std::wstring(name) + L" in the field:" + this->name + L" is a const member,cannot be reassigned.");
+        }
         else if (!containedFields.empty())
         {
             for (auto &containedField : containedFields)
@@ -480,7 +490,7 @@ namespace lws
     {
         auto iter = members.find(name.data()); // variables in self scope
         if (iter != members.end())
-            return iter->second;
+            return iter->second.object;
         else // variables in contained field
         {
             for (const auto &containedField : containedFields)
@@ -503,8 +513,8 @@ namespace lws
         if (!members.empty())
         {
             for (auto [key, value] : members)
-                if (PointerAddressToString(value) == address)
-                    return value;
+                if (PointerAddressToString(value.object) == address)
+                    return value.object;
         }
 
         if (!containedFields.empty()) // in contained field

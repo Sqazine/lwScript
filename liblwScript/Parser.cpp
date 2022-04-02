@@ -756,10 +756,12 @@ namespace lws
 		{
 			if (IsMatchCurToken(TOKEN_LET))
 				fieldStmt->letStmts.emplace_back((LetStmt *)ParseLetStmt());
+			else if (IsMatchCurToken(TOKEN_CONST))
+				fieldStmt->constStmts.emplace_back((ConstStmt *)ParseConstStmt());
 			else if (IsMatchCurToken(TOKEN_FUNCTION))
 				fieldStmt->fnStmts.emplace_back((FunctionStmt *)ParseFunctionStmt());
 			else
-				Consume({TOKEN_LET, TOKEN_FUNCTION}, L"UnExpect identifier '" + GetCurToken().literal + L"'.");
+				Consume({TOKEN_LET, TOKEN_FUNCTION , TOKEN_CONST}, L"UnExpect identifier '" + GetCurToken().literal + L"'.");
 		}
 
 		Consume(TOKEN_RBRACE, L"Expect '}' after field stmt's '{'");

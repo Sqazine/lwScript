@@ -133,7 +133,7 @@ namespace lws
 		return object;
 	}
 
-	FieldObject *VM::CreateFieldObject(std::wstring_view name, const std::unordered_map<std::wstring, Object *> &members, const std::vector<std::pair<std::wstring, FieldObject *>> &containedFields)
+	FieldObject *VM::CreateFieldObject(std::wstring_view name, const std::unordered_map<std::wstring, ObjectDesc> &members, const std::vector<std::pair<std::wstring, FieldObject *>> &containedFields)
 	{
 		if (curObjCount == maxObjCount)
 			Gc();
@@ -571,7 +571,7 @@ namespace lws
 			{
 				std::wstring name = frame->mStrings[frame->mCodes[++ip]];
 
-				std::unordered_map<std::wstring, Object *> members;
+				std::unordered_map<std::wstring, ObjectDesc> members;
 				std::vector<std::pair<std::wstring, FieldObject *>> containedFields;
 
 				for (auto value : mContext->mValues)
@@ -579,7 +579,7 @@ namespace lws
 					if (value.first.find_first_of(containedFieldPrefixID) == 0 && IS_FIELD_OBJ(value.second.object))
 						containedFields.emplace_back(value.first.substr(wcslen(containedFieldPrefixID)), TO_FIELD_OBJ(value.second.object));
 					else
-						members[value.first] = value.second.object;
+						members[value.first] = value.second;
 				}
 
 				PushObject(CreateFieldObject(name, members, containedFields));

@@ -212,7 +212,7 @@ namespace lws
 	{
 		FieldObject();
 		FieldObject(std::wstring_view name,
-					const std::unordered_map<std::wstring, Object *> &members,
+					const std::unordered_map<std::wstring, ObjectDesc> &members,
 					const std::vector<std::pair<std::wstring, FieldObject *>> &containedFields = {});
 		~FieldObject();
 
@@ -227,7 +227,7 @@ namespace lws
 		Object* GetMemberByAddress(std::wstring_view address);
 
 		std::wstring name;
-		std::unordered_map<std::wstring, Object *> members;
+		std::unordered_map<std::wstring, ObjectDesc> members;
 		std::vector<std::pair<std::wstring, FieldObject *>> containedFields;
 	};
 }

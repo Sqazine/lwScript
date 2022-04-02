@@ -703,15 +703,21 @@ namespace lws
     }
     FieldStmt::FieldStmt(std::wstring name,
                          std::vector<LetStmt *> letStmts,
+                         std::vector<ConstStmt *> constStmts,
                          std::vector<FunctionStmt *> fnStmts,
                          std::vector<IdentifierExpr *> containedFields)
-        : name(name), letStmts(letStmts), fnStmts(fnStmts), containedFields(containedFields)
+        : name(name), 
+        letStmts(letStmts),
+        constStmts(constStmts), 
+        fnStmts(fnStmts), 
+        containedFields(containedFields)
     {
     }
     FieldStmt::~FieldStmt()
     {
         std::vector<IdentifierExpr *>().swap(containedFields);
         std::vector<LetStmt *>().swap(letStmts);
+        std::vector<ConstStmt *>().swap(constStmts);
         std::vector<FunctionStmt *>().swap(fnStmts);
     }
 
@@ -726,6 +732,8 @@ namespace lws
             result = result.substr(0, result.size() - 1);
         }
         result += L"{";
+        for (auto constStmt : constStmts)
+            result += constStmt->Stringify();
         for (auto letStmt : letStmts)
             result += letStmt->Stringify();
         for (auto fnStmt : fnStmts)

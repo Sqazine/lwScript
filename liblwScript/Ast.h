@@ -415,6 +415,7 @@ namespace lws
 		FieldStmt();
 		FieldStmt(std::wstring name,
 			std::vector<LetStmt*> letStmts,
+			std::vector<ConstStmt*> constStmts,
 			std::vector<FunctionStmt*> fnStmts,
 			std::vector<IdentifierExpr*> containedFields = {});
 		~FieldStmt();
@@ -425,6 +426,7 @@ namespace lws
 		std::wstring name;
 		std::vector<IdentifierExpr*> containedFields;
 		std::vector<LetStmt*> letStmts;
+		std::vector<ConstStmt*> constStmts;
 		std::vector<FunctionStmt*> fnStmts;
 	};
 

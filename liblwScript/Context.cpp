@@ -108,9 +108,9 @@ namespace lws
 				if (contextValue.type != ObjectDescType::CONST)
 				{
 					for (auto [classMemberKey, classMemberValue] : field->members)
-						if (PointerAddressToString(classMemberValue) == address)
+						if (PointerAddressToString(classMemberValue.object) == address)
 						{
-							field->members[classMemberKey] = value;
+							field->members[classMemberKey].object = value;
 							return;
 						}
 				}

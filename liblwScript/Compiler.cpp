@@ -260,6 +260,15 @@ namespace lws
 			CompileLetStmt(letStmt, fieldFrame);
 		}
 
+		for (auto &constStmt : stmt->constStmts)
+		{
+			for (auto &variable : constStmt->consts)
+				if (variable.second->Type() == AST_LAMBDA)
+					((LambdaExpr *)variable.second)->parameters.emplace_back(new IdentifierExpr(L"this")); //add 'this' parameter for field lambda function
+
+			CompileConstStmt(constStmt, fieldFrame);
+		}
+
 		for (const auto &functionStmt : stmt->fnStmts)
 		{
 			functionStmt->parameters.emplace_back(new IdentifierExpr(L"this")); //regisiter field instance to function

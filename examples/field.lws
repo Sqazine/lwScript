@@ -37,3 +37,16 @@ println("{}",a);
 println("{}",a.vec3.vec2.x);// 1000.000000
 
 a.output();
+
+
+field Vec5
+{
+    let x,y,z,w;
+    const q;
+}
+
+let b=Vec5;
+
+b.x=10;
+println("b.x={}",b.x);
+b.q=100;//Error Hint:The member:q in the field:Vec5 is a const member,cannot be reassigned.
