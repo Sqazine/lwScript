@@ -35,8 +35,6 @@ namespace lws
 
         std::wstringstream sstream;
         sstream << file.rdbuf();
-  
-
         return sstream.str();
     }
 

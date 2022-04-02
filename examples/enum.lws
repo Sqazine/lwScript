@@ -1,0 +1,20 @@
+enum Vec
+{
+    VEC2,
+    VEC3,
+    VEC4,
+}
+
+let a=Vec.VEC2;
+
+match(a)
+{
+    Vec.VEC2:
+        println("{}",Vec.VEC2);
+    Vec.VEC3:
+        println("{}",Vec.VEC3);
+    Vec.VEC4:
+        println("{}",Vec.VEC4);
+    default:
+        println("{}","Not matching enum type.");
+}

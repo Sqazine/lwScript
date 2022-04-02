@@ -76,6 +76,7 @@ namespace lws
 		TOKEN_CASE,					 // case
 		TOKEN_DEFAULT,				 // default
 		TOKEN_MATCH,				 // match
+		TOKEN_ENUM,					 // enum
 		TOKEN_END
 	};
 

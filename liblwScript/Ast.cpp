@@ -256,7 +256,7 @@ namespace lws
         : condition(nullptr), trueBranch(nullptr), falseBranch(nullptr)
     {
     }
-    ConditionExpr::ConditionExpr(Expr *condition, Expr *left, Expr *right)
+    ConditionExpr::ConditionExpr(Expr *condition, Expr *trueBranch, Expr *falseBranch)
         : condition(condition), trueBranch(trueBranch), falseBranch(falseBranch)
     {
     }
@@ -635,6 +635,33 @@ namespace lws
     AstType ContinueStmt::Type()
     {
         return AST_CONTINUE;
+    }
+
+    EnumStmt::EnumStmt()
+    {
+    }
+    EnumStmt::EnumStmt(IdentifierExpr *enumName, const std::unordered_map<IdentifierExpr *, Expr *> &enumItems)
+        : enumName(enumName), enumItems(enumItems)
+    {
+    }
+    EnumStmt::~EnumStmt()
+    {
+    }
+    std::wstring EnumStmt::Stringify()
+    {
+        std::wstring result = L"enum " + enumName->Stringify() + L"{";
+
+        if (!enumItems.empty())
+        {
+            for (auto [key,value] : enumItems)
+                result += key->Stringify()+L"="+value->Stringify() + L",";
+            result = result.substr(0, result.size() - 1);
+        }
+        return result + L"}";
+    }
+    AstType EnumStmt::Type()
+    {
+        return AST_ENUM;
     }
 
     FunctionStmt::FunctionStmt()

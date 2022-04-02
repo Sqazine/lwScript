@@ -190,6 +190,8 @@ namespace lws
 			return ParseSwitchStmt();
 		else if (IsMatchCurToken(TOKEN_MATCH))
 			return ParseMatchStmt();
+		else if (IsMatchCurToken(TOKEN_ENUM))
+			return ParseEnumStmt();
 		else if (IsMatchCurToken(TOKEN_FUNCTION))
 			return ParseFunctionStmt();
 		else if (IsMatchCurToken(TOKEN_FIELD))
@@ -467,11 +469,11 @@ namespace lws
 		struct CaseItem
 		{
 			Expr *conditionExpr = nullptr;
-			ScopeStmt *caseExecuteScope = nullptr;
+			ScopeStmt *caseExecuteOpCodeScope = nullptr;
 
 			bool IsValid()
 			{
-				return conditionExpr && caseExecuteScope;
+				return conditionExpr && caseExecuteOpCodeScope;
 			}
 		};
 		std::vector<CaseItem> caseItems;
@@ -489,18 +491,18 @@ namespace lws
 				item.conditionExpr->line = GetCurToken().line;
 				item.conditionExpr->column = GetCurToken().column;
 
-				item.caseExecuteScope = new ScopeStmt();
-				item.caseExecuteScope->line = GetCurToken().line;
-				item.caseExecuteScope->column = GetCurToken().column;
+				item.caseExecuteOpCodeScope = new ScopeStmt();
+				item.caseExecuteOpCodeScope->line = GetCurToken().line;
+				item.caseExecuteOpCodeScope->column = GetCurToken().column;
 
 				if (IsMatchCurTokenAndStepOnce(TOKEN_LBRACE))
 				{
 					while (!IsMatchCurToken(TOKEN_RBRACE))
-						item.caseExecuteScope->stmts.emplace_back(ParseStmt());
+						item.caseExecuteOpCodeScope->stmts.emplace_back(ParseStmt());
 					Consume(TOKEN_RBRACE, L"Expect '}' at the end of case block while has multiple statements.");
 				}
 				else
-					item.caseExecuteScope->stmts.emplace_back(ParseStmt());
+					item.caseExecuteOpCodeScope->stmts.emplace_back(ParseStmt());
 
 				caseItems.emplace_back(item);
 			}
@@ -532,15 +534,15 @@ namespace lws
 			for (size_t i = 0; i < caseItems.size(); ++i)
 			{
 				loopIfStmt->condition = caseItems[i].conditionExpr;
-				loopIfStmt->thenBranch = caseItems[i].caseExecuteScope;
-				if (i+1<caseItems.size())
+				loopIfStmt->thenBranch = caseItems[i].caseExecuteOpCodeScope;
+				if (i + 1 < caseItems.size())
 				{
 					loopIfStmt->elseBranch = new IfStmt();
 					loopIfStmt = (IfStmt *)loopIfStmt->elseBranch;
 				}
 			}
 
-			if(defaultScopeStmt)
+			if (defaultScopeStmt)
 				loopIfStmt->elseBranch = defaultScopeStmt;
 		}
 		return ifStmt;
@@ -617,7 +619,7 @@ namespace lws
 			}
 		}
 
-		Consume(TOKEN_RBRACE, L"Expect '}' after switch stmt");
+		Consume(TOKEN_RBRACE, L"Expect '}' after match stmt");
 
 		if (matchItems.empty() && defaultScopeStmt != nullptr)
 			return defaultScopeStmt;
@@ -639,6 +641,41 @@ namespace lws
 				loopIfStmt->elseBranch = defaultScopeStmt;
 		}
 		return ifStmt;
+	}
+
+	Stmt *Parser::ParseEnumStmt()
+	{
+		auto enumStmt = new EnumStmt();
+		enumStmt->line = GetCurToken().line;
+		enumStmt->column = GetCurToken().column;
+		Consume(TOKEN_ENUM, L"Expect 'enum' keyword.");
+		enumStmt->enumName = (IdentifierExpr *)ParseIdentifierExpr();
+		Consume(TOKEN_LBRACE, L"Expect '{' after 'enum' keyword.");
+
+		std::unordered_map<IdentifierExpr *, Expr *> items;
+
+		while (!IsMatchCurToken(TOKEN_RBRACE))
+		{
+			auto name = (IdentifierExpr *)ParseIdentifierExpr();
+			Expr *value = new StrExpr(name->literal);
+			if (IsMatchCurTokenAndStepOnce(TOKEN_EQUAL))
+			{
+				delete value;
+				value = nullptr;
+				value = ParseExpr();
+			}
+
+			items[name] = value;
+
+			if(IsMatchCurToken(TOKEN_COMMA))
+				Consume(TOKEN_COMMA, L"Expect ',' after enum item.");
+		}
+
+		Consume(TOKEN_RBRACE, L"Expect '}' at the end of the 'enum' stmt.");
+
+		enumStmt->enumItems = items;
+
+		return enumStmt;
 	}
 
 	Stmt *Parser::ParseFunctionStmt()

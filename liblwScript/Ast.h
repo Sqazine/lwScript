@@ -36,6 +36,7 @@ namespace lws
 		AST_WHILE,
 		AST_BREAK,
 		AST_CONTINUE,
+		AST_ENUM,
 		AST_FUNCTION,
 		AST_FIELD,
 		AST_ASTSTMTS,
@@ -196,7 +197,7 @@ namespace lws
 	struct ConditionExpr : public Expr
 	{
 		ConditionExpr();
-		ConditionExpr(Expr* condition, Expr* left, Expr* right);
+		ConditionExpr(Expr *condition, Expr *trueBranch, Expr *falseBranch);
 		~ConditionExpr();
 
 		std::wstring Stringify() override;
@@ -380,6 +381,19 @@ namespace lws
 
 		std::wstring Stringify() override;
 		AstType Type() override;
+	};
+
+	struct EnumStmt:public Stmt
+	{
+		EnumStmt();
+		EnumStmt(IdentifierExpr *enumName, const std::unordered_map<IdentifierExpr *, Expr *> &enumItems);
+		~EnumStmt();
+
+		std::wstring Stringify() override;
+		AstType Type() override;
+
+		IdentifierExpr *enumName;
+		std::unordered_map<IdentifierExpr *, Expr *> enumItems;
 	};
 
 	struct FunctionStmt : public Stmt

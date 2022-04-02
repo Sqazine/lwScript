@@ -24,6 +24,9 @@ namespace lws
 		void ResetStatus();
 		Object *Execute(Frame *frame);
 	private:
+		void PreAssemble(Frame *frame);
+		Object *ExecuteOpCode(Frame *frame);
+
 		friend class Linrary;
 		friend class DataStructure;
 		friend class Memory;

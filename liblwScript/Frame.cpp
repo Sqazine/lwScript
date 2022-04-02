@@ -144,6 +144,35 @@ namespace lws
 		return false;
 	}
 
+	void Frame::AddEnumFrame(std::wstring_view name, Frame *frame)
+	{
+		auto iter = mEnumFrames.find(name.data());
+		if (iter != mEnumFrames.end())
+			Assert(std::wstring(L"Redefinition struct:") + name.data());
+
+		mEnumFrames[name.data()] = frame;
+	}
+	Frame *Frame::GetEnumFrame(std::wstring_view name)
+	{
+		auto iter = mEnumFrames.find(name.data());
+		if (iter != mEnumFrames.end())
+			return iter->second;
+		else if (mParentFrame != nullptr)
+			return mParentFrame->GetFieldFrame(name);
+		Assert(std::wstring(L"No function:") + name.data());
+
+		return nullptr;
+	}
+	bool Frame::HasEnumFrame(std::wstring_view name)
+	{
+		auto iter = mEnumFrames.find(name.data());
+		if (iter != mEnumFrames.end())
+			return true;
+		else if (mParentFrame != nullptr)
+			return mParentFrame->HasFieldFrame(name);
+		return false;
+	}
+
 	std::wstring Frame::Stringify(int depth)
 	{
 		std::wstring interval;
@@ -158,21 +187,27 @@ namespace lws
 
 		std::wstringstream result;
 
+		for (auto [key, value] : mEnumFrames)
+		{
+			result << interval << "Enum frame " << key << ":\n";
+			result << value->Stringify(depth + 1);
+		}
+
 		for (auto [key, value] : mFieldFrames)
 		{
-			result << interval << "Frame " << key << ":\n";
+			result << interval << "Field frame " << key << ":\n";
 			result << value->Stringify(depth + 1);
 		}
 
 		for (auto [key, value] : mFunctionFrames)
 		{
-			result << interval << "Frame " << key << ":\n";
+			result << interval << "Function frame " << key << ":\n";
 			result << value->Stringify(depth + 1);
 		}
 
 		for (size_t i = 0; i < mLambdaFrames.size(); ++i)
 		{
-			result << interval << "Frame " << i << ":\n";
+			result << interval << "Lambda frame " << i << ":\n";
 			result << mLambdaFrames[i]->Stringify(depth + 1);
 		}
 
@@ -187,6 +222,9 @@ namespace lws
 				break;
 			case OP_RETURN_OBJECT:
 				UNARY_INSTR_STRINGIFY(OP_RETURN_OBJECT);
+				break;
+			case OP_SAVE_TO_GLOBAL:
+				BINARY_INSTR_STRINGIFY(OP_SAVE_TO_GLOBAL,mStrings);
 				break;
 			case OP_NEW_REAL:
 				BINARY_INSTR_STRINGIFY(OP_NEW_REAL, mRealNums);

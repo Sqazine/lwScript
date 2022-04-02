@@ -34,6 +34,7 @@ namespace lws
 		OP_NEG,
 		OP_RETURN,
 		OP_RETURN_OBJECT,
+		OP_SAVE_TO_GLOBAL,
 		OP_ADD,
 		OP_SUB,
 		OP_MUL,
@@ -108,6 +109,10 @@ namespace lws
 		Frame *GetFieldFrame(std::wstring_view name);
 		bool HasFieldFrame(std::wstring_view name);
 
+		void AddEnumFrame(std::wstring_view name, Frame *frame);
+		Frame *GetEnumFrame(std::wstring_view name);
+		bool HasEnumFrame(std::wstring_view name);
+
 		std::vector<uint64_t> mCodes;
 
 		std::vector<double> mRealNums;
@@ -115,6 +120,7 @@ namespace lws
 		std::vector<std::wstring> mStrings;
 
 		std::vector<Frame *> mLambdaFrames;
+		std::unordered_map<std::wstring, Frame *> mEnumFrames;
 		std::unordered_map<std::wstring, Frame *> mFunctionFrames;
 		std::unordered_map<std::wstring, Frame *> mFieldFrames;
 

@@ -181,12 +181,12 @@ namespace lws
 		return refObject;
 	}
 
-	RefObjObject* VM::CreateRefObjObject(std::wstring_view address)
+	RefObjObject *VM::CreateRefObjObject(std::wstring_view address)
 	{
 		if (curObjCount == maxObjCount)
 			Gc();
 
-		RefObjObject* refObject = new RefObjObject(address);
+		RefObjObject *refObject = new RefObjObject(address);
 		refObject->marked = false;
 
 		refObject->next = firstObject;
@@ -198,6 +198,18 @@ namespace lws
 	}
 
 	Object *VM::Execute(Frame *frame)
+	{
+		PreAssemble(frame);
+		return ExecuteOpCode(frame);
+	}
+
+	void VM::PreAssemble(Frame *frame)
+	{
+		for(const auto& enumframe:frame->mEnumFrames)
+			ExecuteOpCode(enumframe.second);
+	}
+
+	Object *VM::ExecuteOpCode(Frame *frame)
 	{
 // + - * /
 #define COMMON_BINARY(op)                                                                           \
@@ -214,7 +226,7 @@ namespace lws
 		else if (IS_REAL_OBJ(right) && IS_REAL_OBJ(left))                                           \
 			PushObject(CreateRealNumObject(TO_REAL_OBJ(left)->value op TO_REAL_OBJ(right)->value)); \
 		else                                                                                        \
-			Assert(L"Invalid binary op:" + left->Stringify() + (L#op) + right->Stringify());          \
+			Assert(L"Invalid binary op:" + left->Stringify() + (L#op) + right->Stringify());        \
 	} while (0);
 
 // & | % << >>
@@ -226,7 +238,7 @@ namespace lws
 		if (IS_INT_OBJ(right) && IS_INT_OBJ(left))                                               \
 			PushObject(CreateIntNumObject(TO_INT_OBJ(left)->value op TO_INT_OBJ(right)->value)); \
 		else                                                                                     \
-			Assert(L"Invalid binary op:" + left->Stringify() + (L#op) + right->Stringify());       \
+			Assert(L"Invalid binary op:" + left->Stringify() + (L#op) + right->Stringify());     \
 	} while (0);
 
 // > >= < <=
@@ -256,7 +268,7 @@ namespace lws
 		if (IS_BOOL_OBJ(right) && IS_BOOL_OBJ(left))                                                                                   \
 			PushObject(((BoolObject *)left)->value op((BoolObject *)right)->value ? CreateBoolObject(true) : CreateBoolObject(false)); \
 		else                                                                                                                           \
-			Assert(L"Invalid op:" + left->Stringify() + (L#op) + right->Stringify());                                                    \
+			Assert(L"Invalid op:" + left->Stringify() + (L#op) + right->Stringify());                                                  \
 	} while (0);
 
 		for (size_t ip = 0; ip < frame->mCodes.size(); ++ip)
@@ -273,6 +285,28 @@ namespace lws
 				}
 				return PopObject();
 				break;
+			case OP_SAVE_TO_GLOBAL:
+			{
+				auto name = frame->mStrings[frame->mCodes[++ip]];
+				if (mContext->mUpContext)
+				{
+					Context *tmp = mContext->GetUpContext();
+					delete mContext;
+					mContext = tmp;
+				}
+				auto *obj = PopObject();
+
+				auto rootContext = mContext->GetRoot();
+				if (rootContext->GetVariableByName(name) == nullptr)
+					rootContext->DefineVariableByName(name, ObjectDescType::CONST, obj);
+				else
+				{
+					// TODO:now only for enum,to avoiding multiple assign enum field object to root context
+					// here not process any date temporarily
+				}
+
+				break;
+			}
 			case OP_RETURN:
 				if (mContext->mUpContext)
 				{
@@ -440,7 +474,7 @@ namespace lws
 				else if (IS_REF_OBJ_OBJ(variable))
 				{
 					mContext->AssignVariableByAddress(TO_REF_OBJ_OBJ(variable)->address, value);
-					TO_REF_OBJ_OBJ(variable)->address = PointerAddressToString(value);//update ref address
+					TO_REF_OBJ_OBJ(variable)->address = PointerAddressToString(value); //update ref address
 				}
 				else
 					mContext->AssignVariableByName(name, value);
@@ -456,7 +490,7 @@ namespace lws
 				if (varObject == nullptr)
 				{
 					if (frame->HasFieldFrame(name))
-						PushObject(Execute(frame->GetFieldFrame(name)));
+						PushObject(ExecuteOpCode(frame->GetFieldFrame(name)));
 					else
 						Assert(L"No field or variable declaration:" + name);
 				}
@@ -753,7 +787,7 @@ namespace lws
 				if (IS_LAMBDA_OBJ(stackTop)) //if stack is a function object then execute it
 				{
 					IntNumObject *argCount = TO_INT_OBJ(PopObject());
-					Object *executeResult = Execute(frame->GetLambdaFrame(TO_LAMBDA_OBJ(stackTop)->frameIndex));
+					Object *executeResult = ExecuteOpCode(frame->GetLambdaFrame(TO_LAMBDA_OBJ(stackTop)->frameIndex));
 					PushObject(executeResult);
 				}
 				else //else execute function
@@ -774,7 +808,7 @@ namespace lws
 								PushObject(result);
 						}
 						else
-							PushObject(Execute(f));
+							PushObject(ExecuteOpCode(f));
 					}
 				}
 				break;

@@ -44,6 +44,7 @@ namespace lws
 		void CompileWhileStmt(WhileStmt *stmt, Frame *frame);
 		void CompileBreakStmt(uint64_t addressOffset, Frame *frame);
 		void CompileContinueStmt(uint64_t addressOffset, Frame *frame);
+		void CompileEnumStmt(EnumStmt *enumStmt, Frame *frame);
 		void CompileFunctionStmt(FunctionStmt* stmt, Frame* frame);
 		void CompileFieldStmt(FieldStmt *stmt, Frame *frame);
 

@@ -65,6 +65,9 @@ namespace lws
 		case AST_CONTINUE:
 			CompileContinueStmt(continueStmtAddressOffset, frame);
 			break;
+		case AST_ENUM:
+			CompileEnumStmt((EnumStmt *)stmt, frame);
+			break;
 		case AST_FUNCTION:
 			CompileFunctionStmt((FunctionStmt *)stmt, frame);
 			break;
@@ -174,6 +177,29 @@ namespace lws
 	void Compiler::CompileContinueStmt(uint64_t addressOffset, Frame *frame)
 	{
 		CompileBreakAndContinueStmt(addressOffset, frame);
+	}
+
+	void Compiler::CompileEnumStmt(EnumStmt *enumStmt, Frame *frame)
+	{
+		Frame *enumFrame = new Frame(frame);
+
+		enumFrame->AddOpCode(OP_ENTER_SCOPE);
+
+		for (auto [key, value] : enumStmt->enumItems)
+		{
+			CompileExpr(value, enumFrame);
+			CompileExpr(key, enumFrame, CONST_INIT);
+		}
+		
+		enumFrame->AddOpCode(OP_NEW_FIELD);
+		uint64_t offset = enumFrame->AddString(enumStmt->enumName->literal);
+		enumFrame->AddOpCode(offset);
+
+		enumFrame->AddOpCode(OP_SAVE_TO_GLOBAL);
+		offset = enumFrame->AddString(enumStmt->enumName->literal);
+		enumFrame->AddOpCode(offset);
+
+		frame->AddEnumFrame(enumStmt->enumName->literal, enumFrame);
 	}
 
 	void Compiler::CompileFunctionStmt(FunctionStmt *stmt, Frame *frame)

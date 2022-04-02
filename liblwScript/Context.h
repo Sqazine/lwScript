@@ -32,6 +32,9 @@ namespace lws
 
         Context *GetUpContext();
         void SetUpContext(Context *env);
+
+        Context *GetRoot();
+
     private:
         friend class VM;
         friend struct FieldObject;
