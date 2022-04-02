@@ -188,6 +188,8 @@ namespace lws
 			return ParseContinueStmt();
 		else if (IsMatchCurToken(TOKEN_SWITCH))
 			return ParseSwitchStmt();
+		else if (IsMatchCurToken(TOKEN_MATCH))
+			return ParseMatchStmt();
 		else if (IsMatchCurToken(TOKEN_FUNCTION))
 			return ParseFunctionStmt();
 		else if (IsMatchCurToken(TOKEN_FIELD))
@@ -457,103 +459,185 @@ namespace lws
 		Consume(TOKEN_SWITCH, L"Expect 'switch' keyword.");
 		Consume(TOKEN_LPAREN, L"Expect '(' after 'switch' keyword.");
 		auto switchExpr = ParseIdentifierExpr();
+		switchExpr->column = GetCurToken().column;
+		switchExpr->line = GetCurToken().line;
 		Consume(TOKEN_RPAREN, L"Expect ')' after switch's expression.");
 		Consume(TOKEN_LBRACE, L"Expect '{' after 'switch' keyword.");
 
-		IfStmt *loopIfStmt = ifStmt;
-		bool hasCaseSituation = false;
-		if (IsMatchCurTokenAndStepOnce(TOKEN_CASE)) //the first case
+		struct CaseItem
 		{
-			hasCaseSituation = true;
+			Expr *conditionExpr = nullptr;
+			ScopeStmt *caseExecuteScope = nullptr;
 
-			auto conditionExpr = ParseExpr();
-			Consume(TOKEN_COLON, L"Expect ':' after case's condition expr.");
-
-			loopIfStmt->condition = new InfixExpr(L"==", switchExpr, conditionExpr);
-			loopIfStmt->condition->line = GetCurToken().line;
-			loopIfStmt->condition->column = GetCurToken().column;
-
-			auto thenBranch = new ScopeStmt();
-			thenBranch->line = GetCurToken().line;
-			thenBranch->column = GetCurToken().column;
-
-			if (IsMatchCurTokenAndStepOnce(TOKEN_LBRACE))
+			bool IsValid()
 			{
-				while (!IsMatchCurToken(TOKEN_RBRACE))
-					thenBranch->stmts.emplace_back(ParseStmt());
-				Consume(TOKEN_RBRACE, L"Expect '}' at the end of case block while has multiple statements.");
+				return conditionExpr && caseExecuteScope;
 			}
-			else
-				thenBranch->stmts.emplace_back(ParseStmt());
-			loopIfStmt->thenBranch = thenBranch;
-
-			while (IsMatchCurTokenAndStepOnce(TOKEN_CASE))
+		};
+		std::vector<CaseItem> caseItems;
+		ScopeStmt *defaultScopeStmt = nullptr;
+		while (!IsMatchCurToken(TOKEN_RBRACE))
+		{
+			if (IsMatchCurTokenAndStepOnce(TOKEN_CASE)) //the first case
 			{
-				auto ifStmt = new IfStmt();
-				ifStmt->column = GetCurToken().column;
-				ifStmt->line = GetCurToken().line;
+				CaseItem item;
 
-				auto conditionExpr = ParseExpr();
+				auto valueCompareExpr = ParseExpr();
 				Consume(TOKEN_COLON, L"Expect ':' after case's condition expr.");
 
-				ifStmt->condition = new InfixExpr(L"==", switchExpr, conditionExpr);
-				ifStmt->condition->line = GetCurToken().line;
-				ifStmt->condition->column = GetCurToken().column;
+				item.conditionExpr = new InfixExpr(L"==", switchExpr, valueCompareExpr);
+				item.conditionExpr->line = GetCurToken().line;
+				item.conditionExpr->column = GetCurToken().column;
 
-				auto thenBranch = new ScopeStmt();
-				thenBranch->line = GetCurToken().line;
-				thenBranch->column = GetCurToken().column;
+				item.caseExecuteScope = new ScopeStmt();
+				item.caseExecuteScope->line = GetCurToken().line;
+				item.caseExecuteScope->column = GetCurToken().column;
 
 				if (IsMatchCurTokenAndStepOnce(TOKEN_LBRACE))
 				{
 					while (!IsMatchCurToken(TOKEN_RBRACE))
-						thenBranch->stmts.emplace_back(ParseStmt());
+						item.caseExecuteScope->stmts.emplace_back(ParseStmt());
 					Consume(TOKEN_RBRACE, L"Expect '}' at the end of case block while has multiple statements.");
 				}
 				else
-					thenBranch->stmts.emplace_back(ParseStmt());
-				ifStmt->thenBranch = thenBranch;
-				loopIfStmt->elseBranch = ifStmt;
-				loopIfStmt = ifStmt;
-			}
-		}
+					item.caseExecuteScope->stmts.emplace_back(ParseStmt());
 
-		if (IsMatchCurTokenAndStepOnce(TOKEN_DEFAULT))
-		{
-			Consume(TOKEN_COLON, L"Expect ':' after case's condition expr.");
-			if (hasCaseSituation)
+				caseItems.emplace_back(item);
+			}
+
+			if (IsMatchCurTokenAndStepOnce(TOKEN_DEFAULT))
 			{
-				auto elseBranch = new ScopeStmt();
-				elseBranch->line = GetCurToken().line;
-				elseBranch->column = GetCurToken().column;
+				Consume(TOKEN_COLON, L"Expect ':' after case's condition expr.");
+				defaultScopeStmt = new ScopeStmt();
+				defaultScopeStmt->line = GetCurToken().line;
+				defaultScopeStmt->column = GetCurToken().column;
 				if (IsMatchCurTokenAndStepOnce(TOKEN_LBRACE))
 				{
 					while (!IsMatchCurToken(TOKEN_RBRACE))
-						elseBranch->stmts.emplace_back(ParseStmt());
+						defaultScopeStmt->stmts.emplace_back(ParseStmt());
 					Consume(TOKEN_RBRACE, L"Expect '}' at the end of default block while has multiple statement");
 				}
 				else
-					elseBranch->stmts.emplace_back(ParseStmt());
-
-				loopIfStmt->elseBranch = elseBranch;
-			}
-			else
-			{
-				auto scopeStmt = new ScopeStmt();
-				if (IsMatchCurTokenAndStepOnce(TOKEN_LBRACE))
-				{
-					while (!IsMatchCurToken(TOKEN_RBRACE))
-						scopeStmt->stmts.emplace_back(ParseStmt());
-					Consume(TOKEN_RBRACE, L"Expect '}' at the end of default block while has multiple statement");
-				}
-				else
-					scopeStmt->stmts.emplace_back(ParseStmt());
-				Consume(TOKEN_RBRACE, L"Expect '}' after switch stmt");
-				return scopeStmt;
+					defaultScopeStmt->stmts.emplace_back(ParseStmt());
 			}
 		}
 
 		Consume(TOKEN_RBRACE, L"Expect '}' after switch stmt");
+
+		if (caseItems.empty() && defaultScopeStmt != nullptr)
+			return defaultScopeStmt;
+		else
+		{
+			auto loopIfStmt = ifStmt;
+			for (size_t i = 0; i < caseItems.size(); ++i)
+			{
+				loopIfStmt->condition = caseItems[i].conditionExpr;
+				loopIfStmt->thenBranch = caseItems[i].caseExecuteScope;
+				if (i+1<caseItems.size())
+				{
+					loopIfStmt->elseBranch = new IfStmt();
+					loopIfStmt = (IfStmt *)loopIfStmt->elseBranch;
+				}
+			}
+
+			if(defaultScopeStmt)
+				loopIfStmt->elseBranch = defaultScopeStmt;
+		}
+		return ifStmt;
+	}
+
+	Stmt *Parser::ParseMatchStmt()
+	{
+		auto ifStmt = new IfStmt();
+		ifStmt->line = GetCurToken().line;
+		ifStmt->column = GetCurToken().column;
+
+		Consume(TOKEN_MATCH, L"Expect 'match' keyword.");
+		Consume(TOKEN_LPAREN, L"Expect '(' after 'match' keyword.");
+		auto matchExpr = ParseIdentifierExpr();
+		matchExpr->column = GetCurToken().column;
+		matchExpr->line = GetCurToken().line;
+		Consume(TOKEN_RPAREN, L"Expect ')' after match's expression.");
+		Consume(TOKEN_LBRACE, L"Expect '{' after 'match' keyword.");
+
+		struct MatchItem
+		{
+			Expr *conditionExpr = nullptr;
+			ScopeStmt *executeScope = nullptr;
+
+			bool IsValid()
+			{
+				return conditionExpr && executeScope;
+			}
+		};
+		std::vector<MatchItem> matchItems;
+		ScopeStmt *defaultScopeStmt = nullptr;
+		while (!IsMatchCurToken(TOKEN_RBRACE))
+		{
+			if (IsMatchCurTokenAndStepOnce(TOKEN_DEFAULT))
+			{
+				Consume(TOKEN_COLON, L"Expect ':' after default's condition expr.");
+				defaultScopeStmt = new ScopeStmt();
+				defaultScopeStmt->line = GetCurToken().line;
+				defaultScopeStmt->column = GetCurToken().column;
+				if (IsMatchCurTokenAndStepOnce(TOKEN_LBRACE))
+				{
+					while (!IsMatchCurToken(TOKEN_RBRACE))
+						defaultScopeStmt->stmts.emplace_back(ParseStmt());
+					Consume(TOKEN_RBRACE, L"Expect '}' at the end of default block while has multiple statement");
+				}
+				else
+					defaultScopeStmt->stmts.emplace_back(ParseStmt());
+			}
+			else
+			{
+				MatchItem item;
+
+				auto valueCompareExpr = ParseExpr();
+				Consume(TOKEN_COLON, L"Expect ':' after match item's condition expr.");
+
+				item.conditionExpr = new InfixExpr(L"==", matchExpr, valueCompareExpr);
+				item.conditionExpr->line = GetCurToken().line;
+				item.conditionExpr->column = GetCurToken().column;
+
+				item.executeScope = new ScopeStmt();
+				item.executeScope->line = GetCurToken().line;
+				item.executeScope->column = GetCurToken().column;
+
+				if (IsMatchCurTokenAndStepOnce(TOKEN_LBRACE))
+				{
+					while (!IsMatchCurToken(TOKEN_RBRACE))
+						item.executeScope->stmts.emplace_back(ParseStmt());
+					Consume(TOKEN_RBRACE, L"Expect '}' at the end of case block while has multiple statements.");
+				}
+				else
+					item.executeScope->stmts.emplace_back(ParseStmt());
+
+				matchItems.emplace_back(item);
+			}
+		}
+
+		Consume(TOKEN_RBRACE, L"Expect '}' after switch stmt");
+
+		if (matchItems.empty() && defaultScopeStmt != nullptr)
+			return defaultScopeStmt;
+		else
+		{
+			auto loopIfStmt = ifStmt;
+			for (size_t i = 0; i < matchItems.size(); ++i)
+			{
+				loopIfStmt->condition = matchItems[i].conditionExpr;
+				loopIfStmt->thenBranch = matchItems[i].executeScope;
+				if (i + 1 < matchItems.size())
+				{
+					loopIfStmt->elseBranch = new IfStmt();
+					loopIfStmt = (IfStmt *)loopIfStmt->elseBranch;
+				}
+			}
+
+			if (defaultScopeStmt)
+				loopIfStmt->elseBranch = defaultScopeStmt;
+		}
 		return ifStmt;
 	}
 

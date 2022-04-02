@@ -1,14 +1,14 @@
 let a=3;
 switch(a)
 {
+    default:
+        println("{}",0);//0
     case 1:
     {
         println("{}",a);
     }
     case 2:
         println("{}",2);
-    default:
-        println("{}",0);//0
 }
 
 switch(a)

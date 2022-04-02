@@ -93,21 +93,15 @@ namespace lws
 
 	struct StrObject : public Object
 	{
-		StrObject() {}
-		StrObject(std::wstring_view value) : value(value) {}
-		~StrObject() {}
+		StrObject();
+		StrObject(std::wstring_view value);
+		~StrObject();
 
-		std::wstring Stringify() override { return value; }
-		ObjectType Type() override { return OBJECT_STR; }
-		void Mark() override { marked = true; }
-		void UnMark() override { marked = false; }
-		bool IsEqualTo(Object *other) override
-		{
-			if (!IS_STR_OBJ(other))
-				return false;
-			return value == TO_STR_OBJ(other)->value;
-		}
-
+		std::wstring Stringify() override;
+		ObjectType Type() override;
+		void Mark() override;
+		void UnMark() override;
+		bool IsEqualTo(Object *other) override;
 		std::wstring value;
 	};
 

@@ -62,6 +62,7 @@ namespace lws
 		Stmt *ParseBreakStmt();
 		Stmt *ParseContinueStmt();
 		Stmt *ParseSwitchStmt();
+		Stmt *ParseMatchStmt();
 		Stmt *ParseFunctionStmt();
 		Stmt *ParseFieldStmt();
 

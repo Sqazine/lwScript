@@ -26,6 +26,7 @@ namespace lws
 		{L"switch", TOKEN_SWITCH},
 		{L"case", TOKEN_CASE},
 		{L"default", TOKEN_DEFAULT},
+		{L"match",TOKEN_MATCH},
 	};
 
 	Lexer::Lexer()
