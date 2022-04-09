@@ -448,6 +448,10 @@ namespace lws
 			frame->AddOpCode(OP_BIT_NOT);
 		else if (expr->op == L"!")
 			frame->AddOpCode(OP_NOT);
+		else if(expr->op==L"++")
+			frame->AddOpCode(OP_SELF_INCREMENT);
+		else if(expr->op==L"--")
+			frame->AddOpCode(OP_SELF_DECREMENT);
 	}
 
 	void Compiler::CompileInfixExpr(InfixExpr *expr, Frame *frame)

@@ -367,6 +367,12 @@ namespace lws
 			case OP_REF_OBJECT:
 				UNARY_INSTR_STRINGIFY(OP_REF_OBJECT);
 				break;
+			case OP_SELF_INCREMENT:
+				UNARY_INSTR_STRINGIFY(OP_SELF_INCREMENT);
+				break;
+			case OP_SELF_DECREMENT:
+				UNARY_INSTR_STRINGIFY(OP_SELF_DECREMENT);
+				break;
 			default:
 				UNARY_INSTR_STRINGIFY(OP_UNKNOWN);
 				break;

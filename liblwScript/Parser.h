@@ -23,7 +23,7 @@ namespace lws
 		BIT_SHIFT,	 // >> <<
 		ADD_PLUS,	 // + -
 		MUL_DIV_MOD, // * / %
-		PREFIX,		 // ! ~ - &
+		PREFIX,		 // ! ~ - & ++ --
 		INFIX,		 // [] () .
 	};
 

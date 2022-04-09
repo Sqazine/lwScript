@@ -36,6 +36,8 @@ namespace lws
 		TOKEN_BANG,					 // !
 		TOKEN_LESS_LESS,			 // <<
 		TOKEN_GREATER_GREATER,		 // >>
+		TOKEN_PLUS_PLUS,			 // ++
+		TOKEN_MINUS_MINUS,			 // --
 		TOKEN_PLUS_EQUAL,			 // +=
 		TOKEN_MINUS_EQUAL,			 // -=
 		TOKEN_ASTERISK_EQUAL,		 // *=

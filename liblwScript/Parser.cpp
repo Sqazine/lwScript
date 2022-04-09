@@ -84,6 +84,8 @@ namespace lws
 			{TOKEN_LBRACE, &Parser::ParseTableExpr},
 			{TOKEN_AMPERSAND, &Parser::ParseRefExpr},
 			{TOKEN_FUNCTION, &Parser::ParseLambdaExpr},
+			{TOKEN_PLUS_PLUS, &Parser::ParsePrefixExpr},
+			{TOKEN_MINUS_MINUS, &Parser::ParsePrefixExpr},
 	};
 
 	std::unordered_map<TokenType, InfixFn> Parser::mInfixFunctions =
@@ -731,6 +733,15 @@ namespace lws
 		lambdaExpr->body = (ScopeStmt *)ParseScopeStmt();
 
 		return lambdaExpr;
+	}
+
+	Expr *ParsePrefixIncrementExpr()
+	{
+
+	}
+	Expr *ParsePrefixDecrementExpr()
+	{
+
 	}
 
 	Stmt *Parser::ParseFieldStmt()

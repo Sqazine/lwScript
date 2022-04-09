@@ -109,6 +109,8 @@ namespace lws
 		{
 			if (IsMatchCurCharAndStepOnce(L'='))
 				AddToken(TOKEN_PLUS_EQUAL);
+			else if (IsMatchCurCharAndStepOnce(L'+'))
+				AddToken(TOKEN_PLUS_PLUS);
 			else
 				AddToken(TOKEN_PLUS);
 		}
@@ -116,6 +118,8 @@ namespace lws
 		{
 			if (IsMatchCurCharAndStepOnce(L'='))
 				AddToken(TOKEN_MINUS_EQUAL);
+			else if(IsMatchCurCharAndStepOnce(L'-'))
+				AddToken(TOKEN_MINUS_MINUS);
 			else
 				AddToken(TOKEN_MINUS);
 		}

@@ -205,7 +205,7 @@ namespace lws
 
 	void VM::PreAssemble(Frame *frame)
 	{
-		for(const auto& enumframe:frame->mEnumFrames)
+		for (const auto &enumframe : frame->mEnumFrames)
 			ExecuteOpCode(enumframe.second);
 	}
 
@@ -844,6 +844,40 @@ namespace lws
 			case OP_REF_OBJECT:
 				PushObject(CreateRefObjObject(PointerAddressToString(PopObject())));
 				break;
+			case OP_SELF_INCREMENT:
+			{
+				auto stackTop = PopObject();
+				if (IS_INT_OBJ(stackTop))
+				{
+					++((IntNumObject *)stackTop)->value;
+					PushObject(stackTop);
+				}
+				else if (IS_REAL_OBJ(stackTop))
+				{
+					++((RealNumObject *)stackTop)->value;
+					PushObject(stackTop);
+				}
+				else
+					Assert("Invalid prefix operator '++',the increment object isn't a int num object or a real num object.");
+				break;
+			}
+			case OP_SELF_DECREMENT:
+			{
+				auto stackTop = PopObject();
+				if (IS_INT_OBJ(stackTop))
+				{
+					--((IntNumObject *)stackTop)->value;
+					PushObject(stackTop);
+				}
+				else if (IS_REAL_OBJ(stackTop))
+				{
+					--((RealNumObject *)stackTop)->value;
+					PushObject(stackTop);
+				}
+				else
+					Assert("Invalid prefix operator '--',the increment object isn't a int num object or a real num object.");
+				break;
+			}
 			default:
 				break;
 			}

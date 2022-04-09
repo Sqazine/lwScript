@@ -61,6 +61,8 @@ namespace lws
 		OP_REF_VARIABLE,
 		OP_REF_INDEX,
 		OP_REF_OBJECT,
+		OP_SELF_INCREMENT,
+		OP_SELF_DECREMENT,
 	};
 
 	enum class FrameType
