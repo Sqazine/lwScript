@@ -735,15 +735,6 @@ namespace lws
 		return lambdaExpr;
 	}
 
-	Expr *ParsePrefixIncrementExpr()
-	{
-
-	}
-	Expr *ParsePrefixDecrementExpr()
-	{
-
-	}
-
 	Stmt *Parser::ParseFieldStmt()
 	{
 		auto fieldStmt = new FieldStmt();
