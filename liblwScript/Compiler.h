@@ -26,6 +26,7 @@ namespace lws
 		Frame *Compile(Stmt *stmt);
 
 		void ResetStatus();
+
 	private:
 		enum class ReferenceType
 		{
@@ -34,7 +35,7 @@ namespace lws
 		};
 
 		void CompileAstStmts(AstStmts *stmt, Frame *frame);
-		void CompileStmt(Stmt *stmt, Frame *frame, uint64_t breakStmtAddressOffset=0, uint64_t continueStmtAddressOffset=0);
+		void CompileStmt(Stmt *stmt, Frame *frame, uint64_t breakStmtAddressOffset = 0, uint64_t continueStmtAddressOffset = 0);
 		void CompileReturnStmt(ReturnStmt *stmt, Frame *frame);
 		void CompileExprStmt(ExprStmt *stmt, Frame *frame);
 		void CompileLetStmt(LetStmt *stmt, Frame *frame);
@@ -45,7 +46,7 @@ namespace lws
 		void CompileBreakStmt(uint64_t addressOffset, Frame *frame);
 		void CompileContinueStmt(uint64_t addressOffset, Frame *frame);
 		void CompileEnumStmt(EnumStmt *enumStmt, Frame *frame);
-		void CompileFunctionStmt(FunctionStmt* stmt, Frame* frame);
+		void CompileFunctionStmt(FunctionStmt *stmt, Frame *frame);
 		void CompileFieldStmt(FieldStmt *stmt, Frame *frame);
 
 		void CompileExpr(Expr *expr, Frame *frame, ObjectState state = VAR_READ);
@@ -61,7 +62,8 @@ namespace lws
 		void CompileIndexExpr(IndexExpr *expr, Frame *frame, ObjectState state = VAR_READ);
 		void CompilePrefixExpr(PrefixExpr *expr, Frame *frame);
 		void CompileInfixExpr(InfixExpr *expr, Frame *frame);
-		void CompileRefExpr(RefExpr *expr, Frame *frame,ReferenceType type=ReferenceType::VARIABLE);
+		void CompilePostfixExpr(PostfixExpr *expr, Frame *frame, bool isDelayCompile = true);
+		void CompileRefExpr(RefExpr *expr, Frame *frame, ReferenceType type = ReferenceType::VARIABLE);
 		void CompileLambdaExpr(LambdaExpr *stmt, Frame *frame);
 		void CompileConditionExpr(ConditionExpr *expr, Frame *frame);
 		void CompileFunctionCallExpr(FunctionCallExpr *expr, Frame *frame);
@@ -69,6 +71,6 @@ namespace lws
 
 		void CompileBreakAndContinueStmt(uint64_t addressOffset, Frame *frame);
 
-		Frame* mRootFrame;
+		Frame *mRootFrame;
 	};
 }

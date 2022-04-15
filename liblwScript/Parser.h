@@ -25,6 +25,7 @@ namespace lws
 		MUL_DIV_MOD, // * / %
 		PREFIX,		 // ! ~ - & ++ --
 		INFIX,		 // [] () .
+		POSTFIX,	 // ++ --
 	};
 
 	enum class Associativity
@@ -37,6 +38,7 @@ namespace lws
 
 	typedef Expr *(Parser::*PrefixFn)();
 	typedef Expr *(Parser::*InfixFn)(Expr *);
+	typedef Expr *(Parser::*PostfixFn)(Expr *);
 
 	class Parser
 	{
@@ -81,6 +83,7 @@ namespace lws
 		Expr *ParseRefExpr();
 		Expr *ParseLambdaExpr();
 		Expr *ParseInfixExpr(Expr *prefixExpr);
+		Expr *ParsePostfixExpr(Expr *prefixExpr);
 		Expr *ParseConditionExpr(Expr *prefixExpr);
 		Expr *ParseIndexExpr(Expr *prefixExpr);
 		Expr *ParseFunctionCallExpr(Expr *prefixExpr);
@@ -111,5 +114,6 @@ namespace lws
 
 		static std::unordered_map<TokenType, PrefixFn> mPrefixFunctions;
 		static std::unordered_map<TokenType, InfixFn> mInfixFunctions;
+		static std::unordered_map<TokenType, PostfixFn> mPostfixFunctions;
 	};
 }

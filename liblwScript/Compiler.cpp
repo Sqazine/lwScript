@@ -51,10 +51,10 @@ namespace lws
 			CompileConstStmt((ConstStmt *)stmt, frame);
 			break;
 		case AST_SCOPE:
-			CompileScopeStmt((ScopeStmt *)stmt, frame,breakStmtAddressOffset,continueStmtAddressOffset);
+			CompileScopeStmt((ScopeStmt *)stmt, frame, breakStmtAddressOffset, continueStmtAddressOffset);
 			break;
 		case AST_IF:
-			CompileIfStmt((IfStmt *)stmt, frame,breakStmtAddressOffset,continueStmtAddressOffset);
+			CompileIfStmt((IfStmt *)stmt, frame, breakStmtAddressOffset, continueStmtAddressOffset);
 			break;
 		case AST_WHILE:
 			CompileWhileStmt((WhileStmt *)stmt, frame);
@@ -80,6 +80,7 @@ namespace lws
 	}
 	void Compiler::CompileReturnStmt(ReturnStmt *stmt, Frame *frame)
 	{
+		auto postfixExprs = stmt->expr->GetPostfixExpr();
 		if (stmt->expr)
 		{
 			CompileExpr(stmt->expr, frame);
@@ -87,28 +88,58 @@ namespace lws
 		}
 		else
 			frame->AddOpCode(OP_RETURN);
+
+		if (!postfixExprs.empty())
+		{
+			for (const auto &postfixExpr : postfixExprs)
+				CompilePostfixExpr((PostfixExpr *)postfixExpr, frame, false);
+		}
 	}
 
 	void Compiler::CompileExprStmt(ExprStmt *stmt, Frame *frame)
 	{
+		auto postfixExprs = stmt->expr->GetPostfixExpr();
+
 		CompileExpr(stmt->expr, frame);
+
+		if (!postfixExprs.empty())
+		{
+			for (const auto &postfixExpr : postfixExprs)
+				CompilePostfixExpr((PostfixExpr *)postfixExpr, frame, false);
+		}
 	}
 
 	void Compiler::CompileLetStmt(LetStmt *stmt, Frame *frame)
 	{
+		auto postfixExprs = stmt->GetPostfixExpr();
+
 		for (auto [key, value] : stmt->variables)
 		{
 			CompileExpr(value, frame);
 			CompileExpr(key, frame, VAR_INIT);
 		}
+
+		if (!postfixExprs.empty())
+		{
+			for (const auto &postfixExpr : postfixExprs)
+				CompilePostfixExpr((PostfixExpr *)postfixExpr, frame, false);
+		}
 	}
 
 	void Compiler::CompileConstStmt(ConstStmt *stmt, Frame *frame)
 	{
+		auto postfixExprs = stmt->GetPostfixExpr();
+
 		for (auto [key, value] : stmt->consts)
 		{
 			CompileExpr(value, frame);
 			CompileExpr(key, frame, CONST_INIT);
+		}
+
+		if (!postfixExprs.empty())
+		{
+			for (const auto &postfixExpr : postfixExprs)
+				CompilePostfixExpr((PostfixExpr *)postfixExpr, frame, false);
 		}
 	}
 
@@ -117,14 +148,22 @@ namespace lws
 		frame->AddOpCode(OP_ENTER_SCOPE);
 
 		for (const auto &s : stmt->stmts)
-			CompileStmt(s, frame,breakStmtAddressOffset,continueStmtAddressOffset);
+			CompileStmt(s, frame, breakStmtAddressOffset, continueStmtAddressOffset);
 
 		frame->AddOpCode(OP_EXIT_SCOPE);
 	}
 
-	void Compiler::CompileIfStmt(IfStmt *stmt, Frame *frame,uint64_t breakStmtAddressOffset, uint64_t continueStmtAddressOffset)
+	void Compiler::CompileIfStmt(IfStmt *stmt, Frame *frame, uint64_t breakStmtAddressOffset, uint64_t continueStmtAddressOffset)
 	{
+		auto conditionPostfixExprs = stmt->condition->GetPostfixExpr();
+
 		CompileExpr(stmt->condition, frame);
+
+		if (!conditionPostfixExprs.empty())
+		{
+			for (const auto &postfixExpr : conditionPostfixExprs)
+				CompilePostfixExpr((PostfixExpr *)postfixExpr, frame, false);
+		}
 
 		frame->AddOpCode(OP_JUMP_IF_FALSE);
 		uint64_t jmpIfFalseOffset = frame->AddIntNum(0);
@@ -146,21 +185,30 @@ namespace lws
 	void Compiler::CompileWhileStmt(WhileStmt *stmt, Frame *frame)
 	{
 		uint64_t jmpAddress = frame->mCodes.size() - 1;
+
+		auto conditionPostfixExprs = stmt->condition->GetPostfixExpr();
+
 		CompileExpr(stmt->condition, frame);
+
+		if (!conditionPostfixExprs.empty())
+		{
+			for (const auto &postfixExpr : conditionPostfixExprs)
+				CompilePostfixExpr((PostfixExpr *)postfixExpr, frame, false);
+		}
 
 		frame->AddOpCode(OP_JUMP_IF_FALSE);
 		uint64_t jmpIfFalseOffset = frame->AddIntNum(0);
 		frame->AddOpCode(jmpIfFalseOffset);
 
 		uint64_t offset = frame->AddIntNum(jmpAddress);
-		if(!stmt->increment)
+		if (!stmt->increment)
 			CompileStmt(stmt->body, frame, jmpIfFalseOffset, offset);
 		else
 		{
 			uint64_t incrementPartOffset = frame->AddIntNum(0);
 			CompileStmt(stmt->body, frame, jmpIfFalseOffset, incrementPartOffset);
 			frame->mIntNums[incrementPartOffset] = frame->mCodes.size() - 1;
-			CompileStmt(stmt->increment,frame);
+			CompileStmt(stmt->increment, frame);
 		}
 
 		frame->AddOpCode(OP_JUMP);
@@ -190,7 +238,7 @@ namespace lws
 			CompileExpr(value, enumFrame);
 			CompileExpr(key, enumFrame, CONST_INIT);
 		}
-		
+
 		enumFrame->AddOpCode(OP_NEW_FIELD);
 		uint64_t offset = enumFrame->AddString(enumStmt->enumName->literal);
 		enumFrame->AddOpCode(offset);
@@ -325,6 +373,9 @@ namespace lws
 		case AST_INFIX:
 			CompileInfixExpr((InfixExpr *)expr, frame);
 			break;
+		case AST_POSTFIX:
+			CompilePostfixExpr((PostfixExpr *)expr, frame);
+			break;
 		case AST_CONDITION:
 			CompileConditionExpr((ConditionExpr *)expr, frame);
 			break;
@@ -448,9 +499,9 @@ namespace lws
 			frame->AddOpCode(OP_BIT_NOT);
 		else if (expr->op == L"!")
 			frame->AddOpCode(OP_NOT);
-		else if(expr->op==L"++")
+		else if (expr->op == L"++")
 			frame->AddOpCode(OP_SELF_INCREMENT);
-		else if(expr->op==L"--")
+		else if (expr->op == L"--")
 			frame->AddOpCode(OP_SELF_DECREMENT);
 	}
 
@@ -564,23 +615,35 @@ namespace lws
 		}
 	}
 
-	void Compiler::CompileRefExpr(RefExpr *expr, Frame *frame,ReferenceType type)
+	void Compiler::CompilePostfixExpr(PostfixExpr *expr, Frame *frame, bool isDelayCompile)
+	{
+		CompileExpr(expr->left, frame);
+		if (!isDelayCompile)
+		{
+			if (expr->op == L"++")
+				frame->AddOpCode(OP_SELF_INCREMENT);
+			else if (expr->op == L"--")
+				frame->AddOpCode(OP_SELF_DECREMENT);
+		}
+	}
+
+	void Compiler::CompileRefExpr(RefExpr *expr, Frame *frame, ReferenceType type)
 	{
 		if (type == ReferenceType::VARIABLE)
 		{
 			if (expr->refExpr->Type() == AST_IDENTIFIER)
 			{
 				frame->AddOpCode(OP_REF_VARIABLE);
-				size_t offset = frame->AddString(((IdentifierExpr*)expr->refExpr)->literal);
+				size_t offset = frame->AddString(((IdentifierExpr *)expr->refExpr)->literal);
 				frame->AddOpCode(offset);
 			}
 			else if (expr->refExpr->Type() == AST_INDEX)
 			{
-				CompileExpr(((IndexExpr*)expr->refExpr)->index, frame);
-				if (((IndexExpr*)expr->refExpr)->ds->Type() != AST_IDENTIFIER)
+				CompileExpr(((IndexExpr *)expr->refExpr)->index, frame);
+				if (((IndexExpr *)expr->refExpr)->ds->Type() != AST_IDENTIFIER)
 					Assert(L"Invalid reference object,only left value can be referenced.");
 				frame->AddOpCode(OP_REF_INDEX);
-				size_t offset = frame->AddString(((IdentifierExpr*)(((IndexExpr*)expr->refExpr)->ds))->literal);
+				size_t offset = frame->AddString(((IdentifierExpr *)(((IndexExpr *)expr->refExpr)->ds))->literal);
 				frame->AddOpCode(offset);
 			}
 		}
@@ -601,7 +664,6 @@ namespace lws
 
 	void Compiler::CompileFunctionCallExpr(FunctionCallExpr *expr, Frame *frame)
 	{
-
 		for (const auto &arg : expr->arguments)
 			CompileExpr(arg, frame);
 
@@ -609,7 +671,7 @@ namespace lws
 		int64_t extraArgCount = 0;
 		if (expr->name->Type() == AST_FIELD_CALL)
 		{
-			CompileRefExpr(new RefExpr(((FieldCallExpr *)expr->name)->callee), frame,ReferenceType::OBJECT);
+			CompileRefExpr(new RefExpr(((FieldCallExpr *)expr->name)->callee), frame, ReferenceType::OBJECT);
 			extraArgCount++;
 		}
 		//argument count
@@ -631,7 +693,7 @@ namespace lws
 			if (fieldCallExpr->callMember->Type() == AST_FIELD_CALL) //continuous field call such as a.b.c;
 				CompileExpr(((FieldCallExpr *)fieldCallExpr->callMember)->callee, frame, FIELD_MEMBER_READ);
 
-			IdentifierExpr *tmpIden = new IdentifierExpr(((IdentifierExpr *)fieldCallExpr->callMember)->literal + functionNameAndArgumentConnector + std::to_wstring(expr->arguments.size()+1));//+1 for adding 'this' to parameter count
+			IdentifierExpr *tmpIden = new IdentifierExpr(((IdentifierExpr *)fieldCallExpr->callMember)->literal + functionNameAndArgumentConnector + std::to_wstring(expr->arguments.size() + 1)); //+1 for adding 'this' to parameter count
 			CompileExpr(tmpIden, frame, FIELD_FUNCTION_READ);
 		}
 		else

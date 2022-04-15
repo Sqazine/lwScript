@@ -41,6 +41,8 @@ namespace lws
 		{TOKEN_LBRACKET, Precedence::INFIX},
 		{TOKEN_LPAREN, Precedence::INFIX},
 		{TOKEN_DOT, Precedence::INFIX},
+		{TOKEN_PLUS_PLUS, Precedence::POSTFIX},
+		{TOKEN_MINUS_MINUS, Precedence::POSTFIX},
 	};
 
 	struct AssociativityBinding
@@ -66,7 +68,7 @@ namespace lws
 			{Precedence::MUL_DIV_MOD, Associativity::L2R},
 			{Precedence::PREFIX, Associativity::R2L},
 			{Precedence::INFIX, Associativity::L2R},
-	};
+			{Precedence::POSTFIX, Associativity::L2R}};
 
 	std::unordered_map<TokenType, PrefixFn> Parser::mPrefixFunctions =
 		{
@@ -123,6 +125,12 @@ namespace lws
 			{TOKEN_LPAREN, &Parser::ParseFunctionCallExpr},
 			{TOKEN_LBRACKET, &Parser::ParseIndexExpr},
 			{TOKEN_DOT, &Parser::ParseFieldCallExpr},
+	};
+
+	std::unordered_map<TokenType, PostfixFn> Parser::mPostfixFunctions =
+		{
+			{TOKEN_PLUS_PLUS, &Parser::ParsePostfixExpr},
+			{TOKEN_MINUS_MINUS, &Parser::ParsePostfixExpr},
 	};
 
 	Parser::Parser()
@@ -669,7 +677,7 @@ namespace lws
 
 			items[name] = value;
 
-			if(IsMatchCurToken(TOKEN_COMMA))
+			if (IsMatchCurToken(TOKEN_COMMA))
 				Consume(TOKEN_COMMA, L"Expect ',' after enum item.");
 		}
 
@@ -763,7 +771,7 @@ namespace lws
 			else if (IsMatchCurToken(TOKEN_FUNCTION))
 				fieldStmt->fnStmts.emplace_back((FunctionStmt *)ParseFunctionStmt());
 			else
-				Consume({TOKEN_LET, TOKEN_FUNCTION , TOKEN_CONST}, L"UnExpect identifier '" + GetCurToken().literal + L"'.");
+				Consume({TOKEN_LET, TOKEN_FUNCTION, TOKEN_CONST}, L"UnExpect identifier '" + GetCurToken().literal + L"'.");
 		}
 
 		Consume(TOKEN_RBRACE, L"Expect '}' after field stmt's '{'");
@@ -784,12 +792,18 @@ namespace lws
 
 		while (!IsMatchCurToken(TOKEN_SEMICOLON) && (GetCurTokenAssociativity() == Associativity::L2R ? precedence < GetCurTokenPrecedence() : precedence <= GetCurTokenPrecedence()))
 		{
-			if (mInfixFunctions.find(GetCurToken().type) == mInfixFunctions.end())
-				return leftExpr;
-
-			auto infixFn = mInfixFunctions[GetCurToken().type];
-
-			leftExpr = (this->*infixFn)(leftExpr);
+			if (mPostfixFunctions.find(GetCurToken().type) != mPostfixFunctions.end())
+			{
+				auto postfixFn = mPostfixFunctions[GetCurToken().type];
+				leftExpr = (this->*postfixFn)(leftExpr);
+			}
+			else if (mInfixFunctions.find(GetCurToken().type) != mInfixFunctions.end())
+			{
+				auto infixFn = mInfixFunctions[GetCurToken().type];
+				leftExpr = (this->*infixFn)(leftExpr);
+			}
+			else
+				break;
 		}
 
 		return leftExpr;
@@ -954,6 +968,16 @@ namespace lws
 		infixExpr->op = GetCurTokenAndStepOnce().literal;
 		infixExpr->right = ParseExpr(opPrece);
 		return infixExpr;
+	}
+
+	Expr *Parser::ParsePostfixExpr(Expr *prefixExpr)
+	{
+		auto postfixExpr = new PostfixExpr();
+		postfixExpr->column = GetCurToken().column;
+		postfixExpr->line = GetCurToken().line;
+		postfixExpr->op = GetCurTokenAndStepOnce().literal;
+		postfixExpr->left = prefixExpr;
+		return postfixExpr;
 	}
 
 	Expr *Parser::ParseConditionExpr(Expr *prefixExpr)
