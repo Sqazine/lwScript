@@ -43,6 +43,7 @@ namespace lws
 		{TOKEN_DOT, Precedence::INFIX},
 		{TOKEN_PLUS_PLUS, Precedence::POSTFIX},
 		{TOKEN_MINUS_MINUS, Precedence::POSTFIX},
+		{TOKEN_BANG,Precedence::POSTFIX}
 	};
 
 	struct AssociativityBinding
@@ -131,7 +132,8 @@ namespace lws
 		{
 			{TOKEN_PLUS_PLUS, &Parser::ParsePostfixExpr},
 			{TOKEN_MINUS_MINUS, &Parser::ParsePostfixExpr},
-	};
+			{TOKEN_BANG,&Parser::ParsePostfixExpr},
+		};
 
 	Parser::Parser()
 		: mStmts(nullptr)

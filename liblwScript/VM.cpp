@@ -926,7 +926,7 @@ namespace lws
 					PushObject(stackTop);
 				}
 				else
-					Assert("Invalid prefix operator '++',the increment object isn't a int num object or a real num object.");
+					Assert("Invalid prefix or postfix '++',the increment object isn't an int num object or a real num object.");
 				break;
 			}
 			case OP_SELF_DECREMENT:
@@ -943,7 +943,24 @@ namespace lws
 					PushObject(stackTop);
 				}
 				else
-					Assert("Invalid prefix operator '--',the increment object isn't a int num object or a real num object.");
+					Assert("Invalid prefix or postfix operator '--',the increment object isn't an int num object or a real num object.");
+				break;
+			}
+			case OP_FACTORIAL:
+			{
+				auto stackTop = PopObject();
+				if (IS_INT_OBJ(stackTop))
+				{
+					int64_t v = Factorial(TO_INT_OBJ(stackTop)->value);
+					PushObject(CreateIntNumObject(v));
+				}
+				else if (IS_REAL_OBJ(stackTop))
+				{
+					int64_t v = Factorial(TO_REAL_OBJ(stackTop)->value);
+					PushObject(CreateRealNumObject((double)v));
+				}
+				else
+					Assert("Invalid postfix operator '!',the increment object isn't an int num object or a real num object.");
 				break;
 			}
 			default:

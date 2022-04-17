@@ -45,4 +45,11 @@ namespace lws
         std::wstring address = sstr.str();
         return address;
     }
+
+    inline int64_t Factorial(int64_t v)
+    {
+        if(v==0)
+            return 1;
+        return Factorial(v - 1) * v;
+    }
 }

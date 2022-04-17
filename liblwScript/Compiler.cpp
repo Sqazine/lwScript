@@ -618,7 +618,11 @@ namespace lws
 	void Compiler::CompilePostfixExpr(PostfixExpr *expr, Frame *frame, bool isDelayCompile)
 	{
 		CompileExpr(expr->left, frame);
-		if (!isDelayCompile)
+
+		//factorial don't need to delay compile
+		if (expr->op == L"!")
+			frame->AddOpCode(OP_FACTORIAL);
+		else if (!isDelayCompile)
 		{
 			if (expr->op == L"++")
 				frame->AddOpCode(OP_SELF_INCREMENT);

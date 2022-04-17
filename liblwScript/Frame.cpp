@@ -373,6 +373,9 @@ namespace lws
 			case OP_SELF_DECREMENT:
 				UNARY_INSTR_STRINGIFY(OP_SELF_DECREMENT);
 				break;
+			case OP_FACTORIAL :
+				UNARY_INSTR_STRINGIFY(OP_FACTORIAL);
+				break;
 			default:
 				UNARY_INSTR_STRINGIFY(OP_UNKNOWN);
 				break;
