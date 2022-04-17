@@ -24,3 +24,8 @@ else
         a++;
         println("{}",a);
     }
+
+const d=a++;
+const e=++a;
+
+println("{},{},{}",a,d,e);//15,13,15

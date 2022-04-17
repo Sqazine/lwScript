@@ -197,6 +197,72 @@ namespace lws
 		return refObject;
 	}
 
+	Object *VM::CopyObject(Object *srcObj)
+	{
+		switch (srcObj->Type())
+		{
+		case OBJECT_INT:
+			return CreateIntNumObject(TO_INT_OBJ(srcObj)->value);
+		case OBJECT_REAL:
+			return CreateRealNumObject(TO_REAL_OBJ(srcObj)->value);
+		case OBJECT_STR:
+			return CreateStrObject(TO_STR_OBJ(srcObj)->value);
+		case OBJECT_BOOL:
+			return CreateBoolObject(TO_BOOL_OBJ(srcObj)->value);
+		case OBJECT_NULL:
+			return CreateNullObject();
+		case OBJECT_ARRAY:
+		{
+			std::vector<Object *> elementsCopy;
+			auto srcArrayObj = TO_ARRAY_OBJ(srcObj);
+			for (const auto &e : srcArrayObj->elements)
+				elementsCopy.emplace_back(CopyObject(e));
+			return CreateArrayObject(elementsCopy);
+		}
+		case OBJECT_TABLE:
+		{
+			std::unordered_map<Object *, Object *> elementsCopy;
+			auto srcTableObj = TO_TABLE_OBJ(srcObj);
+			for (const auto &[k, v] : srcTableObj->elements)
+				elementsCopy[CopyObject(k)] = CopyObject(v);
+			return CreateTableObject(elementsCopy);
+		}
+		case OBJECT_LAMBDA:
+			return CreateLambdaObject(TO_LAMBDA_OBJ(srcObj)->frameIndex);
+		case OBJECT_REF_VAR:
+		{
+			auto refVarObj = TO_REF_VAR_OBJ(srcObj);
+			Object *indexCopy = nullptr;
+			if (refVarObj->index)
+				indexCopy = CopyObject(refVarObj->index);
+			auto name = refVarObj->name;
+			return CreateRefVarObject(name, indexCopy);
+		}
+		case OBJECT_REF_OBJ:
+			return CreateRefObjObject(TO_REF_OBJ_OBJ(srcObj)->address);
+		case OBJECT_FIELD:
+		{
+			auto fieldObj = TO_FIELD_OBJ(srcObj);
+			auto name = fieldObj->name;
+			std::unordered_map<std::wstring, ObjectDesc> membersCopy;
+			std::vector<std::pair<std::wstring, FieldObject *>> containedFieldsCopy;
+			for (const auto &[k, v] : fieldObj->members)
+			{
+				ObjectDesc descCopy;
+				descCopy.type = v.type;
+				descCopy.object = CopyObject(v.object);
+				membersCopy[k] = descCopy;
+			}
+			for (const auto &containedField : fieldObj->containedFields)
+				containedFieldsCopy.emplace_back(containedField.first, TO_FIELD_OBJ(CopyObject(containedField.second)));
+			return CreateFieldObject(name, membersCopy, containedFieldsCopy);
+		}
+		default:
+			break;
+		}
+		return nullptr;
+	}
+
 	Object *VM::Execute(Frame *frame)
 	{
 		PreAssemble(frame);
@@ -211,7 +277,7 @@ namespace lws
 
 	Object *VM::ExecuteOpCode(Frame *frame)
 	{
-// + - * /
+		// + - * /
 #define COMMON_BINARY(op)                                                                           \
 	do                                                                                              \
 	{                                                                                               \
@@ -415,13 +481,15 @@ namespace lws
 			case OP_NEW_VAR:
 			{
 				Object *value = PopObject();
-				mContext->DefineVariableByName(frame->mStrings[frame->mCodes[++ip]], ObjectDescType::VARIABLE, value);
+				auto *newCopy = CopyObject(value);
+				mContext->DefineVariableByName(frame->mStrings[frame->mCodes[++ip]], ObjectDescType::VARIABLE, newCopy);
 				break;
 			}
 			case OP_NEW_CONST:
 			{
 				Object *value = PopObject();
-				mContext->DefineVariableByName(frame->mStrings[frame->mCodes[++ip]], ObjectDescType::CONST, value);
+				auto *newCopy = CopyObject(value);
+				mContext->DefineVariableByName(frame->mStrings[frame->mCodes[++ip]], ObjectDescType::CONST, newCopy);
 				break;
 			}
 			case OP_SET_VAR:
