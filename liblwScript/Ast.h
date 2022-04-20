@@ -13,7 +13,6 @@ namespace lws
 		AST_STR,
 		AST_NULL,
 		AST_BOOL,
-		AST_NOT,
 		AST_IDENTIFIER,
 		AST_GROUP,
 		AST_ARRAY,
@@ -50,7 +49,6 @@ namespace lws
 
 		virtual std::wstring Stringify() = 0;
 		virtual AstType Type() = 0;
-		virtual std::vector<struct Expr *> GetPostfixExpr() = 0;
 
 		uint64_t line{1};
 		uint64_t column{1};
@@ -63,7 +61,6 @@ namespace lws
 
 		virtual std::wstring Stringify() = 0;
 		virtual AstType Type() = 0;
-		virtual std::vector<Expr *> GetPostfixExpr() = 0;
 	};
 
 	struct IntNumExpr : public Expr
@@ -74,7 +71,6 @@ namespace lws
 
 		std::wstring Stringify() override;
 		AstType Type() override;
-		std::vector<Expr *> GetPostfixExpr() override;
 
 		int64_t value;
 	};
@@ -87,7 +83,6 @@ namespace lws
 
 		std::wstring Stringify() override;
 		AstType Type() override;
-		std::vector<Expr *> GetPostfixExpr() override;
 
 		double value;
 	};
@@ -100,7 +95,6 @@ namespace lws
 
 		std::wstring Stringify() override;
 		AstType Type() override;
-		std::vector<Expr *> GetPostfixExpr() override;
 
 		std::wstring value;
 	};
@@ -112,7 +106,6 @@ namespace lws
 
 		std::wstring Stringify() override;
 		AstType Type() override;
-		std::vector<Expr *> GetPostfixExpr() override;
 	};
 
 	struct BoolExpr : public Expr
@@ -123,7 +116,6 @@ namespace lws
 
 		std::wstring Stringify() override;
 		AstType Type() override;
-		std::vector<Expr *> GetPostfixExpr() override;
 
 		bool value;
 	};
@@ -136,7 +128,6 @@ namespace lws
 
 		std::wstring Stringify() override;
 		AstType Type() override;
-		std::vector<Expr *> GetPostfixExpr() override;
 
 		std::wstring literal;
 	};
@@ -149,7 +140,6 @@ namespace lws
 
 		std::wstring Stringify() override;
 		AstType Type() override;
-		std::vector<Expr *> GetPostfixExpr() override;
 
 		std::vector<Expr *> elements;
 	};
@@ -162,7 +152,6 @@ namespace lws
 
 		std::wstring Stringify() override;
 		AstType Type() override;
-		std::vector<Expr *> GetPostfixExpr() override;
 
 		std::unordered_map<Expr *, Expr *> elements;
 	};
@@ -175,7 +164,6 @@ namespace lws
 
 		std::wstring Stringify() override;
 		AstType Type() override;
-		std::vector<Expr *> GetPostfixExpr() override;
 
 		Expr *expr;
 	};
@@ -188,7 +176,6 @@ namespace lws
 
 		std::wstring Stringify() override;
 		AstType Type() override;
-		std::vector<Expr *> GetPostfixExpr() override;
 
 		std::wstring op;
 		Expr *right;
@@ -202,7 +189,6 @@ namespace lws
 
 		std::wstring Stringify() override;
 		AstType Type() override;
-		std::vector<Expr *> GetPostfixExpr() override;
 
 		std::wstring op;
 		Expr *left;
@@ -217,7 +203,6 @@ namespace lws
 
 		std::wstring Stringify() override;
 		AstType Type() override;
-		std::vector<Expr *> GetPostfixExpr() override;
 
 		Expr *left;
 		std::wstring op;
@@ -231,7 +216,6 @@ namespace lws
 
 		std::wstring Stringify() override;
 		AstType Type() override;
-		std::vector<Expr *> GetPostfixExpr() override;
 
 		Expr *condition;
 		Expr *trueBranch;
@@ -246,7 +230,6 @@ namespace lws
 
 		std::wstring Stringify() override;
 		AstType Type() override;
-		std::vector<Expr *> GetPostfixExpr() override;
 
 		Expr *ds;
 		Expr *index;
@@ -260,7 +243,6 @@ namespace lws
 
 		std::wstring Stringify() override;
 		AstType Type() override;
-		std::vector<Expr *> GetPostfixExpr() override;
 
 		Expr *refExpr;
 	};
@@ -273,7 +255,6 @@ namespace lws
 
 		std::wstring Stringify() override;
 		AstType Type() override;
-		std::vector<Expr *> GetPostfixExpr() override;
 
 		std::vector<IdentifierExpr *> parameters;
 		struct ScopeStmt *body;
@@ -287,7 +268,6 @@ namespace lws
 
 		std::wstring Stringify() override;
 		AstType Type() override;
-		std::vector<Expr *> GetPostfixExpr() override;
 
 		Expr *name;
 		std::vector<Expr *> arguments;
@@ -301,7 +281,6 @@ namespace lws
 
 		std::wstring Stringify() override;
 		AstType Type() override;
-		std::vector<Expr *> GetPostfixExpr() override;
 
 		Expr *callee;
 		Expr *callMember;
@@ -314,7 +293,6 @@ namespace lws
 
 		virtual std::wstring Stringify() = 0;
 		virtual AstType Type() = 0;
-		virtual std::vector<Expr *> GetPostfixExpr() = 0;
 	};
 
 	struct ExprStmt : public Stmt
@@ -324,7 +302,6 @@ namespace lws
 		~ExprStmt();
 		std::wstring Stringify() override;
 		AstType Type() override;
-		std::vector<Expr *> GetPostfixExpr() override;
 
 		Expr *expr;
 	};
@@ -337,7 +314,6 @@ namespace lws
 
 		std::wstring Stringify() override;
 		AstType Type() override;
-		std::vector<Expr *> GetPostfixExpr() override;
 
 		std::unordered_map<IdentifierExpr *, Expr *> variables;
 	};
@@ -350,7 +326,6 @@ namespace lws
 
 		std::wstring Stringify() override;
 		AstType Type() override;
-		std::vector<Expr *> GetPostfixExpr() override;
 
 		std::unordered_map<IdentifierExpr *, Expr *> consts;
 	};
@@ -363,7 +338,6 @@ namespace lws
 
 		std::wstring Stringify() override;
 		AstType Type() override;
-		std::vector<Expr *> GetPostfixExpr() override;
 
 		Expr *expr;
 	};
@@ -376,7 +350,6 @@ namespace lws
 
 		std::wstring Stringify() override;
 		AstType Type() override;
-		std::vector<Expr *> GetPostfixExpr() override;
 
 		Expr *condition;
 		Stmt *thenBranch;
@@ -391,7 +364,6 @@ namespace lws
 
 		std::wstring Stringify() override;
 		AstType Type() override;
-		std::vector<Expr *> GetPostfixExpr() override;
 
 		std::vector<Stmt *> stmts;
 	};
@@ -404,7 +376,6 @@ namespace lws
 
 		std::wstring Stringify() override;
 		AstType Type() override;
-		std::vector<Expr *> GetPostfixExpr() override;
 
 		Expr *condition;
 		ScopeStmt *body;
@@ -418,7 +389,6 @@ namespace lws
 
 		std::wstring Stringify() override;
 		AstType Type() override;
-		std::vector<Expr *> GetPostfixExpr() override;
 	};
 
 	struct ContinueStmt : public Stmt
@@ -428,7 +398,6 @@ namespace lws
 
 		std::wstring Stringify() override;
 		AstType Type() override;
-		std::vector<Expr *> GetPostfixExpr() override;
 	};
 
 	struct EnumStmt : public Stmt
@@ -439,7 +408,6 @@ namespace lws
 
 		std::wstring Stringify() override;
 		AstType Type() override;
-		std::vector<Expr *> GetPostfixExpr() override;
 
 		IdentifierExpr *enumName;
 		std::unordered_map<IdentifierExpr *, Expr *> enumItems;
@@ -453,7 +421,6 @@ namespace lws
 
 		std::wstring Stringify() override;
 		AstType Type() override;
-		std::vector<Expr *> GetPostfixExpr() override;
 
 		IdentifierExpr *name;
 		std::vector<IdentifierExpr *> parameters;
@@ -472,7 +439,6 @@ namespace lws
 
 		std::wstring Stringify() override;
 		AstType Type() override;
-		std::vector<Expr *> GetPostfixExpr() override;
 
 		std::wstring name;
 		std::vector<IdentifierExpr *> containedFields;
@@ -489,7 +455,6 @@ namespace lws
 
 		std::wstring Stringify() override;
 		AstType Type() override;
-		std::vector<Expr *> GetPostfixExpr() override;
 
 		std::vector<Stmt *> stmts;
 	};

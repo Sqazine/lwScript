@@ -25,11 +25,6 @@ namespace lws
 		return AST_INT;
 	}
 
-	std::vector<Expr *> IntNumExpr::GetPostfixExpr()
-	{
-		return {};
-	}
-
 	RealNumExpr::RealNumExpr()
 		: value(0.0)
 	{
@@ -48,11 +43,6 @@ namespace lws
 	AstType RealNumExpr::Type()
 	{
 		return AST_REAL;
-	}
-
-	std::vector<Expr *> RealNumExpr::GetPostfixExpr()
-	{
-		return {};
 	}
 
 	StrExpr::StrExpr()
@@ -77,11 +67,6 @@ namespace lws
 		return AST_STR;
 	}
 
-	std::vector<Expr *> StrExpr::GetPostfixExpr()
-	{
-		return {};
-	}
-
 	NullExpr::NullExpr()
 	{
 	}
@@ -96,11 +81,6 @@ namespace lws
 	AstType NullExpr::Type()
 	{
 		return AST_NULL;
-	}
-
-	std::vector<Expr *> NullExpr::GetPostfixExpr()
-	{
-		return {};
 	}
 
 	BoolExpr::BoolExpr()
@@ -124,11 +104,6 @@ namespace lws
 		return AST_BOOL;
 	}
 
-	std::vector<Expr *> BoolExpr::GetPostfixExpr()
-	{
-		return {};
-	}
-
 	IdentifierExpr::IdentifierExpr()
 	{
 	}
@@ -147,11 +122,6 @@ namespace lws
 	AstType IdentifierExpr::Type()
 	{
 		return AST_IDENTIFIER;
-	}
-
-	std::vector<Expr *> IdentifierExpr::GetPostfixExpr()
-	{
-		return {};
 	}
 
 	ArrayExpr::ArrayExpr()
@@ -181,17 +151,6 @@ namespace lws
 	AstType ArrayExpr::Type()
 	{
 		return AST_ARRAY;
-	}
-
-	std::vector<Expr *> ArrayExpr::GetPostfixExpr()
-	{
-		std::vector<Expr *> result;
-		for (const auto &e : elements)
-		{
-			auto eResult = e->GetPostfixExpr();
-			result.insert(result.end(), eResult.begin(), eResult.end());
-		}
-		return result;
 	}
 
 	TableExpr::TableExpr()
@@ -224,19 +183,6 @@ namespace lws
 		return AST_TABLE;
 	}
 
-	std::vector<Expr *> TableExpr::GetPostfixExpr()
-	{
-		std::vector<Expr *> result;
-		for (const auto &[k, v] : elements)
-		{
-			auto kResult = k->GetPostfixExpr();
-			auto vResult = v->GetPostfixExpr();
-			result.insert(result.end(), kResult.begin(), kResult.end());
-			result.insert(result.end(), vResult.begin(), vResult.end());
-		}
-		return result;
-	}
-
 	GroupExpr::GroupExpr()
 		: expr(nullptr)
 	{
@@ -255,11 +201,6 @@ namespace lws
 	AstType GroupExpr::Type()
 	{
 		return AST_GROUP;
-	}
-
-	std::vector<Expr *> GroupExpr::GetPostfixExpr()
-	{
-		return expr->GetPostfixExpr();
 	}
 
 	PrefixExpr::PrefixExpr()
@@ -285,10 +226,6 @@ namespace lws
 		return AST_PREFIX;
 	}
 
-	std::vector<Expr *> PrefixExpr::GetPostfixExpr()
-	{
-		return right->GetPostfixExpr();
-	}
 
 	InfixExpr::InfixExpr()
 		: left(nullptr), right(nullptr)
@@ -316,15 +253,26 @@ namespace lws
 		return AST_INFIX;
 	}
 
-	std::vector<Expr *> InfixExpr::GetPostfixExpr()
+	PostfixExpr::PostfixExpr()
+		: left(nullptr)
 	{
-		std::vector<Expr *> result;
-		auto leftResult = left->GetPostfixExpr();
-		auto rightResult = right->GetPostfixExpr();
-
-		result.insert(result.end(), leftResult.begin(), leftResult.end());
-		result.insert(result.end(), rightResult.begin(), rightResult.end());
-		return result;
+	}
+	PostfixExpr::PostfixExpr(Expr *left, std::wstring_view op)
+		: left(left), op(op)
+	{
+	}
+	PostfixExpr::~PostfixExpr()
+	{
+		delete left;
+		left = nullptr;
+	}
+	std::wstring PostfixExpr::Stringify()
+	{
+		return left->Stringify() + op;
+	}
+	AstType PostfixExpr::Type()
+	{
+		return AST_POSTFIX;
 	}
 
 	ConditionExpr::ConditionExpr()
@@ -356,18 +304,6 @@ namespace lws
 		return AST_CONDITION;
 	}
 
-	std::vector<Expr *> ConditionExpr::GetPostfixExpr()
-	{
-		std::vector<Expr *> result;
-		auto conditionResult = condition->GetPostfixExpr();
-		result.insert(result.end(), conditionResult.begin(), conditionResult.end());
-		auto trueBranchResult = trueBranch->GetPostfixExpr();
-		result.insert(result.end(), trueBranchResult.begin(), trueBranchResult.end());
-		auto falseBranchResult = falseBranch->GetPostfixExpr();
-		result.insert(result.end(), falseBranchResult.begin(), falseBranchResult.end());
-		return result;
-	}
-
 	IndexExpr::IndexExpr()
 		: ds(nullptr), index(nullptr)
 	{
@@ -393,16 +329,6 @@ namespace lws
 		return AST_INDEX;
 	}
 
-	std::vector<Expr *> IndexExpr::GetPostfixExpr()
-	{
-		std::vector<Expr *> result;
-		auto dsResult = ds->GetPostfixExpr();
-		result.insert(result.end(), dsResult.begin(), dsResult.end());
-		auto indexResult = index->GetPostfixExpr();
-		result.insert(result.end(), indexResult.begin(), indexResult.end());
-		return result;
-	}
-
 	RefExpr::RefExpr()
 		: refExpr(nullptr)
 	{
@@ -421,11 +347,6 @@ namespace lws
 	AstType RefExpr::Type()
 	{
 		return AST_REF;
-	}
-
-	std::vector<Expr *> RefExpr::GetPostfixExpr()
-	{
-		return refExpr->GetPostfixExpr();
 	}
 
 	LambdaExpr::LambdaExpr()
@@ -462,19 +383,6 @@ namespace lws
 		return AST_LAMBDA;
 	}
 
-	std::vector<Expr *> LambdaExpr::GetPostfixExpr()
-	{
-		std::vector<Expr *> result;
-		for (const auto &param : parameters)
-		{
-			auto paramResult = param->GetPostfixExpr();
-			result.insert(result.end(), paramResult.begin(), paramResult.end());
-		}
-		auto bodyResult = body->GetPostfixExpr();
-		result.insert(result.end(), bodyResult.begin(), bodyResult.end());
-		return result;
-	}
-
 	FunctionCallExpr::FunctionCallExpr()
 	{
 	}
@@ -503,19 +411,6 @@ namespace lws
 		return AST_FUNCTION_CALL;
 	}
 
-	std::vector<Expr *> FunctionCallExpr::GetPostfixExpr()
-	{
-		std::vector<Expr *> result;
-		auto nameResult = name->GetPostfixExpr();
-		result.insert(result.end(), nameResult.begin(), nameResult.end());
-		for (const auto &argument : arguments)
-		{
-			auto argumentResult = argument->GetPostfixExpr();
-			result.insert(result.end(), argumentResult.begin(), argumentResult.end());
-		}
-		return result;
-	}
-
 	FieldCallExpr::FieldCallExpr()
 		: callee(nullptr), callMember(nullptr)
 	{
@@ -535,16 +430,6 @@ namespace lws
 	AstType FieldCallExpr::Type()
 	{
 		return AST_FIELD_CALL;
-	}
-
-	std::vector<Expr *> FieldCallExpr::GetPostfixExpr()
-	{
-		std::vector<Expr *> result;
-		auto calleeResult = callee->GetPostfixExpr();
-		result.insert(result.end(), calleeResult.begin(), calleeResult.end());
-		auto callMemberResult = callMember->GetPostfixExpr();
-		result.insert(result.end(), callMemberResult.begin(), callMemberResult.end());
-		return result;
 	}
 
 	//----------------------Statements-----------------------------
@@ -570,11 +455,6 @@ namespace lws
 	AstType ExprStmt::Type()
 	{
 		return AST_EXPR;
-	}
-
-	std::vector<Expr *> ExprStmt::GetPostfixExpr()
-	{
-		return expr->GetPostfixExpr();
 	}
 
 	LetStmt::LetStmt()
@@ -606,17 +486,6 @@ namespace lws
 		return AST_LET;
 	}
 
-	std::vector<Expr *> LetStmt::GetPostfixExpr()
-	{
-		std::vector<Expr *> result;
-		for (const auto &[k, v] : variables)
-		{
-			auto varResult = v->GetPostfixExpr();
-			result.insert(result.end(), varResult.begin(), varResult.end());
-		}
-		return result;
-	}
-
 	ConstStmt::ConstStmt()
 	{
 	}
@@ -646,17 +515,6 @@ namespace lws
 		return AST_CONST;
 	}
 
-	std::vector<Expr *> ConstStmt::GetPostfixExpr()
-	{
-		std::vector<Expr *> result;
-		for (const auto &[k, v] : consts)
-		{
-			auto varResult = v->GetPostfixExpr();
-			result.insert(result.end(), varResult.begin(), varResult.end());
-		}
-		return result;
-	}
-
 	ReturnStmt::ReturnStmt()
 		: expr(nullptr)
 	{
@@ -681,11 +539,6 @@ namespace lws
 	AstType ReturnStmt::Type()
 	{
 		return AST_RETURN;
-	}
-
-	std::vector<Expr *> ReturnStmt::GetPostfixExpr()
-	{
-		return expr->GetPostfixExpr();
 	}
 
 	IfStmt::IfStmt()
@@ -721,18 +574,6 @@ namespace lws
 		return AST_IF;
 	}
 
-	std::vector<Expr *> IfStmt::GetPostfixExpr()
-	{
-		std::vector<Expr *> result;
-		auto conditionResult = condition->GetPostfixExpr();
-		result.insert(result.end(), conditionResult.begin(), conditionResult.end());
-		auto thenBranchResult = thenBranch->GetPostfixExpr();
-		result.insert(result.end(), thenBranchResult.begin(), thenBranchResult.end());
-		auto elseBranchResult = elseBranch->GetPostfixExpr();
-		result.insert(result.end(), elseBranchResult.begin(), elseBranchResult.end());
-		return result;
-	}
-
 	ScopeStmt::ScopeStmt()
 	{
 	}
@@ -755,17 +596,6 @@ namespace lws
 	AstType ScopeStmt::Type()
 	{
 		return AST_SCOPE;
-	}
-
-	std::vector<Expr *> ScopeStmt::GetPostfixExpr()
-	{
-		std::vector<Expr *> result;
-		for (const auto &stmt : stmts)
-		{
-			auto stmtResult = stmt->GetPostfixExpr();
-			result.insert(result.end(), stmtResult.begin(), stmtResult.end());
-		}
-		return result;
 	}
 
 	WhileStmt::WhileStmt()
@@ -798,16 +628,6 @@ namespace lws
 		return AST_WHILE;
 	}
 
-	std::vector<Expr *> WhileStmt::GetPostfixExpr()
-	{
-		std::vector<Expr *> result = condition->GetPostfixExpr();
-		auto bodyResult = body->GetPostfixExpr();
-		result.insert(result.end(), bodyResult.begin(), bodyResult.end());
-		auto incrementResult = increment->GetPostfixExpr();
-		result.insert(result.end(), incrementResult.begin(), incrementResult.end());
-		return result;
-	}
-
 	BreakStmt::BreakStmt()
 	{
 	}
@@ -824,10 +644,6 @@ namespace lws
 		return AST_BREAK;
 	}
 
-	std::vector<Expr *> BreakStmt::GetPostfixExpr()
-	{
-		return {};
-	}
 
 	ContinueStmt::ContinueStmt()
 	{
@@ -845,10 +661,6 @@ namespace lws
 		return AST_CONTINUE;
 	}
 
-	std::vector<Expr *> ContinueStmt::GetPostfixExpr()
-	{
-		return {};
-	}
 
 	EnumStmt::EnumStmt()
 	{
@@ -875,19 +687,6 @@ namespace lws
 	AstType EnumStmt::Type()
 	{
 		return AST_ENUM;
-	}
-
-	std::vector<Expr *> EnumStmt::GetPostfixExpr()
-	{
-		std::vector<Expr *> result;
-		for (const auto &[k, v] : enumItems)
-		{
-			auto kResult = k->GetPostfixExpr();
-			auto vResult = v->GetPostfixExpr();
-			result.insert(result.end(), kResult.begin(), kResult.end());
-			result.insert(result.end(), vResult.begin(), vResult.end());
-		}
-		return result;
 	}
 
 	FunctionStmt::FunctionStmt()
@@ -922,14 +721,6 @@ namespace lws
 	AstType FunctionStmt::Type()
 	{
 		return AST_FUNCTION;
-	}
-
-	std::vector<Expr *> FunctionStmt::GetPostfixExpr()
-	{
-		std::vector<Expr *> result;
-		auto bodyResult = body->GetPostfixExpr();
-		result.insert(result.end(), bodyResult.begin(), bodyResult.end());
-		return result;
 	}
 
 	FieldStmt::FieldStmt()
@@ -979,30 +770,6 @@ namespace lws
 		return AST_FIELD;
 	}
 
-	std::vector<Expr *> FieldStmt::GetPostfixExpr()
-	{
-		std::vector<Expr *> result;
-
-		for (const auto &letStmt : letStmts)
-		{
-			auto letStmtResult = letStmt->GetPostfixExpr();
-			result.insert(result.end(), letStmtResult.begin(), letStmtResult.end());
-		}
-
-		for (const auto &constStmt : constStmts)
-		{
-			auto constStmtResult = constStmt->GetPostfixExpr();
-			result.insert(result.end(), constStmtResult.begin(), constStmtResult.end());
-		}
-
-		for (const auto &fnStmt : fnStmts)
-		{
-			auto fnStmtResult = fnStmt->GetPostfixExpr();
-			result.insert(result.end(), fnStmtResult.begin(), fnStmtResult.end());
-		}
-		return result;
-	}
-
 	AstStmts::AstStmts()
 	{
 	}
@@ -1023,44 +790,5 @@ namespace lws
 	AstType AstStmts::Type()
 	{
 		return AST_ASTSTMTS;
-	}
-	std::vector<Expr *> AstStmts::GetPostfixExpr()
-	{
-		std::vector<Expr *> result;
-		for (const auto &stmt : stmts)
-		{
-			auto stmtResult = stmt->GetPostfixExpr();
-			result.insert(result.end(), stmtResult.begin(), stmtResult.end());
-		}
-		return result;
-	}
-	PostfixExpr::PostfixExpr()
-		: left(nullptr)
-	{
-	}
-	PostfixExpr::PostfixExpr(Expr *left, std::wstring_view op)
-		: left(left), op(op)
-	{
-	}
-	PostfixExpr::~PostfixExpr()
-	{
-		delete left;
-		left = nullptr;
-	}
-	std::wstring PostfixExpr::Stringify()
-	{
-		return left->Stringify() + op;
-	}
-	AstType PostfixExpr::Type()
-	{
-		return AST_POSTFIX;
-	}
-	std::vector<Expr *> PostfixExpr::GetPostfixExpr()
-	{
-		std::vector<Expr *> result;
-		auto leftResult = left->GetPostfixExpr();
-		result.insert(result.end(), leftResult.begin(), leftResult.end());
-		result.emplace_back(this);
-		return result;
 	}
 }

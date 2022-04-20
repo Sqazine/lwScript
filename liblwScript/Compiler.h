@@ -71,6 +71,8 @@ namespace lws
 
 		void CompileBreakAndContinueStmt(uint64_t addressOffset, Frame *frame);
 
+		std::vector<Expr *> StatsPostfixExprs(AstNode *astNode);
+
 		Frame *mRootFrame;
 	};
 }
