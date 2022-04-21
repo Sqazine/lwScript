@@ -124,6 +124,63 @@ namespace lws
 		return AST_IDENTIFIER;
 	}
 
+	TypeExpr::TypeExpr()
+		: isBasicType(true), type(TOKEN_ANY)
+	{
+	}
+	TypeExpr::TypeExpr(std::wstring_view literal)
+		: isBasicType(false), literal(literal)
+	{
+	}
+	TypeExpr::TypeExpr(TokenType type)
+		: isBasicType(true), type(type)
+	{
+	}
+	TypeExpr::~TypeExpr()
+	{
+	}
+
+	std::wstring TypeExpr::Stringify()
+	{
+		if (isBasicType)
+		{
+			switch (type)
+			{
+			case TOKEN_U8:
+				return L"u8";
+			case TOKEN_U16:
+				return L"u16";
+			case TOKEN_U32:
+				return L"u32";
+			case TOKEN_U64:
+				return L"u64";
+			case TOKEN_I8:
+				return L"i8";
+			case TOKEN_I16:
+				return L"i16";
+			case TOKEN_I32:
+				return L"i32";
+			case TOKEN_I64:
+				return L"i64";
+			case TOKEN_F32:
+				return L"f32";
+			case TOKEN_F64:
+				return L"f64";
+			case TOKEN_STR:
+				return L"str";
+			case TOKEN_ANY:
+				return L"any";
+			default:
+				return L"any";
+			}
+		}
+		return literal;
+	}
+	AstType TypeExpr::Type()
+	{
+		return AST_TYPE;
+	}
+
 	ArrayExpr::ArrayExpr()
 	{
 	}
@@ -225,7 +282,6 @@ namespace lws
 	{
 		return AST_PREFIX;
 	}
-
 
 	InfixExpr::InfixExpr()
 		: left(nullptr), right(nullptr)
@@ -460,13 +516,13 @@ namespace lws
 	LetStmt::LetStmt()
 	{
 	}
-	LetStmt::LetStmt(const std::unordered_map<IdentifierExpr *, Expr *> &variables)
+	LetStmt::LetStmt(const std::unordered_map<IdentifierExpr *, VarDesc> &variables)
 		: variables(variables)
 	{
 	}
 	LetStmt::~LetStmt()
 	{
-		std::unordered_map<IdentifierExpr *, Expr *>().swap(variables);
+		std::unordered_map<IdentifierExpr *, VarDesc>().swap(variables);
 	}
 
 	std::wstring LetStmt::Stringify()
@@ -475,7 +531,7 @@ namespace lws
 		if (!variables.empty())
 		{
 			for (auto [key, value] : variables)
-				result += key->Stringify() + L"=" + value->Stringify() + L",";
+				result += key->Stringify() + L":" + value.type->Stringify() + L"=" + value.value->Stringify() + L",";
 			result = result.substr(0, result.size() - 1);
 		}
 		return result + L";";
@@ -489,13 +545,13 @@ namespace lws
 	ConstStmt::ConstStmt()
 	{
 	}
-	ConstStmt::ConstStmt(const std::unordered_map<IdentifierExpr *, Expr *> &consts)
+	ConstStmt::ConstStmt(const std::unordered_map<IdentifierExpr *, VarDesc> &consts)
 		: consts(consts)
 	{
 	}
 	ConstStmt::~ConstStmt()
 	{
-		std::unordered_map<IdentifierExpr *, Expr *>().swap(consts);
+		std::unordered_map<IdentifierExpr *, VarDesc>().swap(consts);
 	}
 
 	std::wstring ConstStmt::Stringify()
@@ -504,7 +560,7 @@ namespace lws
 		if (!consts.empty())
 		{
 			for (auto [key, value] : consts)
-				result += key->Stringify() + L"=" + value->Stringify() + L",";
+				result += key->Stringify() + L":" + value.type->Stringify() + L"=" + value.value->Stringify() + L",";
 			result = result.substr(0, result.size() - 1);
 		}
 		return result + L";";
@@ -644,7 +700,6 @@ namespace lws
 		return AST_BREAK;
 	}
 
-
 	ContinueStmt::ContinueStmt()
 	{
 	}
@@ -660,7 +715,6 @@ namespace lws
 	{
 		return AST_CONTINUE;
 	}
-
 
 	EnumStmt::EnumStmt()
 	{

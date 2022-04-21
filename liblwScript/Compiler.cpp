@@ -113,10 +113,10 @@ namespace lws
 	{
 		auto postfixExprs = StatsPostfixExprs(stmt);
 
-		for (auto [key, value] : stmt->variables)
+		for (const auto& [k, v] : stmt->variables)
 		{
-			CompileExpr(value, frame);
-			CompileExpr(key, frame, VAR_INIT);
+			CompileExpr(v.value, frame);
+			CompileExpr(k, frame, VAR_INIT);
 		}
 
 		if (!postfixExprs.empty())
@@ -130,10 +130,10 @@ namespace lws
 	{
 		auto postfixExprs = StatsPostfixExprs(stmt);
 
-		for (auto [key, value] : stmt->consts)
+		for (const auto& [k, v] : stmt->consts)
 		{
-			CompileExpr(value, frame);
-			CompileExpr(key, frame, CONST_INIT);
+			CompileExpr(v.value, frame);
+			CompileExpr(k, frame, CONST_INIT);
 		}
 
 		if (!postfixExprs.empty())
@@ -233,10 +233,10 @@ namespace lws
 
 		enumFrame->AddOpCode(OP_ENTER_SCOPE);
 
-		for (auto [key, value] : enumStmt->enumItems)
+		for (const auto& [k, v] : enumStmt->enumItems)
 		{
-			CompileExpr(value, enumFrame);
-			CompileExpr(key, enumFrame, CONST_INIT);
+			CompileExpr(v, enumFrame);
+			CompileExpr(k, enumFrame, CONST_INIT);
 		}
 
 		enumFrame->AddOpCode(OP_NEW_FIELD);
@@ -302,8 +302,8 @@ namespace lws
 		for (auto &letStmt : stmt->letStmts)
 		{
 			for (auto &variable : letStmt->variables)
-				if (variable.second->Type() == AST_LAMBDA)
-					((LambdaExpr *)variable.second)->parameters.emplace_back(new IdentifierExpr(L"this")); //add 'this' parameter for field lambda function
+				if (variable.second.value->Type() == AST_LAMBDA)
+					((LambdaExpr *)variable.second.value)->parameters.emplace_back(new IdentifierExpr(L"this")); //add 'this' parameter for field lambda function
 
 			CompileLetStmt(letStmt, fieldFrame);
 		}
@@ -311,8 +311,8 @@ namespace lws
 		for (auto &constStmt : stmt->constStmts)
 		{
 			for (auto &variable : constStmt->consts)
-				if (variable.second->Type() == AST_LAMBDA)
-					((LambdaExpr *)variable.second)->parameters.emplace_back(new IdentifierExpr(L"this")); //add 'this' parameter for field lambda function
+				if (variable.second.value->Type() == AST_LAMBDA)
+					((LambdaExpr *)variable.second.value)->parameters.emplace_back(new IdentifierExpr(L"this")); //add 'this' parameter for field lambda function
 
 			CompileConstStmt(constStmt, fieldFrame);
 		}
@@ -470,10 +470,10 @@ namespace lws
 
 	void Compiler::CompileTableExpr(TableExpr *expr, Frame *frame)
 	{
-		for (auto [key, value] : expr->elements)
+		for (const auto& [k, v] : expr->elements)
 		{
-			CompileExpr(value, frame);
-			CompileExpr(key, frame);
+			CompileExpr(v, frame);
+			CompileExpr(k, frame);
 		}
 		frame->AddOpCode(OP_NEW_TABLE);
 		uint64_t offset = frame->AddIntNum((int64_t)expr->elements.size());
@@ -749,7 +749,7 @@ namespace lws
 			std::vector<Expr *> result;
 			for (const auto &[k, v] : ((LetStmt *)astNode)->variables)
 			{
-				auto varResult = StatsPostfixExprs(v);
+				auto varResult = StatsPostfixExprs(v.value);
 				result.insert(result.end(), varResult.begin(), varResult.end());
 			}
 			return result;
@@ -759,7 +759,7 @@ namespace lws
 			std::vector<Expr *> result;
 			for (const auto &[k, v] : ((ConstStmt *)astNode)->consts)
 			{
-				auto varResult = StatsPostfixExprs(v);
+				auto varResult = StatsPostfixExprs(v.value);
 				result.insert(result.end(), varResult.begin(), varResult.end());
 			}
 			return result;

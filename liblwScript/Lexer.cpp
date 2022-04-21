@@ -26,8 +26,19 @@ namespace lws
 		{L"switch", TOKEN_SWITCH},
 		{L"case", TOKEN_CASE},
 		{L"default", TOKEN_DEFAULT},
-		{L"match",TOKEN_MATCH},
-		{L"enum",TOKEN_ENUM},
+		{L"match", TOKEN_MATCH},
+		{L"enum", TOKEN_ENUM},
+		{L"u8", TOKEN_U8},
+		{L"u16", TOKEN_U16},
+		{L"u32", TOKEN_U32},
+		{L"u64", TOKEN_U64},
+		{L"i8", TOKEN_I8},
+		{L"i16", TOKEN_I16},
+		{L"i32", TOKEN_I32},
+		{L"i64", TOKEN_I64},
+		{L"f32", TOKEN_F32},
+		{L"f64", TOKEN_F64},
+		{L"str", TOKEN_STR},
 	};
 
 	Lexer::Lexer()
@@ -118,7 +129,7 @@ namespace lws
 		{
 			if (IsMatchCurCharAndStepOnce(L'='))
 				AddToken(TOKEN_MINUS_EQUAL);
-			else if(IsMatchCurCharAndStepOnce(L'-'))
+			else if (IsMatchCurCharAndStepOnce(L'-'))
 				AddToken(TOKEN_MINUS_MINUS);
 			else
 				AddToken(TOKEN_MINUS);

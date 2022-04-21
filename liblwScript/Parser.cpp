@@ -43,8 +43,7 @@ namespace lws
 		{TOKEN_DOT, Precedence::INFIX},
 		{TOKEN_PLUS_PLUS, Precedence::POSTFIX},
 		{TOKEN_MINUS_MINUS, Precedence::POSTFIX},
-		{TOKEN_BANG,Precedence::POSTFIX}
-	};
+		{TOKEN_BANG, Precedence::POSTFIX}};
 
 	struct AssociativityBinding
 	{
@@ -132,8 +131,8 @@ namespace lws
 		{
 			{TOKEN_PLUS_PLUS, &Parser::ParsePostfixExpr},
 			{TOKEN_MINUS_MINUS, &Parser::ParsePostfixExpr},
-			{TOKEN_BANG,&Parser::ParsePostfixExpr},
-		};
+			{TOKEN_BANG, &Parser::ParsePostfixExpr},
+	};
 
 	Parser::Parser()
 		: mStmts(nullptr)
@@ -232,21 +231,40 @@ namespace lws
 
 		Consume(TOKEN_LET, L"Expect 'let' key word");
 
-		std::unordered_map<IdentifierExpr *, Expr *> variables;
+		std::unordered_map<IdentifierExpr *, VarDesc> variables;
 
+		//variable name
 		auto name = (IdentifierExpr *)ParseIdentifierExpr();
+
+		//variable type
+		TypeExpr *type = nullptr;
+		if (IsMatchCurTokenAndStepOnce(TOKEN_COLON))
+			type = (TypeExpr *)ParseTypeExpr();
+		else //default is type 'any'
+			type = new TypeExpr(TOKEN_ANY);
+
+		//variable value
 		Expr *value = new NullExpr();
 		if (IsMatchCurTokenAndStepOnce(TOKEN_EQUAL))
 			value = ParseExpr();
-		variables[name] = value;
+		variables[name] = {.type = type, .value = value};
 
 		while (IsMatchCurTokenAndStepOnce(TOKEN_COMMA))
 		{
+			//variable name
 			auto name = (IdentifierExpr *)ParseIdentifierExpr();
+
+			//variable type
+			TypeExpr *type = nullptr;
+			if (IsMatchCurTokenAndStepOnce(TOKEN_COLON))
+				type = (TypeExpr *)ParseTypeExpr();
+			else //default is type 'any'
+				type = new TypeExpr(TOKEN_ANY);
+
 			Expr *value = new NullExpr();
 			if (IsMatchCurTokenAndStepOnce(TOKEN_EQUAL))
 				value = ParseExpr();
-			variables[name] = value;
+			variables[name] = {.type = type, .value = value};
 		}
 
 		Consume(TOKEN_SEMICOLON, L"Expect ';' after let stmt.");
@@ -264,21 +282,37 @@ namespace lws
 
 		Consume(TOKEN_CONST, L"Expect 'const' key word");
 
-		std::unordered_map<IdentifierExpr *, Expr *> consts;
+		std::unordered_map<IdentifierExpr *, VarDesc> consts;
 
 		auto name = (IdentifierExpr *)ParseIdentifierExpr();
+
+		//variable type
+		TypeExpr *type = nullptr;
+		if (IsMatchCurTokenAndStepOnce(TOKEN_COLON))
+			type = (TypeExpr *)ParseTypeExpr();
+		else //default is type 'any'
+			type = new TypeExpr(TOKEN_ANY);
+
 		Expr *value = new NullExpr();
 		if (IsMatchCurTokenAndStepOnce(TOKEN_EQUAL))
 			value = ParseExpr();
-		consts[name] = value;
+		consts[name] = {.type = type, .value = value};
 
 		while (IsMatchCurTokenAndStepOnce(TOKEN_COMMA))
 		{
 			auto name = (IdentifierExpr *)ParseIdentifierExpr();
+
+			//variable type
+			TypeExpr *type = nullptr;
+			if (IsMatchCurTokenAndStepOnce(TOKEN_COLON))
+				type = (TypeExpr *)ParseTypeExpr();
+			else //default is type 'any'
+				type = new TypeExpr(TOKEN_ANY);
+
 			Expr *value = new NullExpr();
 			if (IsMatchCurTokenAndStepOnce(TOKEN_EQUAL))
 				value = ParseExpr();
-			consts[name] = value;
+			consts[name] = {.type = type, .value = value};
 		}
 
 		Consume(TOKEN_SEMICOLON, L"Expect ';' after const stmt.");
@@ -819,6 +853,38 @@ namespace lws
 		identifierExpr->column = token.column;
 		identifierExpr->literal = token.literal;
 		return identifierExpr;
+	}
+
+	Expr *Parser::ParseTypeExpr()
+	{
+		auto token = GetCurTokenAndStepOnce();
+		auto typeExpr = new TypeExpr();
+		typeExpr->line = token.line;
+		typeExpr->column = token.column;
+		switch (token.type)
+		{
+		case TOKEN_U8:
+		case TOKEN_U16:
+		case TOKEN_U32:
+		case TOKEN_U64:
+		case TOKEN_I8:
+		case TOKEN_I16:
+		case TOKEN_I32:
+		case TOKEN_I64:
+		case TOKEN_F32:
+		case TOKEN_F64:
+		case TOKEN_STR:
+		case TOKEN_ANY:
+			typeExpr->isBasicType = true;
+			typeExpr->type = token.type;
+			break;
+		default:
+			typeExpr->isBasicType = false;
+			typeExpr->literal = token.literal;
+			break;
+		}
+
+		return typeExpr;
 	}
 
 	Expr *Parser::ParseNumExpr()

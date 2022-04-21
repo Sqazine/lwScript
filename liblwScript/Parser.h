@@ -71,6 +71,7 @@ namespace lws
 
 		Expr *ParseExpr(Precedence precedence = Precedence::LOWEST);
 		Expr *ParseIdentifierExpr();
+		Expr *ParseTypeExpr();
 		Expr *ParseNumExpr();
 		Expr *ParseStrExpr();
 		Expr *ParseNullExpr();
