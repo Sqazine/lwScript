@@ -16,8 +16,7 @@ namespace lws
 #define TO_TABLE_OBJ(obj) ((TableObject *)obj)
 #define TO_LAMBDA_OBJ(obj) ((LambdaObject *)obj)
 #define TO_FIELD_OBJ(obj) ((FieldObject *)obj)
-#define TO_REF_VAR_OBJ(obj) ((RefVarObject *)obj)
-#define TO_REF_OBJ_OBJ(obj) ((RefObjObject *)obj)
+#define TO_REF_OBJ(obj) ((RefObject *)obj)
 
 #define IS_INT_OBJ(obj) (obj->Type() == OBJECT_INT)
 #define IS_REAL_OBJ(obj) (obj->Type() == OBJECT_REAL)
@@ -28,8 +27,7 @@ namespace lws
 #define IS_TABLE_OBJ(obj) (obj->Type() == OBJECT_TABLE)
 #define IS_LAMBDA_OBJ(obj) (obj->Type() == OBJECT_LAMBDA)
 #define IS_FIELD_OBJ(obj) (obj->Type() == OBJECT_FIELD)
-#define IS_REF_VAR_OBJ(obj) (obj->Type() == OBJECT_REF_VAR)
-#define IS_REF_OBJ_OBJ(obj) (obj->Type() == OBJECT_REF_OBJ)
+#define IS_REF_OBJ(obj) (obj->Type() == OBJECT_REF)
 
 	enum ObjectType
 	{
@@ -42,8 +40,7 @@ namespace lws
 		OBJECT_TABLE,
 		OBJECT_LAMBDA,
 		OBJECT_FIELD,
-		OBJECT_REF_VAR,
-		OBJECT_REF_OBJ,
+		OBJECT_REF,
 	};
 
 	struct Object
@@ -179,10 +176,11 @@ namespace lws
 		int64_t frameIndex;
 	};
 
-	struct RefVarObject : public Object
+	struct RefObject : public Object
 	{
-		RefVarObject(std::wstring_view name, Object *index = nullptr);
-		~RefVarObject();
+		RefObject(std::wstring_view name, Object *index);
+		RefObject(std::wstring_view address);
+		~RefObject();
 
 		std::wstring Stringify() override;
 		ObjectType Type() override;
@@ -190,22 +188,16 @@ namespace lws
 		void UnMark() override;
 		bool IsEqualTo(Object *other) override;
 
-		std::wstring name;
-		Object *index;
-	};
-
-	struct RefObjObject : public Object
-	{
-		RefObjObject(std::wstring_view address);
-		~RefObjObject();
-
-		std::wstring Stringify() override;
-		ObjectType Type() override;
-		void Mark() override;
-		void UnMark() override;
-		bool IsEqualTo(Object* other) override;
-
-		std::wstring address;
+		bool isAddressReference;
+		union
+		{
+			struct
+			{
+				std::wstring name;
+				Object *index;
+			};
+			std::wstring address;
+		};
 	};
 
 	struct FieldObject : public Object
@@ -224,7 +216,7 @@ namespace lws
 
 		void AssignMemberByName(std::wstring_view name, Object *value);
 		Object *GetMemberByName(std::wstring_view name);
-		Object* GetMemberByAddress(std::wstring_view address);
+		Object *GetMemberByAddress(std::wstring_view address);
 
 		std::wstring name;
 		std::unordered_map<std::wstring, ObjectDesc> members;

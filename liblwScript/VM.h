@@ -42,8 +42,8 @@ namespace lws
 		TableObject *CreateTableObject(const std::unordered_map<Object *, Object *> &elements = {});
 		FieldObject *CreateFieldObject(std::wstring_view name, const std::unordered_map<std::wstring, ObjectDesc> &members, const std::vector<std::pair<std::wstring, FieldObject *>> &containedFields = {});
 		LambdaObject *CreateLambdaObject(int64_t frameIdx);
-		RefVarObject *CreateRefVarObject(std::wstring_view name, Object *index = nullptr);
-		RefObjObject *CreateRefObjObject(std::wstring_view address);
+		RefObject *CreateRefObject(std::wstring_view name, Object *index);
+		RefObject *CreateRefObject(std::wstring_view address);
 
 		Object *CopyObject(Object *srcObj);
 

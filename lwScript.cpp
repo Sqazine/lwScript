@@ -3,7 +3,7 @@
 #include <codecvt>
 #include "liblwScript/lwScript.h"
 
-#ifdef _WINDOWS
+#if defined(_WIN32) || defined(_WIN64)
 #pragma warning(disable : 4996)
 #endif
 
@@ -18,26 +18,27 @@ void Repl()
 	std::wcout << L"> ";
 	while (getline(std::wcin, line))
 	{
- 		if (line == L"clear")
- 			compiler.ResetStatus();
- 		else {
- 			auto tokens = lexer.ScanTokens(line);
- #ifdef _DEBUG
- 			for (const auto& token : tokens)
- 				std::wcout << token << std::endl;
- #endif
- 			auto stmt = parser.Parse(tokens);
- #ifdef _DEBUG
- 			std::wcout << stmt->Stringify() << std::endl;
- #endif
- 			lws::Frame* frame = compiler.Compile(stmt);
- #ifdef _DEBUG
- 			std::wcout << frame->Stringify() << std::endl;
- #endif
- 			vm.ResetStatus();
- 			vm.Execute(frame);
- 		}
- 		std::wcout << L"> ";
+		if (line == L"clear")
+			compiler.ResetStatus();
+		else
+		{
+			auto tokens = lexer.ScanTokens(line);
+#ifdef _DEBUG
+			for (const auto &token : tokens)
+				std::wcout << token << std::endl;
+#endif
+			auto stmt = parser.Parse(tokens);
+#ifdef _DEBUG
+			std::wcout << stmt->Stringify() << std::endl;
+#endif
+			lws::Frame *frame = compiler.Compile(stmt);
+#ifdef _DEBUG
+			std::wcout << frame->Stringify() << std::endl;
+#endif
+			vm.ResetStatus();
+			vm.Execute(frame);
+		}
+		std::wcout << L"> ";
 	}
 }
 
@@ -51,23 +52,23 @@ void RunFile(std::string_view path)
 
 	auto tokens = lexer.ScanTokens(content);
 #ifdef _DEBUG
-	for (const auto& token : tokens)
+	for (const auto &token : tokens)
 		std::wcout << token << std::endl;
 #endif
 	auto stmt = parser.Parse(tokens);
 #ifdef _DEBUG
 	std::wcout << stmt->Stringify() << std::endl;
 #endif
-	lws::Frame* frame = compiler.Compile(stmt);
+	lws::Frame *frame = compiler.Compile(stmt);
 #ifdef _DEBUG
 	std::wcout << frame->Stringify() << std::endl;
 #endif
 	vm.Execute(frame);
 }
 
-int main(int argc, const char* argv[])
- {
-#ifdef _WINDOWS
+int main(int argc, const char *argv[])
+{
+#if defined(_WIN32) || defined(_WIN64)
 	system("chcp 65001");
 #endif
 

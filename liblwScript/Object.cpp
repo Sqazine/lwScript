@@ -350,42 +350,57 @@ namespace lws
         return frameIndex == TO_LAMBDA_OBJ(other)->frameIndex;
     }
 
-    RefVarObject::RefVarObject(std::wstring_view name, Object *index)
-        : name(name), index(index)
-    {
-    }
-    RefVarObject::~RefVarObject()
+    RefObject::RefObject(std::wstring_view name, Object *index)
+        : name(name), index(index), isAddressReference(false)
     {
     }
 
-    std::wstring RefVarObject::Stringify()
+    RefObject::RefObject(std::wstring_view address)
+        : isAddressReference(true), address(address)
     {
-        std::wstring result = name;
-        if (index)
-            result += L"[" + index->Stringify() + L"]";
-        return result;
     }
-    ObjectType RefVarObject::Type()
+    RefObject::~RefObject()
     {
-        return OBJECT_REF_VAR;
     }
-    void RefVarObject::Mark()
+
+    std::wstring RefObject::Stringify()
+    {
+        if (!isAddressReference)
+        {
+            std::wstring result = name;
+            if (index)
+                result += L"[" + index->Stringify() + L"]";
+            return result;
+        }
+        else
+            return L"&" + address;
+    }
+    ObjectType RefObject::Type()
+    {
+        return OBJECT_REF;
+    }
+    void RefObject::Mark()
     {
         if (marked)
             return;
         marked = true;
     }
-    void RefVarObject::UnMark()
+    void RefObject::UnMark()
     {
         if (!marked)
             return;
         marked = false;
     }
-    bool RefVarObject::IsEqualTo(Object *other)
+    bool RefObject::IsEqualTo(Object *other)
     {
-        if (!IS_REF_VAR_OBJ(other))
+        if (!IS_REF_OBJ(other))
             return false;
-        return name == TO_REF_VAR_OBJ(other)->name;
+        if (isAddressReference != TO_REF_OBJ(other)->isAddressReference)
+            return false;
+        else if (!isAddressReference)
+            return name == TO_REF_OBJ(other)->name;
+        else
+            return address == TO_REF_OBJ(other)->address;
     }
 
     FieldObject::FieldObject()
@@ -535,34 +550,5 @@ namespace lws
 
         Assert(L"No Object's address:" + std::wstring(address) + L"in field:" + std::wstring(name.data()));
         return nullptr;
-    }
-    RefObjObject::RefObjObject(std::wstring_view address)
-        : address(address)
-    {
-    }
-    RefObjObject::~RefObjObject()
-    {
-    }
-    std::wstring RefObjObject::Stringify()
-    {
-        return L"&" + address;
-    }
-    ObjectType RefObjObject::Type()
-    {
-        return OBJECT_REF_OBJ;
-    }
-    void RefObjObject::Mark()
-    {
-        marked = true;
-    }
-    void RefObjObject::UnMark()
-    {
-        marked = false;
-    }
-    bool RefObjObject::IsEqualTo(Object *other)
-    {
-        if (!IS_REF_OBJ_OBJ(other))
-            return false;
-        return address == TO_REF_OBJ_OBJ(other)->address;
     }
 }

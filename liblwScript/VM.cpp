@@ -165,12 +165,12 @@ namespace lws
 		return object;
 	}
 
-	RefVarObject *VM::CreateRefVarObject(std::wstring_view name, Object *index)
+	RefObject *VM::CreateRefObject(std::wstring_view name, Object *index)
 	{
 		if (curObjCount == maxObjCount)
 			Gc();
 
-		RefVarObject *refObject = new RefVarObject(name, index);
+		RefObject *refObject = new RefObject(name, index);
 		refObject->marked = false;
 
 		refObject->next = firstObject;
@@ -181,12 +181,12 @@ namespace lws
 		return refObject;
 	}
 
-	RefObjObject *VM::CreateRefObjObject(std::wstring_view address)
+	RefObject *VM::CreateRefObject(std::wstring_view address)
 	{
 		if (curObjCount == maxObjCount)
 			Gc();
 
-		RefObjObject *refObject = new RefObjObject(address);
+		RefObject *refObject = new RefObject(address);
 		refObject->marked = false;
 
 		refObject->next = firstObject;
@@ -229,17 +229,20 @@ namespace lws
 		}
 		case OBJECT_LAMBDA:
 			return CreateLambdaObject(TO_LAMBDA_OBJ(srcObj)->frameIndex);
-		case OBJECT_REF_VAR:
+		case OBJECT_REF:
 		{
-			auto refVarObj = TO_REF_VAR_OBJ(srcObj);
-			Object *indexCopy = nullptr;
-			if (refVarObj->index)
-				indexCopy = CopyObject(refVarObj->index);
-			auto name = refVarObj->name;
-			return CreateRefVarObject(name, indexCopy);
+			if (!TO_REF_OBJ(srcObj)->isAddressReference)
+			{
+				auto refVarObj = TO_REF_OBJ(srcObj);
+				Object *indexCopy = nullptr;
+				if (refVarObj->index)
+					indexCopy = CopyObject(refVarObj->index);
+				auto name = refVarObj->name;
+				return CreateRefObject(name, indexCopy);
+			}
+			else
+				return CreateRefObject(TO_REF_OBJ(srcObj)->address);
 		}
-		case OBJECT_REF_OBJ:
-			return CreateRefObjObject(TO_REF_OBJ_OBJ(srcObj)->address);
 		case OBJECT_FIELD:
 		{
 			auto fieldObj = TO_FIELD_OBJ(srcObj);
@@ -263,16 +266,16 @@ namespace lws
 		return nullptr;
 	}
 
-	bool VM::IsPassedByValueObject(Object* obj)
+	bool VM::IsPassedByValueObject(Object *obj)
 	{
-		switch(obj->Type())
+		switch (obj->Type())
 		{
-			case OBJECT_INT:
-			case OBJECT_REAL:
-			case OBJECT_BOOL:
-				return true;
-			default:
-				return false;
+		case OBJECT_INT:
+		case OBJECT_REAL:
+		case OBJECT_BOOL:
+			return true;
+		default:
+			return false;
 		}
 		return false;
 	}
@@ -493,9 +496,9 @@ namespace lws
 			case OP_NEW_VAR:
 			{
 				Object *value = PopObject();
-				//object int,real,bool passed by value 
-				if(IsPassedByValueObject(value))
-					value= CopyObject(value);
+				//object int,real,bool passed by value
+				if (IsPassedByValueObject(value))
+					value = CopyObject(value);
 				//object str,null,array,table,lambda,field,RefVar,RefObj passed by reference
 				mContext->DefineVariableByName(frame->mStrings[frame->mCodes[++ip]], ObjectDescType::VARIABLE, value);
 				break;
@@ -503,9 +506,9 @@ namespace lws
 			case OP_NEW_CONST:
 			{
 				Object *value = PopObject();
-				//object int,real,bool passed by value 
-				if(IsPassedByValueObject(value))
-					value= CopyObject(value);
+				//object int,real,bool passed by value
+				if (IsPassedByValueObject(value))
+					value = CopyObject(value);
 				//object str,null,array,table,lambda,field,RefVar,RefObj passed by reference
 				mContext->DefineVariableByName(frame->mStrings[frame->mCodes[++ip]], ObjectDescType::CONST, value);
 				break;
@@ -517,9 +520,9 @@ namespace lws
 				Object *value = PopObject();
 				Object *variable = mContext->GetVariableByName(name);
 
-				if (IS_REF_VAR_OBJ(variable))
+				if (IS_REF_OBJ(variable)&&!TO_REF_OBJ(variable)->isAddressReference)
 				{
-					auto refObject = TO_REF_VAR_OBJ(variable);
+					auto refObject = TO_REF_OBJ(variable);
 					if (refObject->index == nullptr)
 						mContext->AssignVariableByName(refObject->name, value);
 					else
@@ -557,10 +560,10 @@ namespace lws
 							Assert(L"Invalid index op.The indexed object isn't a array object or a table object:" + index->Stringify());
 					}
 				}
-				else if (IS_REF_OBJ_OBJ(variable))
+				else if (IS_REF_OBJ(variable))
 				{
-					mContext->AssignVariableByAddress(TO_REF_OBJ_OBJ(variable)->address, value);
-					TO_REF_OBJ_OBJ(variable)->address = PointerAddressToString(value); //update ref address
+					mContext->AssignVariableByAddress(TO_REF_OBJ(variable)->address, value);
+					TO_REF_OBJ(variable)->address = PointerAddressToString(value); //update ref address
 				}
 				else
 					mContext->AssignVariableByName(name, value);
@@ -580,9 +583,9 @@ namespace lws
 					else
 						Assert(L"No field or variable declaration:" + name);
 				}
-				else if (IS_REF_VAR_OBJ(varObject))
+				else if (IS_REF_OBJ(varObject)&&!TO_REF_OBJ(varObject)->isAddressReference)
 				{
-					auto refObject = TO_REF_VAR_OBJ(varObject);
+					auto refObject = TO_REF_OBJ(varObject);
 					varObject = mContext->GetVariableByName(refObject->name);
 
 					if (refObject->index == nullptr)
@@ -622,9 +625,9 @@ namespace lws
 							Assert(L"Invalid index op.The indexed object isn't a array object or a table object:" + index->Stringify());
 					}
 				}
-				else if (IS_REF_OBJ_OBJ(varObject))
+				else if (IS_REF_OBJ(varObject))
 				{
-					varObject = mContext->GetVariableByAddress(TO_REF_OBJ_OBJ(varObject)->address);
+					varObject = mContext->GetVariableByAddress(TO_REF_OBJ(varObject)->address);
 					PushObject(varObject);
 				}
 				else
@@ -918,17 +921,17 @@ namespace lws
 				break;
 			case OP_REF_VARIABLE:
 			{
-				PushObject(CreateRefVarObject(frame->mStrings[frame->mCodes[++ip]]));
+				PushObject(CreateRefObject(frame->mStrings[frame->mCodes[++ip]],nullptr));
 				break;
 			}
 			case OP_REF_INDEX:
 			{
 				auto index = PopObject();
-				PushObject(CreateRefVarObject(frame->mStrings[frame->mCodes[++ip]], index));
+				PushObject(CreateRefObject(frame->mStrings[frame->mCodes[++ip]], index));
 				break;
 			}
 			case OP_REF_OBJECT:
-				PushObject(CreateRefObjObject(PointerAddressToString(PopObject())));
+				PushObject(CreateRefObject(PointerAddressToString(PopObject())));
 				break;
 			case OP_SELF_INCREMENT:
 			{
