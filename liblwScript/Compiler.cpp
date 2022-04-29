@@ -80,14 +80,21 @@ namespace lws
 	}
 	void Compiler::CompileReturnStmt(ReturnStmt *stmt, Frame *frame)
 	{
-		auto postfixExprs =StatsPostfixExprs(stmt->expr);
+		auto postfixExprs = StatsPostfixExprs(stmt->expr);
 		if (stmt->expr)
 		{
 			CompileExpr(stmt->expr, frame);
-			frame->AddOpCode(OP_RETURN_OBJECT);
+			frame->AddOpCode(OP_NEW_INT);
+			size_t offset = frame->AddIntNum(1);
+			frame->AddOpCode(offset);
 		}
 		else
-			frame->AddOpCode(OP_RETURN);
+		{
+			frame->AddOpCode(OP_NEW_INT);
+			size_t offset = frame->AddIntNum(0);
+			frame->AddOpCode(offset);
+		}
+		frame->AddOpCode(OP_RETURN);
 
 		if (!postfixExprs.empty())
 		{
@@ -113,7 +120,7 @@ namespace lws
 	{
 		auto postfixExprs = StatsPostfixExprs(stmt);
 
-		for (const auto& [k, v] : stmt->variables)
+		for (const auto &[k, v] : stmt->variables)
 		{
 			CompileExpr(v.value, frame);
 			CompileExpr(k, frame, VAR_INIT);
@@ -130,7 +137,7 @@ namespace lws
 	{
 		auto postfixExprs = StatsPostfixExprs(stmt);
 
-		for (const auto& [k, v] : stmt->consts)
+		for (const auto &[k, v] : stmt->consts)
 		{
 			CompileExpr(v.value, frame);
 			CompileExpr(k, frame, CONST_INIT);
@@ -155,7 +162,7 @@ namespace lws
 
 	void Compiler::CompileIfStmt(IfStmt *stmt, Frame *frame, uint64_t breakStmtAddressOffset, uint64_t continueStmtAddressOffset)
 	{
-		auto conditionPostfixExprs =StatsPostfixExprs(stmt->condition);
+		auto conditionPostfixExprs = StatsPostfixExprs(stmt->condition);
 
 		CompileExpr(stmt->condition, frame);
 
@@ -233,7 +240,7 @@ namespace lws
 
 		enumFrame->AddOpCode(OP_ENTER_SCOPE);
 
-		for (const auto& [k, v] : enumStmt->enumItems)
+		for (const auto &[k, v] : enumStmt->enumItems)
 		{
 			CompileExpr(v, enumFrame);
 			CompileExpr(k, enumFrame, CONST_INIT);
@@ -328,7 +335,11 @@ namespace lws
 		uint64_t offset = fieldFrame->AddString(stmt->name);
 		fieldFrame->AddOpCode(offset);
 
-		fieldFrame->AddOpCode(OP_RETURN_OBJECT);
+		frame->AddOpCode(OP_NEW_INT);
+		offset = frame->AddIntNum(1);
+		frame->AddOpCode(offset);
+
+		fieldFrame->AddOpCode(OP_RETURN);
 
 		frame->AddFieldFrame(stmt->name, fieldFrame);
 	}
@@ -470,7 +481,7 @@ namespace lws
 
 	void Compiler::CompileTableExpr(TableExpr *expr, Frame *frame)
 	{
-		for (const auto& [k, v] : expr->elements)
+		for (const auto &[k, v] : expr->elements)
 		{
 			CompileExpr(v, frame);
 			CompileExpr(k, frame);
@@ -727,6 +738,8 @@ namespace lws
 
 	std::vector<Expr *> Compiler::StatsPostfixExprs(AstNode *astNode)
 	{
+		if(!astNode)//check astnode is nullptr
+			return {};
 
 		switch (astNode->Type())
 		{
@@ -924,7 +937,7 @@ namespace lws
 			std::vector<Expr *> result;
 			for (const auto &param : ((LambdaExpr *)astNode)->parameters)
 			{
-				auto paramResult =StatsPostfixExprs(param);
+				auto paramResult = StatsPostfixExprs(param);
 				result.insert(result.end(), paramResult.begin(), paramResult.end());
 			}
 			auto bodyResult = StatsPostfixExprs(((LambdaExpr *)astNode)->body);

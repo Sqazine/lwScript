@@ -342,15 +342,22 @@ namespace lws
 			uint64_t instruction = frame->mCodes[ip];
 			switch (instruction)
 			{
-			case OP_RETURN_OBJECT:
+			case OP_RETURN:
+			{
+				auto returnObjCount = (IntNumObject *)PopObject();
 				if (mContext->mUpContext)
 				{
 					Context *tmp = mContext->GetUpContext();
 					delete mContext;
 					mContext = tmp;
 				}
-				return PopObject();
+
+				if (returnObjCount->value == 1)
+					return PopObject();
+				else if (returnObjCount->value == 0)
+					return CreateNullObject();
 				break;
+			}
 			case OP_SAVE_TO_GLOBAL:
 			{
 				auto name = frame->mStrings[frame->mCodes[++ip]];
@@ -373,15 +380,6 @@ namespace lws
 
 				break;
 			}
-			case OP_RETURN:
-				if (mContext->mUpContext)
-				{
-					Context *tmp = mContext->GetUpContext();
-					delete mContext;
-					mContext = tmp;
-				}
-				return CreateNullObject();
-				break;
 			case OP_NEW_REAL:
 				PushObject(CreateRealNumObject(frame->mRealNums[frame->mCodes[++ip]]));
 				break;
@@ -956,7 +954,7 @@ namespace lws
 				}
 				else if (IS_REAL_OBJ(stackTop))
 				{
-					int64_t v = Factorial(TO_REAL_OBJ(stackTop)->value);
+					int64_t v = Factorial((int64_t)TO_REAL_OBJ(stackTop)->value);
 					PushObject(CreateRealNumObject((double)v));
 				}
 				else
