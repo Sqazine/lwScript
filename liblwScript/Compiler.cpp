@@ -335,9 +335,9 @@ namespace lws
 		uint64_t offset = fieldFrame->AddString(stmt->name);
 		fieldFrame->AddOpCode(offset);
 
-		frame->AddOpCode(OP_NEW_INT);
-		offset = frame->AddIntNum(1);
-		frame->AddOpCode(offset);
+		fieldFrame->AddOpCode(OP_NEW_INT);
+		offset = fieldFrame->AddIntNum(1);
+		fieldFrame->AddOpCode(offset);
 
 		fieldFrame->AddOpCode(OP_RETURN);
 
