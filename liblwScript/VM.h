@@ -47,6 +47,8 @@ namespace lws
 
 		Object *CopyObject(Object *srcObj);
 
+		bool IsPassedByValueObject(Object* obj);
+
 		void Gc();
 
 		std::function<Object *(std::vector<Object *>)> GetNativeFunction(std::wstring_view fnName);

@@ -263,6 +263,20 @@ namespace lws
 		return nullptr;
 	}
 
+	bool VM::IsPassedByValueObject(Object* obj)
+	{
+		switch(obj->Type())
+		{
+			case OBJECT_INT:
+			case OBJECT_REAL:
+			case OBJECT_BOOL:
+				return true;
+			default:
+				return false;
+		}
+		return false;
+	}
+
 	Object *VM::Execute(Frame *frame)
 	{
 		PreAssemble(frame);
@@ -479,15 +493,21 @@ namespace lws
 			case OP_NEW_VAR:
 			{
 				Object *value = PopObject();
-				auto *newCopy = CopyObject(value);
-				mContext->DefineVariableByName(frame->mStrings[frame->mCodes[++ip]], ObjectDescType::VARIABLE, newCopy);
+				//object int,real,bool passed by value 
+				if(IsPassedByValueObject(value))
+					value= CopyObject(value);
+				//object str,null,array,table,lambda,field,RefVar,RefObj passed by reference
+				mContext->DefineVariableByName(frame->mStrings[frame->mCodes[++ip]], ObjectDescType::VARIABLE, value);
 				break;
 			}
 			case OP_NEW_CONST:
 			{
 				Object *value = PopObject();
-				auto *newCopy = CopyObject(value);
-				mContext->DefineVariableByName(frame->mStrings[frame->mCodes[++ip]], ObjectDescType::CONST, newCopy);
+				//object int,real,bool passed by value 
+				if(IsPassedByValueObject(value))
+					value= CopyObject(value);
+				//object str,null,array,table,lambda,field,RefVar,RefObj passed by reference
+				mContext->DefineVariableByName(frame->mStrings[frame->mCodes[++ip]], ObjectDescType::CONST, value);
 				break;
 			}
 			case OP_SET_VAR:
