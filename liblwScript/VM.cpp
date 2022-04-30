@@ -520,7 +520,7 @@ namespace lws
 				Object *value = PopObject();
 				Object *variable = mContext->GetVariableByName(name);
 
-				if (IS_REF_OBJ(variable)&&!TO_REF_OBJ(variable)->isAddressReference)
+				if (IS_REF_OBJ(variable) && !TO_REF_OBJ(variable)->isAddressReference)
 				{
 					auto refObject = TO_REF_OBJ(variable);
 					if (refObject->index == nullptr)
@@ -583,7 +583,7 @@ namespace lws
 					else
 						Assert(L"No field or variable declaration:" + name);
 				}
-				else if (IS_REF_OBJ(varObject)&&!TO_REF_OBJ(varObject)->isAddressReference)
+				else if (IS_REF_OBJ(varObject) && !TO_REF_OBJ(varObject)->isAddressReference)
 				{
 					auto refObject = TO_REF_OBJ(varObject);
 					varObject = mContext->GetVariableByName(refObject->name);
@@ -921,7 +921,7 @@ namespace lws
 				break;
 			case OP_REF_VARIABLE:
 			{
-				PushObject(CreateRefObject(frame->mStrings[frame->mCodes[++ip]],nullptr));
+				PushObject(CreateRefObject(frame->mStrings[frame->mCodes[++ip]], nullptr));
 				break;
 			}
 			case OP_REF_INDEX:
@@ -998,7 +998,7 @@ namespace lws
 		fp = 0;
 		firstObject = nullptr;
 		curObjCount = 0;
-		maxObjCount = INIT_OBJ_NUM_MAX;
+		maxObjCount = GC_OBJECT_COUNT_THRESHOLD;
 
 		std::array<Object *, STACK_MAX>().swap(mObjectStack);
 
@@ -1055,6 +1055,18 @@ namespace lws
 		//mark all object which in stack;
 		for (size_t i = 0; i < sp; ++i)
 			mObjectStack[i]->Mark();
+		if(mContext)
+		{
+			auto contextPtr = mContext;
+			for(const auto& [k,v]:contextPtr->mValues)
+				v.object->Mark();
+			while (contextPtr->mUpContext)
+			{
+				contextPtr = contextPtr->mUpContext;
+				for (const auto &[k, v] : contextPtr->mValues)
+					v.object->Mark();
+			}
+		}
 
 		//sweep objects which is not reachable
 		Object **object = &firstObject;
@@ -1076,8 +1088,11 @@ namespace lws
 			}
 		}
 
+		maxObjCount = curObjCount == 0 ? GC_OBJECT_COUNT_THRESHOLD : curObjCount * 2;
+
 #ifdef _DEBUG
-		std::wcout << "Collected " << objNum - curObjCount << " objects," << curObjCount << " remaining." << std::endl;
+		std::wcout
+			<< "Collected " << objNum - curObjCount << " objects," << curObjCount << " remaining." << std::endl;
 #endif
 	}
 }

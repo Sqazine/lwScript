@@ -18,6 +18,6 @@ let fib=fn(x)
         return fib(x-1)+fib(x-2);
 };
 
-let a=fib(13);
+let a=fib(35);
 
-println("{}",a);//233
+println("{}",a);//9227465

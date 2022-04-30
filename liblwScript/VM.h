@@ -13,7 +13,7 @@
 namespace lws
 {
 #define STACK_MAX 1024
-#define INIT_OBJ_NUM_MAX 8192
+#define GC_OBJECT_COUNT_THRESHOLD 256
 
 	class VM
 	{
