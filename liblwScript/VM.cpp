@@ -388,7 +388,7 @@ namespace lws
 							TableObject *tableObject = TO_TABLE_VALUE(variable);
 							bool existed = false;
 							for (auto [key, value] : tableObject->elements)
-								if (key==index)
+								if (key == index)
 								{
 									tableObject->elements[key] = value;
 									existed = true;
@@ -404,7 +404,7 @@ namespace lws
 				else if (IS_REF_VALUE(variable))
 				{
 					mContext->AssignVariableByAddress(TO_REF_VALUE(variable)->address, value);
-					TO_REF_VALUE(variable)->address = PointerAddressToString(&value); //update ref address
+					TO_REF_VALUE(variable)->address = PointerAddressToString(value.object); //update ref address
 				}
 				else
 					mContext->AssignVariableByName(name, value);
@@ -453,7 +453,7 @@ namespace lws
 
 							bool hasValue = false;
 							for (const auto [key, value] : tableObject->elements)
-								if (key==index)
+								if (key == index)
 								{
 									PushValue(value);
 									hasValue = true;
@@ -538,7 +538,7 @@ namespace lws
 
 					bool hasValue = false;
 					for (const auto [key, value] : tableObject->elements)
-						if (key==index)
+						if (key == index)
 						{
 							PushValue(value);
 							hasValue = true;
@@ -774,7 +774,11 @@ namespace lws
 			case OP_REF_OBJECT:
 			{
 				auto value = PopValue();
-				PushValue(CreateRefObject(PointerAddressToString(&value)));
+				if (IS_OBJECT_VALUE(value))
+					PushValue(CreateRefObject(PointerAddressToString(value.object)));
+				else
+					Assert(L"Cannot reference a value," + value.Stringify() + L"only object can be referenced,");
+				
 				break;
 			}
 			case OP_SELF_INCREMENT:
@@ -791,7 +795,7 @@ namespace lws
 					PushValue(stackTop);
 				}
 				else
-					Assert("Invalid prefix or postfix '++',the increment object isn't an int num object or a real num object.");
+					Assert(L"Invalid prefix or postfix '++',the increment object isn't an int num object or a real num object.");
 				break;
 			}
 			case OP_SELF_DECREMENT:
@@ -808,7 +812,7 @@ namespace lws
 					PushValue(stackTop);
 				}
 				else
-					Assert("Invalid prefix or postfix operator '--',the increment object isn't an int num object or a real num object.");
+					Assert(L"Invalid prefix or postfix operator '--',the increment object isn't an int num object or a real num object.");
 				break;
 			}
 			case OP_FACTORIAL:
@@ -825,7 +829,7 @@ namespace lws
 					PushValue(Value((double)v));
 				}
 				else
-					Assert("Invalid postfix operator '!',the increment object isn't an int num object or a real num object.");
+					Assert(L"Invalid postfix operator '!',the increment object isn't an int num object or a real num object.");
 				break;
 			}
 			default:

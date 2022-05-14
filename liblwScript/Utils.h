@@ -16,22 +16,19 @@ namespace lws
 #endif
     }
 
-	inline void Assert(std::string_view msg)
-	{
-		std::cout << msg << std::endl;
-#ifdef _DEBUG
-		assert(0);
-#else
-		exit(1);
-#endif
-	}
-
     inline std::wstring ReadFile(std::string_view path)
     {
         std::wifstream file;
         file.open(path.data(), std::ios::in | std::ios::binary);
         if (!file.is_open())
-            Assert("Failed to open file:"+std::string(path));
+        {
+            std::cout << "Failed to open file:" << path << std::endl;
+#ifdef _DEBUG
+            assert(0);
+#else
+            exit(1);
+#endif
+        }
 
         std::wstringstream sstream;
         sstream << file.rdbuf();
@@ -48,7 +45,7 @@ namespace lws
 
     inline int64_t Factorial(int64_t v)
     {
-        if(v==0)
+        if (v == 0)
             return 1;
         return Factorial(v - 1) * v;
     }

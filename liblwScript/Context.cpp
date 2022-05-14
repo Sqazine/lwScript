@@ -86,7 +86,7 @@ namespace lws
 				if (contextValue.type != ValueDescType::CONST)
 				{
 					for (size_t i = 0; i < array->elements.size(); ++i)
-						if (PointerAddressToString(&array->elements[i]) == address)
+						if (PointerAddressToString(array->elements[i].object) == address)
 						{
 							array->elements[i] = value;
 							return;
@@ -101,7 +101,7 @@ namespace lws
 				if (contextValue.type != ValueDescType::CONST)
 				{
 					for (auto& [tableKey, tableValue] : table->elements)
-						if (PointerAddressToString(&tableValue) == address)
+						if (PointerAddressToString(tableValue.object) == address)
 						{
 							table->elements[tableKey] = value;
 							return;
@@ -116,7 +116,7 @@ namespace lws
 				if (contextValue.type != ValueDescType::CONST)
 				{
 					for (auto& [classMemberKey, classMemberValue] : field->members)
-						if (PointerAddressToString(&classMemberValue.value) == address)
+						if (PointerAddressToString(classMemberValue.value.object) == address)
 						{
 							field->members[classMemberKey].value = value;
 							return;
@@ -137,7 +137,7 @@ namespace lws
 	{
 		//first:search the suitable context value in address
 		for (auto& [contextKey, contextValue] : mValues)
-			if (PointerAddressToString(&contextValue.value) == address)
+			if (PointerAddressToString(contextValue.value.object) == address)
 				return contextValue.value;
 
 		//second:search the address in the specific object value
@@ -147,14 +147,14 @@ namespace lws
 			{
 				ArrayObject *array = TO_ARRAY_VALUE(contextValue.value);
 				for (size_t i = 0; i < array->elements.size(); ++i)
-					if (PointerAddressToString(&array->elements[i]) == address)
+					if (PointerAddressToString(array->elements[i].object) == address)
 						return array->elements[i];
 			}
 			else if (IS_TABLE_VALUE(contextValue.value))
 			{
 				TableObject *table = TO_TABLE_VALUE(contextValue.value);
 				for (auto& [tableKey, tableValue] : table->elements)
-					if (PointerAddressToString(&tableValue) == address)
+					if (PointerAddressToString(tableValue.object) == address)
 						return table->elements[tableKey];
 			}
 			else if (IS_FIELD_VALUE(contextValue.value))

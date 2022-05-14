@@ -292,7 +292,10 @@ namespace lws
 			if (args.empty() || args.size() != 1)
 				Assert(L"[Native function 'addressof']:Expect 1 arguments.");
 
-			return mVMHandle->CreateStrObject(PointerAddressToString(&args[0]));
+			if(!IS_OBJECT_VALUE(args[0]))
+				Assert(L"[Native function 'addressof']:The arg0 is a value,only object has address.");
+
+			return mVMHandle->CreateStrObject(PointerAddressToString(args[0].object));
 		};
 	}
 

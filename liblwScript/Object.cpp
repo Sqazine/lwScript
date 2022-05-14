@@ -389,7 +389,7 @@ namespace lws
         if (!members.empty())
         {
             for (auto &[memberKey, memberValue] : members)
-                if (PointerAddressToString(&memberValue.value) == address)
+                if (PointerAddressToString(memberValue.value.object) == address)
                     return memberValue.value;
         }
 
