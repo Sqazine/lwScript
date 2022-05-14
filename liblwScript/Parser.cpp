@@ -124,7 +124,7 @@ namespace lws
 			{TOKEN_PERCENT, &Parser::ParseInfixExpr},
 			{TOKEN_LPAREN, &Parser::ParseFunctionCallExpr},
 			{TOKEN_LBRACKET, &Parser::ParseIndexExpr},
-			{TOKEN_DOT, &Parser::ParseFieldCallExpr},
+			{TOKEN_DOT, &Parser::ParseClassCallExpr},
 	};
 
 	std::unordered_map<TokenType, PostfixFn> Parser::mPostfixFunctions =
@@ -205,8 +205,8 @@ namespace lws
 			return ParseEnumStmt();
 		else if (IsMatchCurToken(TOKEN_FUNCTION))
 			return ParseFunctionStmt();
-		else if (IsMatchCurToken(TOKEN_FIELD))
-			return ParseFieldStmt();
+		else if (IsMatchCurToken(TOKEN_CLASS))
+			return ParseClassStmt();
 		else
 			return ParseExprStmt();
 	}
@@ -779,40 +779,40 @@ namespace lws
 		return lambdaExpr;
 	}
 
-	Stmt *Parser::ParseFieldStmt()
+	Stmt *Parser::ParseClassStmt()
 	{
-		auto fieldStmt = new FieldStmt();
-		fieldStmt->line = GetCurToken().line;
-		fieldStmt->column = GetCurToken().column;
+		auto classStmt = new ClassStmt();
+		classStmt->line = GetCurToken().line;
+		classStmt->column = GetCurToken().column;
 
-		Consume(TOKEN_FIELD, L"Expect 'field' keyword");
+		Consume(TOKEN_CLASS, L"Expect 'class' keyword");
 
-		fieldStmt->name = ((IdentifierExpr *)ParseIdentifierExpr())->literal;
+		classStmt->name = ((IdentifierExpr *)ParseIdentifierExpr())->literal;
 
 		if (IsMatchCurTokenAndStepOnce(TOKEN_COLON))
 		{
-			fieldStmt->containedFields.emplace_back((IdentifierExpr *)ParseIdentifierExpr());
+			classStmt->parentClasses.emplace_back((IdentifierExpr *)ParseIdentifierExpr());
 			while (IsMatchCurTokenAndStepOnce(TOKEN_COMMA))
-				fieldStmt->containedFields.emplace_back((IdentifierExpr *)ParseIdentifierExpr());
+				classStmt->parentClasses.emplace_back((IdentifierExpr *)ParseIdentifierExpr());
 		}
 
-		Consume(TOKEN_LBRACE, L"Expect '{' after field name or contained field name");
+		Consume(TOKEN_LBRACE, L"Expect '{' after class name or contained class name");
 
 		while (!IsMatchCurToken(TOKEN_RBRACE))
 		{
 			if (IsMatchCurToken(TOKEN_LET))
-				fieldStmt->letStmts.emplace_back((LetStmt *)ParseLetStmt());
+				classStmt->letStmts.emplace_back((LetStmt *)ParseLetStmt());
 			else if (IsMatchCurToken(TOKEN_CONST))
-				fieldStmt->constStmts.emplace_back((ConstStmt *)ParseConstStmt());
+				classStmt->constStmts.emplace_back((ConstStmt *)ParseConstStmt());
 			else if (IsMatchCurToken(TOKEN_FUNCTION))
-				fieldStmt->fnStmts.emplace_back((FunctionStmt *)ParseFunctionStmt());
+				classStmt->fnStmts.emplace_back((FunctionStmt *)ParseFunctionStmt());
 			else
 				Consume({TOKEN_LET, TOKEN_FUNCTION, TOKEN_CONST}, L"UnExpect identifier '" + GetCurToken().literal + L"'.");
 		}
 
-		Consume(TOKEN_RBRACE, L"Expect '}' after field stmt's '{'");
+		Consume(TOKEN_RBRACE, L"Expect '}' after class stmt's '{'");
 
-		return fieldStmt;
+		return classStmt;
 	}
 
 	Expr *Parser::ParseExpr(Precedence precedence)
@@ -1098,15 +1098,15 @@ namespace lws
 		return funcCallExpr;
 	}
 
-	Expr *Parser::ParseFieldCallExpr(Expr *prefixExpr)
+	Expr *Parser::ParseClassCallExpr(Expr *prefixExpr)
 	{
-		auto fieldCallExpr = new FieldCallExpr();
-		fieldCallExpr->column = GetCurToken().column;
-		fieldCallExpr->line = GetCurToken().line;
+		auto classCallExpr = new ClassCallExpr();
+		classCallExpr->column = GetCurToken().column;
+		classCallExpr->line = GetCurToken().line;
 		Consume(TOKEN_DOT, L"Expect '.'.");
-		fieldCallExpr->callee = prefixExpr;
-		fieldCallExpr->callMember = ParseExpr(Precedence::INFIX);
-		return fieldCallExpr;
+		classCallExpr->callee = prefixExpr;
+		classCallExpr->callMember = ParseExpr(Precedence::INFIX);
+		return classCallExpr;
 	}
 
 	Token Parser::GetCurToken()

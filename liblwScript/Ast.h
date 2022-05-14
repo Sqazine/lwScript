@@ -27,7 +27,7 @@ namespace lws
 		AST_REF,
 		AST_LAMBDA,
 		AST_FUNCTION_CALL,
-		AST_FIELD_CALL,
+		AST_CLASS_CALL,
 		// stmt
 		AST_LET,
 		AST_CONST,
@@ -40,7 +40,7 @@ namespace lws
 		AST_CONTINUE,
 		AST_ENUM,
 		AST_FUNCTION,
-		AST_FIELD,
+		AST_CLASS,
 		AST_ASTSTMTS,
 	};
 
@@ -290,11 +290,11 @@ namespace lws
 		std::vector<Expr *> arguments;
 	};
 
-	struct FieldCallExpr : public Expr
+	struct ClassCallExpr : public Expr
 	{
-		FieldCallExpr();
-		FieldCallExpr(Expr *callee, Expr *callMember);
-		~FieldCallExpr();
+		ClassCallExpr();
+		ClassCallExpr(Expr *callee, Expr *callMember);
+		~ClassCallExpr();
 
 		std::wstring Stringify() override;
 		AstType Type() override;
@@ -450,21 +450,21 @@ namespace lws
 		ScopeStmt *body;
 	};
 
-	struct FieldStmt : public Stmt
+	struct ClassStmt : public Stmt
 	{
-		FieldStmt();
-		FieldStmt(std::wstring name,
+		ClassStmt();
+		ClassStmt(std::wstring name,
 				  std::vector<LetStmt *> letStmts,
 				  std::vector<ConstStmt *> constStmts,
 				  std::vector<FunctionStmt *> fnStmts,
-				  std::vector<IdentifierExpr *> containedFields = {});
-		~FieldStmt();
+				  std::vector<IdentifierExpr *> parentClasses = {});
+		~ClassStmt();
 
 		std::wstring Stringify() override;
 		AstType Type() override;
 
 		std::wstring name;
-		std::vector<IdentifierExpr *> containedFields;
+		std::vector<IdentifierExpr *> parentClasses;
 		std::vector<LetStmt *> letStmts;
 		std::vector<ConstStmt *> constStmts;
 		std::vector<FunctionStmt *> fnStmts;

@@ -12,14 +12,14 @@ namespace lws
 #define TO_ARRAY_OBJ(obj) ((ArrayObject *)obj)
 #define TO_TABLE_OBJ(obj) ((TableObject *)obj)
 #define TO_LAMBDA_OBJ(obj) ((LambdaObject *)obj)
-#define TO_FIELD_OBJ(obj) ((FieldObject *)obj)
+#define TO_CLASS_OBJ(obj) ((ClassObject *)obj)
 #define TO_REF_OBJ(obj) ((RefObject *)obj)
 
 #define IS_STR_OBJ(obj) (obj->Type() == OBJECT_STR)
 #define IS_ARRAY_OBJ(obj) (obj->Type() == OBJECT_ARRAY)
 #define IS_TABLE_OBJ(obj) (obj->Type() == OBJECT_TABLE)
 #define IS_LAMBDA_OBJ(obj) (obj->Type() == OBJECT_LAMBDA)
-#define IS_FIELD_OBJ(obj) (obj->Type() == OBJECT_FIELD)
+#define IS_CLASS_OBJ(obj) (obj->Type() == OBJECT_CLASS)
 #define IS_REF_OBJ(obj) (obj->Type() == OBJECT_REF)
 
 	enum ObjectType
@@ -28,7 +28,7 @@ namespace lws
 		OBJECT_ARRAY,
 		OBJECT_TABLE,
 		OBJECT_LAMBDA,
-		OBJECT_FIELD,
+		OBJECT_CLASS,
 		OBJECT_REF,
 	};
 
@@ -132,13 +132,13 @@ namespace lws
 		};
 	};
 
-	struct FieldObject : public Object
+	struct ClassObject : public Object
 	{
-		FieldObject();
-		FieldObject(std::wstring_view name,
+		ClassObject();
+		ClassObject(std::wstring_view name,
 					const std::unordered_map<std::wstring, ValueDesc> &members,
-					const std::vector<std::pair<std::wstring, FieldObject *>> &containedFields = {});
-		~FieldObject();
+					const std::vector<std::pair<std::wstring, ClassObject *>> &parentClasses = {});
+		~ClassObject();
 
 		std::wstring Stringify() override;
 		ObjectType Type() override;
@@ -152,6 +152,6 @@ namespace lws
 
 		std::wstring name;
 		std::unordered_map<std::wstring, ValueDesc> members;
-		std::vector<std::pair<std::wstring, FieldObject *>> containedFields;
+		std::vector<std::pair<std::wstring, ClassObject *>> parentClasses;
 	};
 }

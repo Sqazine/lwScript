@@ -1,4 +1,4 @@
-field Node
+class Node
 {
     let v=0;
     let next=null;

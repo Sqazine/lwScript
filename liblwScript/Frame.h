@@ -20,16 +20,16 @@ namespace lws
 		OP_NEW_ARRAY,
 		OP_NEW_TABLE,
 		OP_NEW_LAMBDA,
-		OP_NEW_FIELD,
+		OP_NEW_CLASS,
 		OP_NEW_CONST,
 		OP_NEW_VAR,
 		OP_GET_VAR,
 		OP_SET_VAR,
 		OP_GET_INDEX_VAR,
 		OP_SET_INDEX_VAR,
-		OP_GET_FIELD_VAR,
-		OP_SET_FIELD_VAR,
-		OP_GET_FIELD_FUNCTION,
+		OP_GET_CLASS_VAR,
+		OP_SET_CLASS_VAR,
+		OP_GET_CLASS_FUNCTION,
 		OP_GET_FUNCTION,
 		OP_NEG,
 		OP_RETURN,
@@ -107,9 +107,9 @@ namespace lws
 		Frame *GetFunctionFrame(std::wstring_view name);
 		bool HasFunctionFrame(std::wstring_view name);
 
-		void AddFieldFrame(std::wstring_view name, Frame *frame);
-		Frame *GetFieldFrame(std::wstring_view name);
-		bool HasFieldFrame(std::wstring_view name);
+		void AddClassFrame(std::wstring_view name, Frame *frame);
+		Frame *GetClassFrame(std::wstring_view name);
+		bool HasClassFrame(std::wstring_view name);
 
 		void AddEnumFrame(std::wstring_view name, Frame *frame);
 		Frame *GetEnumFrame(std::wstring_view name);
@@ -124,7 +124,7 @@ namespace lws
 		std::vector<Frame *> mLambdaFrames;
 		std::unordered_map<std::wstring, Frame *> mEnumFrames;
 		std::unordered_map<std::wstring, Frame *> mFunctionFrames;
-		std::unordered_map<std::wstring, Frame *> mFieldFrames;
+		std::unordered_map<std::wstring, Frame *> mClassFrames;
 
 		Frame *mParentFrame;
 	};

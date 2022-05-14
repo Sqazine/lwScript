@@ -112,35 +112,35 @@ namespace lws
 			return false;
 	}
 
-	void Frame::AddFieldFrame(std::wstring_view name, Frame *frame)
+	void Frame::AddClassFrame(std::wstring_view name, Frame *frame)
 	{
-		auto iter = mFieldFrames.find(name.data());
+		auto iter = mClassFrames.find(name.data());
 
-		if (iter != mFieldFrames.end())
+		if (iter != mClassFrames.end())
 			Assert(std::wstring(L"Redefinition struct:") + name.data());
 
-		mFieldFrames[name.data()] = frame;
+		mClassFrames[name.data()] = frame;
 	}
 
-	Frame *Frame::GetFieldFrame(std::wstring_view name)
+	Frame *Frame::GetClassFrame(std::wstring_view name)
 	{
-		auto iter = mFieldFrames.find(name.data());
-		if (iter != mFieldFrames.end())
+		auto iter = mClassFrames.find(name.data());
+		if (iter != mClassFrames.end())
 			return iter->second;
 		else if (mParentFrame != nullptr)
-			return mParentFrame->GetFieldFrame(name);
+			return mParentFrame->GetClassFrame(name);
 		Assert(std::wstring(L"No function:") + name.data());
 
 		return nullptr;
 	}
 
-	bool Frame::HasFieldFrame(std::wstring_view name)
+	bool Frame::HasClassFrame(std::wstring_view name)
 	{
-		auto iter = mFieldFrames.find(name.data());
-		if (iter != mFieldFrames.end())
+		auto iter = mClassFrames.find(name.data());
+		if (iter != mClassFrames.end())
 			return true;
 		else if (mParentFrame != nullptr)
-			return mParentFrame->HasFieldFrame(name);
+			return mParentFrame->HasClassFrame(name);
 		return false;
 	}
 
@@ -158,7 +158,7 @@ namespace lws
 		if (iter != mEnumFrames.end())
 			return iter->second;
 		else if (mParentFrame != nullptr)
-			return mParentFrame->GetFieldFrame(name);
+			return mParentFrame->GetClassFrame(name);
 		Assert(std::wstring(L"No function:") + name.data());
 
 		return nullptr;
@@ -169,7 +169,7 @@ namespace lws
 		if (iter != mEnumFrames.end())
 			return true;
 		else if (mParentFrame != nullptr)
-			return mParentFrame->HasFieldFrame(name);
+			return mParentFrame->HasClassFrame(name);
 		return false;
 	}
 
@@ -193,9 +193,9 @@ namespace lws
 			result << value->Stringify(depth + 1);
 		}
 
-		for (auto [key, value] : mFieldFrames)
+		for (auto [key, value] : mClassFrames)
 		{
-			result << interval << "Field frame " << key << ":\n";
+			result << interval << "Class frame " << key << ":\n";
 			result << value->Stringify(depth + 1);
 		}
 
@@ -316,8 +316,8 @@ namespace lws
 			case OP_NEW_LAMBDA:
 				BINARY_INSTR_STRINGIFY(OP_NEW_LAMBDA, mIntNums);
 				break;
-			case OP_NEW_FIELD:
-				BINARY_INSTR_STRINGIFY(OP_NEW_FIELD, mStrings);
+			case OP_NEW_CLASS:
+				BINARY_INSTR_STRINGIFY(OP_NEW_CLASS, mStrings);
 				break;
 			case OP_GET_INDEX_VAR:
 				UNARY_INSTR_STRINGIFY(OP_GET_INDEX_VAR);
@@ -325,14 +325,14 @@ namespace lws
 			case OP_SET_INDEX_VAR:
 				UNARY_INSTR_STRINGIFY(OP_SET_INDEX_VAR);
 				break;
-			case OP_GET_FIELD_VAR:
-				BINARY_INSTR_STRINGIFY(OP_GET_FIELD_VAR, mStrings);
+			case OP_GET_CLASS_VAR:
+				BINARY_INSTR_STRINGIFY(OP_GET_CLASS_VAR, mStrings);
 				break;
-			case OP_SET_FIELD_VAR:
-				BINARY_INSTR_STRINGIFY(OP_SET_FIELD_VAR, mStrings);
+			case OP_SET_CLASS_VAR:
+				BINARY_INSTR_STRINGIFY(OP_SET_CLASS_VAR, mStrings);
 				break;
-			case OP_GET_FIELD_FUNCTION:
-				BINARY_INSTR_STRINGIFY(OP_GET_FIELD_FUNCTION, mStrings);
+			case OP_GET_CLASS_FUNCTION:
+				BINARY_INSTR_STRINGIFY(OP_GET_CLASS_FUNCTION, mStrings);
 				break;
 			case OP_GET_FUNCTION:
 				BINARY_INSTR_STRINGIFY(OP_GET_FUNCTION, mStrings);
@@ -391,14 +391,14 @@ namespace lws
 		for (auto funcFrame : mLambdaFrames)
 			funcFrame->Clear();
 
-		for (auto [key, value] : mFieldFrames)
+		for (auto [key, value] : mClassFrames)
 			value->Clear();
 
 		for (auto [key, value] : mFunctionFrames)
 			value->Clear();
 
 		std::vector<Frame *>().swap(mLambdaFrames);
-		std::unordered_map<std::wstring, Frame *>().swap(mFieldFrames);
+		std::unordered_map<std::wstring, Frame *>().swap(mClassFrames);
 		std::unordered_map<std::wstring, Frame *>().swap(mFunctionFrames);
 		if (mParentFrame)
 			mParentFrame = nullptr;

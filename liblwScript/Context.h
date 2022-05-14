@@ -43,7 +43,7 @@ namespace lws
 
     private:
         friend class VM;
-        friend struct FieldObject;
+        friend struct ClassObject;
 
         std::unordered_map<std::wstring, ValueDesc> mValues;
         Context *mUpContext;

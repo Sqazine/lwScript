@@ -467,25 +467,25 @@ namespace lws
 		return AST_FUNCTION_CALL;
 	}
 
-	FieldCallExpr::FieldCallExpr()
+	ClassCallExpr::ClassCallExpr()
 		: callee(nullptr), callMember(nullptr)
 	{
 	}
-	FieldCallExpr::FieldCallExpr(Expr *callee, Expr *callMember)
+	ClassCallExpr::ClassCallExpr(Expr *callee, Expr *callMember)
 		: callee(callee), callMember(callMember)
 	{
 	}
-	FieldCallExpr::~FieldCallExpr()
+	ClassCallExpr::~ClassCallExpr()
 	{
 	}
 
-	std::wstring FieldCallExpr::Stringify()
+	std::wstring ClassCallExpr::Stringify()
 	{
 		return callee->Stringify() + L"." + callMember->Stringify();
 	}
-	AstType FieldCallExpr::Type()
+	AstType ClassCallExpr::Type()
 	{
-		return AST_FIELD_CALL;
+		return AST_CLASS_CALL;
 	}
 
 	//----------------------Statements-----------------------------
@@ -777,37 +777,37 @@ namespace lws
 		return AST_FUNCTION;
 	}
 
-	FieldStmt::FieldStmt()
+	ClassStmt::ClassStmt()
 	{
 	}
-	FieldStmt::FieldStmt(std::wstring name,
+	ClassStmt::ClassStmt(std::wstring name,
 						 std::vector<LetStmt *> letStmts,
 						 std::vector<ConstStmt *> constStmts,
 						 std::vector<FunctionStmt *> fnStmts,
-						 std::vector<IdentifierExpr *> containedFields)
+						 std::vector<IdentifierExpr *> parentClasses)
 		: name(name),
 		  letStmts(letStmts),
 		  constStmts(constStmts),
 		  fnStmts(fnStmts),
-		  containedFields(containedFields)
+		  parentClasses(parentClasses)
 	{
 	}
-	FieldStmt::~FieldStmt()
+	ClassStmt::~ClassStmt()
 	{
-		std::vector<IdentifierExpr *>().swap(containedFields);
+		std::vector<IdentifierExpr *>().swap(parentClasses);
 		std::vector<LetStmt *>().swap(letStmts);
 		std::vector<ConstStmt *>().swap(constStmts);
 		std::vector<FunctionStmt *>().swap(fnStmts);
 	}
 
-	std::wstring FieldStmt::Stringify()
+	std::wstring ClassStmt::Stringify()
 	{
-		std::wstring result = L"field " + name;
-		if (!containedFields.empty())
+		std::wstring result = L"class " + name;
+		if (!parentClasses.empty())
 		{
 			result += L":";
-			for (const auto &containedField : containedFields)
-				result += containedField->Stringify() + L",";
+			for (const auto &containedClass : parentClasses)
+				result += containedClass->Stringify() + L",";
 			result = result.substr(0, result.size() - 1);
 		}
 		result += L"{";
@@ -819,9 +819,9 @@ namespace lws
 			result += fnStmt->Stringify();
 		return result + L"}";
 	}
-	AstType FieldStmt::Type()
+	AstType ClassStmt::Type()
 	{
-		return AST_FIELD;
+		return AST_CLASS;
 	}
 
 	AstStmts::AstStmts()

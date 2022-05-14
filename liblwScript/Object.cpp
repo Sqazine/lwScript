@@ -264,28 +264,28 @@ namespace lws
             return address == TO_REF_OBJ(other)->address;
     }
 
-    FieldObject::FieldObject()
+    ClassObject::ClassObject()
     {
     }
-    FieldObject::FieldObject(std::wstring_view name,
+    ClassObject::ClassObject(std::wstring_view name,
                              const std::unordered_map<std::wstring, ValueDesc> &members,
-                             const std::vector<std::pair<std::wstring, FieldObject *>> &containedFields)
-        : name(name), members(members), containedFields(containedFields)
+                             const std::vector<std::pair<std::wstring, ClassObject *>> &parentClasses)
+        : name(name), members(members), parentClasses(parentClasses)
     {
     }
-    FieldObject::~FieldObject()
+    ClassObject::~ClassObject()
     {
     }
 
-    std::wstring FieldObject::Stringify()
+    std::wstring ClassObject::Stringify()
     {
-        std::wstring result = L"instance of field:\n" + name;
+        std::wstring result = L"instance of class:\n" + name;
 
-        if (!containedFields.empty())
+        if (!parentClasses.empty())
         {
             result += L":";
-            for (const auto &containedField : containedFields)
-                result += containedField.first + L",";
+            for (const auto &containedClass : parentClasses)
+                result += containedClass.first + L",";
             result = result.substr(0, result.size() - 1);
         }
 
@@ -304,46 +304,46 @@ namespace lws
         }
         return result;
     }
-    ObjectType FieldObject::Type()
+    ObjectType ClassObject::Type()
     {
-        return OBJECT_FIELD;
+        return OBJECT_CLASS;
     }
-    void FieldObject::Mark()
+    void ClassObject::Mark()
     {
         if (marked)
             return;
         marked = true;
         for (const auto &[memberKey, memberValue] : members)
             memberValue.value.Mark();
-        for (auto &containedField : containedFields)
-            containedField.second->Mark();
+        for (auto &containedClass : parentClasses)
+            containedClass.second->Mark();
     }
-    void FieldObject::UnMark()
+    void ClassObject::UnMark()
     {
         if (!marked)
             return;
         marked = false;
         for (const auto &[memberKey, memberValue] : members)
             memberValue.value.UnMark();
-        for (auto &containedField : containedFields)
-            containedField.second->UnMark();
+        for (auto &containedClass : parentClasses)
+            containedClass.second->UnMark();
     }
-    bool FieldObject::IsEqualTo(Object *other)
+    bool ClassObject::IsEqualTo(Object *other)
     {
-        if (!IS_FIELD_OBJ(other))
+        if (!IS_CLASS_OBJ(other))
             return false;
 
-        if (name != TO_FIELD_OBJ(other)->name)
+        if (name != TO_CLASS_OBJ(other)->name)
             return false;
 
         for (const auto &[key1, value1] : members)
-            for (const auto &[key2, value2] : TO_FIELD_OBJ(other)->members)
+            for (const auto &[key2, value2] : TO_CLASS_OBJ(other)->members)
                 if (key1 != key2 || value1 != value2)
                     return false;
         return true;
     }
 
-    void FieldObject::AssignMemberByName(std::wstring_view name, const Value &value)
+    void ClassObject::AssignMemberByName(std::wstring_view name, const Value &value)
     {
         auto iter = members.find(name.data());
         if (iter != members.end())
@@ -351,32 +351,32 @@ namespace lws
             if (members[name.data()].type != ValueDescType::CONST)
                 members[name.data()].value = value;
             else
-                Assert(L"The member:" + std::wstring(name) + L" in the field:" + this->name + L" is a const member,cannot be reassigned.");
+                Assert(L"The member:" + std::wstring(name) + L" in the class:" + this->name + L" is a const member,cannot be reassigned.");
         }
-        else if (!containedFields.empty())
+        else if (!parentClasses.empty())
         {
-            for (auto &containedField : containedFields)
-                containedField.second->AssignMemberByName(name, value);
+            for (auto &containedClass : parentClasses)
+                containedClass.second->AssignMemberByName(name, value);
         }
         else
-            Assert(L"Undefined field member:" + std::wstring(name));
+            Assert(L"Undefined class member:" + std::wstring(name));
     }
 
-    Value FieldObject::GetMemberByName(std::wstring_view name)
+    Value ClassObject::GetMemberByName(std::wstring_view name)
     {
         auto iter = members.find(name.data()); // variables in self scope
         if (iter != members.end())
             return iter->second.value;
-        else // variables in contained field
+        else // variables in contained class
         {
-            for (const auto &containedField : containedFields)
+            for (const auto &containedClass : parentClasses)
             {
-                // the contained field self
-                if (containedField.first == name)
-                    return containedField.second;
+                // the contained class self
+                if (containedClass.first == name)
+                    return containedClass.second;
                 else // the member
                 {
-                    auto member = containedField.second->GetMemberByName(name);
+                    auto member = containedClass.second->GetMemberByName(name);
                     if (!IS_INVALID_VALUE(member))
                         return member;
                 }
@@ -384,7 +384,7 @@ namespace lws
         }
         return gInvalidValue;
     }
-    Value FieldObject::GetMemberByAddress(std::wstring_view address)
+    Value ClassObject::GetMemberByAddress(std::wstring_view address)
     {
         if (!members.empty())
         {
@@ -393,23 +393,23 @@ namespace lws
                     return memberValue.value;
         }
 
-        if (!containedFields.empty()) // in contained field
+        if (!parentClasses.empty()) // in contained class
         {
-            for (const auto &containedField : containedFields)
+            for (const auto &containedClass : parentClasses)
             {
-                // the contained field self
-                if (PointerAddressToString(containedField.second) == address)
-                    return containedField.second;
-                else // the member in contained field
+                // the contained class self
+                if (PointerAddressToString(containedClass.second) == address)
+                    return containedClass.second;
+                else // the member in contained class
                 {
-                    auto member = containedField.second->GetMemberByAddress(address);
+                    auto member = containedClass.second->GetMemberByAddress(address);
                     if (!IS_INVALID_VALUE(member))
                         return member;
                 }
             }
         }
 
-        Assert(L"No Object's address:" + std::wstring(address) + L"in field:" + std::wstring(name.data()));
+        Assert(L"No Object's address:" + std::wstring(address) + L"in class:" + std::wstring(name.data()));
         return gInvalidValue;
     }
 }

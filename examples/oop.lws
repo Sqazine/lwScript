@@ -1,5 +1,5 @@
 
-field Shape
+class Shape
 {
     fn init(x,y)
     {
@@ -27,7 +27,7 @@ println(s1);
 println(s1.area());//0.0
 
 
-field Rectangle:Shape
+class Rectangle:Shape
 {
     fn init(x,y,w,h)
     {
@@ -57,7 +57,7 @@ println(r1);
 println(r1.area());//15
 
 
-field Square:Rectangle
+class Square:Rectangle
 {
     fn init(x,y,side)
     {
@@ -78,7 +78,7 @@ println(sq1);
 //}
 println(sq1.area());//9
 
-field Circle:Shape
+class Circle:Shape
 {
     fn init(x,y,r)
     {

@@ -11,7 +11,7 @@ namespace lws
 #define IS_STR_VALUE(v) (IS_OBJECT_VALUE(v) && IS_STR_OBJ(v.object))
 #define IS_ARRAY_VALUE(v) (IS_OBJECT_VALUE(v) && IS_ARRAY_OBJ(v.object))
 #define IS_TABLE_VALUE(v) (IS_OBJECT_VALUE(v) && IS_TABLE_OBJ(v.object))
-#define IS_FIELD_VALUE(v) (IS_OBJECT_VALUE(v) && IS_FIELD_OBJ(v.object))
+#define IS_CLASS_VALUE(v) (IS_OBJECT_VALUE(v) && IS_CLASS_OBJ(v.object))
 #define IS_REF_VALUE(v) (IS_OBJECT_VALUE(v) && IS_REF_OBJ(v.object))
 #define IS_LAMBDA_VALUE(v) (IS_OBJECT_VALUE(v) && IS_LAMBDA_OBJ(v.object))
 #define IS_INVALID_VALUE(v) (v == gInvalidValue)
@@ -24,7 +24,7 @@ namespace lws
 #define TO_ARRAY_VALUE(v) (TO_ARRAY_OBJ(v.object))
 #define TO_TABLE_VALUE(v) (TO_TABLE_OBJ(v.object))
 #define TO_LAMBDA_VALUE(v) (TO_LAMBDA_OBJ(v.object))
-#define TO_FIELD_VALUE(v) (TO_FIELD_OBJ(v.object))
+#define TO_CLASS_VALUE(v) (TO_CLASS_OBJ(v.object))
 #define TO_REF_VALUE(v) (TO_REF_OBJ(v.object))
 
     enum ValueType

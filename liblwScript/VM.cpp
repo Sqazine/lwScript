@@ -71,12 +71,12 @@ namespace lws
 		return object;
 	}
 
-	FieldObject *VM::CreateFieldObject(std::wstring_view name, const std::unordered_map<std::wstring, ValueDesc> &members, const std::vector<std::pair<std::wstring, FieldObject *>> &containedFields)
+	ClassObject *VM::CreateClassObject(std::wstring_view name, const std::unordered_map<std::wstring, ValueDesc> &members, const std::vector<std::pair<std::wstring, ClassObject *>> &parentClasses)
 	{
 		if (curObjCount == maxObjCount)
 			Gc();
 
-		FieldObject *object = new FieldObject(name, members, containedFields);
+		ClassObject *object = new ClassObject(name, members, parentClasses);
 		object->marked = false;
 
 		object->next = firstObject;
@@ -246,7 +246,7 @@ namespace lws
 					rootContext->DefineVariableByName(name, ValueDescType::CONST, value);
 				else
 				{
-					// TODO:now only for enum,to avoiding multiple assign enum field object to root context
+					// TODO:now only for enum,to avoiding multiple assign enum class object to root context
 					// here not process any date temporarily
 				}
 
@@ -416,13 +416,13 @@ namespace lws
 
 				Value varValue = mContext->GetVariableByName(name);
 
-				//create a field object
+				//create a class object
 				if (IS_INVALID_VALUE(varValue))
 				{
-					if (frame->HasFieldFrame(name))
-						PushValue(ExecuteOpCode(frame->GetFieldFrame(name)));
+					if (frame->HasClassFrame(name))
+						PushValue(ExecuteOpCode(frame->GetClassFrame(name)));
 					else
-						Assert(L"No field or variable declaration:" + name);
+						Assert(L"No class or variable declaration:" + name);
 				}
 				else if (IS_REF_VALUE(varValue) && !TO_REF_VALUE(varValue)->isAddressReference)
 				{
@@ -497,22 +497,22 @@ namespace lws
 				PushValue(CreateTableObject(elements));
 				break;
 			}
-			case OP_NEW_FIELD:
+			case OP_NEW_CLASS:
 			{
 				std::wstring name = frame->mStrings[frame->mCodes[++ip]];
 
 				std::unordered_map<std::wstring, ValueDesc> members;
-				std::vector<std::pair<std::wstring, FieldObject *>> containedFields;
+				std::vector<std::pair<std::wstring, ClassObject *>> parentClasses;
 
 				for (auto value : mContext->mValues)
 				{
-					if (value.first.find_first_of(containedFieldPrefixID) == 0 && IS_FIELD_VALUE(value.second.value))
-						containedFields.emplace_back(value.first.substr(wcslen(containedFieldPrefixID)), TO_FIELD_VALUE(value.second.value));
+					if (value.first.find_first_of(containedClassPrefixID) == 0 && IS_CLASS_VALUE(value.second.value))
+						parentClasses.emplace_back(value.first.substr(wcslen(containedClassPrefixID)), TO_CLASS_VALUE(value.second.value));
 					else
 						members[value.first] = value.second;
 				}
 
-				PushValue(CreateFieldObject(name, members, containedFields));
+				PushValue(CreateClassObject(name, members, parentClasses));
 				break;
 			}
 			case OP_GET_INDEX_VAR:
@@ -588,81 +588,81 @@ namespace lws
 					Assert(L"Invalid index op.The indexed object isn't a array object or a table object:" + value.Stringify());
 				break;
 			}
-			case OP_GET_FIELD_VAR:
+			case OP_GET_CLASS_VAR:
 			{
 				std::wstring memberName = frame->mStrings[frame->mCodes[++ip]];
 				Value stackTop = PopValue();
-				if (!IS_FIELD_VALUE(stackTop))
-					Assert(L"Not a field object of the callee of:" + memberName);
-				FieldObject *fieldObj = TO_FIELD_VALUE(stackTop);
-				PushValue(fieldObj->GetMemberByName(memberName));
+				if (!IS_CLASS_VALUE(stackTop))
+					Assert(L"Not a class object of the callee of:" + memberName);
+				ClassObject *classObj = TO_CLASS_VALUE(stackTop);
+				PushValue(classObj->GetMemberByName(memberName));
 				break;
 			}
-			case OP_SET_FIELD_VAR:
+			case OP_SET_CLASS_VAR:
 			{
 				std::wstring memberName = frame->mStrings[frame->mCodes[++ip]];
 				Value stackTop = PopValue();
-				if (!IS_FIELD_VALUE(stackTop))
-					Assert(L"Not a field object of the callee of:" + memberName);
-				FieldObject *fieldObj = TO_FIELD_VALUE(stackTop);
+				if (!IS_CLASS_VALUE(stackTop))
+					Assert(L"Not a class object of the callee of:" + memberName);
+				ClassObject *classObj = TO_CLASS_VALUE(stackTop);
 
 				Value assigner = PopValue();
 
-				fieldObj->AssignMemberByName(memberName, assigner);
+				classObj->AssignMemberByName(memberName, assigner);
 				break;
 			}
-			case OP_GET_FIELD_FUNCTION:
+			case OP_GET_CLASS_FUNCTION:
 			{
 				std::wstring memberName = frame->mStrings[frame->mCodes[++ip]];
 				Value stackTop = PopValue();
-				if (!IS_FIELD_VALUE(stackTop))
+				if (!IS_CLASS_VALUE(stackTop))
 					Assert(L"Not a fleid object of the callee of:" + memberName);
-				FieldObject *fieldObj = TO_FIELD_VALUE(stackTop);
-				std::wstring fieldType = fieldObj->name;
+				ClassObject *classObj = TO_CLASS_VALUE(stackTop);
+				std::wstring classType = classObj->name;
 
-				Frame *fieldFrame = nullptr;
-				if (frame->HasFieldFrame(fieldType)) //function:function add(){return 10;}
-					fieldFrame = frame->GetFieldFrame(fieldType);
+				Frame *classFrame = nullptr;
+				if (frame->HasClassFrame(classType)) //function:function add(){return 10;}
+					classFrame = frame->GetClassFrame(classType);
 				else
-					Assert(L"No field declaration:" + fieldType);
+					Assert(L"No class declaration:" + classType);
 
-				if (fieldFrame->HasFunctionFrame(memberName))
-					PushFrame(fieldFrame->GetFunctionFrame(memberName));
-				else if (!IS_INVALID_VALUE(fieldObj->GetMemberByName(memberName))) //lambda:let add=function(){return 10;}
+				if (classFrame->HasFunctionFrame(memberName))
+					PushFrame(classFrame->GetFunctionFrame(memberName));
+				else if (!IS_INVALID_VALUE(classObj->GetMemberByName(memberName))) //lambda:let add=function(){return 10;}
 				{
-					Value lambdaObject = fieldObj->GetMemberByName(memberName);
+					Value lambdaObject = classObj->GetMemberByName(memberName);
 					if (!IS_LAMBDA_VALUE(lambdaObject))
-						Assert(L"No lambda object:" + memberName + L" in field:" + fieldType);
-					PushFrame(fieldFrame->GetLambdaFrame(TO_LAMBDA_VALUE(lambdaObject)->frameIndex));
+						Assert(L"No lambda object:" + memberName + L" in class:" + classType);
+					PushFrame(classFrame->GetLambdaFrame(TO_LAMBDA_VALUE(lambdaObject)->frameIndex));
 				}
-				else if (!fieldObj->containedFields.empty()) //get contained fields' function
+				else if (!classObj->parentClasses.empty()) //get contained classs' function
 				{
-					for (const auto &containedField : fieldObj->containedFields)
+					for (const auto &containedClass : classObj->parentClasses)
 					{
-						fieldType = containedField.second->name;
-						fieldFrame = nullptr;
-						if (frame->HasFieldFrame(fieldType)) //function:function add(){return 10;}
-							fieldFrame = frame->GetFieldFrame(fieldType);
+						classType = containedClass.second->name;
+						classFrame = nullptr;
+						if (frame->HasClassFrame(classType)) //function:function add(){return 10;}
+							classFrame = frame->GetClassFrame(classType);
 						else
-							Assert(L"No field declaration:" + fieldType);
+							Assert(L"No class declaration:" + classType);
 
-						if (fieldFrame->HasFunctionFrame(memberName))
+						if (classFrame->HasFunctionFrame(memberName))
 						{
-							PushFrame(fieldFrame->GetFunctionFrame(memberName));
+							PushFrame(classFrame->GetFunctionFrame(memberName));
 							break;
 						}
-						else if (!IS_INVALID_VALUE(fieldObj->GetMemberByName(memberName))) //lambda:let add=function(){return 10;}
+						else if (!IS_INVALID_VALUE(classObj->GetMemberByName(memberName))) //lambda:let add=function(){return 10;}
 						{
-							Value lambdaObject = fieldObj->GetMemberByName(memberName);
+							Value lambdaObject = classObj->GetMemberByName(memberName);
 							if (!IS_LAMBDA_VALUE(lambdaObject))
-								Assert(L"No lambda object:" + memberName + L" in field:" + fieldType);
-							PushFrame(fieldFrame->GetLambdaFrame(TO_LAMBDA_VALUE(lambdaObject)->frameIndex));
+								Assert(L"No lambda object:" + memberName + L" in class:" + classType);
+							PushFrame(classFrame->GetLambdaFrame(TO_LAMBDA_VALUE(lambdaObject)->frameIndex));
 							break;
 						}
 					}
 				}
 				else
-					Assert(L"No function in field:" + memberName);
+					Assert(L"No function in class:" + memberName);
 				break;
 			}
 			case OP_ENTER_SCOPE:

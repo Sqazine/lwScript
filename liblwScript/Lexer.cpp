@@ -17,7 +17,7 @@ namespace lws
 		{L"while", TOKEN_WHILE},
 		{L"for", TOKEN_FOR},
 		{L"fn", TOKEN_FUNCTION},
-		{L"field", TOKEN_FIELD},
+		{L"class", TOKEN_CLASS},
 		{L"return", TOKEN_RETURN},
 		{L"static", TOKEN_STATIC},
 		{L"const", TOKEN_CONST},

@@ -71,8 +71,8 @@ namespace lws
 		case AST_FUNCTION:
 			CompileFunctionStmt((FunctionStmt *)stmt, frame);
 			break;
-		case AST_FIELD:
-			CompileFieldStmt((FieldStmt *)stmt, frame);
+		case AST_CLASS:
+			CompileClassStmt((ClassStmt *)stmt, frame);
 			break;
 		default:
 			break;
@@ -246,7 +246,7 @@ namespace lws
 			CompileExpr(k, enumFrame, CONST_INIT);
 		}
 
-		enumFrame->AddOpCode(OP_NEW_FIELD);
+		enumFrame->AddOpCode(OP_NEW_CLASS);
 		uint64_t offset = enumFrame->AddString(enumStmt->enumName->literal);
 		enumFrame->AddOpCode(offset);
 
@@ -293,55 +293,55 @@ namespace lws
 		frame->AddOpCode(offset);
 	}
 
-	void Compiler::CompileFieldStmt(FieldStmt *stmt, Frame *frame)
+	void Compiler::CompileClassStmt(ClassStmt *stmt, Frame *frame)
 	{
-		Frame *fieldFrame = new Frame(frame);
+		Frame *classFrame = new Frame(frame);
 
-		fieldFrame->AddOpCode(OP_ENTER_SCOPE);
+		classFrame->AddOpCode(OP_ENTER_SCOPE);
 
-		for (const auto &containedField : stmt->containedFields)
+		for (const auto &containedClass : stmt->parentClasses)
 		{
-			CompileIdentifierExpr(containedField, fieldFrame, VAR_READ);
-			IdentifierExpr *instanceIdetExpr = new IdentifierExpr(containedFieldPrefixID + containedField->literal);
-			CompileIdentifierExpr(instanceIdetExpr, fieldFrame, VAR_INIT);
+			CompileIdentifierExpr(containedClass, classFrame, VAR_READ);
+			IdentifierExpr *instanceIdetExpr = new IdentifierExpr(containedClassPrefixID + containedClass->literal);
+			CompileIdentifierExpr(instanceIdetExpr, classFrame, VAR_INIT);
 		}
 
 		for (auto &letStmt : stmt->letStmts)
 		{
 			for (auto &variable : letStmt->variables)
 				if (variable.second.value->Type() == AST_LAMBDA)
-					((LambdaExpr *)variable.second.value)->parameters.emplace_back(new IdentifierExpr(L"this")); //add 'this' parameter for field lambda function
+					((LambdaExpr *)variable.second.value)->parameters.emplace_back(new IdentifierExpr(L"this")); //add 'this' parameter for class lambda function
 
-			CompileLetStmt(letStmt, fieldFrame);
+			CompileLetStmt(letStmt, classFrame);
 		}
 
 		for (auto &constStmt : stmt->constStmts)
 		{
 			for (auto &variable : constStmt->consts)
 				if (variable.second.value->Type() == AST_LAMBDA)
-					((LambdaExpr *)variable.second.value)->parameters.emplace_back(new IdentifierExpr(L"this")); //add 'this' parameter for field lambda function
+					((LambdaExpr *)variable.second.value)->parameters.emplace_back(new IdentifierExpr(L"this")); //add 'this' parameter for class lambda function
 
-			CompileConstStmt(constStmt, fieldFrame);
+			CompileConstStmt(constStmt, classFrame);
 		}
 
 		for (const auto &functionStmt : stmt->fnStmts)
 		{
-			functionStmt->parameters.emplace_back(new IdentifierExpr(L"this")); //regisiter field instance to function
+			functionStmt->parameters.emplace_back(new IdentifierExpr(L"this")); //regisiter class instance to function
 
-			CompileFunctionStmt(functionStmt, fieldFrame);
+			CompileFunctionStmt(functionStmt, classFrame);
 		}
 
-		fieldFrame->AddOpCode(OP_NEW_FIELD);
-		uint64_t offset = fieldFrame->AddString(stmt->name);
-		fieldFrame->AddOpCode(offset);
+		classFrame->AddOpCode(OP_NEW_CLASS);
+		uint64_t offset = classFrame->AddString(stmt->name);
+		classFrame->AddOpCode(offset);
 
-		fieldFrame->AddOpCode(OP_NEW_INT);
-		offset = fieldFrame->AddIntNum(1);
-		fieldFrame->AddOpCode(offset);
+		classFrame->AddOpCode(OP_NEW_INT);
+		offset = classFrame->AddIntNum(1);
+		classFrame->AddOpCode(offset);
 
-		fieldFrame->AddOpCode(OP_RETURN);
+		classFrame->AddOpCode(OP_RETURN);
 
-		frame->AddFieldFrame(stmt->name, fieldFrame);
+		frame->AddClassFrame(stmt->name, classFrame);
 	}
 
 	void Compiler::CompileExpr(Expr *expr, Frame *frame, ObjectState state)
@@ -396,8 +396,8 @@ namespace lws
 		case AST_FUNCTION_CALL:
 			CompileFunctionCallExpr((FunctionCallExpr *)expr, frame);
 			break;
-		case AST_FIELD_CALL:
-			CompileFieldCallExpr((FieldCallExpr *)expr, frame, state);
+		case AST_CLASS_CALL:
+			CompileClassCallExpr((ClassCallExpr *)expr, frame, state);
 			break;
 		case AST_REF:
 			CompileRefExpr((RefExpr *)expr, frame);
@@ -451,14 +451,14 @@ namespace lws
 			frame->AddOpCode(OP_NEW_VAR);
 		else if (state == CONST_INIT)
 			frame->AddOpCode(OP_NEW_CONST);
-		else if (state == FIELD_MEMBER_READ)
-			frame->AddOpCode(OP_GET_FIELD_VAR);
-		else if (state == FIELD_MEMBER_WRITE)
-			frame->AddOpCode(OP_SET_FIELD_VAR);
+		else if (state == CLASS_MEMBER_READ)
+			frame->AddOpCode(OP_GET_CLASS_VAR);
+		else if (state == CLASS_MEMBER_WRITE)
+			frame->AddOpCode(OP_SET_CLASS_VAR);
 		else if (state == FUNCTION_READ)
 			frame->AddOpCode(OP_GET_FUNCTION);
-		else if (state == FIELD_FUNCTION_READ)
-			frame->AddOpCode(OP_GET_FIELD_FUNCTION);
+		else if (state == CLASS_FUNCTION_READ)
+			frame->AddOpCode(OP_GET_CLASS_FUNCTION);
 
 		uint64_t offset = frame->AddString(expr->literal);
 		frame->AddOpCode(offset);
@@ -682,11 +682,11 @@ namespace lws
 		for (const auto &arg : expr->arguments)
 			CompileExpr(arg, frame);
 
-		//extra args such as 'this' or the field contained field instance
+		//extra args such as 'this' or the class contained class instance
 		int64_t extraArgCount = 0;
-		if (expr->name->Type() == AST_FIELD_CALL)
+		if (expr->name->Type() == AST_CLASS_CALL)
 		{
-			CompileRefExpr(new RefExpr(((FieldCallExpr *)expr->name)->callee), frame, ReferenceType::OBJECT);
+			CompileRefExpr(new RefExpr(((ClassCallExpr *)expr->name)->callee), frame, ReferenceType::OBJECT);
 			extraArgCount++;
 		}
 		//argument count
@@ -699,17 +699,17 @@ namespace lws
 			IdentifierExpr *tmpIden = new IdentifierExpr(((IdentifierExpr *)expr->name)->literal + functionNameAndArgumentConnector + std::to_wstring(expr->arguments.size()));
 			CompileExpr(tmpIden, frame, FUNCTION_READ);
 		}
-		else if (expr->name->Type() == AST_FIELD_CALL)
+		else if (expr->name->Type() == AST_CLASS_CALL)
 		{
-			FieldCallExpr *fieldCallExpr = (FieldCallExpr *)expr->name;
+			ClassCallExpr *classCallExpr = (ClassCallExpr *)expr->name;
 
-			CompileExpr(fieldCallExpr->callee, frame);
+			CompileExpr(classCallExpr->callee, frame);
 
-			if (fieldCallExpr->callMember->Type() == AST_FIELD_CALL) //continuous field call such as a.b.c;
-				CompileExpr(((FieldCallExpr *)fieldCallExpr->callMember)->callee, frame, FIELD_MEMBER_READ);
+			if (classCallExpr->callMember->Type() == AST_CLASS_CALL) //continuous class call such as a.b.c;
+				CompileExpr(((ClassCallExpr *)classCallExpr->callMember)->callee, frame, CLASS_MEMBER_READ);
 
-			IdentifierExpr *tmpIden = new IdentifierExpr(((IdentifierExpr *)fieldCallExpr->callMember)->literal + functionNameAndArgumentConnector + std::to_wstring(expr->arguments.size() + 1)); //+1 for adding 'this' to parameter count
-			CompileExpr(tmpIden, frame, FIELD_FUNCTION_READ);
+			IdentifierExpr *tmpIden = new IdentifierExpr(((IdentifierExpr *)classCallExpr->callMember)->literal + functionNameAndArgumentConnector + std::to_wstring(expr->arguments.size() + 1)); //+1 for adding 'this' to parameter count
+			CompileExpr(tmpIden, frame, CLASS_FUNCTION_READ);
 		}
 		else
 			CompileExpr(expr->name, frame, FUNCTION_READ);
@@ -717,17 +717,17 @@ namespace lws
 		frame->AddOpCode(OP_FUNCTION_CALL);
 	}
 
-	void Compiler::CompileFieldCallExpr(FieldCallExpr *expr, Frame *frame, ObjectState state)
+	void Compiler::CompileClassCallExpr(ClassCallExpr *expr, Frame *frame, ObjectState state)
 	{
 		CompileExpr(expr->callee, frame);
 
-		if (expr->callMember->Type() == AST_FIELD_CALL) //continuous field call such as a.b.c;
-			CompileExpr(((FieldCallExpr *)expr->callMember)->callee, frame, FIELD_MEMBER_READ);
+		if (expr->callMember->Type() == AST_CLASS_CALL) //continuous class call such as a.b.c;
+			CompileExpr(((ClassCallExpr *)expr->callMember)->callee, frame, CLASS_MEMBER_READ);
 
 		if (state == VAR_READ)
-			CompileExpr(expr->callMember, frame, FIELD_MEMBER_READ);
+			CompileExpr(expr->callMember, frame, CLASS_MEMBER_READ);
 		else if (state == VAR_WRITE)
-			CompileExpr(expr->callMember, frame, FIELD_MEMBER_WRITE);
+			CompileExpr(expr->callMember, frame, CLASS_MEMBER_WRITE);
 	}
 
 	void Compiler::CompileBreakAndContinueStmt(uint64_t addressOffset, Frame *frame)
@@ -833,23 +833,23 @@ namespace lws
 			result.insert(result.end(), bodyResult.begin(), bodyResult.end());
 			return result;
 		}
-		case AST_FIELD:
+		case AST_CLASS:
 		{
 			std::vector<Expr *> result;
 
-			for (const auto &letStmt : ((FieldStmt *)astNode)->letStmts)
+			for (const auto &letStmt : ((ClassStmt *)astNode)->letStmts)
 			{
 				auto letStmtResult = StatsPostfixExprs(letStmt);
 				result.insert(result.end(), letStmtResult.begin(), letStmtResult.end());
 			}
 
-			for (const auto &constStmt : ((FieldStmt *)astNode)->constStmts)
+			for (const auto &constStmt : ((ClassStmt *)astNode)->constStmts)
 			{
 				auto constStmtResult = StatsPostfixExprs(constStmt);
 				result.insert(result.end(), constStmtResult.begin(), constStmtResult.end());
 			}
 
-			for (const auto &fnStmt : ((FieldStmt *)astNode)->fnStmts)
+			for (const auto &fnStmt : ((ClassStmt *)astNode)->fnStmts)
 			{
 				auto fnStmtResult = StatsPostfixExprs(fnStmt);
 				result.insert(result.end(), fnStmtResult.begin(), fnStmtResult.end());
@@ -956,12 +956,12 @@ namespace lws
 			}
 			return result;
 		}
-		case AST_FIELD_CALL:
+		case AST_CLASS_CALL:
 		{
 			std::vector<Expr *> result;
-			auto calleeResult = StatsPostfixExprs(((FieldCallExpr *)astNode)->callee);
+			auto calleeResult = StatsPostfixExprs(((ClassCallExpr *)astNode)->callee);
 			result.insert(result.end(), calleeResult.begin(), calleeResult.end());
-			auto callMemberResult = StatsPostfixExprs(((FieldCallExpr *)astNode)->callMember);
+			auto callMemberResult = StatsPostfixExprs(((ClassCallExpr *)astNode)->callMember);
 			result.insert(result.end(), callMemberResult.begin(), callMemberResult.end());
 			return result;
 		}

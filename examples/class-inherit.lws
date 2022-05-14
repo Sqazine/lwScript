@@ -1,4 +1,4 @@
-field vec2
+class vec2
 {
     let x=10,y=8;
 
@@ -8,7 +8,7 @@ field vec2
     }
 }
 
-field vec3:vec2
+class vec3:vec2
 {
     let z=20;
 
@@ -18,7 +18,7 @@ field vec3:vec2
     }
 }
 
-field vec4:vec3
+class vec4:vec3
 {
     let w=40;
     fn sqLength()
@@ -27,7 +27,7 @@ field vec4:vec3
     }
 }
 
-field vec5:vec4
+class vec5:vec4
 {
     let q=50;
     fn sqLength()

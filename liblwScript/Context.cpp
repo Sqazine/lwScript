@@ -110,15 +110,15 @@ namespace lws
 				else
 					Assert(L"const variable at address:(" + std::wstring(address) + L") cannot be assigned");
 			}
-			else if (IS_FIELD_VALUE(contextValue.value))
+			else if (IS_CLASS_VALUE(contextValue.value))
 			{
-				FieldObject *field = TO_FIELD_VALUE(contextValue.value);
+				ClassObject *klass = TO_CLASS_VALUE(contextValue.value);
 				if (contextValue.type != ValueDescType::CONST)
 				{
-					for (auto& [classMemberKey, classMemberValue] : field->members)
+					for (auto& [classMemberKey, classMemberValue] : klass->members)
 						if (PointerAddressToString(classMemberValue.value.object) == address)
 						{
-							field->members[classMemberKey].value = value;
+							klass->members[classMemberKey].value = value;
 							return;
 						}
 				}
@@ -157,10 +157,10 @@ namespace lws
 					if (PointerAddressToString(tableValue.object) == address)
 						return table->elements[tableKey];
 			}
-			else if (IS_FIELD_VALUE(contextValue.value))
+			else if (IS_CLASS_VALUE(contextValue.value))
 			{
-				FieldObject *field = TO_FIELD_VALUE(contextValue.value);
-				return field->GetMemberByAddress(address);
+				ClassObject *klass = TO_CLASS_VALUE(contextValue.value);
+				return klass->GetMemberByAddress(address);
 			}
 		}
 

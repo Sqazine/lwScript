@@ -63,7 +63,7 @@ namespace lws
 		TOKEN_WHILE,				 // while
 		TOKEN_FOR,					 // for
 		TOKEN_FUNCTION,				 // fn
-		TOKEN_FIELD,				 // field
+		TOKEN_CLASS,				 // class
 		TOKEN_RETURN,				 // return
 		TOKEN_STATIC,				 // static
 		TOKEN_CONST,				 // const

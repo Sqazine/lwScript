@@ -13,9 +13,9 @@ namespace lws
 		VAR_READ,
 		VAR_WRITE,
 		FUNCTION_READ,
-		FIELD_FUNCTION_READ,
-		FIELD_MEMBER_READ,
-		FIELD_MEMBER_WRITE,
+		CLASS_FUNCTION_READ,
+		CLASS_MEMBER_READ,
+		CLASS_MEMBER_WRITE,
 	};
 	class Compiler
 	{
@@ -47,7 +47,7 @@ namespace lws
 		void CompileContinueStmt(uint64_t addressOffset, Frame *frame);
 		void CompileEnumStmt(EnumStmt *enumStmt, Frame *frame);
 		void CompileFunctionStmt(FunctionStmt *stmt, Frame *frame);
-		void CompileFieldStmt(FieldStmt *stmt, Frame *frame);
+		void CompileClassStmt(ClassStmt *stmt, Frame *frame);
 
 		void CompileExpr(Expr *expr, Frame *frame, ObjectState state = VAR_READ);
 		void CompileIntNumExpr(IntNumExpr *expr, Frame *frame);
@@ -67,7 +67,7 @@ namespace lws
 		void CompileLambdaExpr(LambdaExpr *stmt, Frame *frame);
 		void CompileConditionExpr(ConditionExpr *expr, Frame *frame);
 		void CompileFunctionCallExpr(FunctionCallExpr *expr, Frame *frame);
-		void CompileFieldCallExpr(FieldCallExpr *expr, Frame *frame, ObjectState state = VAR_READ);
+		void CompileClassCallExpr(ClassCallExpr *expr, Frame *frame, ObjectState state = VAR_READ);
 
 		void CompileBreakAndContinueStmt(uint64_t addressOffset, Frame *frame);
 

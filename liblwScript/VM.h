@@ -36,7 +36,7 @@ namespace lws
 		StrObject *CreateStrObject(std::wstring_view value);
 		ArrayObject *CreateArrayObject(const std::vector<Value> &elements = {});
 		TableObject *CreateTableObject(const ValueUnorderedMap &elements = {});
-		FieldObject *CreateFieldObject(std::wstring_view name, const std::unordered_map<std::wstring, ValueDesc> &members, const std::vector<std::pair<std::wstring, FieldObject *>> &containedFields = {});
+		ClassObject *CreateClassObject(std::wstring_view name, const std::unordered_map<std::wstring, ValueDesc> &members, const std::vector<std::pair<std::wstring, ClassObject *>> &parentClasses = {});
 		LambdaObject *CreateLambdaObject(int64_t frameIdx);
 		RefObject *CreateRefObject(std::wstring_view name, Value index);
 		RefObject *CreateRefObject(std::wstring_view address);
