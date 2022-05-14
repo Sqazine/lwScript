@@ -348,7 +348,7 @@ namespace lws
 				if (IS_REF_VALUE(variable) && !TO_REF_VALUE(variable)->isAddressReference)
 				{
 					auto refObject = TO_REF_VALUE(variable);
-					if (refObject->index == nullptr)
+					if (IS_INVALID_VALUE(refObject->index))
 						mContext->AssignVariableByName(refObject->name, value);
 					else
 					{
@@ -612,7 +612,7 @@ namespace lws
 
 				if (fieldFrame->HasFunctionFrame(memberName))
 					PushFrame(fieldFrame->GetFunctionFrame(memberName));
-				else if (fieldObj->GetMemberByName(memberName) != nullptr) //lambda:let add=function(){return 10;}
+				else if (!IS_INVALID_VALUE(fieldObj->GetMemberByName(memberName))) //lambda:let add=function(){return 10;}
 				{
 					Value lambdaObject = fieldObj->GetMemberByName(memberName);
 					if (!IS_LAMBDA_VALUE(lambdaObject))
@@ -635,7 +635,7 @@ namespace lws
 							PushFrame(fieldFrame->GetFunctionFrame(memberName));
 							break;
 						}
-						else if (fieldObj->GetMemberByName(memberName) != nullptr) //lambda:let add=function(){return 10;}
+						else if (!IS_INVALID_VALUE(fieldObj->GetMemberByName(memberName))) //lambda:let add=function(){return 10;}
 						{
 							Value lambdaObject = fieldObj->GetMemberByName(memberName);
 							if (!IS_LAMBDA_VALUE(lambdaObject))
@@ -759,8 +759,8 @@ namespace lws
 			{
 				auto value = PopValue();
 				PushValue(CreateRefObject(PointerAddressToString(&value)));
-			}
 				break;
+			}
 			case OP_SELF_INCREMENT:
 			{
 				auto stackTop = PopValue();
