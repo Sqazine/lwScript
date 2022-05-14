@@ -62,7 +62,7 @@ namespace lws
 		void CompileIndexExpr(IndexExpr *expr, Frame *frame, ObjectState state = VAR_READ);
 		void CompilePrefixExpr(PrefixExpr *expr, Frame *frame);
 		void CompileInfixExpr(InfixExpr *expr, Frame *frame);
-		void CompilePostfixExpr(PostfixExpr *expr, Frame *frame, bool isDelayCompile = true);
+		void CompilePostfixExpr(PostfixExpr *expr, Frame *frame, bool isDelayCompile = true,ObjectState state = VAR_READ);
 		void CompileRefExpr(RefExpr *expr, Frame *frame, ReferenceType type = ReferenceType::VARIABLE);
 		void CompileLambdaExpr(LambdaExpr *stmt, Frame *frame);
 		void CompileConditionExpr(ConditionExpr *expr, Frame *frame);

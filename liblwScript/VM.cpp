@@ -153,8 +153,8 @@ namespace lws
 #define COMMON_BINARY(op)                                                                  \
 	do                                                                                     \
 	{                                                                                      \
-		Value left = PopValue();                                                           \
 		Value right = PopValue();                                                          \
+		Value left = PopValue();                                                           \
 		if (IS_INT_VALUE(right) && IS_INT_VALUE(left))                                     \
 			PushValue(Value(TO_INT_VALUE(left) op TO_INT_VALUE(right)));                   \
 		else if (IS_INT_VALUE(right) && IS_REAL_VALUE(left))                               \

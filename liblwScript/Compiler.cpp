@@ -385,7 +385,7 @@ namespace lws
 			CompileInfixExpr((InfixExpr *)expr, frame);
 			break;
 		case AST_POSTFIX:
-			CompilePostfixExpr((PostfixExpr *)expr, frame);
+			CompilePostfixExpr((PostfixExpr *)expr, frame, true, state);
 			break;
 		case AST_CONDITION:
 			CompileConditionExpr((ConditionExpr *)expr, frame);
@@ -511,9 +511,22 @@ namespace lws
 		else if (expr->op == L"!")
 			frame->AddOpCode(OP_NOT);
 		else if (expr->op == L"++")
+		{
+			while (expr->right->Type() == AST_PREFIX && ((PrefixExpr *)expr->right)->op == L"++" || ((PrefixExpr *)expr->right)->op == L"--")
+				expr = (PrefixExpr *)expr->right;
 			frame->AddOpCode(OP_SELF_INCREMENT);
+			CompileExpr(expr->right, frame, VAR_WRITE);
+			CompileExpr(expr->right, frame, VAR_READ);
+		}
 		else if (expr->op == L"--")
+		{
+			while (expr->right->Type() == AST_PREFIX && ((PrefixExpr *)expr->right)->op == L"++" || ((PrefixExpr *)expr->right)->op == L"--")
+				expr = (PrefixExpr *)expr->right;
+
 			frame->AddOpCode(OP_SELF_DECREMENT);
+			CompileExpr(expr->right, frame, VAR_WRITE);
+			CompileExpr(expr->right, frame, VAR_READ);
+		}
 	}
 
 	void Compiler::CompileInfixExpr(InfixExpr *expr, Frame *frame)
@@ -626,9 +639,9 @@ namespace lws
 		}
 	}
 
-	void Compiler::CompilePostfixExpr(PostfixExpr *expr, Frame *frame, bool isDelayCompile)
+	void Compiler::CompilePostfixExpr(PostfixExpr *expr, Frame *frame, bool isDelayCompile, ObjectState state)
 	{
-		CompileExpr(expr->left, frame);
+		CompileExpr(expr->left, frame, state);
 
 		//factorial don't need to delay compile
 		if (expr->op == L"!")
@@ -636,9 +649,15 @@ namespace lws
 		else if (!isDelayCompile)
 		{
 			if (expr->op == L"++")
+			{
 				frame->AddOpCode(OP_SELF_INCREMENT);
+				CompileExpr(expr->left, frame, VAR_WRITE);
+			}
 			else if (expr->op == L"--")
+			{
 				frame->AddOpCode(OP_SELF_DECREMENT);
+				CompileExpr(expr->left, frame, VAR_WRITE);
+			}
 		}
 	}
 
@@ -738,7 +757,7 @@ namespace lws
 
 	std::vector<Expr *> Compiler::StatsPostfixExprs(AstNode *astNode)
 	{
-		if(!astNode)//check astnode is nullptr
+		if (!astNode) //check astnode is nullptr
 			return {};
 
 		switch (astNode->Type())

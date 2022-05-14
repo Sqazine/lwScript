@@ -221,7 +221,7 @@ namespace lws
 				UNARY_INSTR_STRINGIFY(OP_RETURN);
 				break;
 			case OP_SAVE_TO_GLOBAL:
-				BINARY_INSTR_STRINGIFY(OP_SAVE_TO_GLOBAL,mStrings);
+				BINARY_INSTR_STRINGIFY(OP_SAVE_TO_GLOBAL, mStrings);
 				break;
 			case OP_NEW_REAL:
 				BINARY_INSTR_STRINGIFY(OP_NEW_REAL, mRealNums);
@@ -370,7 +370,7 @@ namespace lws
 			case OP_SELF_DECREMENT:
 				UNARY_INSTR_STRINGIFY(OP_SELF_DECREMENT);
 				break;
-			case OP_FACTORIAL :
+			case OP_FACTORIAL:
 				UNARY_INSTR_STRINGIFY(OP_FACTORIAL);
 				break;
 			default:
