@@ -1,7 +1,7 @@
 #pragma once
 #include <unordered_map>
 #include <functional>
-#include "Object.h"
+#include "Value.h"
 namespace lws
 {
     class Library
@@ -10,12 +10,12 @@ namespace lws
         Library(class VM *vm);
         ~Library();
 
-        virtual void AddNativeFunction(std::wstring_view name, std::function<Object *(std::vector<Object *>)> fn);
-        virtual std::function<Object *(std::vector<Object *>)> GetNativeFunction(std::wstring_view fnName);
+        virtual void AddNativeFunction(std::wstring_view name, std::function<Value(std::vector<Value>)> fn);
+        virtual std::function<Value(std::vector<Value>)> GetNativeFunction(std::wstring_view fnName);
         virtual bool HasNativeFunction(std::wstring_view name);
 
     protected:
-        std::unordered_map<std::wstring, std::function<Object *(std::vector<Object *>)>> mNativeFunctions;
+        std::unordered_map<std::wstring, std::function<Value(std::vector<Value>)>> mNativeFunctions;
         class VM *mVMHandle;
     };
   

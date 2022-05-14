@@ -10,17 +10,17 @@ namespace lws
 	}
 	Library::~Library()
 	{
-		std::unordered_map<std::wstring, std::function<Object* (std::vector<Object*>)>>().swap(mNativeFunctions);
+		std::unordered_map<std::wstring, std::function<Value(std::vector<Value>)>>().swap(mNativeFunctions);
 	}
 
-	void Library::AddNativeFunction(std::wstring_view name, std::function<Object* (std::vector<Object*>)> fn)
+	void Library::AddNativeFunction(std::wstring_view name, std::function<Value(std::vector<Value>)> fn)
 	{
 		auto iter = mNativeFunctions.find(name.data());
 		if (iter != mNativeFunctions.end())
 			Assert(std::wstring(L"Already exists native function:") + name.data());
 		mNativeFunctions[name.data()] = fn;
 	}
-	std::function<Object* (std::vector<Object*>)> Library::GetNativeFunction(std::wstring_view fnName)
+	std::function<Value(std::vector<Value>)> Library::GetNativeFunction(std::wstring_view fnName)
 	{
 		auto iter = mNativeFunctions.find(fnName.data());
 		if (iter != mNativeFunctions.end())
@@ -40,25 +40,25 @@ namespace lws
 	IO::IO(VM* vm)
 		: Library(vm)
 	{
-		mNativeFunctions[L"print"] = [this](std::vector<Object*> args) -> Object*
+		mNativeFunctions[L"print"] = [this](std::vector<Value> args) -> Value
 		{
 			if (args.empty())
 				return nullptr;
 
 			if (args.size() == 1)
 			{
-				std::wcout << args[0]->Stringify();
+				std::wcout << args[0].Stringify();
 				return nullptr;
 			}
 
-			if (args[0]->Type() != OBJECT_STR)
+			if (!IS_STR_VALUE(args[0]))
 			{
 				for (const auto& arg : args)
-					std::wcout << arg->Stringify();
+					std::wcout << arg.Stringify();
 				return nullptr;
 			}
 
-			std::wstring content = TO_STR_OBJ(args[0])->value;
+			std::wstring content = TO_STR_VALUE(args[0]);
 
 			if (args.size() != 1) //formatting output
 			{
@@ -67,7 +67,7 @@ namespace lws
 				while (pos != std::wstring::npos)
 				{
 					if (argpos < args.size())
-						content.replace(pos, 2, args[argpos++]->Stringify());
+						content.replace(pos, 2, args[argpos++].Stringify());
 					else
 						content.replace(pos, 2, L"null");
 					pos = content.find(L"{}");
@@ -102,25 +102,25 @@ namespace lws
 			return nullptr;
 		};
 
-		mNativeFunctions[L"println"] = [this](std::vector<Object*> args) -> Object*
+		mNativeFunctions[L"println"] = [this](std::vector<Value> args) -> Value
 		{
 			if (args.empty())
 				return nullptr;
 
 			if (args.size() == 1)
 			{
-				std::wcout << args[0]->Stringify() << std::endl;
+				std::wcout << args[0].Stringify() << std::endl;
 				return nullptr;
 			}
 
-			if (args[0]->Type() != OBJECT_STR)
+			if (!IS_STR_VALUE(args[0]))
 			{
 				for (const auto& arg : args)
-					std::wcout << arg->Stringify() << std::endl;
+					std::wcout << arg.Stringify() << std::endl;
 				return nullptr;
 			}
 
-			std::wstring content = TO_STR_OBJ(args[0])->value;
+			std::wstring content = TO_STR_VALUE(args[0]);
 
 			if (args.size() != 1) //formatting output
 			{
@@ -129,7 +129,7 @@ namespace lws
 				while (pos != std::wstring::npos)
 				{
 					if (argpos < args.size())
-						content.replace(pos, 2, args[argpos++]->Stringify());
+						content.replace(pos, 2, args[argpos++].Stringify());
 					else
 						content.replace(pos, 2, L"null");
 					pos = content.find(L"{}");
@@ -168,94 +168,94 @@ namespace lws
 	DataStructure::DataStructure(VM* vm)
 		: Library(vm)
 	{
-		mNativeFunctions[L"sizeof"] = [this](std::vector<Object*> args) -> Object*
+		mNativeFunctions[L"sizeof"] = [this](std::vector<Value> args) -> Value
 		{
 			if (args.empty() || args.size() > 1)
 				Assert(L"[Native function 'sizeof']:Expect a argument.");
 
-			if (IS_ARRAY_OBJ(args[0]))
-				return mVMHandle->CreateIntNumObject(TO_ARRAY_OBJ(args[0])->elements.size());
-			else if (IS_TABLE_OBJ(args[0]))
-				return mVMHandle->CreateIntNumObject(TO_TABLE_OBJ(args[0])->elements.size());
-			else if (IS_STR_OBJ(args[0]))
-				return mVMHandle->CreateIntNumObject(TO_STR_OBJ(args[0])->value.size());
+			if (IS_ARRAY_VALUE(args[0]))
+				return Value((int64_t)TO_ARRAY_VALUE(args[0])->elements.size());
+			else if (IS_TABLE_VALUE(args[0]))
+				return Value((int64_t)TO_TABLE_VALUE(args[0])->elements.size());
+			else if (IS_STR_VALUE(args[0]))
+				return Value((int64_t)TO_STR_VALUE(args[0]).size());
 			else
 				Assert(L"[Native function 'sizeof']:Expect a array,table ot string argument.");
 			return nullptr;
 		};
 
-		mNativeFunctions[L"insert"] = [this](std::vector<Object*> args) -> Object*
+		mNativeFunctions[L"insert"] = [this](std::vector<Value> args) -> Value
 		{
 			if (args.empty() || args.size() != 3)
 				Assert(L"[Native function 'insert']:Expect 3 arguments,the arg0 must be array,table or string object.The arg1 is the index object.The arg2 is the value object.");
 
-			if (IS_ARRAY_OBJ(args[0]))
+			if (IS_ARRAY_VALUE(args[0]))
 			{
-				ArrayObject* array = TO_ARRAY_OBJ(args[0]);
-				if (!IS_INT_OBJ(args[1]))
+				ArrayObject* array = TO_ARRAY_VALUE(args[0]);
+				if (!IS_INT_VALUE(args[1]))
 					Assert(L"[Native function 'insert']:Arg1 must be integer type while insert to a array");
 
-				int64_t iIndex = TO_INT_OBJ(args[1])->value;
+				int64_t iIndex = TO_INT_VALUE(args[1]);
 
 				if (iIndex < 0 || iIndex >= (int64_t)array->elements.size())
 					Assert(L"[Native function 'insert']:Index out of array's range");
 
 				array->elements.insert(array->elements.begin() + iIndex, 1, args[2]);
 			}
-			else if (IS_TABLE_OBJ(args[0]))
+			else if (IS_TABLE_VALUE(args[0]))
 			{
-				TableObject* table = TO_TABLE_OBJ(args[0]);
+				TableObject* table = TO_TABLE_VALUE(args[0]);
 
 				for (auto [key, value] : table->elements)
-					if (key->IsEqualTo(args[1]))
-						Assert(L"[Native function 'insert']:Already exist value in the table object of arg1" + args[1]->Stringify());
+					if (key==args[1])
+						Assert(L"[Native function 'insert']:Already exist value in the table object of arg1" + args[1].Stringify());
 
 				table->elements[args[1]] = args[2];
 			}
-			else if (IS_STR_OBJ(args[0]))
+			else if (IS_STR_VALUE(args[0]))
 			{
-				StrObject* string = TO_STR_OBJ(args[0]);
-				if (!IS_INT_OBJ(args[1]))
+				auto string = TO_STR_VALUE(args[0]);
+				if (!IS_INT_VALUE(args[1]))
 					Assert(L"[Native function 'insert']:Arg1 must be integer type while insert to a array");
 
-				int64_t iIndex = TO_INT_OBJ(args[1])->value;
+				int64_t iIndex = TO_INT_VALUE(args[1]);
 
-				if (iIndex < 0 || iIndex >= (int64_t)string->value.size())
+				if (iIndex < 0 || iIndex >= (int64_t)string.size())
 					Assert(L"[Native function 'insert']:Index out of array's range");
 
-				string->value.insert(iIndex, args[2]->Stringify());
+				string.insert(iIndex, args[2].Stringify());
 			}
 			else
 				Assert(L"[Native function 'insert']:Expect a array,table ot string argument.");
 			return nullptr;
 		};
 
-		mNativeFunctions[L"erase"] = [this](std::vector<Object*> args) -> Object*
+		mNativeFunctions[L"erase"] = [this](std::vector<Value> args) -> Value
 		{
 			if (args.empty() || args.size() != 2)
 				Assert(L"[Native function 'erase']:Expect 2 arguments,the arg0 must be array,table or string object.The arg1 is the corresponding index object.");
 
-			if (IS_ARRAY_OBJ(args[0]))
+			if (IS_ARRAY_VALUE(args[0]))
 			{
-				ArrayObject* array = TO_ARRAY_OBJ(args[0]);
-				if (!IS_INT_OBJ(args[1]))
+				ArrayObject* array = TO_ARRAY_VALUE(args[0]);
+				if (!IS_INT_VALUE(args[1]))
 					Assert(L"[Native function 'erase']:Arg1 must be integer type while insert to a array");
 
-				int64_t iIndex = TO_INT_OBJ(args[1])->value;
+				int64_t iIndex = TO_INT_VALUE(args[1]);
 
 				if (iIndex < 0 || iIndex >= (int64_t)array->elements.size())
 					Assert(L"[Native function 'erase']:Index out of array's range");
 
 				array->elements.erase(array->elements.begin() + iIndex);
 			}
-			else if (IS_TABLE_OBJ(args[0]))
+			else if (IS_TABLE_VALUE(args[0]))
 			{
-				TableObject* table = TO_TABLE_OBJ(args[0]);
+				TableObject* table = TO_TABLE_VALUE(args[0]);
 
 				bool hasValue = false;
 
 				for (auto it = table->elements.begin(); it != table->elements.end(); ++it)
-					if (it->first->IsEqualTo(args[1]))
+					if (it->first==args[1])
 					{
 						table->elements.erase(it);
 						hasValue = true;
@@ -265,18 +265,18 @@ namespace lws
 				if (!hasValue)
 					Assert(L"[Native function 'erase']:No corresponding index in table.");
 			}
-			else if (IS_STR_OBJ(args[0]))
+			else if (IS_STR_VALUE(args[0]))
 			{
-				StrObject* string = TO_STR_OBJ(args[0]);
-				if (!IS_INT_OBJ(args[1]))
+				auto string = TO_STR_VALUE(args[0]);
+				if (!IS_INT_VALUE(args[1]))
 					Assert(L"[Native function 'erase']:Arg1 must be integer type while insert to a array");
 
-				int64_t iIndex = TO_INT_OBJ(args[1])->value;
+				int64_t iIndex = TO_INT_VALUE(args[1]);
 
-				if (iIndex < 0 || iIndex >= (int64_t)string->value.size())
+				if (iIndex < 0 || iIndex >= (int64_t)string.size())
 					Assert(L"[Native function 'erase']:Index out of array's range");
 
-				string->value.erase(string->value.begin() + iIndex);
+				string.erase(string.begin() + iIndex);
 			}
 			else
 				Assert(L"[Native function 'erase']:Expect a array,table ot string argument.");
@@ -287,12 +287,12 @@ namespace lws
 	Memory::Memory(VM *vm)
 		: Library(vm)
 	{
-		mNativeFunctions[L"addressof"] = [this](std::vector<Object *> args) -> Object *
+		mNativeFunctions[L"addressof"] = [this](std::vector<Value> args) -> Value
 		{
 			if (args.empty() || args.size() != 1)
 				Assert(L"[Native function 'addressof']:Expect 1 arguments.");
 
-			return mVMHandle->CreateStrObject(PointerAddressToString(args[0]));
+			return Value(PointerAddressToString(&args[0]));
 		};
 	}
 

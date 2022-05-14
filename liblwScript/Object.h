@@ -4,25 +4,17 @@
 #include <unordered_map>
 #include <functional>
 #include "Utils.h"
+#include "Value.h"
 #include "Context.h"
 namespace lws
 {
-#define TO_INT_OBJ(obj) ((IntNumObject *)obj)
-#define TO_REAL_OBJ(obj) ((RealNumObject *)obj)
-#define TO_STR_OBJ(obj) ((StrObject *)obj)
-#define TO_NULL_OBJ(obj) ((NullObject *)obj)
-#define TO_BOOL_OBJ(obj) ((BoolObject *)obj)
+
 #define TO_ARRAY_OBJ(obj) ((ArrayObject *)obj)
 #define TO_TABLE_OBJ(obj) ((TableObject *)obj)
 #define TO_LAMBDA_OBJ(obj) ((LambdaObject *)obj)
 #define TO_FIELD_OBJ(obj) ((FieldObject *)obj)
 #define TO_REF_OBJ(obj) ((RefObject *)obj)
 
-#define IS_INT_OBJ(obj) (obj->Type() == OBJECT_INT)
-#define IS_REAL_OBJ(obj) (obj->Type() == OBJECT_REAL)
-#define IS_STR_OBJ(obj) (obj->Type() == OBJECT_STR)
-#define IS_BOOL_OBJ(obj) (obj->Type() == OBJECT_BOOL)
-#define IS_NULL_OBJ(obj) (obj->Type() == OBJECT_NULL)
 #define IS_ARRAY_OBJ(obj) (obj->Type() == OBJECT_ARRAY)
 #define IS_TABLE_OBJ(obj) (obj->Type() == OBJECT_TABLE)
 #define IS_LAMBDA_OBJ(obj) (obj->Type() == OBJECT_LAMBDA)
@@ -31,11 +23,6 @@ namespace lws
 
 	enum ObjectType
 	{
-		OBJECT_INT,
-		OBJECT_REAL,
-		OBJECT_STR,
-		OBJECT_BOOL,
-		OBJECT_NULL,
 		OBJECT_ARRAY,
 		OBJECT_TABLE,
 		OBJECT_LAMBDA,
@@ -57,82 +44,10 @@ namespace lws
 		bool marked;
 		Object *next;
 	};
-
-	struct IntNumObject : public Object
-	{
-		IntNumObject();
-		IntNumObject(int64_t value);
-		~IntNumObject();
-
-		std::wstring Stringify() override;
-		ObjectType Type() override;
-		void Mark() override;
-		void UnMark() override;
-		bool IsEqualTo(Object *other) override;
-
-		int64_t value;
-	};
-
-	struct RealNumObject : public Object
-	{
-		RealNumObject();
-		RealNumObject(double value);
-		~RealNumObject();
-
-		std::wstring Stringify() override;
-		ObjectType Type() override;
-		void Mark() override;
-		void UnMark() override;
-		bool IsEqualTo(Object *other) override;
-
-		double value;
-	};
-
-	struct StrObject : public Object
-	{
-		StrObject();
-		StrObject(std::wstring_view value);
-		~StrObject();
-
-		std::wstring Stringify() override;
-		ObjectType Type() override;
-		void Mark() override;
-		void UnMark() override;
-		bool IsEqualTo(Object *other) override;
-		std::wstring value;
-	};
-
-	struct BoolObject : public Object
-	{
-		BoolObject();
-		BoolObject(bool value);
-		~BoolObject();
-
-		std::wstring Stringify() override;
-		ObjectType Type() override;
-		void Mark() override;
-		void UnMark() override;
-		bool IsEqualTo(Object *other) override;
-
-		bool value;
-	};
-
-	struct NullObject : public Object
-	{
-		NullObject();
-		~NullObject();
-
-		std::wstring Stringify() override;
-		ObjectType Type() override;
-		void Mark() override;
-		void UnMark() override;
-		bool IsEqualTo(Object *other) override;
-	};
-
 	struct ArrayObject : public Object
 	{
 		ArrayObject();
-		ArrayObject(const std::vector<Object *> &elements);
+		ArrayObject(const std::vector<Value> &elements);
 		~ArrayObject();
 
 		std::wstring Stringify() override;
@@ -142,13 +57,13 @@ namespace lws
 
 		bool IsEqualTo(Object *other) override;
 
-		std::vector<Object *> elements;
+		std::vector<Value> elements;
 	};
 
 	struct TableObject : public Object
 	{
 		TableObject();
-		TableObject(const std::unordered_map<Object *, Object *> &elements);
+		TableObject(const ValueUnorderedMap &elements);
 		~TableObject();
 
 		std::wstring Stringify() override;
@@ -157,7 +72,7 @@ namespace lws
 		void UnMark() override;
 		bool IsEqualTo(Object *other) override;
 
-		std::unordered_map<Object *, Object *> elements;
+		ValueUnorderedMap elements;
 	};
 
 	struct LambdaObject : public Object
@@ -178,7 +93,7 @@ namespace lws
 
 	struct RefObject : public Object
 	{
-		RefObject(std::wstring_view name, Object *index);
+		RefObject(std::wstring_view name, const Value &index);
 		RefObject(std::wstring_view address);
 		~RefObject();
 
@@ -194,7 +109,7 @@ namespace lws
 			struct
 			{
 				std::wstring name;
-				Object *index;
+				Value index;
 			};
 			std::wstring address;
 		};
@@ -204,7 +119,7 @@ namespace lws
 	{
 		FieldObject();
 		FieldObject(std::wstring_view name,
-					const std::unordered_map<std::wstring, ObjectDesc> &members,
+					const std::unordered_map<std::wstring, ValueDesc> &members,
 					const std::vector<std::pair<std::wstring, FieldObject *>> &containedFields = {});
 		~FieldObject();
 
@@ -214,12 +129,12 @@ namespace lws
 		void UnMark() override;
 		bool IsEqualTo(Object *other) override;
 
-		void AssignMemberByName(std::wstring_view name, Object *value);
-		Object *GetMemberByName(std::wstring_view name);
-		Object *GetMemberByAddress(std::wstring_view address);
+		void AssignMemberByName(std::wstring_view name, const Value &value);
+		Value GetMemberByName(std::wstring_view name);
+		Value GetMemberByAddress(std::wstring_view address);
 
 		std::wstring name;
-		std::unordered_map<std::wstring, ObjectDesc> members;
+		std::unordered_map<std::wstring, ValueDesc> members;
 		std::vector<std::pair<std::wstring, FieldObject *>> containedFields;
 	};
 }

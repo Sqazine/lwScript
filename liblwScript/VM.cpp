@@ -23,85 +23,7 @@ namespace lws
 		Gc();
 	}
 
-	RealNumObject *VM::CreateRealNumObject(double value)
-	{
-		if (curObjCount == maxObjCount)
-			Gc();
-
-		RealNumObject *object = new RealNumObject(value);
-		object->marked = false;
-
-		object->next = firstObject;
-		firstObject = object;
-
-		curObjCount++;
-
-		return object;
-	}
-
-	IntNumObject *VM::CreateIntNumObject(int64_t value)
-	{
-		if (curObjCount == maxObjCount)
-			Gc();
-
-		IntNumObject *object = new IntNumObject(value);
-		object->marked = false;
-
-		object->next = firstObject;
-		firstObject = object;
-
-		curObjCount++;
-
-		return object;
-	}
-
-	StrObject *VM::CreateStrObject(std::wstring_view value)
-	{
-		if (curObjCount == maxObjCount)
-			Gc();
-
-		StrObject *object = new StrObject(value);
-		object->marked = false;
-
-		object->next = firstObject;
-		firstObject = object;
-
-		curObjCount++;
-
-		return object;
-	}
-	BoolObject *VM::CreateBoolObject(bool value)
-	{
-		if (curObjCount == maxObjCount)
-			Gc();
-
-		BoolObject *object = new BoolObject(value);
-		object->marked = false;
-
-		object->next = firstObject;
-		firstObject = object;
-
-		curObjCount++;
-
-		return object;
-	}
-
-	NullObject *VM::CreateNullObject()
-	{
-		if (curObjCount == maxObjCount)
-			Gc();
-
-		NullObject *object = new NullObject();
-		object->marked = false;
-
-		object->next = firstObject;
-		firstObject = object;
-
-		curObjCount++;
-
-		return object;
-	}
-	ArrayObject *VM::CreateArrayObject(const std::vector<Object *> &elements)
+	ArrayObject *VM::CreateArrayObject(const std::vector<Value> &elements)
 	{
 		if (curObjCount == maxObjCount)
 			Gc();
@@ -117,7 +39,7 @@ namespace lws
 		return object;
 	}
 
-	TableObject *VM::CreateTableObject(const std::unordered_map<Object *, Object *> &elements)
+	TableObject *VM::CreateTableObject(const ValueUnorderedMap &elements)
 	{
 		if (curObjCount == maxObjCount)
 			Gc();
@@ -133,7 +55,7 @@ namespace lws
 		return object;
 	}
 
-	FieldObject *VM::CreateFieldObject(std::wstring_view name, const std::unordered_map<std::wstring, ObjectDesc> &members, const std::vector<std::pair<std::wstring, FieldObject *>> &containedFields)
+	FieldObject *VM::CreateFieldObject(std::wstring_view name, const std::unordered_map<std::wstring, ValueDesc> &members, const std::vector<std::pair<std::wstring, FieldObject *>> &containedFields)
 	{
 		if (curObjCount == maxObjCount)
 			Gc();
@@ -165,7 +87,7 @@ namespace lws
 		return object;
 	}
 
-	RefObject *VM::CreateRefObject(std::wstring_view name, Object *index)
+	RefObject *VM::CreateRefObject(std::wstring_view name, Value index)
 	{
 		if (curObjCount == maxObjCount)
 			Gc();
@@ -197,90 +119,7 @@ namespace lws
 		return refObject;
 	}
 
-	Object *VM::CopyObject(Object *srcObj)
-	{
-		switch (srcObj->Type())
-		{
-		case OBJECT_INT:
-			return CreateIntNumObject(TO_INT_OBJ(srcObj)->value);
-		case OBJECT_REAL:
-			return CreateRealNumObject(TO_REAL_OBJ(srcObj)->value);
-		case OBJECT_STR:
-			return CreateStrObject(TO_STR_OBJ(srcObj)->value);
-		case OBJECT_BOOL:
-			return CreateBoolObject(TO_BOOL_OBJ(srcObj)->value);
-		case OBJECT_NULL:
-			return CreateNullObject();
-		case OBJECT_ARRAY:
-		{
-			std::vector<Object *> elementsCopy;
-			auto srcArrayObj = TO_ARRAY_OBJ(srcObj);
-			for (const auto &e : srcArrayObj->elements)
-				elementsCopy.emplace_back(CopyObject(e));
-			return CreateArrayObject(elementsCopy);
-		}
-		case OBJECT_TABLE:
-		{
-			std::unordered_map<Object *, Object *> elementsCopy;
-			auto srcTableObj = TO_TABLE_OBJ(srcObj);
-			for (const auto &[k, v] : srcTableObj->elements)
-				elementsCopy[CopyObject(k)] = CopyObject(v);
-			return CreateTableObject(elementsCopy);
-		}
-		case OBJECT_LAMBDA:
-			return CreateLambdaObject(TO_LAMBDA_OBJ(srcObj)->frameIndex);
-		case OBJECT_REF:
-		{
-			if (!TO_REF_OBJ(srcObj)->isAddressReference)
-			{
-				auto refVarObj = TO_REF_OBJ(srcObj);
-				Object *indexCopy = nullptr;
-				if (refVarObj->index)
-					indexCopy = CopyObject(refVarObj->index);
-				auto name = refVarObj->name;
-				return CreateRefObject(name, indexCopy);
-			}
-			else
-				return CreateRefObject(TO_REF_OBJ(srcObj)->address);
-		}
-		case OBJECT_FIELD:
-		{
-			auto fieldObj = TO_FIELD_OBJ(srcObj);
-			auto name = fieldObj->name;
-			std::unordered_map<std::wstring, ObjectDesc> membersCopy;
-			std::vector<std::pair<std::wstring, FieldObject *>> containedFieldsCopy;
-			for (const auto &[k, v] : fieldObj->members)
-			{
-				ObjectDesc descCopy;
-				descCopy.type = v.type;
-				descCopy.object = CopyObject(v.object);
-				membersCopy[k] = descCopy;
-			}
-			for (const auto &containedField : fieldObj->containedFields)
-				containedFieldsCopy.emplace_back(containedField.first, TO_FIELD_OBJ(CopyObject(containedField.second)));
-			return CreateFieldObject(name, membersCopy, containedFieldsCopy);
-		}
-		default:
-			break;
-		}
-		return nullptr;
-	}
-
-	bool VM::IsPassedByValueObject(Object *obj)
-	{
-		switch (obj->Type())
-		{
-		case OBJECT_INT:
-		case OBJECT_REAL:
-		case OBJECT_BOOL:
-			return true;
-		default:
-			return false;
-		}
-		return false;
-	}
-
-	Object *VM::Execute(Frame *frame)
+	Value VM::Execute(Frame *frame)
 	{
 		PreAssemble(frame);
 		return ExecuteOpCode(frame);
@@ -292,66 +131,66 @@ namespace lws
 			ExecuteOpCode(enumframe.second);
 	}
 
-	Object *VM::ExecuteOpCode(Frame *frame)
+	Value VM::ExecuteOpCode(Frame *frame)
 	{
 		// + - * /
-#define COMMON_BINARY(op)                                                                           \
-	do                                                                                              \
-	{                                                                                               \
-		Object *left = PopObject();                                                                 \
-		Object *right = PopObject();                                                                \
-		if (IS_INT_OBJ(right) && IS_INT_OBJ(left))                                                  \
-			PushObject(CreateIntNumObject(TO_INT_OBJ(left)->value op TO_INT_OBJ(right)->value));    \
-		else if (IS_INT_OBJ(right) && IS_REAL_OBJ(left))                                            \
-			PushObject(CreateRealNumObject(TO_REAL_OBJ(left)->value op TO_INT_OBJ(right)->value));  \
-		else if (IS_REAL_OBJ(right) && IS_INT_OBJ(left))                                            \
-			PushObject(CreateRealNumObject(TO_INT_OBJ(left)->value op TO_REAL_OBJ(right)->value));  \
-		else if (IS_REAL_OBJ(right) && IS_REAL_OBJ(left))                                           \
-			PushObject(CreateRealNumObject(TO_REAL_OBJ(left)->value op TO_REAL_OBJ(right)->value)); \
-		else                                                                                        \
-			Assert(L"Invalid binary op:" + left->Stringify() + (L#op) + right->Stringify());        \
+#define COMMON_BINARY(op)                                                                  \
+	do                                                                                     \
+	{                                                                                      \
+		Value left = PopValue();                                                           \
+		Value right = PopValue();                                                          \
+		if (IS_INT_VALUE(right) && IS_INT_VALUE(left))                                     \
+			PushValue(Value(TO_INT_VALUE(left) op TO_INT_VALUE(right)));                   \
+		else if (IS_INT_VALUE(right) && IS_REAL_VALUE(left))                               \
+			PushValue(Value(TO_REAL_VALUE(left) op TO_INT_VALUE(right)));                  \
+		else if (IS_REAL_VALUE(right) && IS_INT_VALUE(left))                               \
+			PushValue(Value(TO_INT_VALUE(left) op TO_REAL_VALUE(right)));                  \
+		else if (IS_REAL_VALUE(right) && IS_REAL_VALUE(left))                              \
+			PushValue(Value(TO_REAL_VALUE(left) op TO_REAL_VALUE(right)));                 \
+		else                                                                               \
+			Assert(L"Invalid binary op:" + left.Stringify() + (L#op) + right.Stringify()); \
 	} while (0);
 
 // & | % << >>
-#define INT_BINARY(op)                                                                           \
-	do                                                                                           \
-	{                                                                                            \
-		Object *left = PopObject();                                                              \
-		Object *right = PopObject();                                                             \
-		if (IS_INT_OBJ(right) && IS_INT_OBJ(left))                                               \
-			PushObject(CreateIntNumObject(TO_INT_OBJ(left)->value op TO_INT_OBJ(right)->value)); \
-		else                                                                                     \
-			Assert(L"Invalid binary op:" + left->Stringify() + (L#op) + right->Stringify());     \
+#define INT_BINARY(op)                                                                     \
+	do                                                                                     \
+	{                                                                                      \
+		Value left = PopValue();                                                           \
+		Value right = PopValue();                                                          \
+		if (IS_INT_VALUE(right) && IS_INT_VALUE(left))                                     \
+			PushValue(Value(TO_INT_VALUE(left) op TO_INT_VALUE(right)));                   \
+		else                                                                               \
+			Assert(L"Invalid binary op:" + left.Stringify() + (L#op) + right.Stringify()); \
 	} while (0);
 
 // > >= < <=
-#define COMPARE_BINARY(op)                                                                                                        \
-	do                                                                                                                            \
-	{                                                                                                                             \
-		Object *left = PopObject();                                                                                               \
-		Object *right = PopObject();                                                                                              \
-		if (IS_INT_OBJ(right) && IS_INT_OBJ(left))                                                                                \
-			PushObject(TO_INT_OBJ(left)->value op TO_INT_OBJ(right)->value ? CreateBoolObject(true) : CreateBoolObject(false));   \
-		else if (IS_INT_OBJ(right) && IS_REAL_OBJ(left))                                                                          \
-			PushObject(TO_REAL_OBJ(left)->value op TO_INT_OBJ(right)->value ? CreateBoolObject(true) : CreateBoolObject(false));  \
-		else if (IS_REAL_OBJ(right) && IS_INT_OBJ(left))                                                                          \
-			PushObject(TO_INT_OBJ(left)->value op TO_REAL_OBJ(right)->value ? CreateBoolObject(true) : CreateBoolObject(false));  \
-		else if (IS_REAL_OBJ(right) && IS_REAL_OBJ(left))                                                                         \
-			PushObject(TO_REAL_OBJ(left)->value op TO_REAL_OBJ(right)->value ? CreateBoolObject(true) : CreateBoolObject(false)); \
-		else                                                                                                                      \
-			PushObject(CreateBoolObject(false));                                                                                  \
+#define COMPARE_BINARY(op)                                                                       \
+	do                                                                                           \
+	{                                                                                            \
+		Value left = PopValue();                                                                 \
+		Value right = PopValue();                                                                \
+		if (IS_INT_VALUE(right) && IS_INT_VALUE(left))                                           \
+			PushValue(TO_INT_VALUE(left) op TO_INT_VALUE(right) ? Value(true) : Value(false));   \
+		else if (IS_INT_VALUE(right) && IS_REAL_VALUE(left))                                     \
+			PushValue(TO_REAL_VALUE(left) op TO_INT_VALUE(right) ? Value(true) : Value(false));  \
+		else if (IS_REAL_VALUE(right) && IS_INT_VALUE(left))                                     \
+			PushValue(TO_INT_VALUE(left) op TO_REAL_VALUE(right) ? Value(true) : Value(false));  \
+		else if (IS_REAL_VALUE(right) && IS_REAL_VALUE(left))                                    \
+			PushValue(TO_REAL_VALUE(left) op TO_REAL_VALUE(right) ? Value(true) : Value(false)); \
+		else                                                                                     \
+			PushValue(Value(false));                                                             \
 	} while (0);
 
 //&& ||
-#define LOGIC_BINARY(op)                                                                                                               \
-	do                                                                                                                                 \
-	{                                                                                                                                  \
-		Object *left = PopObject();                                                                                                    \
-		Object *right = PopObject();                                                                                                   \
-		if (IS_BOOL_OBJ(right) && IS_BOOL_OBJ(left))                                                                                   \
-			PushObject(((BoolObject *)left)->value op((BoolObject *)right)->value ? CreateBoolObject(true) : CreateBoolObject(false)); \
-		else                                                                                                                           \
-			Assert(L"Invalid op:" + left->Stringify() + (L#op) + right->Stringify());                                                  \
+#define LOGIC_BINARY(op)                                                                         \
+	do                                                                                           \
+	{                                                                                            \
+		Value left = PopValue();                                                                 \
+		Value right = PopValue();                                                                \
+		if (IS_BOOL_VALUE(right) && IS_BOOL_VALUE(left))                                         \
+			PushValue(TO_BOOL_VALUE(left) op TO_BOOL_VALUE(right) ? Value(true) : Value(false)); \
+		else                                                                                     \
+			Assert(L"Invalid op:" + left.Stringify() + (L#op) + right.Stringify());              \
 	} while (0);
 
 		for (size_t ip = 0; ip < frame->mCodes.size(); ++ip)
@@ -361,7 +200,7 @@ namespace lws
 			{
 			case OP_RETURN:
 			{
-				auto returnObjCount = (IntNumObject *)PopObject();
+				auto returnObjCount = PopValue().integer;
 				if (mContext->mUpContext)
 				{
 					Context *tmp = mContext->GetUpContext();
@@ -369,10 +208,10 @@ namespace lws
 					mContext = tmp;
 				}
 
-				if (returnObjCount->value == 1)
-					return PopObject();
-				else if (returnObjCount->value == 0)
-					return CreateNullObject();
+				if (returnObjCount == 1)
+					return PopValue();
+				else if (returnObjCount == 0)
+					return Value();
 				break;
 			}
 			case OP_SAVE_TO_GLOBAL:
@@ -384,11 +223,11 @@ namespace lws
 					delete mContext;
 					mContext = tmp;
 				}
-				auto *obj = PopObject();
+				auto value = PopValue();
 
 				auto rootContext = mContext->GetRoot();
-				if (rootContext->GetVariableByName(name) == nullptr)
-					rootContext->DefineVariableByName(name, ObjectDescType::CONST, obj);
+				if (IS_INVALID_VALUE(rootContext->GetVariableByName(name)))
+					rootContext->DefineVariableByName(name, ValueDescType::CONST, value);
 				else
 				{
 					// TODO:now only for enum,to avoiding multiple assign enum field object to root context
@@ -398,41 +237,41 @@ namespace lws
 				break;
 			}
 			case OP_NEW_REAL:
-				PushObject(CreateRealNumObject(frame->mRealNums[frame->mCodes[++ip]]));
+				PushValue(Value(frame->mRealNums[frame->mCodes[++ip]]));
 				break;
 			case OP_NEW_INT:
-				PushObject(CreateIntNumObject(frame->mIntNums[frame->mCodes[++ip]]));
+				PushValue(Value(frame->mIntNums[frame->mCodes[++ip]]));
 				break;
 			case OP_NEW_STR:
-				PushObject(CreateStrObject(frame->mStrings[frame->mCodes[++ip]]));
+				PushValue(Value(frame->mStrings[frame->mCodes[++ip]]));
 				break;
 			case OP_NEW_TRUE:
-				PushObject(CreateBoolObject(true));
+				PushValue(Value(true));
 				break;
 			case OP_NEW_FALSE:
-				PushObject(CreateBoolObject(false));
+				PushValue(Value(false));
 				break;
 			case OP_NEW_NULL:
-				PushObject(CreateNullObject());
+				PushValue(Value());
 				break;
 			case OP_NEG:
 			{
-				Object *object = PopObject();
-				if (IS_REAL_OBJ(object))
-					PushObject(CreateRealNumObject(-TO_REAL_OBJ(object)->value));
-				else if (IS_INT_OBJ(object))
-					PushObject(CreateIntNumObject(-TO_INT_OBJ(object)->value));
+				Value value = PopValue();
+				if (IS_REAL_VALUE(value))
+					PushValue(Value(-TO_REAL_VALUE(value)));
+				else if (IS_INT_VALUE(value))
+					PushValue(Value(-TO_INT_VALUE(value)));
 				else
-					Assert(L"Invalid op:'-'" + object->Stringify());
+					Assert(L"Invalid op:'-'" + value.Stringify());
 				break;
 			}
 			case OP_NOT:
 			{
-				Object *object = PopObject();
-				if (IS_BOOL_OBJ(object))
-					PushObject(CreateBoolObject(!TO_BOOL_OBJ(object)->value));
+				Value value = PopValue();
+				if (IS_BOOL_VALUE(value))
+					PushValue(Value(!TO_BOOL_VALUE(value)));
 				else
-					Assert(L"Invalid op:'!'" + object->Stringify());
+					Assert(L"Invalid op:'!'" + value.Stringify());
 				break;
 			}
 			case OP_ADD:
@@ -461,11 +300,11 @@ namespace lws
 				break;
 			case OP_BIT_NOT:
 			{
-				Object *object = PopObject();
-				if (IS_INT_OBJ(object))
-					PushObject(CreateIntNumObject(~TO_INT_OBJ(object)->value));
+				Value value = PopValue();
+				if (IS_INT_VALUE(value))
+					PushValue(Value(~TO_INT_VALUE(value)));
 				else
-					Assert(L"Invalid op:'~'" + object->Stringify());
+					Assert(L"Invalid op:'~'" + value.Stringify());
 				break;
 			}
 			case OP_BIT_LEFT_SHIFT:
@@ -488,66 +327,52 @@ namespace lws
 				break;
 			case OP_EQUAL:
 			{
-				Object *left = PopObject();
-				Object *right = PopObject();
-				PushObject(CreateBoolObject(left->IsEqualTo(right)));
+				Value left = PopValue();
+				Value right = PopValue();
+				PushValue(Value(left == right));
 				break;
 			}
 			case OP_NEW_VAR:
-			{
-				Object *value = PopObject();
-				//object int,real,bool passed by value
-				if (IsPassedByValueObject(value))
-					value = CopyObject(value);
-				//object str,null,array,table,lambda,field,RefVar,RefObj passed by reference
-				mContext->DefineVariableByName(frame->mStrings[frame->mCodes[++ip]], ObjectDescType::VARIABLE, value);
+				mContext->DefineVariableByName(frame->mStrings[frame->mCodes[++ip]], ValueDescType::VARIABLE, PopValue());
 				break;
-			}
 			case OP_NEW_CONST:
-			{
-				Object *value = PopObject();
-				//object int,real,bool passed by value
-				if (IsPassedByValueObject(value))
-					value = CopyObject(value);
-				//object str,null,array,table,lambda,field,RefVar,RefObj passed by reference
-				mContext->DefineVariableByName(frame->mStrings[frame->mCodes[++ip]], ObjectDescType::CONST, value);
+				mContext->DefineVariableByName(frame->mStrings[frame->mCodes[++ip]], ValueDescType::CONST, PopValue());
 				break;
-			}
 			case OP_SET_VAR:
 			{
 				std::wstring name = frame->mStrings[frame->mCodes[++ip]];
 
-				Object *value = PopObject();
-				Object *variable = mContext->GetVariableByName(name);
+				Value value = PopValue();
+				Value variable = mContext->GetVariableByName(name);
 
-				if (IS_REF_OBJ(variable) && !TO_REF_OBJ(variable)->isAddressReference)
+				if (IS_REF_VALUE(variable) && !TO_REF_VALUE(variable)->isAddressReference)
 				{
-					auto refObject = TO_REF_OBJ(variable);
+					auto refObject = TO_REF_VALUE(variable);
 					if (refObject->index == nullptr)
 						mContext->AssignVariableByName(refObject->name, value);
 					else
 					{
 						variable = mContext->GetVariableByName(refObject->name);
 						auto index = refObject->index;
-						if (IS_ARRAY_OBJ(variable))
+						if (IS_ARRAY_VALUE(variable))
 						{
-							ArrayObject *arrayObject = TO_ARRAY_OBJ(variable);
-							if (!IS_INT_OBJ(index))
-								Assert(L"Invalid index op.The index type of the array object must ba a int num type,but got:" + index->Stringify());
+							ArrayObject *arrayObject = TO_ARRAY_VALUE(variable);
+							if (!IS_INT_VALUE(index))
+								Assert(L"Invalid index op.The index type of the array object must ba a int num type,but got:" + index.Stringify());
 
-							int64_t iIndex = TO_INT_OBJ(index)->value;
+							int64_t iIndex = TO_INT_VALUE(index);
 
 							if (iIndex < 0 || iIndex >= (int64_t)arrayObject->elements.size())
 								Assert(L"Index out of array range,array size:" + std::to_wstring(arrayObject->elements.size()) + L",index:" + std::to_wstring(iIndex));
 
 							arrayObject->elements[iIndex] = value;
 						}
-						else if (IS_TABLE_OBJ(variable))
+						else if (IS_TABLE_VALUE(variable))
 						{
-							TableObject *tableObject = TO_TABLE_OBJ(variable);
+							TableObject *tableObject = TO_TABLE_VALUE(variable);
 							bool existed = false;
 							for (auto [key, value] : tableObject->elements)
-								if (key->IsEqualTo(index))
+								if (key==index)
 								{
 									tableObject->elements[key] = value;
 									existed = true;
@@ -557,13 +382,13 @@ namespace lws
 								tableObject->elements[index] = value;
 						}
 						else
-							Assert(L"Invalid index op.The indexed object isn't a array object or a table object:" + index->Stringify());
+							Assert(L"Invalid index op.The indexed object isn't a array object or a table object:" + index.Stringify());
 					}
 				}
-				else if (IS_REF_OBJ(variable))
+				else if (IS_REF_VALUE(variable))
 				{
-					mContext->AssignVariableByAddress(TO_REF_OBJ(variable)->address, value);
-					TO_REF_OBJ(variable)->address = PointerAddressToString(value); //update ref address
+					mContext->AssignVariableByAddress(TO_REF_VALUE(variable)->address, value);
+					TO_REF_VALUE(variable)->address = PointerAddressToString(&value); //update ref address
 				}
 				else
 					mContext->AssignVariableByName(name, value);
@@ -573,168 +398,168 @@ namespace lws
 			{
 				std::wstring name = frame->mStrings[frame->mCodes[++ip]];
 
-				Object *varObject = mContext->GetVariableByName(name);
+				Value varValue = mContext->GetVariableByName(name);
 
 				//create a field object
-				if (varObject == nullptr)
+				if (IS_INVALID_VALUE(varValue))
 				{
 					if (frame->HasFieldFrame(name))
-						PushObject(ExecuteOpCode(frame->GetFieldFrame(name)));
+						PushValue(ExecuteOpCode(frame->GetFieldFrame(name)));
 					else
 						Assert(L"No field or variable declaration:" + name);
 				}
-				else if (IS_REF_OBJ(varObject) && !TO_REF_OBJ(varObject)->isAddressReference)
+				else if (IS_REF_VALUE(varValue) && !TO_REF_VALUE(varValue)->isAddressReference)
 				{
-					auto refObject = TO_REF_OBJ(varObject);
-					varObject = mContext->GetVariableByName(refObject->name);
+					auto refObject = TO_REF_VALUE(varValue);
+					varValue = mContext->GetVariableByName(refObject->name);
 
-					if (refObject->index == nullptr)
-						PushObject(varObject);
+					if (IS_INVALID_VALUE(refObject->index))
+						PushValue(varValue);
 					else
 					{
 						auto index = refObject->index;
-						if (IS_ARRAY_OBJ(varObject))
+						if (IS_ARRAY_VALUE(varValue))
 						{
-							ArrayObject *arrayObject = TO_ARRAY_OBJ(varObject);
-							if (!IS_INT_OBJ(index))
-								Assert(L"Invalid index op.The index type of the array object must ba a int num type,but got:" + index->Stringify());
+							ArrayObject *arrayObject = TO_ARRAY_VALUE(varValue);
+							if (!IS_INT_VALUE(index))
+								Assert(L"Invalid index op.The index type of the array object must ba a int num type,but got:" + index.Stringify());
 
-							int64_t iIndex = (int64_t)TO_INT_OBJ(index)->value;
+							int64_t iIndex = (int64_t)TO_INT_VALUE(index);
 
 							if (iIndex < 0 || iIndex >= (int64_t)arrayObject->elements.size())
 								Assert(L"Index out of array range,array size:" + std::to_wstring(arrayObject->elements.size()) + L",index:" + std::to_wstring(iIndex));
 
-							PushObject(arrayObject->elements[iIndex]);
+							PushValue(arrayObject->elements[iIndex]);
 						}
-						else if (IS_TABLE_OBJ(varObject))
+						else if (IS_TABLE_VALUE(varValue))
 						{
-							TableObject *tableObject = TO_TABLE_OBJ(varObject);
+							TableObject *tableObject = TO_TABLE_VALUE(varValue);
 
 							bool hasValue = false;
 							for (const auto [key, value] : tableObject->elements)
-								if (key->IsEqualTo(index))
+								if (key==index)
 								{
-									PushObject(value);
+									PushValue(value);
 									hasValue = true;
 									break;
 								}
 							if (!hasValue)
-								PushObject(CreateNullObject());
+								PushValue(Value());
 						}
 						else
-							Assert(L"Invalid index op.The indexed object isn't a array object or a table object:" + index->Stringify());
+							Assert(L"Invalid index op.The indexed object isn't a array object or a table object:" + index.Stringify());
 					}
 				}
-				else if (IS_REF_OBJ(varObject))
+				else if (IS_REF_VALUE(varValue))
 				{
-					varObject = mContext->GetVariableByAddress(TO_REF_OBJ(varObject)->address);
-					PushObject(varObject);
+					varValue = mContext->GetVariableByAddress(TO_REF_VALUE(varValue)->address);
+					PushValue(varValue);
 				}
 				else
-					PushObject(varObject);
+					PushValue(varValue);
 				break;
 			}
 			case OP_NEW_ARRAY:
 			{
-				std::vector<Object *> elements;
+				std::vector<Value> elements;
 				int64_t arraySize = (int64_t)frame->mIntNums[frame->mCodes[++ip]];
 				for (int64_t i = 0; i < arraySize; ++i)
-					elements.insert(elements.begin(), PopObject());
-				PushObject(CreateArrayObject(elements));
+					elements.insert(elements.begin(), PopValue());
+				PushValue(CreateArrayObject(elements));
 				break;
 			}
 			case OP_NEW_TABLE:
 			{
-				std::unordered_map<Object *, Object *> elements;
+				ValueUnorderedMap elements;
 				int64_t tableSize = (int64_t)frame->mIntNums[frame->mCodes[++ip]];
 				for (int64_t i = 0; i < tableSize; ++i)
 				{
-					Object *key = PopObject();
-					Object *value = PopObject();
+					Value key = PopValue();
+					Value value = PopValue();
 					elements[key] = value;
 				}
-				PushObject(CreateTableObject(elements));
+				PushValue(CreateTableObject(elements));
 				break;
 			}
 			case OP_NEW_FIELD:
 			{
 				std::wstring name = frame->mStrings[frame->mCodes[++ip]];
 
-				std::unordered_map<std::wstring, ObjectDesc> members;
+				std::unordered_map<std::wstring, ValueDesc> members;
 				std::vector<std::pair<std::wstring, FieldObject *>> containedFields;
 
 				for (auto value : mContext->mValues)
 				{
-					if (value.first.find_first_of(containedFieldPrefixID) == 0 && IS_FIELD_OBJ(value.second.object))
-						containedFields.emplace_back(value.first.substr(wcslen(containedFieldPrefixID)), TO_FIELD_OBJ(value.second.object));
+					if (value.first.find_first_of(containedFieldPrefixID) == 0 && IS_FIELD_VALUE(value.second.value))
+						containedFields.emplace_back(value.first.substr(wcslen(containedFieldPrefixID)), TO_FIELD_VALUE(value.second.value));
 					else
 						members[value.first] = value.second;
 				}
 
-				PushObject(CreateFieldObject(name, members, containedFields));
+				PushValue(CreateFieldObject(name, members, containedFields));
 				break;
 			}
 			case OP_GET_INDEX_VAR:
 			{
-				Object *index = PopObject();
-				Object *object = PopObject();
-				if (IS_ARRAY_OBJ(object))
+				Value index = PopValue();
+				Value value = PopValue();
+				if (IS_ARRAY_VALUE(value))
 				{
-					ArrayObject *arrayObject = TO_ARRAY_OBJ(object);
-					if (!IS_INT_OBJ(index))
-						Assert(L"Invalid index op.The index type of the array object must ba a int num type,but got:" + index->Stringify());
+					ArrayObject *arrayObject = TO_ARRAY_VALUE(value);
+					if (!IS_INT_VALUE(index))
+						Assert(L"Invalid index op.The index type of the array object must ba a int num type,but got:" + index.Stringify());
 
-					int64_t iIndex = (int64_t)TO_INT_OBJ(index)->value;
+					int64_t iIndex = (int64_t)TO_INT_VALUE(index);
 
 					if (iIndex < 0 || iIndex >= (int64_t)arrayObject->elements.size())
 						Assert(L"Index out of array range,array size:" + std::to_wstring(arrayObject->elements.size()) + L",index:" + std::to_wstring(iIndex));
 
-					PushObject(arrayObject->elements[iIndex]);
+					PushValue(arrayObject->elements[iIndex]);
 				}
-				else if (IS_TABLE_OBJ(object))
+				else if (IS_TABLE_VALUE(value))
 				{
-					TableObject *tableObject = TO_TABLE_OBJ(object);
+					TableObject *tableObject = TO_TABLE_VALUE(value);
 
 					bool hasValue = false;
 					for (const auto [key, value] : tableObject->elements)
-						if (key->IsEqualTo(index))
+						if (key==index)
 						{
-							PushObject(value);
+							PushValue(value);
 							hasValue = true;
 							break;
 						}
 					if (!hasValue)
-						PushObject(CreateNullObject());
+						PushValue(Value());
 				}
 				else
-					Assert(L"Invalid index op.The indexed object isn't a array object or a table object:" + object->Stringify());
+					Assert(L"Invalid index op.The indexed object isn't a array object or a table object:" + value.Stringify());
 				break;
 			}
 			case OP_SET_INDEX_VAR:
 			{
-				Object *index = PopObject();
-				Object *object = PopObject();
-				Object *assigner = PopObject();
+				Value index = PopValue();
+				Value value = PopValue();
+				Value assigner = PopValue();
 
-				if (IS_ARRAY_OBJ(object))
+				if (IS_ARRAY_VALUE(value))
 				{
-					ArrayObject *arrayObject = TO_ARRAY_OBJ(object);
-					if (!IS_INT_OBJ(index))
-						Assert(L"Invalid index op.The index type of the array object must ba a int num type,but got:" + index->Stringify());
+					ArrayObject *arrayObject = TO_ARRAY_VALUE(value);
+					if (!IS_INT_VALUE(index))
+						Assert(L"Invalid index op.The index type of the array object must ba a int num type,but got:" + index.Stringify());
 
-					int64_t iIndex = TO_INT_OBJ(index)->value;
+					int64_t iIndex = TO_INT_VALUE(index);
 
 					if (iIndex < 0 || iIndex >= (int64_t)arrayObject->elements.size())
 						Assert(L"Index out of array range,array size:" + std::to_wstring(arrayObject->elements.size()) + L",index:" + std::to_wstring(iIndex));
 
 					arrayObject->elements[iIndex] = assigner;
 				}
-				else if (IS_TABLE_OBJ(object))
+				else if (IS_TABLE_VALUE(value))
 				{
-					TableObject *tableObject = TO_TABLE_OBJ(object);
+					TableObject *tableObject = TO_TABLE_VALUE(value);
 					bool existed = false;
 					for (auto [key, value] : tableObject->elements)
-						if (key->IsEqualTo(index))
+						if (key == index)
 						{
 							tableObject->elements[key] = assigner;
 							existed = true;
@@ -744,28 +569,28 @@ namespace lws
 						tableObject->elements[index] = assigner;
 				}
 				else
-					Assert(L"Invalid index op.The indexed object isn't a array object or a table object:" + object->Stringify());
+					Assert(L"Invalid index op.The indexed object isn't a array object or a table object:" + value.Stringify());
 				break;
 			}
 			case OP_GET_FIELD_VAR:
 			{
 				std::wstring memberName = frame->mStrings[frame->mCodes[++ip]];
-				Object *stackTop = PopObject();
-				if (!IS_FIELD_OBJ(stackTop))
+				Value stackTop = PopValue();
+				if (!IS_FIELD_VALUE(stackTop))
 					Assert(L"Not a field object of the callee of:" + memberName);
-				FieldObject *fieldObj = TO_FIELD_OBJ(stackTop);
-				PushObject(fieldObj->GetMemberByName(memberName));
+				FieldObject *fieldObj = TO_FIELD_VALUE(stackTop);
+				PushValue(fieldObj->GetMemberByName(memberName));
 				break;
 			}
 			case OP_SET_FIELD_VAR:
 			{
 				std::wstring memberName = frame->mStrings[frame->mCodes[++ip]];
-				Object *stackTop = PopObject();
-				if (!IS_FIELD_OBJ(stackTop))
+				Value stackTop = PopValue();
+				if (!IS_FIELD_VALUE(stackTop))
 					Assert(L"Not a field object of the callee of:" + memberName);
-				FieldObject *fieldObj = TO_FIELD_OBJ(stackTop);
+				FieldObject *fieldObj = TO_FIELD_VALUE(stackTop);
 
-				Object *assigner = PopObject();
+				Value assigner = PopValue();
 
 				fieldObj->AssignMemberByName(memberName, assigner);
 				break;
@@ -773,10 +598,10 @@ namespace lws
 			case OP_GET_FIELD_FUNCTION:
 			{
 				std::wstring memberName = frame->mStrings[frame->mCodes[++ip]];
-				Object *stackTop = PopObject();
-				if (!IS_FIELD_OBJ(stackTop))
+				Value stackTop = PopValue();
+				if (!IS_FIELD_VALUE(stackTop))
 					Assert(L"Not a fleid object of the callee of:" + memberName);
-				FieldObject *fieldObj = TO_FIELD_OBJ(stackTop);
+				FieldObject *fieldObj = TO_FIELD_VALUE(stackTop);
 				std::wstring fieldType = fieldObj->name;
 
 				Frame *fieldFrame = nullptr;
@@ -789,10 +614,10 @@ namespace lws
 					PushFrame(fieldFrame->GetFunctionFrame(memberName));
 				else if (fieldObj->GetMemberByName(memberName) != nullptr) //lambda:let add=function(){return 10;}
 				{
-					Object *lambdaObject = fieldObj->GetMemberByName(memberName);
-					if (!IS_LAMBDA_OBJ(lambdaObject))
+					Value lambdaObject = fieldObj->GetMemberByName(memberName);
+					if (!IS_LAMBDA_VALUE(lambdaObject))
 						Assert(L"No lambda object:" + memberName + L" in field:" + fieldType);
-					PushFrame(fieldFrame->GetLambdaFrame(TO_LAMBDA_OBJ(lambdaObject)->frameIndex));
+					PushFrame(fieldFrame->GetLambdaFrame(TO_LAMBDA_VALUE(lambdaObject)->frameIndex));
 				}
 				else if (!fieldObj->containedFields.empty()) //get contained fields' function
 				{
@@ -812,10 +637,10 @@ namespace lws
 						}
 						else if (fieldObj->GetMemberByName(memberName) != nullptr) //lambda:let add=function(){return 10;}
 						{
-							Object *lambdaObject = fieldObj->GetMemberByName(memberName);
-							if (!IS_LAMBDA_OBJ(lambdaObject))
+							Value lambdaObject = fieldObj->GetMemberByName(memberName);
+							if (!IS_LAMBDA_VALUE(lambdaObject))
 								Assert(L"No lambda object:" + memberName + L" in field:" + fieldType);
-							PushFrame(fieldFrame->GetLambdaFrame(TO_LAMBDA_OBJ(lambdaObject)->frameIndex));
+							PushFrame(fieldFrame->GetLambdaFrame(TO_LAMBDA_VALUE(lambdaObject)->frameIndex));
 							break;
 						}
 					}
@@ -838,7 +663,7 @@ namespace lws
 			}
 			case OP_JUMP_IF_FALSE:
 			{
-				bool isJump = !TO_BOOL_OBJ(PopObject())->value;
+				bool isJump = !TO_BOOL_VALUE(PopValue());
 				uint64_t address = (uint64_t)(frame->mIntNums[frame->mCodes[++ip]]);
 
 				if (isJump)
@@ -856,12 +681,12 @@ namespace lws
 				std::wstring fnName = frame->mStrings[frame->mCodes[++ip]];
 				if (frame->HasFunctionFrame(fnName)) //function:function add(){return 10;}
 					PushFrame(frame->GetFunctionFrame(fnName));
-				else if (mContext->GetVariableByName(fnName) != nullptr) //lambda:let add=function(){return 10;}
+				else if (!IS_INVALID_VALUE(mContext->GetVariableByName(fnName))) //lambda:let add=function(){return 10;}
 				{
-					Object *lambdaObject = mContext->GetVariableByName(fnName);
-					if (!IS_LAMBDA_OBJ(lambdaObject))
+					auto lambdaObject = mContext->GetVariableByName(fnName);
+					if (!IS_LAMBDA_VALUE(lambdaObject))
 						Assert(L"Not a lambda object of " + fnName);
-					PushFrame(frame->GetLambdaFrame(TO_LAMBDA_OBJ(lambdaObject)->frameIndex));
+					PushFrame(frame->GetLambdaFrame(TO_LAMBDA_VALUE(lambdaObject)->frameIndex));
 				}
 				else if (HasNativeFunction(fnName))
 					PushFrame(new NativeFunctionFrame(fnName));
@@ -871,80 +696,83 @@ namespace lws
 			}
 			case OP_FUNCTION_CALL:
 			{
-				Object *stackTop = PopObject();
+				auto stackTop = PopValue();
 
-				if (IS_LAMBDA_OBJ(stackTop)) //if stack is a function object then execute it
+				if (IS_LAMBDA_VALUE(stackTop)) //if stack is a function object then execute it
 				{
-					IntNumObject *argCount = TO_INT_OBJ(PopObject());
-					Object *executeResult = ExecuteOpCode(frame->GetLambdaFrame(TO_LAMBDA_OBJ(stackTop)->frameIndex));
-					PushObject(executeResult);
+					auto argCount = TO_INT_VALUE(PopValue());
+					auto executeResult = ExecuteOpCode(frame->GetLambdaFrame(TO_LAMBDA_VALUE(stackTop)->frameIndex));
+					PushValue(executeResult);
 				}
 				else //else execute function
 				{
-					IntNumObject *argCount = TO_INT_OBJ(stackTop);
+					auto argCount = TO_INT_VALUE(stackTop);
 
 					if (!IsFrameStackEmpty())
 					{
 						Frame *f = PopFrame();
 						if (IS_NATIVE_FUNCTION_FRAME(f))
 						{
-							std::vector<Object *> args;
-							for (int64_t i = 0; i < argCount->value; ++i)
-								args.insert(args.begin(), PopObject());
+							std::vector<Value> args;
+							for (int64_t i = 0; i < argCount; ++i)
+								args.insert(args.begin(), PopValue());
 
-							Object *result = GetNativeFunction(TO_NATIVE_FUNCTION_FRAME(f)->GetName())(args);
-							if (result)
-								PushObject(result);
+							Value result = GetNativeFunction(TO_NATIVE_FUNCTION_FRAME(f)->GetName())(args);
+							if (!IS_INVALID_VALUE(result))
+								PushValue(result);
 						}
 						else
-							PushObject(ExecuteOpCode(f));
+							PushValue(ExecuteOpCode(f));
 					}
 				}
 				break;
 			}
 			case OP_CONDITION:
 			{
-				Object *condition = PopObject();
-				Object *trueBranch = PopObject();
-				Object *falseBranch = PopObject();
+				Value condition = PopValue();
+				Value trueBranch = PopValue();
+				Value falseBranch = PopValue();
 
-				if (!IS_BOOL_OBJ(condition))
+				if (!IS_BOOL_VALUE(condition))
 					Assert(L"Not a bool expr of condition expr's '?'.");
-				if (TO_BOOL_OBJ(condition)->value)
-					PushObject(trueBranch);
+				if (TO_BOOL_VALUE(condition))
+					PushValue(trueBranch);
 				else
-					PushObject(falseBranch);
+					PushValue(falseBranch);
 				break;
 			}
 			case OP_NEW_LAMBDA:
-				PushObject(CreateLambdaObject(frame->mIntNums[frame->mCodes[++ip]]));
+				PushValue(CreateLambdaObject(frame->mIntNums[frame->mCodes[++ip]]));
 				break;
 			case OP_REF_VARIABLE:
 			{
-				PushObject(CreateRefObject(frame->mStrings[frame->mCodes[++ip]], nullptr));
+				PushValue(CreateRefObject(frame->mStrings[frame->mCodes[++ip]], gInvalidValue));
 				break;
 			}
 			case OP_REF_INDEX:
 			{
-				auto index = PopObject();
-				PushObject(CreateRefObject(frame->mStrings[frame->mCodes[++ip]], index));
+				auto index = PopValue();
+				PushValue(CreateRefObject(frame->mStrings[frame->mCodes[++ip]], index));
 				break;
 			}
 			case OP_REF_OBJECT:
-				PushObject(CreateRefObject(PointerAddressToString(PopObject())));
+			{
+				auto value = PopValue();
+				PushValue(CreateRefObject(PointerAddressToString(&value)));
+			}
 				break;
 			case OP_SELF_INCREMENT:
 			{
-				auto stackTop = PopObject();
-				if (IS_INT_OBJ(stackTop))
+				auto stackTop = PopValue();
+				if (IS_INT_VALUE(stackTop))
 				{
-					++((IntNumObject *)stackTop)->value;
-					PushObject(stackTop);
+					++TO_INT_VALUE(stackTop);
+					PushValue(stackTop);
 				}
-				else if (IS_REAL_OBJ(stackTop))
+				else if (IS_REAL_VALUE(stackTop))
 				{
-					++((RealNumObject *)stackTop)->value;
-					PushObject(stackTop);
+					++TO_REAL_VALUE(stackTop);
+					PushValue(stackTop);
 				}
 				else
 					Assert("Invalid prefix or postfix '++',the increment object isn't an int num object or a real num object.");
@@ -952,16 +780,16 @@ namespace lws
 			}
 			case OP_SELF_DECREMENT:
 			{
-				auto stackTop = PopObject();
-				if (IS_INT_OBJ(stackTop))
+				auto stackTop = PopValue();
+				if (IS_INT_VALUE(stackTop))
 				{
-					--((IntNumObject *)stackTop)->value;
-					PushObject(stackTop);
+					--TO_INT_VALUE(stackTop);
+					PushValue(stackTop);
 				}
-				else if (IS_REAL_OBJ(stackTop))
+				else if (IS_REAL_VALUE(stackTop))
 				{
-					--((RealNumObject *)stackTop)->value;
-					PushObject(stackTop);
+					--TO_REAL_VALUE(stackTop);
+					PushValue(stackTop);
 				}
 				else
 					Assert("Invalid prefix or postfix operator '--',the increment object isn't an int num object or a real num object.");
@@ -969,16 +797,16 @@ namespace lws
 			}
 			case OP_FACTORIAL:
 			{
-				auto stackTop = PopObject();
-				if (IS_INT_OBJ(stackTop))
+				auto stackTop = PopValue();
+				if (IS_INT_VALUE(stackTop))
 				{
-					int64_t v = Factorial(TO_INT_OBJ(stackTop)->value);
-					PushObject(CreateIntNumObject(v));
+					int64_t v = Factorial(TO_INT_VALUE(stackTop));
+					PushValue(Value(v));
 				}
-				else if (IS_REAL_OBJ(stackTop))
+				else if (IS_REAL_VALUE(stackTop))
 				{
-					int64_t v = Factorial((int64_t)TO_REAL_OBJ(stackTop)->value);
-					PushObject(CreateRealNumObject((double)v));
+					int64_t v = Factorial((int64_t)TO_REAL_VALUE(stackTop));
+					PushValue(Value((double)v));
 				}
 				else
 					Assert("Invalid postfix operator '!',the increment object isn't an int num object or a real num object.");
@@ -989,7 +817,7 @@ namespace lws
 			}
 		}
 
-		return CreateNullObject();
+		return Value();
 	}
 
 	void VM::ResetStatus()
@@ -1000,7 +828,7 @@ namespace lws
 		curObjCount = 0;
 		maxObjCount = GC_OBJECT_COUNT_THRESHOLD;
 
-		std::array<Object *, STACK_MAX>().swap(mObjectStack);
+		std::array<Value, STACK_MAX>().swap(mValueStack);
 
 		if (mContext != nullptr)
 		{
@@ -1010,7 +838,7 @@ namespace lws
 		mContext = new Context();
 	}
 
-	std::function<Object *(std::vector<Object *>)> VM::GetNativeFunction(std::wstring_view fnName)
+	std::function<Value(std::vector<Value>)> VM::GetNativeFunction(std::wstring_view fnName)
 	{
 		for (const auto lib : LibraryManager::mLibraries)
 			if (lib.second->HasNativeFunction(fnName))
@@ -1025,13 +853,13 @@ namespace lws
 		return false;
 	}
 
-	void VM::PushObject(Object *object)
+	void VM::PushValue(Value object)
 	{
-		mObjectStack[sp++] = object;
+		mValueStack[sp++] = object;
 	}
-	Object *VM::PopObject()
+	Value VM::PopValue()
 	{
-		return mObjectStack[--sp];
+		return mValueStack[--sp];
 	}
 
 	void VM::PushFrame(Frame *frame)
@@ -1054,17 +882,17 @@ namespace lws
 
 		//mark all object which in stack;
 		for (size_t i = 0; i < sp; ++i)
-			mObjectStack[i]->Mark();
-		if(mContext)
+			mValueStack[i].Mark();
+		if (mContext)
 		{
 			auto contextPtr = mContext;
-			for(const auto& [k,v]:contextPtr->mValues)
-				v.object->Mark();
+			for (const auto &[k, v] : contextPtr->mValues)
+				v.value.Mark();
 			while (contextPtr->mUpContext)
 			{
 				contextPtr = contextPtr->mUpContext;
 				for (const auto &[k, v] : contextPtr->mValues)
-					v.object->Mark();
+					v.value.Mark();
 			}
 		}
 

@@ -2,184 +2,11 @@
 
 namespace lws
 {
-    IntNumObject::IntNumObject()
-        : value(0)
-    {
-    }
-    IntNumObject::IntNumObject(int64_t value)
-        : value(value)
-    {
-    }
-    IntNumObject::~IntNumObject()
-    {
-    }
-
-    std::wstring IntNumObject::Stringify()
-    {
-        return std::to_wstring(value);
-    }
-    ObjectType IntNumObject::Type()
-    {
-        return OBJECT_INT;
-    }
-    void IntNumObject::Mark()
-    {
-        if (marked)
-            return;
-        marked = true;
-    }
-    void IntNumObject::UnMark()
-    {
-        if (!marked)
-            return;
-        marked = false;
-    }
-    bool IntNumObject::IsEqualTo(Object *other)
-    {
-        if (!IS_INT_OBJ(other))
-            return false;
-        return value == TO_INT_OBJ(other)->value;
-    }
-
-    RealNumObject::RealNumObject()
-        : value(0.0)
-    {
-    }
-    RealNumObject::RealNumObject(double value)
-        : value(value)
-    {
-    }
-    RealNumObject::~RealNumObject()
-    {
-    }
-
-    std::wstring RealNumObject::Stringify()
-    {
-        return std::to_wstring(value);
-    }
-    ObjectType RealNumObject::Type()
-    {
-        return OBJECT_REAL;
-    }
-    void RealNumObject::Mark()
-    {
-        if (marked)
-            return;
-        marked = true;
-    }
-    void RealNumObject::UnMark()
-    {
-        if (!marked)
-            return;
-        marked = false;
-    }
-    bool RealNumObject::IsEqualTo(Object *other)
-    {
-        if (!IS_REAL_OBJ(other))
-            return false;
-        return value == TO_REAL_OBJ(other)->value;
-    }
-
-    StrObject::StrObject() {}
-    StrObject::StrObject(std::wstring_view value) : value(value) {}
-    StrObject::~StrObject() {}
-
-    std::wstring StrObject::Stringify()
-    {
-        return value;
-    }
-    ObjectType StrObject::Type()
-    {
-        return OBJECT_STR;
-    }
-    void StrObject::Mark()
-    {
-        marked = true;
-    }
-    void StrObject::UnMark()
-    {
-        marked = false;
-    }
-    bool StrObject::IsEqualTo(Object *other)
-    {
-        if (!IS_STR_OBJ(other))
-            return false;
-        return value == TO_STR_OBJ(other)->value;
-    }
-
-    BoolObject::BoolObject()
-        : value(false)
-    {
-    }
-    BoolObject::BoolObject(bool value)
-        : value(value)
-    {
-    }
-    BoolObject::~BoolObject()
-    {
-    }
-
-    std::wstring BoolObject::Stringify()
-    {
-        return value ? L"true" : L"false";
-    }
-    ObjectType BoolObject::Type()
-    {
-        return OBJECT_BOOL;
-    }
-    void BoolObject::Mark()
-    {
-        if (marked)
-            return;
-        marked = true;
-    }
-    void BoolObject::UnMark()
-    {
-        if (!marked)
-            return;
-        marked = false;
-    }
-    bool BoolObject::IsEqualTo(Object *other)
-    {
-        if (!IS_BOOL_OBJ(other))
-            return false;
-        return value == TO_BOOL_OBJ(other)->value;
-    }
-
-    NullObject::NullObject()
-    {
-    }
-    NullObject::~NullObject()
-    {
-    }
-
-    std::wstring NullObject::Stringify()
-    {
-        return L"null";
-    }
-    ObjectType NullObject::Type()
-    {
-        return OBJECT_NULL;
-    }
-    void NullObject::Mark()
-    {
-        marked = true;
-    }
-    void NullObject::UnMark()
-    {
-        marked = false;
-    }
-    bool NullObject::IsEqualTo(Object *other)
-    {
-        if (!IS_NULL_OBJ(other))
-            return false;
-        return true;
-    }
 
     ArrayObject::ArrayObject()
     {
     }
-    ArrayObject::ArrayObject(const std::vector<Object *> &elements)
+    ArrayObject::ArrayObject(const std::vector<Value> &elements)
         : elements(elements)
     {
     }
@@ -193,7 +20,7 @@ namespace lws
         if (!elements.empty())
         {
             for (const auto &e : elements)
-                result += e->Stringify() + L",";
+                result += e.Stringify() + L",";
             result = result.substr(0, result.size() - 1);
         }
         result += L"]";
@@ -210,7 +37,7 @@ namespace lws
         marked = true;
 
         for (const auto &e : elements)
-            e->Mark();
+            e.Mark();
     }
     void ArrayObject::UnMark()
     {
@@ -219,7 +46,7 @@ namespace lws
         marked = false;
 
         for (const auto &e : elements)
-            e->UnMark();
+            e.UnMark();
     }
 
     bool ArrayObject::IsEqualTo(Object *other)
@@ -242,13 +69,13 @@ namespace lws
     TableObject::TableObject()
     {
     }
-    TableObject::TableObject(const std::unordered_map<Object *, Object *> &elements)
+    TableObject::TableObject(const ValueUnorderedMap &elements)
         : elements(elements)
     {
     }
     TableObject::~TableObject()
     {
-        std::unordered_map<Object *, Object *>().swap(elements);
+        ValueUnorderedMap().swap(elements);
     }
 
     std::wstring TableObject::Stringify()
@@ -256,8 +83,8 @@ namespace lws
         std::wstring result = L"{";
         if (!elements.empty())
         {
-            for (auto [key, value] : elements)
-                result += key->Stringify() + L":" + value->Stringify() + L",";
+            for (const auto& [key, value] : elements)
+                result += key.Stringify() + L":" + value.Stringify() + L",";
             result = result.substr(0, result.size() - 1);
         }
         result += L"}";
@@ -273,10 +100,10 @@ namespace lws
             return;
         marked = true;
 
-        for (auto [key, value] : elements)
+        for (const auto& [key, value] : elements)
         {
-            key->Mark();
-            value->Mark();
+            key.Mark();
+            value.Mark();
         }
     }
     void TableObject::UnMark()
@@ -287,8 +114,8 @@ namespace lws
 
         for (auto [key, value] : elements)
         {
-            key->UnMark();
-            value->UnMark();
+            key.UnMark();
+            value.UnMark();
         }
     }
 
@@ -304,7 +131,7 @@ namespace lws
 
         for (auto [key1, value1] : elements)
             for (auto [key2, value2] : tableOther->elements)
-                if (!key1->IsEqualTo(key2) || !value1->IsEqualTo(value2))
+                if (key1!=key2 || value1!=value2)
                     return false;
 
         return true;
@@ -350,7 +177,7 @@ namespace lws
         return frameIndex == TO_LAMBDA_OBJ(other)->frameIndex;
     }
 
-    RefObject::RefObject(std::wstring_view name, Object *index)
+    RefObject::RefObject(std::wstring_view name, const Value& index)
         : name(name), index(index), isAddressReference(false)
     {
     }
@@ -368,8 +195,8 @@ namespace lws
         if (!isAddressReference)
         {
             std::wstring result = name;
-            if (index)
-                result += L"[" + index->Stringify() + L"]";
+            if (!IS_INVALID_VALUE(index))
+                result += L"[" + index.Stringify() + L"]";
             return result;
         }
         else
@@ -407,7 +234,7 @@ namespace lws
     {
     }
     FieldObject::FieldObject(std::wstring_view name,
-                             const std::unordered_map<std::wstring, ObjectDesc> &members,
+                             const std::unordered_map<std::wstring, ValueDesc> &members,
                              const std::vector<std::pair<std::wstring, FieldObject *>> &containedFields)
         : name(name), members(members), containedFields(containedFields)
     {
@@ -433,7 +260,7 @@ namespace lws
             result += L"\n{\n";
             for (const auto &[key, value] : members)
             {
-                if (value.type == ObjectDescType::CONST)
+                if (value.type == ValueDescType::CONST)
                     result += L"    const  " + key + L"\n";
                 else
                     result += L"    let  " + key + L"\n";
@@ -452,8 +279,8 @@ namespace lws
         if (marked)
             return;
         marked = true;
-        for (auto [key, value] : members)
-            value.object->Mark();
+        for (const auto& [memberKey, memberValue] : members)
+            memberValue.value.Mark();
         for (auto &containedField : containedFields)
             containedField.second->Mark();
     }
@@ -462,8 +289,8 @@ namespace lws
         if (!marked)
             return;
         marked = false;
-        for (auto [key, value] : members)
-            value.object->UnMark();
+        for (const auto &[memberKey, memberValue] : members)
+            memberValue.value.UnMark();
         for (auto &containedField : containedFields)
             containedField.second->UnMark();
     }
@@ -475,20 +302,20 @@ namespace lws
         if (name != TO_FIELD_OBJ(other)->name)
             return false;
 
-        for (auto [key1, value1] : members)
-            for (auto [key2, value2] : TO_FIELD_OBJ(other)->members)
-                if (key1 != key2 || !value1.object->IsEqualTo(value2.object))
+        for (const auto& [key1, value1] : members)
+            for (const auto& [key2, value2] : TO_FIELD_OBJ(other)->members)
+                if (key1 != key2 || value1!=value2)
                     return false;
         return true;
     }
 
-    void FieldObject::AssignMemberByName(std::wstring_view name, Object *value)
+    void FieldObject::AssignMemberByName(std::wstring_view name, const Value& value)
     {
         auto iter = members.find(name.data());
         if (iter != members.end())
         {
-            if (members[name.data()].type != ObjectDescType::CONST)
-                members[name.data()].object = value;
+            if (members[name.data()].type != ValueDescType::CONST)
+                members[name.data()].value = value;
             else
                 Assert(L"The member:" + std::wstring(name) + L" in the field:" + this->name + L" is a const member,cannot be reassigned.");
         }
@@ -501,11 +328,11 @@ namespace lws
             Assert(L"Undefined field member:" + std::wstring(name));
     }
 
-    Object *FieldObject::GetMemberByName(std::wstring_view name)
+    Value FieldObject::GetMemberByName(std::wstring_view name)
     {
         auto iter = members.find(name.data()); // variables in self scope
         if (iter != members.end())
-            return iter->second.object;
+            return iter->second.value;
         else // variables in contained field
         {
             for (const auto &containedField : containedFields)
@@ -516,20 +343,20 @@ namespace lws
                 else // the member
                 {
                     auto member = containedField.second->GetMemberByName(name);
-                    if (member)
+                    if (!IS_INVALID_VALUE(member))
                         return member;
                 }
             }
         }
-        return nullptr;
+        return gInvalidValue;
     }
-    Object *FieldObject::GetMemberByAddress(std::wstring_view address)
+    Value FieldObject::GetMemberByAddress(std::wstring_view address)
     {
         if (!members.empty())
         {
-            for (auto [key, value] : members)
-                if (PointerAddressToString(value.object) == address)
-                    return value.object;
+            for (auto& [memberKey, memberValue] : members)
+                if (PointerAddressToString(&memberValue.value) == address)
+                    return memberValue.value;
         }
 
         if (!containedFields.empty()) // in contained field
@@ -542,13 +369,13 @@ namespace lws
                 else // the member in contained field
                 {
                     auto member = containedField.second->GetMemberByAddress(address);
-                    if (member)
+                    if (!IS_INVALID_VALUE(member))
                         return member;
                 }
             }
         }
 
         Assert(L"No Object's address:" + std::wstring(address) + L"in field:" + std::wstring(name.data()));
-        return nullptr;
+        return gInvalidValue;
     }
 }
