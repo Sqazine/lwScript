@@ -796,7 +796,7 @@ namespace lws
 				classStmt->parentClasses.emplace_back((IdentifierExpr *)ParseIdentifierExpr());
 		}
 
-		Consume(TOKEN_LBRACE, L"Expect '{' after class name or contained class name");
+		Consume(TOKEN_LBRACE, L"Expect '{' after class name or parent class name");
 
 		while (!IsMatchCurToken(TOKEN_RBRACE))
 		{

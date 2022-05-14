@@ -299,10 +299,10 @@ namespace lws
 
 		classFrame->AddOpCode(OP_ENTER_SCOPE);
 
-		for (const auto &containedClass : stmt->parentClasses)
+		for (const auto &parentClass : stmt->parentClasses)
 		{
-			CompileIdentifierExpr(containedClass, classFrame, VAR_READ);
-			IdentifierExpr *instanceIdetExpr = new IdentifierExpr(containedClassPrefixID + containedClass->literal);
+			CompileIdentifierExpr(parentClass, classFrame, VAR_READ);
+			IdentifierExpr *instanceIdetExpr = new IdentifierExpr(parentClassPrefixID + parentClass->literal);
 			CompileIdentifierExpr(instanceIdetExpr, classFrame, VAR_INIT);
 		}
 
@@ -713,7 +713,7 @@ namespace lws
 		for (const auto &arg : expr->arguments)
 			CompileExpr(arg, frame);
 
-		//extra args such as 'this' or the class contained class instance
+		//extra args such as 'this' or the class parent class instance
 		int64_t extraArgCount = 0;
 		if (expr->name->Type() == AST_CLASS_CALL)
 		{

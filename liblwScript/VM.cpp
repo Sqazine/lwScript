@@ -506,8 +506,8 @@ namespace lws
 
 				for (auto value : mContext->mValues)
 				{
-					if (value.first.find_first_of(containedClassPrefixID) == 0 && IS_CLASS_VALUE(value.second.value))
-						parentClasses.emplace_back(value.first.substr(wcslen(containedClassPrefixID)), TO_CLASS_VALUE(value.second.value));
+					if (value.first.find_first_of(parentClassPrefixID) == 0 && IS_CLASS_VALUE(value.second.value))
+						parentClasses.emplace_back(value.first.substr(wcslen(parentClassPrefixID)), TO_CLASS_VALUE(value.second.value));
 					else
 						members[value.first] = value.second;
 				}
@@ -635,11 +635,11 @@ namespace lws
 						Assert(L"No lambda object:" + memberName + L" in class:" + classType);
 					PushFrame(classFrame->GetLambdaFrame(TO_LAMBDA_VALUE(lambdaObject)->frameIndex));
 				}
-				else if (!classObj->parentClasses.empty()) //get contained classs' function
+				else if (!classObj->parentClasses.empty()) //get parent classs' function
 				{
-					for (const auto &containedClass : classObj->parentClasses)
+					for (const auto &parentClass : classObj->parentClasses)
 					{
-						classType = containedClass.second->name;
+						classType = parentClass.second->name;
 						classFrame = nullptr;
 						if (frame->HasClassFrame(classType)) //function:function add(){return 10;}
 							classFrame = frame->GetClassFrame(classType);

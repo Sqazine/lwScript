@@ -284,8 +284,8 @@ namespace lws
         if (!parentClasses.empty())
         {
             result += L":";
-            for (const auto &containedClass : parentClasses)
-                result += containedClass.first + L",";
+            for (const auto &parentClass : parentClasses)
+                result += parentClass.first + L",";
             result = result.substr(0, result.size() - 1);
         }
 
@@ -315,8 +315,8 @@ namespace lws
         marked = true;
         for (const auto &[memberKey, memberValue] : members)
             memberValue.value.Mark();
-        for (auto &containedClass : parentClasses)
-            containedClass.second->Mark();
+        for (auto &parentClass : parentClasses)
+            parentClass.second->Mark();
     }
     void ClassObject::UnMark()
     {
@@ -325,8 +325,8 @@ namespace lws
         marked = false;
         for (const auto &[memberKey, memberValue] : members)
             memberValue.value.UnMark();
-        for (auto &containedClass : parentClasses)
-            containedClass.second->UnMark();
+        for (auto &parentClass : parentClasses)
+            parentClass.second->UnMark();
     }
     bool ClassObject::IsEqualTo(Object *other)
     {
@@ -355,8 +355,8 @@ namespace lws
         }
         else if (!parentClasses.empty())
         {
-            for (auto &containedClass : parentClasses)
-                containedClass.second->AssignMemberByName(name, value);
+            for (auto &parentClass : parentClasses)
+                parentClass.second->AssignMemberByName(name, value);
         }
         else
             Assert(L"Undefined class member:" + std::wstring(name));
@@ -367,16 +367,16 @@ namespace lws
         auto iter = members.find(name.data()); // variables in self scope
         if (iter != members.end())
             return iter->second.value;
-        else // variables in contained class
+        else // variables in parent class
         {
-            for (const auto &containedClass : parentClasses)
+            for (const auto &parentClass : parentClasses)
             {
-                // the contained class self
-                if (containedClass.first == name)
-                    return containedClass.second;
+                // the parent class self
+                if (parentClass.first == name)
+                    return parentClass.second;
                 else // the member
                 {
-                    auto member = containedClass.second->GetMemberByName(name);
+                    auto member = parentClass.second->GetMemberByName(name);
                     if (!IS_INVALID_VALUE(member))
                         return member;
                 }
@@ -393,16 +393,16 @@ namespace lws
                     return memberValue.value;
         }
 
-        if (!parentClasses.empty()) // in contained class
+        if (!parentClasses.empty()) // in parent class
         {
-            for (const auto &containedClass : parentClasses)
+            for (const auto &parentClass : parentClasses)
             {
-                // the contained class self
-                if (PointerAddressToString(containedClass.second) == address)
-                    return containedClass.second;
-                else // the member in contained class
+                // the parent class self
+                if (PointerAddressToString(parentClass.second) == address)
+                    return parentClass.second;
+                else // the member in parent class
                 {
-                    auto member = containedClass.second->GetMemberByAddress(address);
+                    auto member = parentClass.second->GetMemberByAddress(address);
                     if (!IS_INVALID_VALUE(member))
                         return member;
                 }

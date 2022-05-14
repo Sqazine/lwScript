@@ -806,8 +806,8 @@ namespace lws
 		if (!parentClasses.empty())
 		{
 			result += L":";
-			for (const auto &containedClass : parentClasses)
-				result += containedClass->Stringify() + L",";
+			for (const auto &parentClass : parentClasses)
+				result += parentClass->Stringify() + L",";
 			result = result.substr(0, result.size() - 1);
 		}
 		result += L"{";
