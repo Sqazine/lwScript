@@ -3,6 +3,40 @@
 namespace lws
 {
 
+    StrObject::StrObject()
+    {
+    }
+    StrObject::StrObject(std::wstring_view value)
+        : value(value)
+    {
+    }
+    StrObject::~StrObject()
+    {
+    }
+
+    std::wstring StrObject::Stringify()
+    {
+        return value;
+    }
+    ObjectType StrObject::Type()
+    {
+        return OBJECT_STR;
+    }
+    void StrObject::Mark()
+    {
+        marked = true;
+    }
+    void StrObject::UnMark()
+    {
+        marked = false;
+    }
+    bool StrObject::IsEqualTo(Object *other)
+    {
+        if (!IS_STR_OBJ(other))
+            return false;
+        return value == TO_STR_OBJ(other)->value;
+    }
+
     ArrayObject::ArrayObject()
     {
     }
@@ -83,7 +117,7 @@ namespace lws
         std::wstring result = L"{";
         if (!elements.empty())
         {
-            for (const auto& [key, value] : elements)
+            for (const auto &[key, value] : elements)
                 result += key.Stringify() + L":" + value.Stringify() + L",";
             result = result.substr(0, result.size() - 1);
         }
@@ -100,7 +134,7 @@ namespace lws
             return;
         marked = true;
 
-        for (const auto& [key, value] : elements)
+        for (const auto &[key, value] : elements)
         {
             key.Mark();
             value.Mark();
@@ -131,7 +165,7 @@ namespace lws
 
         for (auto [key1, value1] : elements)
             for (auto [key2, value2] : tableOther->elements)
-                if (key1!=key2 || value1!=value2)
+                if (key1 != key2 || value1 != value2)
                     return false;
 
         return true;
@@ -177,7 +211,7 @@ namespace lws
         return frameIndex == TO_LAMBDA_OBJ(other)->frameIndex;
     }
 
-    RefObject::RefObject(std::wstring_view name, const Value& index)
+    RefObject::RefObject(std::wstring_view name, const Value &index)
         : name(name), index(index), isAddressReference(false)
     {
     }
@@ -279,7 +313,7 @@ namespace lws
         if (marked)
             return;
         marked = true;
-        for (const auto& [memberKey, memberValue] : members)
+        for (const auto &[memberKey, memberValue] : members)
             memberValue.value.Mark();
         for (auto &containedField : containedFields)
             containedField.second->Mark();
@@ -302,14 +336,14 @@ namespace lws
         if (name != TO_FIELD_OBJ(other)->name)
             return false;
 
-        for (const auto& [key1, value1] : members)
-            for (const auto& [key2, value2] : TO_FIELD_OBJ(other)->members)
-                if (key1 != key2 || value1!=value2)
+        for (const auto &[key1, value1] : members)
+            for (const auto &[key2, value2] : TO_FIELD_OBJ(other)->members)
+                if (key1 != key2 || value1 != value2)
                     return false;
         return true;
     }
 
-    void FieldObject::AssignMemberByName(std::wstring_view name, const Value& value)
+    void FieldObject::AssignMemberByName(std::wstring_view name, const Value &value)
     {
         auto iter = members.find(name.data());
         if (iter != members.end())
@@ -354,7 +388,7 @@ namespace lws
     {
         if (!members.empty())
         {
-            for (auto& [memberKey, memberValue] : members)
+            for (auto &[memberKey, memberValue] : members)
                 if (PointerAddressToString(&memberValue.value) == address)
                     return memberValue.value;
         }

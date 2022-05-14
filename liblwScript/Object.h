@@ -8,13 +8,14 @@
 #include "Context.h"
 namespace lws
 {
-
+#define TO_STR_OBJ(obj) ((StrObject *)obj)
 #define TO_ARRAY_OBJ(obj) ((ArrayObject *)obj)
 #define TO_TABLE_OBJ(obj) ((TableObject *)obj)
 #define TO_LAMBDA_OBJ(obj) ((LambdaObject *)obj)
 #define TO_FIELD_OBJ(obj) ((FieldObject *)obj)
 #define TO_REF_OBJ(obj) ((RefObject *)obj)
 
+#define IS_STR_OBJ(obj) (obj->Type() == OBJECT_STR)
 #define IS_ARRAY_OBJ(obj) (obj->Type() == OBJECT_ARRAY)
 #define IS_TABLE_OBJ(obj) (obj->Type() == OBJECT_TABLE)
 #define IS_LAMBDA_OBJ(obj) (obj->Type() == OBJECT_LAMBDA)
@@ -23,6 +24,7 @@ namespace lws
 
 	enum ObjectType
 	{
+		OBJECT_STR,
 		OBJECT_ARRAY,
 		OBJECT_TABLE,
 		OBJECT_LAMBDA,
@@ -44,6 +46,21 @@ namespace lws
 		bool marked;
 		Object *next;
 	};
+
+	struct StrObject : public Object
+	{
+		StrObject();
+		StrObject(std::wstring_view value);
+		~StrObject();
+
+		std::wstring Stringify() override;
+		ObjectType Type() override;
+		void Mark() override;
+		void UnMark() override;
+		bool IsEqualTo(Object *other) override;
+		std::wstring value;
+	};
+
 	struct ArrayObject : public Object
 	{
 		ArrayObject();

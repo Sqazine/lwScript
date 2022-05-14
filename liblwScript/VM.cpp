@@ -23,6 +23,22 @@ namespace lws
 		Gc();
 	}
 
+	StrObject *VM::CreateStrObject(std::wstring_view value)
+	{
+		if (curObjCount == maxObjCount)
+			Gc();
+
+		StrObject *object = new StrObject(value);
+		object->marked = false;
+
+		object->next = firstObject;
+		firstObject = object;
+
+		curObjCount++;
+
+		return object;
+	}
+
 	ArrayObject *VM::CreateArrayObject(const std::vector<Value> &elements)
 	{
 		if (curObjCount == maxObjCount)
@@ -243,7 +259,7 @@ namespace lws
 				PushValue(Value(frame->mIntNums[frame->mCodes[++ip]]));
 				break;
 			case OP_NEW_STR:
-				PushValue(Value(frame->mStrings[frame->mCodes[++ip]]));
+				PushValue(CreateStrObject(frame->mStrings[frame->mCodes[++ip]]));
 				break;
 			case OP_NEW_TRUE:
 				PushValue(Value(true));

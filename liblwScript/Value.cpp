@@ -20,11 +20,6 @@ namespace lws
     {
     }
 
-    Value::Value(const std::wstring &string)
-        : string(string), type(VALUE_STR)
-    {
-    }
-
     Value::Value(Object *object)
         : object(object), type(VALUE_OBJECT)
     {
@@ -33,64 +28,8 @@ namespace lws
         : type(type)
     {
     }
-    Value::Value(const Value &v)
-    {
-        type = v.type;
-        switch (type)
-        {
-        case VALUE_INT:
-            integer = v.integer;
-            break;
-        case VALUE_REAL:
-            realnum = v.realnum;
-            break;
-        case VALUE_BOOL:
-            boolean = v.boolean;
-            break;
-        case VALUE_OBJECT:
-            object = v.object;
-            break;
-        case VALUE_STR:
-            string = v.string;
-            break;
-        case VALUE_NULL:
-        case VALUE_INVALID:
-            break;
-        default:
-            break;
-        }
-    }
     Value::~Value()
     {
-    }
-
-    Value &Value::operator=(const Value &v)
-    {
-        this->type = v.type;
-        switch (type)
-        {
-        case VALUE_INT:
-            integer = v.integer;
-            break;
-        case VALUE_REAL:
-            realnum = v.realnum;
-            break;
-        case VALUE_BOOL:
-            boolean = v.boolean;
-            break;
-        case VALUE_OBJECT:
-            object = v.object;
-            break;
-        case VALUE_STR:
-            string = v.string;
-            break;
-        case VALUE_NULL:
-        case VALUE_INVALID:
-            break;
-        default:
-            break;
-        }
-        return *this;
     }
 
     ValueType Value::Type() const
@@ -109,8 +48,6 @@ namespace lws
             return boolean ? L"true" : L"false";
         case VALUE_NULL:
             return L"null";
-        case VALUE_STR:
-            return string;
         case VALUE_OBJECT:
             return object->Stringify();
         default:
@@ -157,13 +94,6 @@ namespace lws
         {
             if (IS_BOOL_VALUE(right))
                 return TO_BOOL_VALUE(left) == TO_BOOL_VALUE(right);
-            else
-                return false;
-        }
-        case VALUE_STR:
-        {
-            if (IS_STR_VALUE(right))
-                return TO_STR_VALUE(left) == TO_STR_VALUE(right);
             else
                 return false;
         }

@@ -7,8 +7,8 @@ namespace lws
 #define IS_INT_VALUE(v) (v.Type() == VALUE_INT)
 #define IS_REAL_VALUE(v) (v.Type() == VALUE_REAL)
 #define IS_BOOL_VALUE(v) (v.Type() == VALUE_BOOL)
-#define IS_STR_VALUE(v) (v.Type()==VALUE_STR)
 #define IS_OBJECT_VALUE(v) (v.Type() == VALUE_OBJECT)
+#define IS_STR_VALUE(v) (IS_OBJECT_VALUE(v) && IS_STR_OBJ(v.object))
 #define IS_ARRAY_VALUE(v) (IS_OBJECT_VALUE(v) && IS_ARRAY_OBJ(v.object))
 #define IS_TABLE_VALUE(v) (IS_OBJECT_VALUE(v) && IS_TABLE_OBJ(v.object))
 #define IS_FIELD_VALUE(v) (IS_OBJECT_VALUE(v) && IS_FIELD_OBJ(v.object))
@@ -19,8 +19,8 @@ namespace lws
 #define TO_INT_VALUE(v) (v.integer)
 #define TO_REAL_VALUE(v) (v.realnum)
 #define TO_BOOL_VALUE(v) (v.boolean)
-#define TO_STR_VALUE(v) (v.string)
 #define TO_OBJECT_VALUE(v) (v.object)
+#define TO_STR_VALUE(v) (TO_STR_OBJ(v.object))
 #define TO_ARRAY_VALUE(v) (TO_ARRAY_OBJ(v.object))
 #define TO_TABLE_VALUE(v) (TO_TABLE_OBJ(v.object))
 #define TO_LAMBDA_VALUE(v) (TO_LAMBDA_OBJ(v.object))
@@ -33,7 +33,6 @@ namespace lws
         VALUE_INT,
         VALUE_REAL,
         VALUE_BOOL,
-        VALUE_STR,
         VALUE_OBJECT,
         VALUE_INVALID,
     };
@@ -44,13 +43,9 @@ namespace lws
         Value(int64_t integer);
         Value(double number);
         Value(bool boolean);
-        Value(const std::wstring& string);
         Value(struct Object *object);
         Value(ValueType type);
-        Value(const Value &v);
         ~Value();
-
-        Value &operator=(const Value &v);
 
         ValueType Type() const;
         std::wstring Stringify() const;
@@ -64,7 +59,6 @@ namespace lws
             int64_t integer;
             double realnum;
             bool boolean;
-            std::wstring string=L"";
             struct Object *object;
         };
     };

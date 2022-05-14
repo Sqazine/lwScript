@@ -58,7 +58,7 @@ namespace lws
 				return nullptr;
 			}
 
-			std::wstring content = TO_STR_VALUE(args[0]);
+			std::wstring content = TO_STR_VALUE(args[0])->value;
 
 			if (args.size() != 1) //formatting output
 			{
@@ -120,7 +120,7 @@ namespace lws
 				return nullptr;
 			}
 
-			std::wstring content = TO_STR_VALUE(args[0]);
+			std::wstring content = TO_STR_VALUE(args[0])->value;
 
 			if (args.size() != 1) //formatting output
 			{
@@ -178,7 +178,7 @@ namespace lws
 			else if (IS_TABLE_VALUE(args[0]))
 				return Value((int64_t)TO_TABLE_VALUE(args[0])->elements.size());
 			else if (IS_STR_VALUE(args[0]))
-				return Value((int64_t)TO_STR_VALUE(args[0]).size());
+				return Value((int64_t)TO_STR_VALUE(args[0])->value.size());
 			else
 				Assert(L"[Native function 'sizeof']:Expect a array,table ot string argument.");
 			return nullptr;
@@ -214,7 +214,7 @@ namespace lws
 			}
 			else if (IS_STR_VALUE(args[0]))
 			{
-				auto string = TO_STR_VALUE(args[0]);
+				auto string = TO_STR_VALUE(args[0])->value;
 				if (!IS_INT_VALUE(args[1]))
 					Assert(L"[Native function 'insert']:Arg1 must be integer type while insert to a array");
 
@@ -267,7 +267,7 @@ namespace lws
 			}
 			else if (IS_STR_VALUE(args[0]))
 			{
-				auto string = TO_STR_VALUE(args[0]);
+				auto string = TO_STR_VALUE(args[0])->value;
 				if (!IS_INT_VALUE(args[1]))
 					Assert(L"[Native function 'erase']:Arg1 must be integer type while insert to a array");
 
@@ -292,7 +292,7 @@ namespace lws
 			if (args.empty() || args.size() != 1)
 				Assert(L"[Native function 'addressof']:Expect 1 arguments.");
 
-			return Value(PointerAddressToString(&args[0]));
+			return mVMHandle->CreateStrObject(PointerAddressToString(&args[0]));
 		};
 	}
 
