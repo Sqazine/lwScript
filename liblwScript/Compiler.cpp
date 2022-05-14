@@ -514,7 +514,10 @@ namespace lws
 		{
 			while (expr->right->Type() == AST_PREFIX && ((PrefixExpr *)expr->right)->op == L"++" || ((PrefixExpr *)expr->right)->op == L"--")
 				expr = (PrefixExpr *)expr->right;
-			frame->AddOpCode(OP_SELF_INCREMENT);
+			frame->AddOpCode(OP_NEW_INT);
+			size_t offset = frame->AddIntNum(1);
+			frame->AddOpCode(offset);
+			frame->AddOpCode(OP_ADD);
 			CompileExpr(expr->right, frame, VAR_WRITE);
 			CompileExpr(expr->right, frame, VAR_READ);
 		}
@@ -523,7 +526,10 @@ namespace lws
 			while (expr->right->Type() == AST_PREFIX && ((PrefixExpr *)expr->right)->op == L"++" || ((PrefixExpr *)expr->right)->op == L"--")
 				expr = (PrefixExpr *)expr->right;
 
-			frame->AddOpCode(OP_SELF_DECREMENT);
+			frame->AddOpCode(OP_NEW_INT);
+			size_t offset = frame->AddIntNum(1);
+			frame->AddOpCode(offset);
+			frame->AddOpCode(OP_SUB);
 			CompileExpr(expr->right, frame, VAR_WRITE);
 			CompileExpr(expr->right, frame, VAR_READ);
 		}
@@ -541,8 +547,8 @@ namespace lws
 		}
 		else
 		{
-			CompileExpr(expr->right, frame);
 			CompileExpr(expr->left, frame);
+			CompileExpr(expr->right, frame);
 
 			if (expr->op == L"+")
 				frame->AddOpCode(OP_ADD);
@@ -650,12 +656,18 @@ namespace lws
 		{
 			if (expr->op == L"++")
 			{
-				frame->AddOpCode(OP_SELF_INCREMENT);
+				frame->AddOpCode(OP_NEW_INT);
+				size_t offset = frame->AddIntNum(1);
+				frame->AddOpCode(offset);
+				frame->AddOpCode(OP_ADD);
 				CompileExpr(expr->left, frame, VAR_WRITE);
 			}
 			else if (expr->op == L"--")
 			{
-				frame->AddOpCode(OP_SELF_DECREMENT);
+				frame->AddOpCode(OP_NEW_INT);
+				size_t offset = frame->AddIntNum(1);
+				frame->AddOpCode(offset);
+				frame->AddOpCode(OP_SUB);
 				CompileExpr(expr->left, frame, VAR_WRITE);
 			}
 		}

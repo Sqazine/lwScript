@@ -171,8 +171,8 @@ namespace lws
 #define INT_BINARY(op)                                                                     \
 	do                                                                                     \
 	{                                                                                      \
-		Value left = PopValue();                                                           \
 		Value right = PopValue();                                                          \
+		Value left = PopValue();                                                           \
 		if (IS_INT_VALUE(right) && IS_INT_VALUE(left))                                     \
 			PushValue(Value(TO_INT_VALUE(left) op TO_INT_VALUE(right)));                   \
 		else                                                                               \
@@ -183,8 +183,8 @@ namespace lws
 #define COMPARE_BINARY(op)                                                                       \
 	do                                                                                           \
 	{                                                                                            \
-		Value left = PopValue();                                                                 \
 		Value right = PopValue();                                                                \
+		Value left = PopValue();                                                                 \
 		if (IS_INT_VALUE(right) && IS_INT_VALUE(left))                                           \
 			PushValue(TO_INT_VALUE(left) op TO_INT_VALUE(right) ? Value(true) : Value(false));   \
 		else if (IS_INT_VALUE(right) && IS_REAL_VALUE(left))                                     \
@@ -201,8 +201,8 @@ namespace lws
 #define LOGIC_BINARY(op)                                                                         \
 	do                                                                                           \
 	{                                                                                            \
-		Value left = PopValue();                                                                 \
 		Value right = PopValue();                                                                \
+		Value left = PopValue();                                                                 \
 		if (IS_BOOL_VALUE(right) && IS_BOOL_VALUE(left))                                         \
 			PushValue(TO_BOOL_VALUE(left) op TO_BOOL_VALUE(right) ? Value(true) : Value(false)); \
 		else                                                                                     \
@@ -779,40 +779,6 @@ namespace lws
 				else
 					Assert(L"Cannot reference a value," + value.Stringify() + L"only object can be referenced,");
 				
-				break;
-			}
-			case OP_SELF_INCREMENT:
-			{
-				auto stackTop = PopValue();
-				if (IS_INT_VALUE(stackTop))
-				{
-					++TO_INT_VALUE(stackTop);
-					PushValue(stackTop);
-				}
-				else if (IS_REAL_VALUE(stackTop))
-				{
-					++TO_REAL_VALUE(stackTop);
-					PushValue(stackTop);
-				}
-				else
-					Assert(L"Invalid prefix or postfix '++',the increment object isn't an int num object or a real num object.");
-				break;
-			}
-			case OP_SELF_DECREMENT:
-			{
-				auto stackTop = PopValue();
-				if (IS_INT_VALUE(stackTop))
-				{
-					--TO_INT_VALUE(stackTop);
-					PushValue(stackTop);
-				}
-				else if (IS_REAL_VALUE(stackTop))
-				{
-					--TO_REAL_VALUE(stackTop);
-					PushValue(stackTop);
-				}
-				else
-					Assert(L"Invalid prefix or postfix operator '--',the increment object isn't an int num object or a real num object.");
 				break;
 			}
 			case OP_FACTORIAL:
