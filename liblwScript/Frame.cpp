@@ -23,18 +23,30 @@ namespace lws
 
 	uint64_t Frame::AddRealNum(double value)
 	{
+		for (size_t i = 0; i < mRealNums.size();++i)
+			if(mRealNums[i]==value)
+				return i;
+		
 		mRealNums.emplace_back(value);
 		return mRealNums.size() - 1;
 	}
 
 	uint64_t Frame::AddIntNum(int64_t value)
 	{
+		for (size_t i = 0; i < mIntNums.size(); ++i)
+			if (mIntNums[i] == value)
+				return i;
+
 		mIntNums.emplace_back(value);
 		return mIntNums.size() - 1;
 	}
 
 	uint64_t Frame::AddString(std::wstring_view value)
 	{
+		for (size_t i = 0; i < mStrings.size(); ++i)
+			if (mStrings[i] == value)
+				return i;
+
 		mStrings.emplace_back(value);
 		return mStrings.size() - 1;
 	}
