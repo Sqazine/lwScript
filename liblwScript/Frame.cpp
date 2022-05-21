@@ -33,10 +33,6 @@ namespace lws
 
 	uint64_t Frame::AddIntNum(int64_t value)
 	{
-		for (size_t i = 0; i < mIntNums.size(); ++i)
-			if (mIntNums[i] == value)
-				return i;
-
 		mIntNums.emplace_back(value);
 		return mIntNums.size() - 1;
 	}
