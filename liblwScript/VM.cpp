@@ -778,7 +778,7 @@ namespace lws
 					PushValue(CreateRefObject(PointerAddressToString(value.object)));
 				else
 					Assert(L"Cannot reference a value," + value.Stringify() + L"only object can be referenced,");
-				
+
 				break;
 			}
 			case OP_FACTORIAL:
@@ -814,7 +814,13 @@ namespace lws
 		curObjCount = 0;
 		maxObjCount = GC_OBJECT_COUNT_THRESHOLD;
 
-		std::array<Value, STACK_MAX>().swap(mValueStack);
+		curValueStackSize = VALUE_STACK_MAX;
+		std::vector<Value>().swap(mValueStack);
+		mValueStack.resize(curValueStackSize);
+
+		curFrameStackSize = FRAME_STACK_MAX;
+		std::vector<Frame *>().swap(mFrameStack);
+		mFrameStack.resize(curFrameStackSize);
 
 		if (mContext != nullptr)
 		{
@@ -841,6 +847,15 @@ namespace lws
 
 	void VM::PushValue(Value object)
 	{
+		if (sp >= curValueStackSize)
+		{
+			auto t = mValueStack;
+			curValueStackSize *= STACK_INCREMENT_RATE;
+			mValueStack.resize(curValueStackSize);
+
+			for (size_t i = 0; i < t.size(); ++i)
+				mValueStack[i] = t[i];
+		}
 		mValueStack[sp++] = object;
 	}
 	Value VM::PopValue()
@@ -850,6 +865,14 @@ namespace lws
 
 	void VM::PushFrame(Frame *frame)
 	{
+		if (fp >= curFrameStackSize)
+		{
+			auto t = mFrameStack;
+			curFrameStackSize *= STACK_INCREMENT_RATE;
+			mFrameStack.resize(curValueStackSize);
+			for (size_t i = 0; i < t.size(); ++i)
+				mFrameStack[i] = t[i];
+		}
 		mFrameStack[fp++] = frame;
 	}
 	Frame *VM::PopFrame()

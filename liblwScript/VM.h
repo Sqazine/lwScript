@@ -12,8 +12,10 @@
 #include "Context.h"
 namespace lws
 {
-#define STACK_MAX 1024
-#define GC_OBJECT_COUNT_THRESHOLD 256
+	#define STACK_INCREMENT_RATE 2
+#define VALUE_STACK_MAX 8192
+#define FRAME_STACK_MAX 256
+#define GC_OBJECT_COUNT_THRESHOLD 4096
 
 	class VM
 	{
@@ -54,10 +56,12 @@ namespace lws
 		bool IsFrameStackEmpty();
 
 		uint64_t sp;
-		std::array<Value, STACK_MAX> mValueStack;
+		uint64_t curValueStackSize;
+		std::vector<Value> mValueStack;
 
 		uint64_t fp;
-		std::array<Frame *, STACK_MAX> mFrameStack;
+		uint64_t curFrameStackSize;
+		std::vector<Frame *> mFrameStack;
 
 		Object *firstObject;
 		int curObjCount;

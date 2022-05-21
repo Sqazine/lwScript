@@ -43,19 +43,19 @@ namespace lws
 		mNativeFunctions[L"print"] = [this](std::vector<Value> args) -> Value
 		{
 			if (args.empty())
-				return nullptr;
+				return gInvalidValue;
 
 			if (args.size() == 1)
 			{
 				std::wcout << args[0].Stringify();
-				return nullptr;
+				return gInvalidValue;
 			}
 
 			if (!IS_STR_VALUE(args[0]))
 			{
 				for (const auto& arg : args)
 					std::wcout << arg.Stringify();
-				return nullptr;
+				return gInvalidValue;
 			}
 
 			std::wstring content = TO_STR_VALUE(args[0])->value;
@@ -99,25 +99,25 @@ namespace lws
 			}
 
 			std::wcout << content;
-			return nullptr;
+			return gInvalidValue;
 		};
 
 		mNativeFunctions[L"println"] = [this](std::vector<Value> args) -> Value
 		{
 			if (args.empty())
-				return nullptr;
+				return gInvalidValue;
 
 			if (args.size() == 1)
 			{
 				std::wcout << args[0].Stringify() << std::endl;
-				return nullptr;
+				return gInvalidValue;
 			}
 
 			if (!IS_STR_VALUE(args[0]))
 			{
 				for (const auto& arg : args)
 					std::wcout << arg.Stringify() << std::endl;
-				return nullptr;
+				return gInvalidValue;
 			}
 
 			std::wstring content = TO_STR_VALUE(args[0])->value;
@@ -161,7 +161,7 @@ namespace lws
 			}
 
 			std::wcout << content << std::endl;
-			return nullptr;
+			return gInvalidValue;
 		};
 	}
 
@@ -181,7 +181,7 @@ namespace lws
 				return Value((int64_t)TO_STR_VALUE(args[0])->value.size());
 			else
 				Assert(L"[Native function 'sizeof']:Expect a array,table ot string argument.");
-			return nullptr;
+			return gInvalidValue;
 		};
 
 		mNativeFunctions[L"insert"] = [this](std::vector<Value> args) -> Value
@@ -227,7 +227,7 @@ namespace lws
 			}
 			else
 				Assert(L"[Native function 'insert']:Expect a array,table ot string argument.");
-			return nullptr;
+			return gInvalidValue;
 		};
 
 		mNativeFunctions[L"erase"] = [this](std::vector<Value> args) -> Value
@@ -280,7 +280,7 @@ namespace lws
 			}
 			else
 				Assert(L"[Native function 'erase']:Expect a array,table ot string argument.");
-			return nullptr;
+			return gInvalidValue;
 		};
 	}
 
