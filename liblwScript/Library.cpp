@@ -1,6 +1,7 @@
 #include "Library.h"
 #include "VM.h"
 #include <stdio.h>
+#include <ctime>
 namespace lws
 {
 
@@ -10,17 +11,17 @@ namespace lws
 	}
 	Library::~Library()
 	{
-		std::unordered_map<std::wstring, std::function<Value(std::vector<Value>)>>().swap(mNativeFunctions);
+		std::unordered_map<std::wstring, std::function<Value(const std::vector<Value>&)>>().swap(mNativeFunctions);
 	}
 
-	void Library::AddNativeFunction(std::wstring_view name, std::function<Value(std::vector<Value>)> fn)
+	void Library::AddNativeFunction(std::wstring_view name, std::function<Value(const std::vector<Value>&)> fn)
 	{
 		auto iter = mNativeFunctions.find(name.data());
 		if (iter != mNativeFunctions.end())
 			ASSERT(std::wstring(L"Already exists native function:") + name.data())
 		mNativeFunctions[name.data()] = fn;
 	}
-	std::function<Value(std::vector<Value>)> Library::GetNativeFunction(std::wstring_view fnName)
+	std::function<Value(const std::vector<Value>&)> Library::GetNativeFunction(std::wstring_view fnName)
 	{
 		auto iter = mNativeFunctions.find(fnName.data());
 		if (iter != mNativeFunctions.end())
@@ -40,7 +41,7 @@ namespace lws
 	IO::IO(VM* vm)
 		: Library(vm)
 	{
-		mNativeFunctions[L"print"] = [this](std::vector<Value> args) -> Value
+		mNativeFunctions[L"print"] = [this](const std::vector<Value>& args) -> Value
 		{
 			if (args.empty())
 				return gInvalidValue;
@@ -102,7 +103,7 @@ namespace lws
 			return gInvalidValue;
 		};
 
-		mNativeFunctions[L"println"] = [this](std::vector<Value> args) -> Value
+		mNativeFunctions[L"println"] = [this](const std::vector<Value>& args) -> Value
 		{
 			if (args.empty())
 				return gInvalidValue;
@@ -168,7 +169,7 @@ namespace lws
 	DataStructure::DataStructure(VM* vm)
 		: Library(vm)
 	{
-		mNativeFunctions[L"sizeof"] = [this](std::vector<Value> args) -> Value
+		mNativeFunctions[L"sizeof"] = [this](const std::vector<Value>& args) -> Value
 		{
 			if (args.empty() || args.size() > 1)
 				ASSERT(L"[Native function 'sizeof']:Expect a argument.")
@@ -230,7 +231,7 @@ namespace lws
 			return gInvalidValue;
 		};
 
-		mNativeFunctions[L"erase"] = [this](std::vector<Value> args) -> Value
+		mNativeFunctions[L"erase"] = [this](const std::vector<Value>& args) -> Value
 		{
 			if (args.empty() || args.size() != 2)
 				ASSERT(L"[Native function 'erase']:Expect 2 arguments,the arg0 must be array,table or string object.The arg1 is the corresponding index object.")
@@ -287,7 +288,7 @@ namespace lws
 	Memory::Memory(VM *vm)
 		: Library(vm)
 	{
-		mNativeFunctions[L"addressof"] = [this](std::vector<Value> args) -> Value
+		mNativeFunctions[L"addressof"] = [this](const std::vector<Value>& args) -> Value
 		{
 			if (args.empty() || args.size() != 1)
 				ASSERT(L"[Native function 'addressof']:Expect 1 arguments.")
@@ -296,6 +297,15 @@ namespace lws
 				ASSERT(L"[Native function 'addressof']:The arg0 is a value,only object has address.")
 
 			return mVMHandle->CreateStrObject(PointerAddressToString(args[0].object));
+		};
+	}
+
+	Time::Time(class VM *vm)
+	:Library(vm)
+	{
+		mNativeFunctions[L"clock"]=[this](const std::vector<Value>& args)->Value
+		{
+			return Value((double)clock() / CLOCKS_PER_SEC);
 		};
 	}
 

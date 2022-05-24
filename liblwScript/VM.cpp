@@ -10,6 +10,7 @@ namespace lws
 		LibraryManager::RegisterLibrary(L"IO", new IO(this));
 		LibraryManager::RegisterLibrary(L"DataStructure", new DataStructure(this));
 		LibraryManager::RegisterLibrary(L"Memory", new Memory(this));
+		LibraryManager::RegisterLibrary(L"Time", new Time(this));
 	}
 	VM::~VM()
 	{

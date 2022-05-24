@@ -18,6 +18,8 @@ let fib=fn(x)
         return fib(x-1)+fib(x-2);
 };
 
+let start=clock();
 let a=fib(35);
-
+let end=clock();
 println("{}",a);//9227465
+println("{}",end-start);
