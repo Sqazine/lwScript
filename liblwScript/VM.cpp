@@ -291,8 +291,23 @@ namespace lws
 				break;
 			}
 			case OP_ADD:
-				COMMON_BINARY(+);
+			{
+				Value right = PopValue();
+				Value left = PopValue();
+				if (IS_INT_VALUE(right) && IS_INT_VALUE(left))
+					PushValue(Value(TO_INT_VALUE(left) + TO_INT_VALUE(right)));
+				else if (IS_INT_VALUE(right) && IS_REAL_VALUE(left))
+					PushValue(Value(TO_REAL_VALUE(left) + TO_INT_VALUE(right)));
+				else if (IS_REAL_VALUE(right) && IS_INT_VALUE(left))
+					PushValue(Value(TO_INT_VALUE(left) + TO_REAL_VALUE(right)));
+				else if (IS_REAL_VALUE(right) && IS_REAL_VALUE(left))
+					PushValue(Value(TO_REAL_VALUE(left) + TO_REAL_VALUE(right)));
+				else if(IS_STR_VALUE(right)&&IS_STR_VALUE(left))
+					PushValue(Value(CreateStrObject(TO_STR_VALUE(left)->value+TO_STR_VALUE(right)->value)));
+				else
+					Assert(L"Invalid binary op:" + left.Stringify() + L"+" + right.Stringify());
 				break;
+			}
 			case OP_SUB:
 				COMMON_BINARY(-);
 				break;
