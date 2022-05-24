@@ -1154,7 +1154,7 @@ namespace lws
 		if (IsMatchCurToken(type))
 			return GetCurTokenAndStepOnce();
 		Token token = GetCurToken();
-		Assert(L"[line:" + std::to_wstring(token.line) + L",column:" + std::to_wstring(token.column) + L"]:" + std::wstring(errMsg));
+		ASSERT(L"[line:" + std::to_wstring(token.line) + L",column:" + std::to_wstring(token.column) + L"]:" + std::wstring(errMsg))
 		// avoid C++ compiler warning
 		return Token(TOKEN_END, L"", -1, -1);
 	}
@@ -1165,7 +1165,7 @@ namespace lws
 			if (IsMatchCurToken(type))
 				return GetCurTokenAndStepOnce();
 		Token token = GetCurToken();
-		Assert(L"[" + std::to_wstring(token.line) + L"," + std::to_wstring(token.column) + L"]:" + std::wstring(errMsg));
+		ASSERT(L"[" + std::to_wstring(token.line) + L"," + std::to_wstring(token.column) + L"]:" + std::wstring(errMsg))
 		// avoid C++ compiler warning
 		return Token(TOKEN_END, L"", -1, -1);
 	}

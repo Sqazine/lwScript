@@ -244,7 +244,7 @@ namespace lws
 			else
 			{
 				auto literal = mSource.substr(mStartPos, mCurPos - mStartPos);
-				Assert(L"Unknown literal:" + literal);
+				ASSERT(L"Unknown literal:" + literal)
 			}
 		}
 	}
@@ -347,7 +347,7 @@ namespace lws
 				while (IsNumber(GetCurChar()))
 					GetCurCharAndStepOnce();
 			else
-				Assert(L"[line " + std::to_wstring(mLine) + L"]:Number cannot end with '.'");
+				ASSERT(L"[line " + std::to_wstring(mLine) + L"]:Number cannot end with '.'")
 		}
 
 		AddToken(TOKEN_NUMBER);

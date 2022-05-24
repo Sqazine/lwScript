@@ -94,7 +94,7 @@ namespace lws
 	{
 		auto iter = mFunctionFrames.find(name.data());
 		if (iter != mFunctionFrames.end())
-			Assert(L"Redifinition function:" + std::wstring(name));
+			ASSERT(L"Redifinition function:" + std::wstring(name))
 		mFunctionFrames[name.data()] = frame;
 	}
 
@@ -125,7 +125,7 @@ namespace lws
 		auto iter = mClassFrames.find(name.data());
 
 		if (iter != mClassFrames.end())
-			Assert(std::wstring(L"Redefinition struct:") + name.data());
+			ASSERT(std::wstring(L"Redefinition struct:") + name.data())
 
 		mClassFrames[name.data()] = frame;
 	}
@@ -137,7 +137,7 @@ namespace lws
 			return iter->second;
 		else if (mParentFrame != nullptr)
 			return mParentFrame->GetClassFrame(name);
-		Assert(std::wstring(L"No function:") + name.data());
+		ASSERT(std::wstring(L"No function:") + name.data())
 
 		return nullptr;
 	}
@@ -156,7 +156,7 @@ namespace lws
 	{
 		auto iter = mEnumFrames.find(name.data());
 		if (iter != mEnumFrames.end())
-			Assert(std::wstring(L"Redefinition struct:") + name.data());
+			ASSERT(std::wstring(L"Redefinition struct:") + name.data())
 
 		mEnumFrames[name.data()] = frame;
 	}
@@ -167,7 +167,7 @@ namespace lws
 			return iter->second;
 		else if (mParentFrame != nullptr)
 			return mParentFrame->GetClassFrame(name);
-		Assert(std::wstring(L"No function:") + name.data());
+		ASSERT(std::wstring(L"No function:") + name.data())
 
 		return nullptr;
 	}

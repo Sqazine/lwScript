@@ -351,7 +351,7 @@ namespace lws
             if (members[name.data()].type != ValueDescType::CONST)
                 members[name.data()].value = value;
             else
-                Assert(L"The member:" + std::wstring(name) + L" in the class:" + this->name + L" is a const member,cannot be reassigned.");
+                ASSERT(L"The member:" + std::wstring(name) + L" in the class:" + this->name + L" is a const member,cannot be reassigned.")
         }
         else if (!parentClasses.empty())
         {
@@ -359,7 +359,7 @@ namespace lws
                 parentClass.second->AssignMemberByName(name, value);
         }
         else
-            Assert(L"Undefined class member:" + std::wstring(name));
+            ASSERT(L"Undefined class member:" + std::wstring(name))
     }
 
     Value ClassObject::GetMemberByName(std::wstring_view name)
@@ -409,7 +409,7 @@ namespace lws
             }
         }
 
-        Assert(L"No Object's address:" + std::wstring(address) + L"in class:" + std::wstring(name.data()));
+        ASSERT(L"No Object's address:" + std::wstring(address) + L"in class:" + std::wstring(name.data()))
         return gInvalidValue;
     }
 }

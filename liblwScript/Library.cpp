@@ -17,7 +17,7 @@ namespace lws
 	{
 		auto iter = mNativeFunctions.find(name.data());
 		if (iter != mNativeFunctions.end())
-			Assert(std::wstring(L"Already exists native function:") + name.data());
+			ASSERT(std::wstring(L"Already exists native function:") + name.data())
 		mNativeFunctions[name.data()] = fn;
 	}
 	std::function<Value(std::vector<Value>)> Library::GetNativeFunction(std::wstring_view fnName)
@@ -25,7 +25,7 @@ namespace lws
 		auto iter = mNativeFunctions.find(fnName.data());
 		if (iter != mNativeFunctions.end())
 			return iter->second;
-		Assert(std::wstring(L"No native function:") + fnName.data());
+		ASSERT(std::wstring(L"No native function:") + fnName.data())
 
 		return nullptr;
 	}
@@ -171,7 +171,7 @@ namespace lws
 		mNativeFunctions[L"sizeof"] = [this](std::vector<Value> args) -> Value
 		{
 			if (args.empty() || args.size() > 1)
-				Assert(L"[Native function 'sizeof']:Expect a argument.");
+				ASSERT(L"[Native function 'sizeof']:Expect a argument.")
 
 			if (IS_ARRAY_VALUE(args[0]))
 				return Value((int64_t)TO_ARRAY_VALUE(args[0])->elements.size());
@@ -180,25 +180,25 @@ namespace lws
 			else if (IS_STR_VALUE(args[0]))
 				return Value((int64_t)TO_STR_VALUE(args[0])->value.size());
 			else
-				Assert(L"[Native function 'sizeof']:Expect a array,table ot string argument.");
+				ASSERT(L"[Native function 'sizeof']:Expect a array,table ot string argument.")
 			return gInvalidValue;
 		};
 
 		mNativeFunctions[L"insert"] = [this](std::vector<Value> args) -> Value
 		{
 			if (args.empty() || args.size() != 3)
-				Assert(L"[Native function 'insert']:Expect 3 arguments,the arg0 must be array,table or string object.The arg1 is the index object.The arg2 is the value object.");
+				ASSERT(L"[Native function 'insert']:Expect 3 arguments,the arg0 must be array,table or string object.The arg1 is the index object.The arg2 is the value object.")
 
 			if (IS_ARRAY_VALUE(args[0]))
 			{
 				ArrayObject* array = TO_ARRAY_VALUE(args[0]);
 				if (!IS_INT_VALUE(args[1]))
-					Assert(L"[Native function 'insert']:Arg1 must be integer type while insert to a array");
+					ASSERT(L"[Native function 'insert']:Arg1 must be integer type while insert to a array")
 
 				int64_t iIndex = TO_INT_VALUE(args[1]);
 
 				if (iIndex < 0 || iIndex >= (int64_t)array->elements.size())
-					Assert(L"[Native function 'insert']:Index out of array's range");
+					ASSERT(L"[Native function 'insert']:Index out of array's range")
 
 				array->elements.insert(array->elements.begin() + iIndex, 1, args[2]);
 			}
@@ -208,7 +208,7 @@ namespace lws
 
 				for (auto [key, value] : table->elements)
 					if (key==args[1])
-						Assert(L"[Native function 'insert']:Already exist value in the table object of arg1" + args[1].Stringify());
+						ASSERT(L"[Native function 'insert']:Already exist value in the table object of arg1" + args[1].Stringify())
 
 				table->elements[args[1]] = args[2];
 			}
@@ -216,35 +216,35 @@ namespace lws
 			{
 				auto string = TO_STR_VALUE(args[0])->value;
 				if (!IS_INT_VALUE(args[1]))
-					Assert(L"[Native function 'insert']:Arg1 must be integer type while insert to a array");
+					ASSERT(L"[Native function 'insert']:Arg1 must be integer type while insert to a array");
 
 				int64_t iIndex = TO_INT_VALUE(args[1]);
 
 				if (iIndex < 0 || iIndex >= (int64_t)string.size())
-					Assert(L"[Native function 'insert']:Index out of array's range");
+					ASSERT(L"[Native function 'insert']:Index out of array's range");
 
 				string.insert(iIndex, args[2].Stringify());
 			}
 			else
-				Assert(L"[Native function 'insert']:Expect a array,table ot string argument.");
+				ASSERT(L"[Native function 'insert']:Expect a array,table ot string argument.")
 			return gInvalidValue;
 		};
 
 		mNativeFunctions[L"erase"] = [this](std::vector<Value> args) -> Value
 		{
 			if (args.empty() || args.size() != 2)
-				Assert(L"[Native function 'erase']:Expect 2 arguments,the arg0 must be array,table or string object.The arg1 is the corresponding index object.");
+				ASSERT(L"[Native function 'erase']:Expect 2 arguments,the arg0 must be array,table or string object.The arg1 is the corresponding index object.")
 
 			if (IS_ARRAY_VALUE(args[0]))
 			{
 				ArrayObject* array = TO_ARRAY_VALUE(args[0]);
 				if (!IS_INT_VALUE(args[1]))
-					Assert(L"[Native function 'erase']:Arg1 must be integer type while insert to a array");
+					ASSERT(L"[Native function 'erase']:Arg1 must be integer type while insert to a array")
 
 				int64_t iIndex = TO_INT_VALUE(args[1]);
 
 				if (iIndex < 0 || iIndex >= (int64_t)array->elements.size())
-					Assert(L"[Native function 'erase']:Index out of array's range");
+					ASSERT(L"[Native function 'erase']:Index out of array's range")
 
 				array->elements.erase(array->elements.begin() + iIndex);
 			}
@@ -263,23 +263,23 @@ namespace lws
 					}
 
 				if (!hasValue)
-					Assert(L"[Native function 'erase']:No corresponding index in table.");
+					ASSERT(L"[Native function 'erase']:No corresponding index in table.")
 			}
 			else if (IS_STR_VALUE(args[0]))
 			{
 				auto string = TO_STR_VALUE(args[0])->value;
 				if (!IS_INT_VALUE(args[1]))
-					Assert(L"[Native function 'erase']:Arg1 must be integer type while insert to a array");
+					ASSERT(L"[Native function 'erase']:Arg1 must be integer type while insert to a array")
 
 				int64_t iIndex = TO_INT_VALUE(args[1]);
 
 				if (iIndex < 0 || iIndex >= (int64_t)string.size())
-					Assert(L"[Native function 'erase']:Index out of array's range");
+					ASSERT(L"[Native function 'erase']:Index out of array's range")
 
 				string.erase(string.begin() + iIndex);
 			}
 			else
-				Assert(L"[Native function 'erase']:Expect a array,table ot string argument.");
+				ASSERT(L"[Native function 'erase']:Expect a array,table ot string argument.")
 			return gInvalidValue;
 		};
 	}
@@ -290,10 +290,10 @@ namespace lws
 		mNativeFunctions[L"addressof"] = [this](std::vector<Value> args) -> Value
 		{
 			if (args.empty() || args.size() != 1)
-				Assert(L"[Native function 'addressof']:Expect 1 arguments.");
+				ASSERT(L"[Native function 'addressof']:Expect 1 arguments.")
 
 			if(!IS_OBJECT_VALUE(args[0]))
-				Assert(L"[Native function 'addressof']:The arg0 is a value,only object has address.");
+				ASSERT(L"[Native function 'addressof']:The arg0 is a value,only object has address.")
 
 			return mVMHandle->CreateStrObject(PointerAddressToString(args[0].object));
 		};
@@ -305,7 +305,7 @@ namespace lws
 	{
 		auto iter = mLibraries.find(name.data());
 		if (iter != mLibraries.end())
-			Assert(L"Already exists a native function library:" + std::wstring(name));
+			ASSERT(L"Already exists a native function library:" + std::wstring(name))
 		mLibraries[name.data()] = lib;
 	}
 	bool LibraryManager::HasNativeFunction(std::wstring_view name)

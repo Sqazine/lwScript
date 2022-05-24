@@ -20,7 +20,7 @@ namespace lws
 	{
 		auto iter = mValues.find(name.data());
 		if (iter != mValues.end())
-			Assert(L"Redefined variable:(" + std::wstring(name) + L") in current context.");
+			ASSERT(L"Redefined variable:(" + std::wstring(name) + L") in current context.")
 		else
 		{
 			ValueDesc desc;
@@ -35,7 +35,7 @@ namespace lws
 	{
 		auto iter = mValues.find(name.data());
 		if (iter != mValues.end())
-			Assert(L"Redefined variable:(" + std::wstring(name) + L") in current context.");
+			ASSERT(L"Redefined variable:(" + std::wstring(name) + L") in current context.")
 		else
 			mValues[name.data()] = objectDesc;
 	}
@@ -48,12 +48,12 @@ namespace lws
 			if (iter->second.type != ValueDescType::CONST)
 				mValues[name.data()].value = value;
 			else
-				Assert(L"const variable:(" + std::wstring(name) + L") cannot be assigned");
+				ASSERT(L"const variable:(" + std::wstring(name) + L") cannot be assigned")
 		}
 		else if (mUpContext != nullptr)
 			mUpContext->AssignVariableByName(name, value);
 		else
-			Assert(L"Undefine variable:(" + std::wstring(name) + L") in current context");
+			ASSERT(L"Undefine variable:(" + std::wstring(name) + L") in current context")
 	}
 
 	Value Context::GetVariableByName(std::wstring_view name)
@@ -78,7 +78,7 @@ namespace lws
 					return;
 				}
 				else
-					Assert(L"const variable at address:(" + std::wstring(address) + L") cannot be assigned");
+					ASSERT(L"const variable at address:(" + std::wstring(address) + L") cannot be assigned")
 			}
 			else if (IS_ARRAY_VALUE(contextValue.value))
 			{
@@ -93,7 +93,7 @@ namespace lws
 						}
 				}
 				else
-					Assert(L"const variable at address:(" + std::wstring(address) + L") cannot be assigned");
+					ASSERT(L"const variable at address:(" + std::wstring(address) + L") cannot be assigned")
 			}
 			else if (IS_TABLE_VALUE(contextValue.value))
 			{
@@ -108,7 +108,7 @@ namespace lws
 						}
 				}
 				else
-					Assert(L"const variable at address:(" + std::wstring(address) + L") cannot be assigned");
+					ASSERT(L"const variable at address:(" + std::wstring(address) + L") cannot be assigned")
 			}
 			else if (IS_CLASS_VALUE(contextValue.value))
 			{
@@ -123,14 +123,14 @@ namespace lws
 						}
 				}
 				else
-					Assert(L"const variable at address:(" + std::wstring(address) + L") cannot be assigned");
+					ASSERT(L"const variable at address:(" + std::wstring(address) + L") cannot be assigned")
 			}
 		}
 
 		if (mUpContext)
 			mUpContext->AssignVariableByAddress(address, value);
 		else
-			Assert(L"Undefine variable(address:" + std::wstring(address) + L") in current context");
+			ASSERT(L"Undefine variable(address:" + std::wstring(address) + L") in current context")
 	}
 
 	Value Context::GetVariableByAddress(std::wstring_view address)

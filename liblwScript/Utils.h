@@ -6,15 +6,25 @@
 #include <cassert>
 namespace lws
 {
-    inline void Assert(std::wstring_view msg)
-    {
-        std::wcout << msg << std::endl;
 #ifdef _DEBUG
-        assert(0);
-#else
-        exit(1);
-#endif
+#define ASSERT(msg)                         \
+    {                                       \
+        do                                  \
+        {                                   \
+            std::wcout << msg << std::endl; \
+            assert(0);                      \
+        } while (false);                    \
     }
+#else
+#define ASSERT(msg)                         \
+    {                                       \
+        do                                  \
+        {                                   \
+            std::wcout << msg << std::endl; \
+            exit(1);                        \
+        } while (false);                    \
+    }
+#endif
 
     inline std::wstring ReadFile(std::string_view path)
     {

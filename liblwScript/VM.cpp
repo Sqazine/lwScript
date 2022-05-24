@@ -150,33 +150,33 @@ namespace lws
 	Value VM::ExecuteOpCode(Frame *frame)
 	{
 		// + - * /
-#define COMMON_BINARY(op)                                                                  \
-	do                                                                                     \
-	{                                                                                      \
-		Value right = PopValue();                                                          \
-		Value left = PopValue();                                                           \
-		if (IS_INT_VALUE(right) && IS_INT_VALUE(left))                                     \
-			PushValue(Value(TO_INT_VALUE(left) op TO_INT_VALUE(right)));                   \
-		else if (IS_INT_VALUE(right) && IS_REAL_VALUE(left))                               \
-			PushValue(Value(TO_REAL_VALUE(left) op TO_INT_VALUE(right)));                  \
-		else if (IS_REAL_VALUE(right) && IS_INT_VALUE(left))                               \
-			PushValue(Value(TO_INT_VALUE(left) op TO_REAL_VALUE(right)));                  \
-		else if (IS_REAL_VALUE(right) && IS_REAL_VALUE(left))                              \
-			PushValue(Value(TO_REAL_VALUE(left) op TO_REAL_VALUE(right)));                 \
-		else                                                                               \
-			Assert(L"Invalid binary op:" + left.Stringify() + (L#op) + right.Stringify()); \
+#define COMMON_BINARY(op)                                                                 \
+	do                                                                                    \
+	{                                                                                     \
+		Value right = PopValue();                                                         \
+		Value left = PopValue();                                                          \
+		if (IS_INT_VALUE(right) && IS_INT_VALUE(left))                                    \
+			PushValue(Value(TO_INT_VALUE(left) op TO_INT_VALUE(right)));                  \
+		else if (IS_INT_VALUE(right) && IS_REAL_VALUE(left))                              \
+			PushValue(Value(TO_REAL_VALUE(left) op TO_INT_VALUE(right)));                 \
+		else if (IS_REAL_VALUE(right) && IS_INT_VALUE(left))                              \
+			PushValue(Value(TO_INT_VALUE(left) op TO_REAL_VALUE(right)));                 \
+		else if (IS_REAL_VALUE(right) && IS_REAL_VALUE(left))                             \
+			PushValue(Value(TO_REAL_VALUE(left) op TO_REAL_VALUE(right)));                \
+		else                                                                              \
+			ASSERT(L"Invalid binary op:" + left.Stringify() + (L#op) + right.Stringify()) \
 	} while (0);
 
 // & | % << >>
-#define INT_BINARY(op)                                                                     \
-	do                                                                                     \
-	{                                                                                      \
-		Value right = PopValue();                                                          \
-		Value left = PopValue();                                                           \
-		if (IS_INT_VALUE(right) && IS_INT_VALUE(left))                                     \
-			PushValue(Value(TO_INT_VALUE(left) op TO_INT_VALUE(right)));                   \
-		else                                                                               \
-			Assert(L"Invalid binary op:" + left.Stringify() + (L#op) + right.Stringify()); \
+#define INT_BINARY(op)                                                                    \
+	do                                                                                    \
+	{                                                                                     \
+		Value right = PopValue();                                                         \
+		Value left = PopValue();                                                          \
+		if (IS_INT_VALUE(right) && IS_INT_VALUE(left))                                    \
+			PushValue(Value(TO_INT_VALUE(left) op TO_INT_VALUE(right)));                  \
+		else                                                                              \
+			ASSERT(L"Invalid binary op:" + left.Stringify() + (L#op) + right.Stringify()) \
 	} while (0);
 
 // > >= < <=
@@ -206,7 +206,7 @@ namespace lws
 		if (IS_BOOL_VALUE(right) && IS_BOOL_VALUE(left))                                         \
 			PushValue(TO_BOOL_VALUE(left) op TO_BOOL_VALUE(right) ? Value(true) : Value(false)); \
 		else                                                                                     \
-			Assert(L"Invalid op:" + left.Stringify() + (L#op) + right.Stringify());              \
+			ASSERT(L"Invalid op:" + left.Stringify() + (L#op) + right.Stringify())               \
 	} while (0);
 
 		for (size_t ip = 0; ip < frame->mCodes.size(); ++ip)
@@ -278,7 +278,7 @@ namespace lws
 				else if (IS_INT_VALUE(value))
 					PushValue(Value(-TO_INT_VALUE(value)));
 				else
-					Assert(L"Invalid op:'-'" + value.Stringify());
+					ASSERT(L"Invalid op:'-'" + value.Stringify())
 				break;
 			}
 			case OP_NOT:
@@ -287,7 +287,7 @@ namespace lws
 				if (IS_BOOL_VALUE(value))
 					PushValue(Value(!TO_BOOL_VALUE(value)));
 				else
-					Assert(L"Invalid op:'!'" + value.Stringify());
+					ASSERT(L"Invalid op:'!'" + value.Stringify())
 				break;
 			}
 			case OP_ADD:
@@ -302,10 +302,10 @@ namespace lws
 					PushValue(Value(TO_INT_VALUE(left) + TO_REAL_VALUE(right)));
 				else if (IS_REAL_VALUE(right) && IS_REAL_VALUE(left))
 					PushValue(Value(TO_REAL_VALUE(left) + TO_REAL_VALUE(right)));
-				else if(IS_STR_VALUE(right)&&IS_STR_VALUE(left))
-					PushValue(Value(CreateStrObject(TO_STR_VALUE(left)->value+TO_STR_VALUE(right)->value)));
+				else if (IS_STR_VALUE(right) && IS_STR_VALUE(left))
+					PushValue(Value(CreateStrObject(TO_STR_VALUE(left)->value + TO_STR_VALUE(right)->value)));
 				else
-					Assert(L"Invalid binary op:" + left.Stringify() + L"+" + right.Stringify());
+					ASSERT(L"Invalid binary op:" + left.Stringify() + L"+" + right.Stringify())
 				break;
 			}
 			case OP_SUB:
@@ -335,7 +335,7 @@ namespace lws
 				if (IS_INT_VALUE(value))
 					PushValue(Value(~TO_INT_VALUE(value)));
 				else
-					Assert(L"Invalid op:'~'" + value.Stringify());
+					ASSERT(L"Invalid op:'~'" + value.Stringify())
 				break;
 			}
 			case OP_BIT_LEFT_SHIFT:
@@ -389,12 +389,12 @@ namespace lws
 						{
 							ArrayObject *arrayObject = TO_ARRAY_VALUE(variable);
 							if (!IS_INT_VALUE(index))
-								Assert(L"Invalid index op.The index type of the array object must ba a int num type,but got:" + index.Stringify());
+								ASSERT(L"Invalid index op.The index type of the array object must ba a int num type,but got:" + index.Stringify())
 
 							int64_t iIndex = TO_INT_VALUE(index);
 
 							if (iIndex < 0 || iIndex >= (int64_t)arrayObject->elements.size())
-								Assert(L"Index out of array range,array size:" + std::to_wstring(arrayObject->elements.size()) + L",index:" + std::to_wstring(iIndex));
+								ASSERT(L"Index out of array range,array size:" + std::to_wstring(arrayObject->elements.size()) + L",index:" + std::to_wstring(iIndex))
 
 							arrayObject->elements[iIndex] = value;
 						}
@@ -413,7 +413,7 @@ namespace lws
 								tableObject->elements[index] = value;
 						}
 						else
-							Assert(L"Invalid index op.The indexed object isn't a array object or a table object:" + index.Stringify());
+							ASSERT(L"Invalid index op.The indexed object isn't a array object or a table object:" + index.Stringify())
 					}
 				}
 				else if (IS_REF_VALUE(variable))
@@ -437,7 +437,7 @@ namespace lws
 					if (frame->HasClassFrame(name))
 						PushValue(ExecuteOpCode(frame->GetClassFrame(name)));
 					else
-						Assert(L"No class or variable declaration:" + name);
+						ASSERT(L"No class or variable declaration:" + name)
 				}
 				else if (IS_REF_VALUE(varValue) && !TO_REF_VALUE(varValue)->isAddressReference)
 				{
@@ -453,12 +453,12 @@ namespace lws
 						{
 							ArrayObject *arrayObject = TO_ARRAY_VALUE(varValue);
 							if (!IS_INT_VALUE(index))
-								Assert(L"Invalid index op.The index type of the array object must ba a int num type,but got:" + index.Stringify());
+								ASSERT(L"Invalid index op.The index type of the array object must ba a int num type,but got:" + index.Stringify())
 
 							int64_t iIndex = (int64_t)TO_INT_VALUE(index);
 
 							if (iIndex < 0 || iIndex >= (int64_t)arrayObject->elements.size())
-								Assert(L"Index out of array range,array size:" + std::to_wstring(arrayObject->elements.size()) + L",index:" + std::to_wstring(iIndex));
+								ASSERT(L"Index out of array range,array size:" + std::to_wstring(arrayObject->elements.size()) + L",index:" + std::to_wstring(iIndex))
 
 							PushValue(arrayObject->elements[iIndex]);
 						}
@@ -478,7 +478,7 @@ namespace lws
 								PushValue(Value());
 						}
 						else
-							Assert(L"Invalid index op.The indexed object isn't a array object or a table object:" + index.Stringify());
+							ASSERT(L"Invalid index op.The indexed object isn't a array object or a table object:" + index.Stringify())
 					}
 				}
 				else if (IS_REF_VALUE(varValue))
@@ -538,12 +538,12 @@ namespace lws
 				{
 					ArrayObject *arrayObject = TO_ARRAY_VALUE(value);
 					if (!IS_INT_VALUE(index))
-						Assert(L"Invalid index op.The index type of the array object must ba a int num type,but got:" + index.Stringify());
+						ASSERT(L"Invalid index op.The index type of the array object must ba a int num type,but got:" + index.Stringify())
 
 					int64_t iIndex = (int64_t)TO_INT_VALUE(index);
 
 					if (iIndex < 0 || iIndex >= (int64_t)arrayObject->elements.size())
-						Assert(L"Index out of array range,array size:" + std::to_wstring(arrayObject->elements.size()) + L",index:" + std::to_wstring(iIndex));
+						ASSERT(L"Index out of array range,array size:" + std::to_wstring(arrayObject->elements.size()) + L",index:" + std::to_wstring(iIndex))
 
 					PushValue(arrayObject->elements[iIndex]);
 				}
@@ -563,7 +563,7 @@ namespace lws
 						PushValue(Value());
 				}
 				else
-					Assert(L"Invalid index op.The indexed object isn't a array object or a table object:" + value.Stringify());
+					ASSERT(L"Invalid index op.The indexed object isn't a array object or a table object:" + value.Stringify())
 				break;
 			}
 			case OP_SET_INDEX_VAR:
@@ -576,12 +576,12 @@ namespace lws
 				{
 					ArrayObject *arrayObject = TO_ARRAY_VALUE(value);
 					if (!IS_INT_VALUE(index))
-						Assert(L"Invalid index op.The index type of the array object must ba a int num type,but got:" + index.Stringify());
+						ASSERT(L"Invalid index op.The index type of the array object must ba a int num type,but got:" + index.Stringify())
 
 					int64_t iIndex = TO_INT_VALUE(index);
 
 					if (iIndex < 0 || iIndex >= (int64_t)arrayObject->elements.size())
-						Assert(L"Index out of array range,array size:" + std::to_wstring(arrayObject->elements.size()) + L",index:" + std::to_wstring(iIndex));
+						ASSERT(L"Index out of array range,array size:" + std::to_wstring(arrayObject->elements.size()) + L",index:" + std::to_wstring(iIndex))
 
 					arrayObject->elements[iIndex] = assigner;
 				}
@@ -600,7 +600,7 @@ namespace lws
 						tableObject->elements[index] = assigner;
 				}
 				else
-					Assert(L"Invalid index op.The indexed object isn't a array object or a table object:" + value.Stringify());
+					ASSERT(L"Invalid index op.The indexed object isn't a array object or a table object:" + value.Stringify())
 				break;
 			}
 			case OP_GET_CLASS_VAR:
@@ -608,7 +608,7 @@ namespace lws
 				std::wstring memberName = frame->mStrings[frame->mCodes[++ip]];
 				Value stackTop = PopValue();
 				if (!IS_CLASS_VALUE(stackTop))
-					Assert(L"Not a class object of the callee of:" + memberName);
+					ASSERT(L"Not a class object of the callee of:" + memberName)
 				ClassObject *classObj = TO_CLASS_VALUE(stackTop);
 				PushValue(classObj->GetMemberByName(memberName));
 				break;
@@ -618,7 +618,7 @@ namespace lws
 				std::wstring memberName = frame->mStrings[frame->mCodes[++ip]];
 				Value stackTop = PopValue();
 				if (!IS_CLASS_VALUE(stackTop))
-					Assert(L"Not a class object of the callee of:" + memberName);
+					ASSERT(L"Not a class object of the callee of:" + memberName)
 				ClassObject *classObj = TO_CLASS_VALUE(stackTop);
 
 				Value assigner = PopValue();
@@ -631,7 +631,7 @@ namespace lws
 				std::wstring memberName = frame->mStrings[frame->mCodes[++ip]];
 				Value stackTop = PopValue();
 				if (!IS_CLASS_VALUE(stackTop))
-					Assert(L"Not a fleid object of the callee of:" + memberName);
+					ASSERT(L"Not a class object of the callee of:" + memberName)
 				ClassObject *classObj = TO_CLASS_VALUE(stackTop);
 				std::wstring classType = classObj->name;
 
@@ -639,7 +639,7 @@ namespace lws
 				if (frame->HasClassFrame(classType)) //function:function add(){return 10;}
 					classFrame = frame->GetClassFrame(classType);
 				else
-					Assert(L"No class declaration:" + classType);
+					ASSERT(L"No class declaration:" + classType)
 
 				if (classFrame->HasFunctionFrame(memberName))
 					PushFrame(classFrame->GetFunctionFrame(memberName));
@@ -647,7 +647,7 @@ namespace lws
 				{
 					Value lambdaObject = classObj->GetMemberByName(memberName);
 					if (!IS_LAMBDA_VALUE(lambdaObject))
-						Assert(L"No lambda object:" + memberName + L" in class:" + classType);
+						ASSERT(L"No lambda object:" + memberName + L" in class:" + classType)
 					PushFrame(classFrame->GetLambdaFrame(TO_LAMBDA_VALUE(lambdaObject)->frameIndex));
 				}
 				else if (!classObj->parentClasses.empty()) //get parent classs' function
@@ -659,7 +659,7 @@ namespace lws
 						if (frame->HasClassFrame(classType)) //function:function add(){return 10;}
 							classFrame = frame->GetClassFrame(classType);
 						else
-							Assert(L"No class declaration:" + classType);
+							ASSERT(L"No class declaration:" + classType)
 
 						if (classFrame->HasFunctionFrame(memberName))
 						{
@@ -670,14 +670,14 @@ namespace lws
 						{
 							Value lambdaObject = classObj->GetMemberByName(memberName);
 							if (!IS_LAMBDA_VALUE(lambdaObject))
-								Assert(L"No lambda object:" + memberName + L" in class:" + classType);
+								ASSERT(L"No lambda object:" + memberName + L" in class:" + classType)
 							PushFrame(classFrame->GetLambdaFrame(TO_LAMBDA_VALUE(lambdaObject)->frameIndex));
 							break;
 						}
 					}
 				}
 				else
-					Assert(L"No function in class:" + memberName);
+					ASSERT(L"No function in class:" + memberName)
 				break;
 			}
 			case OP_ENTER_SCOPE:
@@ -716,13 +716,13 @@ namespace lws
 				{
 					auto lambdaObject = mContext->GetVariableByName(fnName);
 					if (!IS_LAMBDA_VALUE(lambdaObject))
-						Assert(L"Not a lambda object of " + fnName);
+						ASSERT(L"Not a lambda object of " + fnName)
 					PushFrame(frame->GetLambdaFrame(TO_LAMBDA_VALUE(lambdaObject)->frameIndex));
 				}
 				else if (HasNativeFunction(fnName))
 					PushFrame(new NativeFunctionFrame(fnName));
 				else
-					Assert(L"No function:" + fnName);
+					ASSERT(L"No function:" + fnName)
 				break;
 			}
 			case OP_FUNCTION_CALL:
@@ -765,7 +765,7 @@ namespace lws
 				Value falseBranch = PopValue();
 
 				if (!IS_BOOL_VALUE(condition))
-					Assert(L"Not a bool expr of condition expr's '?'.");
+					ASSERT(L"Not a bool expr of condition expr's '?'.")
 				if (TO_BOOL_VALUE(condition))
 					PushValue(trueBranch);
 				else
@@ -792,7 +792,7 @@ namespace lws
 				if (IS_OBJECT_VALUE(value))
 					PushValue(CreateRefObject(PointerAddressToString(value.object)));
 				else
-					Assert(L"Cannot reference a value," + value.Stringify() + L"only object can be referenced,");
+					ASSERT(L"Cannot reference a value," + value.Stringify() + L"only object can be referenced,")
 
 				break;
 			}
@@ -810,7 +810,7 @@ namespace lws
 					PushValue(Value((double)v));
 				}
 				else
-					Assert(L"Invalid postfix operator '!',the increment object isn't an int num object or a real num object.");
+					ASSERT(L"Invalid postfix operator '!',the increment object isn't an int num object or a real num object.")
 				break;
 			}
 			default:

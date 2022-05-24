@@ -641,7 +641,7 @@ namespace lws
 				CompileExpr(expr->left, frame, VAR_WRITE);
 			}
 			else
-				Assert(L"Unknown binary op:" + expr->op);
+				ASSERT(L"Unknown binary op:" + expr->op)
 		}
 	}
 
@@ -687,7 +687,7 @@ namespace lws
 			{
 				CompileExpr(((IndexExpr *)expr->refExpr)->index, frame);
 				if (((IndexExpr *)expr->refExpr)->ds->Type() != AST_IDENTIFIER)
-					Assert(L"Invalid reference object,only left value can be referenced.");
+					ASSERT(L"Invalid reference object,only left value can be referenced.")
 				frame->AddOpCode(OP_REF_INDEX);
 				size_t offset = frame->AddString(((IdentifierExpr *)(((IndexExpr *)expr->refExpr)->ds))->literal);
 				frame->AddOpCode(offset);
