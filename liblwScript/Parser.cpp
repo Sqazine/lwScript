@@ -237,11 +237,9 @@ namespace lws
 		auto name = (IdentifierExpr *)ParseIdentifierExpr();
 
 		//variable type
-		TypeExpr *type = nullptr;
-		if (IsMatchCurTokenAndStepOnce(TOKEN_COLON))
-			type = (TypeExpr *)ParseTypeExpr();
-		else //default is type 'any'
-			type = new TypeExpr(TOKEN_ANY);
+		std::wstring type = L"any";
+		if (IsMatchCurToken(TOKEN_COLON))
+			type = GetCurTokenAndStepOnce().literal;
 
 		//variable value
 		Expr *value = new NullExpr();
@@ -255,11 +253,9 @@ namespace lws
 			auto name = (IdentifierExpr *)ParseIdentifierExpr();
 
 			//variable type
-			TypeExpr *type = nullptr;
-			if (IsMatchCurTokenAndStepOnce(TOKEN_COLON))
-				type = (TypeExpr *)ParseTypeExpr();
-			else //default is type 'any'
-				type = new TypeExpr(TOKEN_ANY);
+			type = L"any";
+			if (IsMatchCurToken(TOKEN_COLON))
+				type = GetCurTokenAndStepOnce().literal;
 
 			Expr *value = new NullExpr();
 			if (IsMatchCurTokenAndStepOnce(TOKEN_EQUAL))
@@ -287,11 +283,9 @@ namespace lws
 		auto name = (IdentifierExpr *)ParseIdentifierExpr();
 
 		//variable type
-		TypeExpr *type = nullptr;
-		if (IsMatchCurTokenAndStepOnce(TOKEN_COLON))
-			type = (TypeExpr *)ParseTypeExpr();
-		else //default is type 'any'
-			type = new TypeExpr(TOKEN_ANY);
+		std::wstring type = L"any";
+		if (IsMatchCurToken(TOKEN_COLON))
+			type = GetCurTokenAndStepOnce().literal;
 
 		Expr *value = new NullExpr();
 		if (IsMatchCurTokenAndStepOnce(TOKEN_EQUAL))
@@ -303,11 +297,9 @@ namespace lws
 			auto name = (IdentifierExpr *)ParseIdentifierExpr();
 
 			//variable type
-			TypeExpr *type = nullptr;
-			if (IsMatchCurTokenAndStepOnce(TOKEN_COLON))
-				type = (TypeExpr *)ParseTypeExpr();
-			else //default is type 'any'
-				type = new TypeExpr(TOKEN_ANY);
+			type = L"any";
+			if (IsMatchCurToken(TOKEN_COLON))
+				type = GetCurTokenAndStepOnce().literal;
 
 			Expr *value = new NullExpr();
 			if (IsMatchCurTokenAndStepOnce(TOKEN_EQUAL))
@@ -853,38 +845,6 @@ namespace lws
 		identifierExpr->column = token.column;
 		identifierExpr->literal = token.literal;
 		return identifierExpr;
-	}
-
-	Expr *Parser::ParseTypeExpr()
-	{
-		auto token = GetCurTokenAndStepOnce();
-		auto typeExpr = new TypeExpr();
-		typeExpr->line = token.line;
-		typeExpr->column = token.column;
-		switch (token.type)
-		{
-		case TOKEN_U8:
-		case TOKEN_U16:
-		case TOKEN_U32:
-		case TOKEN_U64:
-		case TOKEN_I8:
-		case TOKEN_I16:
-		case TOKEN_I32:
-		case TOKEN_I64:
-		case TOKEN_F32:
-		case TOKEN_F64:
-		case TOKEN_STR:
-		case TOKEN_ANY:
-			typeExpr->isBasicType = true;
-			typeExpr->type = token.type;
-			break;
-		default:
-			typeExpr->isBasicType = false;
-			typeExpr->literal = token.literal;
-			break;
-		}
-
-		return typeExpr;
 	}
 
 	Expr *Parser::ParseNumExpr()

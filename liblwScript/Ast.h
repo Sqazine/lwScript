@@ -15,7 +15,6 @@ namespace lws
 		AST_NULL,
 		AST_BOOL,
 		AST_IDENTIFIER,
-		AST_TYPE,
 		AST_GROUP,
 		AST_ARRAY,
 		AST_TABLE,
@@ -132,21 +131,6 @@ namespace lws
 		AstType Type() override;
 
 		std::wstring literal;
-	};
-
-	struct TypeExpr : public Expr
-	{
-		TypeExpr();
-		TypeExpr(std::wstring_view literal);
-		TypeExpr(TokenType type);
-		~TypeExpr();
-
-		std::wstring Stringify() override;
-		AstType Type() override;
-
-		bool isBasicType;
-		std::wstring literal;
-		TokenType type;
 	};
 
 	struct ArrayExpr : public Expr
@@ -325,7 +309,7 @@ namespace lws
 
 	struct VarDesc
 	{
-		TypeExpr *type;
+		std::wstring type;
 		Expr *value;
 	};
 
