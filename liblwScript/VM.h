@@ -6,13 +6,29 @@
 #include <unordered_map>
 #include <string>
 #include <string_view>
+#include <map>
 #include "Frame.h"
 #include "Object.h"
 #include "Utils.h"
 #include "Context.h"
+#include "Config.h"
 namespace lws
 {
-	#define STACK_INCREMENT_RATE 2
+
+	struct ExecuteRecorder
+	{
+		void Dump();
+
+		struct record
+		{
+			uint64_t callTimes=0;
+			uint64_t executeTime=0;
+		};
+
+		std::unordered_map<OpCode,record> mOpCodeCallTimes;
+	};
+
+#define STACK_INCREMENT_RATE 2
 #define VALUE_STACK_MAX 8192
 #define FRAME_STACK_MAX 256
 #define GC_OBJECT_COUNT_THRESHOLD 4096
@@ -68,5 +84,9 @@ namespace lws
 		int maxObjCount;
 
 		Context *mContext;
+
+		#ifdef NEED_TO_RECORD_OPCODE_EXECUTE
+			ExecuteRecorder mRecorder;
+		#endif
 	};
 }
