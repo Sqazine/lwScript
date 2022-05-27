@@ -18,9 +18,6 @@ namespace lws
 			case OP_SAVE_TO_GLOBAL:
 				DUMP_OPCODE(OP_SAVE_TO_GLOBAL);
 				break;
-			case OP_NEW_STR:
-				DUMP_OPCODE(OP_NEW_STR);
-				break;
 			case OP_NEG:
 				DUMP_OPCODE(OP_NEG);
 				break;
@@ -434,18 +431,22 @@ namespace lws
 			{
 				START_RECORD_EXECUTE(OP_LOAD_VALUE)
 				{
-					PushValue(frame->mValues[frame->mCodes[++ip]]);
+					auto v = frame->mValues[frame->mCodes[++ip]];
+					if(IS_STR_VALUE(v))
+					{
+						//add to gc module to manage its lifetime
+						if (curObjCount == maxObjCount)
+							Gc();
+
+						StrObject *object = TO_STR_VALUE(v);
+						object->marked = false;
+						object->next = firstObject;
+						firstObject = object;
+						curObjCount++;
+					}
+					PushValue(v);
 				}
 				END_RECORD_EXECUTE(OP_LOAD_VALUE)
-				break;
-			}
-			case OP_NEW_STR:
-			{
-				START_RECORD_EXECUTE(OP_NEW_STR)
-				{
-					PushValue(CreateStrObject(frame->mStrings[frame->mCodes[++ip]]));
-				}
-				END_RECORD_EXECUTE(OP_NEW_STR)
 				break;
 			}
 			case OP_NEG:

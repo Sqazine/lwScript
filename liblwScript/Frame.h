@@ -13,7 +13,6 @@ namespace lws
 	enum OpCode
 	{
 		OP_LOAD_VALUE,
-		OP_NEW_STR,
 		OP_NEW_ARRAY,
 		OP_NEW_TABLE,
 		OP_NEW_LAMBDA,

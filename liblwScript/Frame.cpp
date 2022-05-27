@@ -233,9 +233,6 @@ namespace lws
 			case OP_SAVE_TO_GLOBAL:
 				BINARY_INSTR_STRINGIFY(OP_SAVE_TO_GLOBAL, mStrings);
 				break;
-			case OP_NEW_STR:
-				BINARY_INSTR_STRINGIFY(OP_NEW_STR, mStrings);
-				break;
 			case OP_NEG:
 				UNARY_INSTR_STRINGIFY(OP_NEG);
 				break;

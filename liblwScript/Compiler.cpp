@@ -423,8 +423,8 @@ namespace lws
 
 	void Compiler::CompileStrExpr(StrExpr *expr, Frame *frame)
 	{
-		frame->AddOpCode(OP_NEW_STR);
-		size_t offset = frame->AddString(expr->value);
+		frame->AddOpCode(OP_LOAD_VALUE);
+		size_t offset = frame->AddValue(new StrObject(expr->value));
 		frame->AddOpCode(offset);
 	}
 
