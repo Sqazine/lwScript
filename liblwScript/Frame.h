@@ -7,16 +7,13 @@
 #include <iomanip>
 #include <deque>
 #include <unordered_map>
+#include "Value.h"
 namespace lws
 {
 	enum OpCode
 	{
-		OP_NEW_REAL,
-		OP_NEW_INT,
+		OP_LOAD_VALUE,
 		OP_NEW_STR,
-		OP_NEW_TRUE,
-		OP_NEW_FALSE,
-		OP_NEW_NULL,
 		OP_NEW_ARRAY,
 		OP_NEW_TABLE,
 		OP_NEW_LAMBDA,
@@ -93,8 +90,8 @@ namespace lws
 
 		void AddOpCode(uint64_t code);
 
-		uint64_t AddRealNum(double value);
-		uint64_t AddIntNum(int64_t value);
+		uint64_t AddValue(const Value& value);
+		uint64_t AddJumpAddress(int64_t value);
 		uint64_t AddString(std::wstring_view value);
 
 		uint64_t AddLambdaFrame(Frame *frame);
@@ -115,8 +112,8 @@ namespace lws
 
 		std::vector<uint64_t> mCodes;
 
-		std::vector<double> mRealNums;
-		std::vector<int64_t> mIntNums;
+		std::vector<Value> mValues;
+		std::vector<int64_t> mJumpAddresses;
 		std::vector<std::wstring> mStrings;
 
 		std::vector<Frame *> mLambdaFrames;

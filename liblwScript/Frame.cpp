@@ -21,20 +21,16 @@ namespace lws
 		mCodes.emplace_back(code);
 	}
 
-	uint64_t Frame::AddRealNum(double value)
+	uint64_t Frame::AddValue(const Value& value)
 	{
-		for (size_t i = 0; i < mRealNums.size();++i)
-			if(mRealNums[i]==value)
-				return i;
-		
-		mRealNums.emplace_back(value);
-		return mRealNums.size() - 1;
+		mValues.emplace_back(value);
+		return mValues.size() - 1;
 	}
 
-	uint64_t Frame::AddIntNum(int64_t value)
+	uint64_t Frame::AddJumpAddress(int64_t value)
 	{
-		mIntNums.emplace_back(value);
-		return mIntNums.size() - 1;
+		mJumpAddresses.emplace_back(value);
+		return mJumpAddresses.size() - 1;
 	}
 
 	uint64_t Frame::AddString(std::wstring_view value)
@@ -193,6 +189,9 @@ namespace lws
 #define BINARY_INSTR_STRINGIFY(op, vec) \
 	result << interval << L"\t" << std::setfill(L'0') << std::setw(8) << i << L"     " << (#op) << L"     " << vec[mCodes[++i]] << L"\n"
 
+#define VALUE_INSTR_STRINGIFY(op) \
+	result << interval << L"\t" << std::setfill(L'0') << std::setw(8) << i << L"     " << (#op) << L"     " << mValues[mCodes[++i]].Stringify() << L"\n"
+
 		std::wstringstream result;
 
 		for (auto [key, value] : mEnumFrames)
@@ -225,29 +224,17 @@ namespace lws
 		{
 			switch (mCodes[i])
 			{
+			case OP_LOAD_VALUE:
+				VALUE_INSTR_STRINGIFY(OP_LOAD_VALUE);
+				break;
 			case OP_RETURN:
 				UNARY_INSTR_STRINGIFY(OP_RETURN);
 				break;
 			case OP_SAVE_TO_GLOBAL:
 				BINARY_INSTR_STRINGIFY(OP_SAVE_TO_GLOBAL, mStrings);
 				break;
-			case OP_NEW_REAL:
-				BINARY_INSTR_STRINGIFY(OP_NEW_REAL, mRealNums);
-				break;
-			case OP_NEW_INT:
-				BINARY_INSTR_STRINGIFY(OP_NEW_INT, mIntNums);
-				break;
 			case OP_NEW_STR:
 				BINARY_INSTR_STRINGIFY(OP_NEW_STR, mStrings);
-				break;
-			case OP_NEW_TRUE:
-				UNARY_INSTR_STRINGIFY(OP_NEW_TRUE);
-				break;
-			case OP_NEW_FALSE:
-				UNARY_INSTR_STRINGIFY(OP_NEW_FALSE);
-				break;
-			case OP_NEW_NULL:
-				UNARY_INSTR_STRINGIFY(OP_NEW_NULL);
 				break;
 			case OP_NEG:
 				UNARY_INSTR_STRINGIFY(OP_NEG);
@@ -316,13 +303,13 @@ namespace lws
 				BINARY_INSTR_STRINGIFY(OP_SET_VAR, mStrings);
 				break;
 			case OP_NEW_ARRAY:
-				BINARY_INSTR_STRINGIFY(OP_NEW_ARRAY, mIntNums);
+				VALUE_INSTR_STRINGIFY(OP_NEW_ARRAY);
 				break;
 			case OP_NEW_TABLE:
-				BINARY_INSTR_STRINGIFY(OP_NEW_TABLE, mIntNums);
+				VALUE_INSTR_STRINGIFY(OP_NEW_TABLE);
 				break;
 			case OP_NEW_LAMBDA:
-				BINARY_INSTR_STRINGIFY(OP_NEW_LAMBDA, mIntNums);
+				VALUE_INSTR_STRINGIFY(OP_NEW_LAMBDA);
 				break;
 			case OP_NEW_CLASS:
 				BINARY_INSTR_STRINGIFY(OP_NEW_CLASS, mStrings);
@@ -352,10 +339,10 @@ namespace lws
 				UNARY_INSTR_STRINGIFY(OP_EXIT_SCOPE);
 				break;
 			case OP_JUMP:
-				BINARY_INSTR_STRINGIFY(OP_JUMP, mIntNums);
+				BINARY_INSTR_STRINGIFY(OP_JUMP, mJumpAddresses);
 				break;
 			case OP_JUMP_IF_FALSE:
-				BINARY_INSTR_STRINGIFY(OP_JUMP_IF_FALSE, mIntNums);
+				BINARY_INSTR_STRINGIFY(OP_JUMP_IF_FALSE, mJumpAddresses);
 				break;
 			case OP_FUNCTION_CALL:
 				UNARY_INSTR_STRINGIFY(OP_FUNCTION_CALL);
@@ -386,8 +373,8 @@ namespace lws
 	void Frame::Clear()
 	{
 		std::vector<uint64_t>().swap(mCodes);
-		std::vector<double>().swap(mRealNums);
-		std::vector<int64_t>().swap(mIntNums);
+		std::vector<Value>().swap(mValues);
+		std::vector<int64_t>().swap(mJumpAddresses);
 		std::vector<std::wstring>().swap(mStrings);
 
 		for (auto funcFrame : mLambdaFrames)

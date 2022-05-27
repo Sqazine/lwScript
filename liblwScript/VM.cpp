@@ -18,23 +18,8 @@ namespace lws
 			case OP_SAVE_TO_GLOBAL:
 				DUMP_OPCODE(OP_SAVE_TO_GLOBAL);
 				break;
-			case OP_NEW_REAL:
-				DUMP_OPCODE(OP_NEW_REAL);
-				break;
-			case OP_NEW_INT:
-				DUMP_OPCODE(OP_NEW_INT);
-				break;
 			case OP_NEW_STR:
 				DUMP_OPCODE(OP_NEW_STR);
-				break;
-			case OP_NEW_TRUE:
-				DUMP_OPCODE(OP_NEW_TRUE);
-				break;
-			case OP_NEW_FALSE:
-				DUMP_OPCODE(OP_NEW_FALSE);
-				break;
-			case OP_NEW_NULL:
-				DUMP_OPCODE(OP_NEW_NULL);
 				break;
 			case OP_NEG:
 				DUMP_OPCODE(OP_NEG);
@@ -445,22 +430,13 @@ namespace lws
 				END_RECORD_EXECUTE(OP_SAVE_TO_GLOBAL);
 				break;
 			}
-			case OP_NEW_REAL:
+			case OP_LOAD_VALUE:
 			{
-				START_RECORD_EXECUTE(OP_NEW_REAL)
+				START_RECORD_EXECUTE(OP_LOAD_VALUE)
 				{
-					PushValue(Value(frame->mRealNums[frame->mCodes[++ip]]));
+					PushValue(frame->mValues[frame->mCodes[++ip]]);
 				}
-				END_RECORD_EXECUTE(OP_NEW_REAL)
-				break;
-			}
-			case OP_NEW_INT:
-			{
-				START_RECORD_EXECUTE(OP_NEW_INT)
-				{
-					PushValue(Value(frame->mIntNums[frame->mCodes[++ip]]));
-				}
-				END_RECORD_EXECUTE(OP_NEW_INT)
+				END_RECORD_EXECUTE(OP_LOAD_VALUE)
 				break;
 			}
 			case OP_NEW_STR:
@@ -470,33 +446,6 @@ namespace lws
 					PushValue(CreateStrObject(frame->mStrings[frame->mCodes[++ip]]));
 				}
 				END_RECORD_EXECUTE(OP_NEW_STR)
-				break;
-			}
-			case OP_NEW_TRUE:
-			{
-				START_RECORD_EXECUTE(OP_NEW_TRUE)
-				{
-					PushValue(Value(true));
-				}
-				END_RECORD_EXECUTE(OP_NEW_TRUE)
-				break;
-			}
-			case OP_NEW_FALSE:
-			{
-				START_RECORD_EXECUTE(OP_NEW_FALSE)
-				{
-					PushValue(Value(false));
-				}
-				END_RECORD_EXECUTE(OP_NEW_TRUE)
-				break;
-			}
-			case OP_NEW_NULL:
-			{
-				START_RECORD_EXECUTE(OP_NEW_NULL)
-				{
-					PushValue(Value());
-				}
-				END_RECORD_EXECUTE(OP_NEW_NULL)
 				break;
 			}
 			case OP_NEG:
@@ -855,7 +804,7 @@ namespace lws
 				START_RECORD_EXECUTE(OP_NEW_ARRAY)
 				{
 					std::vector<Value> elements;
-					int64_t arraySize = (int64_t)frame->mIntNums[frame->mCodes[++ip]];
+					int64_t arraySize = (int64_t)frame->mValues[frame->mCodes[++ip]].integer;
 					for (int64_t i = 0; i < arraySize; ++i)
 						elements.insert(elements.begin(), PopValue());
 					PushValue(CreateArrayObject(elements));
@@ -868,7 +817,7 @@ namespace lws
 				START_RECORD_EXECUTE(OP_NEW_TABLE)
 				{
 					ValueUnorderedMap elements;
-					int64_t tableSize = (int64_t)frame->mIntNums[frame->mCodes[++ip]];
+					int64_t tableSize = (int64_t)frame->mValues[frame->mCodes[++ip]].integer;
 					for (int64_t i = 0; i < tableSize; ++i)
 					{
 						Value key = PopValue();
@@ -1100,7 +1049,7 @@ namespace lws
 				START_RECORD_EXECUTE(OP_JUMP_IF_FALSE)
 				{
 					bool isJump = !TO_BOOL_VALUE(PopValue());
-					uint64_t address = (uint64_t)(frame->mIntNums[frame->mCodes[++ip]]);
+					uint64_t address = (uint64_t)(frame->mJumpAddresses[frame->mCodes[++ip]]);
 
 					if (isJump)
 						ip = address;
@@ -1112,7 +1061,7 @@ namespace lws
 			{
 				START_RECORD_EXECUTE(OP_JUMP)
 				{
-					uint64_t address = (uint64_t)(frame->mIntNums[frame->mCodes[++ip]]);
+					uint64_t address = (uint64_t)(frame->mJumpAddresses[frame->mCodes[++ip]]);
 					ip = address;
 				}
 				END_RECORD_EXECUTE(OP_JUMP)
@@ -1212,7 +1161,7 @@ namespace lws
 			{
 				START_RECORD_EXECUTE(OP_NEW_LAMBDA)
 				{
-					PushValue(CreateLambdaObject(frame->mIntNums[frame->mCodes[++ip]]));
+					PushValue(CreateLambdaObject(frame->mValues[frame->mCodes[++ip]].integer));
 				}
 				END_RECORD_EXECUTE(OP_NEW_LAMBDA)
 				break;

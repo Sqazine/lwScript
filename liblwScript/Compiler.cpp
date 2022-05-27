@@ -84,14 +84,14 @@ namespace lws
 		if (stmt->expr)
 		{
 			CompileExpr(stmt->expr, frame);
-			frame->AddOpCode(OP_NEW_INT);
-			size_t offset = frame->AddIntNum(1);
+			frame->AddOpCode(OP_LOAD_VALUE);
+			size_t offset = frame->AddValue((int64_t)1);
 			frame->AddOpCode(offset);
 		}
 		else
 		{
-			frame->AddOpCode(OP_NEW_INT);
-			size_t offset = frame->AddIntNum(0);
+			frame->AddOpCode(OP_LOAD_VALUE);
+			size_t offset = frame->AddValue((int64_t)0);
 			frame->AddOpCode(offset);
 		}
 		frame->AddOpCode(OP_RETURN);
@@ -173,21 +173,21 @@ namespace lws
 		}
 
 		frame->AddOpCode(OP_JUMP_IF_FALSE);
-		uint64_t jmpIfFalseOffset = frame->AddIntNum(0);
+		uint64_t jmpIfFalseOffset = frame->AddJumpAddress(0);
 		frame->AddOpCode(jmpIfFalseOffset);
 
 		CompileStmt(stmt->thenBranch, frame, jmpIfFalseOffset, continueStmtAddressOffset);
 
 		frame->AddOpCode(OP_JUMP);
-		uint64_t jmpOffset = frame->AddIntNum(0);
+		uint64_t jmpOffset = frame->AddJumpAddress(0);
 		frame->AddOpCode(jmpOffset);
 
-		frame->mIntNums[jmpIfFalseOffset] = frame->mCodes.size() - 1;
+		frame->mJumpAddresses[jmpIfFalseOffset] = frame->mCodes.size() - 1;
 
 		if (stmt->elseBranch)
 			CompileStmt(stmt->elseBranch, frame, breakStmtAddressOffset, continueStmtAddressOffset);
 
-		frame->mIntNums[jmpOffset] = frame->mCodes.size() - 1;
+		frame->mJumpAddresses[jmpOffset] = frame->mCodes.size() - 1;
 	}
 	void Compiler::CompileWhileStmt(WhileStmt *stmt, Frame *frame)
 	{
@@ -204,24 +204,24 @@ namespace lws
 		}
 
 		frame->AddOpCode(OP_JUMP_IF_FALSE);
-		uint64_t jmpIfFalseOffset = frame->AddIntNum(0);
+		uint64_t jmpIfFalseOffset = frame->AddJumpAddress(0);
 		frame->AddOpCode(jmpIfFalseOffset);
 
-		uint64_t offset = frame->AddIntNum(jmpAddress);
+		uint64_t offset = frame->AddJumpAddress(jmpAddress);
 		if (!stmt->increment)
 			CompileStmt(stmt->body, frame, jmpIfFalseOffset, offset);
 		else
 		{
-			uint64_t incrementPartOffset = frame->AddIntNum(0);
+			uint64_t incrementPartOffset = frame->AddJumpAddress(0);
 			CompileStmt(stmt->body, frame, jmpIfFalseOffset, incrementPartOffset);
-			frame->mIntNums[incrementPartOffset] = frame->mCodes.size() - 1;
+			frame->mJumpAddresses[incrementPartOffset] = frame->mCodes.size() - 1;
 			CompileStmt(stmt->increment, frame);
 		}
 
 		frame->AddOpCode(OP_JUMP);
 		frame->AddOpCode(offset);
 
-		frame->mIntNums[jmpIfFalseOffset] = frame->mCodes.size() - 1;
+		frame->mJumpAddresses[jmpIfFalseOffset] = frame->mCodes.size() - 1;
 	}
 
 	void Compiler::CompileBreakStmt(uint64_t addressOffset, Frame *frame)
@@ -289,7 +289,7 @@ namespace lws
 		lambdaFrame->AddOpCode(OP_EXIT_SCOPE);
 
 		frame->AddOpCode(OP_NEW_LAMBDA);
-		size_t offset = frame->AddIntNum(frame->AddLambdaFrame(lambdaFrame));
+		size_t offset = frame->AddJumpAddress(frame->AddLambdaFrame(lambdaFrame));
 		frame->AddOpCode(offset);
 	}
 
@@ -335,8 +335,8 @@ namespace lws
 		uint64_t offset = classFrame->AddString(stmt->name);
 		classFrame->AddOpCode(offset);
 
-		classFrame->AddOpCode(OP_NEW_INT);
-		offset = classFrame->AddIntNum(1);
+		classFrame->AddOpCode(OP_LOAD_VALUE);
+		offset = classFrame->AddValue((int64_t)1);
 		classFrame->AddOpCode(offset);
 
 		classFrame->AddOpCode(OP_RETURN);
@@ -409,15 +409,15 @@ namespace lws
 
 	void Compiler::CompileIntNumExpr(IntNumExpr *expr, Frame *frame)
 	{
-		frame->AddOpCode(OP_NEW_INT);
-		size_t offset = frame->AddIntNum(expr->value);
+		frame->AddOpCode(OP_LOAD_VALUE);
+		size_t offset = frame->AddValue(expr->value);
 		frame->AddOpCode(offset);
 	}
 
 	void Compiler::CompileRealNumExpr(RealNumExpr *expr, Frame *frame)
 	{
-		frame->AddOpCode(OP_NEW_REAL);
-		size_t offset = frame->AddRealNum(expr->value);
+		frame->AddOpCode(OP_LOAD_VALUE);
+		size_t offset = frame->AddValue(expr->value);
 		frame->AddOpCode(offset);
 	}
 
@@ -430,15 +430,16 @@ namespace lws
 
 	void Compiler::CompileBoolExpr(BoolExpr *expr, Frame *frame)
 	{
-		if (expr->value)
-			frame->AddOpCode(OP_NEW_TRUE);
-		else
-			frame->AddOpCode(OP_NEW_FALSE);
+		frame->AddOpCode(OP_LOAD_VALUE);
+		size_t offset = frame->AddValue(expr->value);
+		frame->AddOpCode(offset);
 	}
 
 	void Compiler::CompileNullExpr(NullExpr *expr, Frame *frame)
 	{
-		frame->AddOpCode(OP_NEW_NULL);
+		frame->AddOpCode(OP_LOAD_VALUE);
+		size_t offset = frame->AddValue(Value());
+		frame->AddOpCode(offset);
 	}
 
 	void Compiler::CompileIdentifierExpr(IdentifierExpr *expr, Frame *frame, ObjectState state)
@@ -475,7 +476,7 @@ namespace lws
 			CompileExpr(e, frame);
 
 		frame->AddOpCode(OP_NEW_ARRAY);
-		size_t offset = frame->AddIntNum((int64_t)expr->elements.size());
+		size_t offset = frame->AddValue((int64_t)expr->elements.size());
 		frame->AddOpCode(offset);
 	}
 
@@ -487,7 +488,7 @@ namespace lws
 			CompileExpr(k, frame);
 		}
 		frame->AddOpCode(OP_NEW_TABLE);
-		uint64_t offset = frame->AddIntNum((int64_t)expr->elements.size());
+		uint64_t offset = frame->AddValue((int64_t)expr->elements.size());
 		frame->AddOpCode(offset);
 	}
 
@@ -514,8 +515,8 @@ namespace lws
 		{
 			while (expr->right->Type() == AST_PREFIX && ((PrefixExpr *)expr->right)->op == L"++" || ((PrefixExpr *)expr->right)->op == L"--")
 				expr = (PrefixExpr *)expr->right;
-			frame->AddOpCode(OP_NEW_INT);
-			size_t offset = frame->AddIntNum(1);
+			frame->AddOpCode(OP_LOAD_VALUE);
+			size_t offset = frame->AddValue((int64_t)1);
 			frame->AddOpCode(offset);
 			frame->AddOpCode(OP_ADD);
 			CompileExpr(expr->right, frame, VAR_WRITE);
@@ -526,8 +527,8 @@ namespace lws
 			while (expr->right->Type() == AST_PREFIX && ((PrefixExpr *)expr->right)->op == L"++" || ((PrefixExpr *)expr->right)->op == L"--")
 				expr = (PrefixExpr *)expr->right;
 
-			frame->AddOpCode(OP_NEW_INT);
-			size_t offset = frame->AddIntNum(1);
+			frame->AddOpCode(OP_LOAD_VALUE);
+			size_t offset = frame->AddValue((int64_t)1);
 			frame->AddOpCode(offset);
 			frame->AddOpCode(OP_SUB);
 			CompileExpr(expr->right, frame, VAR_WRITE);
@@ -656,16 +657,16 @@ namespace lws
 		{
 			if (expr->op == L"++")
 			{
-				frame->AddOpCode(OP_NEW_INT);
-				size_t offset = frame->AddIntNum(1);
+				frame->AddOpCode(OP_LOAD_VALUE);
+				size_t offset = frame->AddValue((int64_t)1);
 				frame->AddOpCode(offset);
 				frame->AddOpCode(OP_ADD);
 				CompileExpr(expr->left, frame, VAR_WRITE);
 			}
 			else if (expr->op == L"--")
 			{
-				frame->AddOpCode(OP_NEW_INT);
-				size_t offset = frame->AddIntNum(1);
+				frame->AddOpCode(OP_LOAD_VALUE);
+				size_t offset = frame->AddValue((int64_t)1);
 				frame->AddOpCode(offset);
 				frame->AddOpCode(OP_SUB);
 				CompileExpr(expr->left, frame, VAR_WRITE);
@@ -721,8 +722,8 @@ namespace lws
 			extraArgCount++;
 		}
 		//argument count
-		frame->AddOpCode(OP_NEW_INT);
-		uint64_t offset = frame->AddIntNum((int64_t)expr->arguments.size() + extraArgCount);
+		frame->AddOpCode(OP_LOAD_VALUE);
+		uint64_t offset = frame->AddValue((int64_t)expr->arguments.size() + extraArgCount);
 		frame->AddOpCode(offset);
 
 		if (expr->name->Type() == AST_IDENTIFIER && !LibraryManager::HasNativeFunction(((IdentifierExpr *)expr->name)->literal))
