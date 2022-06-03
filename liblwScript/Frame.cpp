@@ -65,7 +65,7 @@ namespace lws
 				rootFrame = rootFrame->mParentFrame;
 			return rootFrame->GetLambdaFrame(idx);
 		}
-		else if (idx >= 0 || idx < mLambdaFrames.size())
+		else if (idx >= 0 && idx < mLambdaFrames.size())
 			return mLambdaFrames[idx];
 		else
 			return nullptr;

@@ -289,7 +289,7 @@ namespace lws
 		lambdaFrame->AddOpCode(OP_EXIT_SCOPE);
 
 		frame->AddOpCode(OP_NEW_LAMBDA);
-		size_t offset = frame->AddJumpAddress(frame->AddLambdaFrame(lambdaFrame));
+		size_t offset = frame->AddValue((int64_t)frame->AddLambdaFrame(lambdaFrame));
 		frame->AddOpCode(offset);
 	}
 

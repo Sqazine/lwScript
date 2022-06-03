@@ -174,114 +174,54 @@ namespace lws
 
 	StrObject *VM::CreateStrObject(std::wstring_view value)
 	{
-		if (curObjCount == maxObjCount)
-			Gc();
-
 		StrObject *object = new StrObject(value);
-		object->marked = false;
-
-		object->next = firstObject;
-		firstObject = object;
-
-		curObjCount++;
-
+		AddToObjectList(object);
 		return object;
 	}
 
 	ArrayObject *VM::CreateArrayObject(const std::vector<Value> &elements)
 	{
-		if (curObjCount == maxObjCount)
-			Gc();
-
 		ArrayObject *object = new ArrayObject(elements);
-		object->marked = false;
-
-		object->next = firstObject;
-		firstObject = object;
-
-		curObjCount++;
-
+		AddToObjectList(object);
 		return object;
 	}
 
 	TableObject *VM::CreateTableObject(const ValueUnorderedMap &elements)
 	{
-		if (curObjCount == maxObjCount)
-			Gc();
-
 		TableObject *object = new TableObject(elements);
-		object->marked = false;
-
-		object->next = firstObject;
-		firstObject = object;
-
-		curObjCount++;
-
+		AddToObjectList(object);
 		return object;
 	}
 
 	ClassObject *VM::CreateClassObject(std::wstring_view name, const std::unordered_map<std::wstring, ValueDesc> &members, const std::vector<std::pair<std::wstring, ClassObject *>> &parentClasses)
 	{
-		if (curObjCount == maxObjCount)
-			Gc();
-
 		ClassObject *object = new ClassObject(name, members, parentClasses);
-		object->marked = false;
-
-		object->next = firstObject;
-		firstObject = object;
-
-		curObjCount++;
-
+		AddToObjectList(object);
 		return object;
 	}
 
 	LambdaObject *VM::CreateLambdaObject(int64_t frameIdx)
 	{
-		if (curObjCount == maxObjCount)
-			Gc();
-
 		LambdaObject *object = new LambdaObject(frameIdx);
-		object->marked = false;
-
-		object->next = firstObject;
-		firstObject = object;
-
-		curObjCount++;
+		AddToObjectList(object);
 
 		return object;
 	}
 
 	RefObject *VM::CreateRefObject(std::wstring_view name, Value index)
 	{
-		if (curObjCount == maxObjCount)
-			Gc();
+		RefObject *object = new RefObject(name, index);
+		AddToObjectList(object);
 
-		RefObject *refObject = new RefObject(name, index);
-		refObject->marked = false;
-
-		refObject->next = firstObject;
-		firstObject = refObject;
-
-		curObjCount++;
-
-		return refObject;
+		return object;
 	}
 
 	RefObject *VM::CreateRefObject(std::wstring_view address)
 	{
-		if (curObjCount == maxObjCount)
-			Gc();
+		RefObject *object = new RefObject(address);
+		AddToObjectList(object);
 
-		RefObject *refObject = new RefObject(address);
-		refObject->marked = false;
-
-		refObject->next = firstObject;
-		firstObject = refObject;
-
-		curObjCount++;
-
-		return refObject;
+		return object;
 	}
 
 	Value VM::Execute(Frame *frame)
@@ -437,17 +377,9 @@ namespace lws
 						auto iter = mStringTable.find(TO_STR_VALUE(v)->value);
 						if (iter == mStringTable.end())
 						{
-							//add to gc module to manage its lifetime
-							if (curObjCount >= maxObjCount)
-								Gc();
-
 							StrObject *object = TO_STR_VALUE(v);
-							object->marked = false;
-							object->next = firstObject;
-							firstObject = object;
-							curObjCount++;
-							
-							mStringTable[TO_STR_VALUE(v)->value]=v;
+							AddToObjectList(object);
+							mStringTable[object->value] = v;
 						}
 					}
 					PushValue(v);
@@ -1168,7 +1100,7 @@ namespace lws
 			{
 				START_RECORD_EXECUTE(OP_NEW_LAMBDA)
 				{
-					PushValue(CreateLambdaObject(frame->mValues[frame->mCodes[++ip]].integer));
+					PushValue(CreateLambdaObject(frame->mCodes[++ip]));
 				}
 				END_RECORD_EXECUTE(OP_NEW_LAMBDA)
 				break;
@@ -1239,7 +1171,7 @@ namespace lws
 	{
 		sp = 0;
 		fp = 0;
-		firstObject = nullptr;
+		objectListsHead = nullptr;
 		curObjCount = 0;
 		maxObjCount = GC_OBJECT_COUNT_THRESHOLD;
 
@@ -1335,7 +1267,7 @@ namespace lws
 		}
 
 		//sweep objects which is not reachable
-		Object **object = &firstObject;
+		Object **object = &objectListsHead;
 		while (*object)
 		{
 			if (!((*object)->marked))
@@ -1360,5 +1292,15 @@ namespace lws
 		std::wcout
 			<< "Collected " << objNum - curObjCount << " objects," << curObjCount << " remaining." << std::endl;
 #endif
+	}
+
+	void VM::AddToObjectList(Object *object)
+	{
+		if (curObjCount >= maxObjCount)
+			Gc();
+		object->marked = false;
+		object->next = objectListsHead;
+		objectListsHead = object;
+		curObjCount++;
 	}
 }

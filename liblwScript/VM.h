@@ -59,8 +59,6 @@ namespace lws
 		RefObject *CreateRefObject(std::wstring_view name, Value index);
 		RefObject *CreateRefObject(std::wstring_view address);
 
-		void Gc();
-
 		std::function<Value(std::vector<Value>)> GetNativeFunction(std::wstring_view fnName);
 		bool HasNativeFunction(std::wstring_view name);
 
@@ -70,6 +68,9 @@ namespace lws
 		void PushFrame(Frame *frame);
 		Frame *PopFrame();
 		bool IsFrameStackEmpty();
+
+		void Gc();
+		void AddToObjectList(Object* object);
 
 		uint64_t sp;
 		uint64_t curValueStackSize;
@@ -81,7 +82,7 @@ namespace lws
 
 		std::unordered_map<std::wstring,Value> mStringTable;
 
-		Object *firstObject;
+		Object *objectListsHead;
 		int curObjCount;
 		int maxObjCount;
 

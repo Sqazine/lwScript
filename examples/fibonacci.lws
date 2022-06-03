@@ -1,25 +1,25 @@
-fn fib(x)
+//fn fib(x)
+//{
+//    if(x==0)
+//        return 0;
+//    else if(x==1)
+//        return 1;
+//    else 
+//        return fib(x-1)+fib(x-2);
+//}
+
+fn fib(x,pre,cur)
 {
     if(x==0)
-        return 0;
+        return pre;
     else if(x==1)
-        return 1;
+        return cur;
     else 
-        return fib(x-1)+fib(x-2);
+        return fib(x-1,cur,pre+cur);
 }
 
-let fib=fn(x)
-{
-    if(x==0)
-        return 0;
-    else if(x==1)
-        return 1;
-    else 
-        return fib(x-1)+fib(x-2);
-};
-
 let start=clock();
-let a=fib(35);
+let a=fib(35,0,1);
 let end=clock();
 println("{}",a);//9227465
 println("{}",end-start);
