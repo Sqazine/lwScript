@@ -79,6 +79,8 @@ namespace lws
 		uint64_t curFrameStackSize;
 		std::vector<Frame *> mFrameStack;
 
+		std::unordered_map<std::wstring,Value> mStringTable;
+
 		Object *firstObject;
 		int curObjCount;
 		int maxObjCount;

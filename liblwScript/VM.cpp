@@ -432,17 +432,23 @@ namespace lws
 				START_RECORD_EXECUTE(OP_LOAD_VALUE)
 				{
 					auto v = frame->mValues[frame->mCodes[++ip]];
-					if(IS_STR_VALUE(v))
+					if (IS_STR_VALUE(v))
 					{
-						//add to gc module to manage its lifetime
-						if (curObjCount == maxObjCount)
-							Gc();
+						auto iter = mStringTable.find(TO_STR_VALUE(v)->value);
+						if (iter == mStringTable.end())
+						{
+							//add to gc module to manage its lifetime
+							if (curObjCount >= maxObjCount)
+								Gc();
 
-						StrObject *object = TO_STR_VALUE(v);
-						object->marked = false;
-						object->next = firstObject;
-						firstObject = object;
-						curObjCount++;
+							StrObject *object = TO_STR_VALUE(v);
+							object->marked = false;
+							object->next = firstObject;
+							firstObject = object;
+							curObjCount++;
+							
+							mStringTable[TO_STR_VALUE(v)->value]=v;
+						}
 					}
 					PushValue(v);
 				}
