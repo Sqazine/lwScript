@@ -166,58 +166,6 @@ namespace lws
 		Gc();
 	}
 
-	StrObject *VM::CreateStrObject(std::wstring_view value)
-	{
-		StrObject *object = new StrObject(value);
-		AddToObjectList(object);
-		return object;
-	}
-
-	ArrayObject *VM::CreateArrayObject(const std::vector<Value> &elements)
-	{
-		ArrayObject *object = new ArrayObject(elements);
-		AddToObjectList(object);
-		return object;
-	}
-
-	TableObject *VM::CreateTableObject(const ValueUnorderedMap &elements)
-	{
-		TableObject *object = new TableObject(elements);
-		AddToObjectList(object);
-		return object;
-	}
-
-	ClassObject *VM::CreateClassObject(std::wstring_view name, const std::unordered_map<std::wstring, ValueDesc> &members, const std::vector<std::pair<std::wstring, ClassObject *>> &parentClasses)
-	{
-		ClassObject *object = new ClassObject(name, members, parentClasses);
-		AddToObjectList(object);
-		return object;
-	}
-
-	LambdaObject *VM::CreateLambdaObject(int64_t frameIdx)
-	{
-		LambdaObject *object = new LambdaObject(frameIdx);
-		AddToObjectList(object);
-
-		return object;
-	}
-
-	RefObject *VM::CreateRefObject(std::wstring_view name, Value index)
-	{
-		RefObject *object = new RefObject(name, index);
-		AddToObjectList(object);
-
-		return object;
-	}
-
-	RefObject *VM::CreateRefObject(std::wstring_view address)
-	{
-		RefObject *object = new RefObject(address);
-		AddToObjectList(object);
-
-		return object;
-	}
-
 	Value VM::Execute(Frame *frame)
 	{
 		PreAssemble(frame);
@@ -417,7 +365,7 @@ namespace lws
 					else if (IS_REAL_VALUE(right) && IS_REAL_VALUE(left))
 						PushValue(Value(TO_REAL_VALUE(left) + TO_REAL_VALUE(right)));
 					else if (IS_STR_VALUE(right) && IS_STR_VALUE(left))
-						PushValue(Value(CreateStrObject(TO_STR_VALUE(left)->value + TO_STR_VALUE(right)->value)));
+						PushValue(Value(CreateObject<StrObject>(TO_STR_VALUE(left)->value + TO_STR_VALUE(right)->value)));
 					else
 						ASSERT(L"Invalid binary op:" + left.Stringify() + L"+" + right.Stringify())
 				}
@@ -733,7 +681,7 @@ namespace lws
 					int64_t arraySize = (int64_t)frame->mValues[frame->mCodes[++ip]].integer;
 					for (int64_t i = 0; i < arraySize; ++i)
 						elements.insert(elements.begin(), PopValue());
-					PushValue(CreateArrayObject(elements));
+					PushValue(CreateObject<ArrayObject>(elements));
 				}
 				END_RECORD_EXECUTE(OP_NEW_ARRAY)
 				break;
@@ -750,7 +698,7 @@ namespace lws
 						Value value = PopValue();
 						elements[key] = value;
 					}
-					PushValue(CreateTableObject(elements));
+					PushValue(CreateObject<TableObject>(elements));
 				}
 				END_RECORD_EXECUTE(OP_NEW_TABLE)
 				break;
@@ -772,7 +720,7 @@ namespace lws
 							members[value.first] = value.second;
 					}
 
-					PushValue(CreateClassObject(name, members, parentClasses));
+					PushValue(CreateObject<ClassObject>(name, members, parentClasses));
 				}
 				END_RECORD_EXECUTE(OP_NEW_CLASS)
 				break;
@@ -1084,7 +1032,7 @@ namespace lws
 			{
 				START_RECORD_EXECUTE(OP_NEW_LAMBDA)
 				{
-					PushValue(CreateLambdaObject(frame->mCodes[++ip]));
+					PushValue(CreateObject<LambdaObject>(frame->mCodes[++ip]));
 				}
 				END_RECORD_EXECUTE(OP_NEW_LAMBDA)
 				break;
@@ -1093,7 +1041,7 @@ namespace lws
 			{
 				START_RECORD_EXECUTE(OP_REF_VARIABLE)
 				{
-					PushValue(CreateRefObject(frame->mStrings[frame->mCodes[++ip]], gInvalidValue));
+					PushValue(CreateObject<RefObject>(frame->mStrings[frame->mCodes[++ip]], gInvalidValue));
 				}
 				END_RECORD_EXECUTE(OP_REF_VARIABLE)
 				break;
@@ -1103,7 +1051,7 @@ namespace lws
 				START_RECORD_EXECUTE(OP_REF_INDEX)
 				{
 					auto index = PopValue();
-					PushValue(CreateRefObject(frame->mStrings[frame->mCodes[++ip]], index));
+					PushValue(CreateObject<RefObject>(frame->mStrings[frame->mCodes[++ip]], index));
 				}
 				END_RECORD_EXECUTE(OP_REF_INDEX)
 				break;
@@ -1114,7 +1062,7 @@ namespace lws
 				{
 					auto value = PopValue();
 					if (IS_OBJECT_VALUE(value))
-						PushValue(CreateRefObject(PointerAddressToString(value.object)));
+						PushValue(CreateObject<RefObject>(PointerAddressToString(value.object)));
 					else
 						ASSERT(L"Cannot reference a value," + value.Stringify() + L"only object can be referenced,")
 				}

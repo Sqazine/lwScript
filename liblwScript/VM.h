@@ -51,13 +51,16 @@ namespace lws
 		friend class Memory;
 		friend class IO;
 
-		StrObject *CreateStrObject(std::wstring_view value);
-		ArrayObject *CreateArrayObject(const std::vector<Value> &elements = {});
-		TableObject *CreateTableObject(const ValueUnorderedMap &elements = {});
-		ClassObject *CreateClassObject(std::wstring_view name, const std::unordered_map<std::wstring, ValueDesc> &members, const std::vector<std::pair<std::wstring, ClassObject *>> &parentClasses = {});
-		LambdaObject *CreateLambdaObject(int64_t frameIdx);
-		RefObject *CreateRefObject(std::wstring_view name, Value index);
-		RefObject *CreateRefObject(std::wstring_view address);
+		template<class T,typename ...Args>
+		T* CreateObject(Args&& ...params);
+
+		// StrObject *CreateStrObject(std::wstring_view value);
+		// ArrayObject *CreateArrayObject(const std::vector<Value> &elements = {});
+		// TableObject *CreateTableObject(const ValueUnorderedMap &elements = {});
+		// ClassObject *CreateClassObject(std::wstring_view name, const std::unordered_map<std::wstring, ValueDesc> &members, const std::vector<std::pair<std::wstring, ClassObject *>> &parentClasses = {});
+		// LambdaObject *CreateLambdaObject(int64_t frameIdx);
+		// RefObject *CreateRefObject(std::wstring_view name, Value index);
+		// RefObject *CreateRefObject(std::wstring_view address);
 
 		std::function<Value(std::vector<Value>)> GetNativeFunction(std::wstring_view fnName);
 		bool HasNativeFunction(std::wstring_view name);
@@ -92,4 +95,12 @@ namespace lws
 			ExecuteRecorder mRecorder;
 		#endif
 	};
+
+	template<class T,typename ...Args>
+	inline	T* VM::CreateObject(Args&& ...params)
+	{
+		T* object= new T(std::forward<Args>(params)...);
+		AddToObjectList(object);
+		return object;
+	}
 }

@@ -296,7 +296,7 @@ namespace lws
 			if(!IS_OBJECT_VALUE(args[0]))
 				ASSERT(L"[Native function 'addressof']:The arg0 is a value,only object has address.")
 
-			return mVMHandle->CreateStrObject(PointerAddressToString(args[0].object));
+			return mVMHandle->CreateObject<StrObject>(PointerAddressToString(args[0].object));
 		};
 	}
 
