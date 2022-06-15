@@ -4,6 +4,9 @@
 #include "Value.h"
 namespace lws
 {
+#define STACK_INCREMENT_RATE 2
+#define SCOPE_STACK_MAX 256
+
     enum class ValueDescType
     {
         CONST,
@@ -21,11 +24,34 @@ namespace lws
         return left.type == right.type && left.value == right.value;
     }
 
+    class Scope
+    {
+    public:
+        Scope();
+        ~Scope();
+
+        void DefineVariableByName(std::wstring_view name, ValueDescType objDescType, const Value &value);
+        void DefineVariableByName(std::wstring_view name, const ValueDesc &objectDesc);
+        bool AssignVariableByName(std::wstring_view name, const Value &value);
+        Value GetVariableByName(std::wstring_view name);
+
+        bool AssignVariableByAddress(std::wstring_view address, const Value &value);
+        Value GetVariableByAddress(std::wstring_view address);
+
+        void Mark();
+
+        void Reset();
+
+    private:
+        friend class VM;
+
+        std::unordered_map<std::wstring, ValueDesc> mValues;
+    };
+
     class Context
     {
     public:
         Context();
-        Context(Context *upContext);
         ~Context();
 
         void DefineVariableByName(std::wstring_view name, ValueDescType objDescType, const Value &value);
@@ -36,16 +62,21 @@ namespace lws
         void AssignVariableByAddress(std::wstring_view address, const Value &value);
         Value GetVariableByAddress(std::wstring_view address);
 
-        Context *GetUpContext();
-        void SetUpContext(Context *env);
+        Scope &GetUpScope();
 
-        Context *GetRoot();
+        Scope &GetRootScope();
+
+        void EnterScope();
+        void ExitScope();
+
+        void Mark();
 
     private:
         friend class VM;
-        friend struct ClassObject;
 
-        std::unordered_map<std::wstring, ValueDesc> mValues;
-        Context *mUpContext;
+        Scope& CurScope();
+
+        size_t mCurScopeDepth;
+        std::vector<Scope> mScopeStack;
     };
 }

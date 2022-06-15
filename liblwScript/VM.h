@@ -86,7 +86,7 @@ namespace lws
 		int curObjCount;
 		int maxObjCount;
 
-		Context *mContext;
+		Context mContext;
 
 		#ifdef NEED_TO_RECORD_OPCODE_EXECUTE
 			ExecuteRecorder mRecorder;

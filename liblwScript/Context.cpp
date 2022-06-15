@@ -4,19 +4,14 @@
 #include "Object.h"
 namespace lws
 {
-	Context::Context()
-		: mUpContext(nullptr)
+	Scope::Scope()
 	{
 	}
-	Context::Context(Context *upContext)
-		: mUpContext(upContext)
-	{
-	}
-	Context::~Context()
+	Scope::~Scope()
 	{
 	}
 
-	void Context::DefineVariableByName(std::wstring_view name, ValueDescType objDescType, const Value &value)
+	void Scope::DefineVariableByName(std::wstring_view name, ValueDescType objDescType, const Value &value)
 	{
 		auto iter = mValues.find(name.data());
 		if (iter != mValues.end())
@@ -31,7 +26,7 @@ namespace lws
 		}
 	}
 
-	void Context::DefineVariableByName(std::wstring_view name, const ValueDesc &objectDesc)
+	void Scope::DefineVariableByName(std::wstring_view name, const ValueDesc &objectDesc)
 	{
 		auto iter = mValues.find(name.data());
 		if (iter != mValues.end())
@@ -40,42 +35,40 @@ namespace lws
 			mValues[name.data()] = objectDesc;
 	}
 
-	void Context::AssignVariableByName(std::wstring_view name, const Value &value)
+	bool Scope::AssignVariableByName(std::wstring_view name, const Value &value)
 	{
 		auto iter = mValues.find(name.data());
 		if (iter != mValues.end())
 		{
 			if (iter->second.type != ValueDescType::CONST)
+			{
 				mValues[name.data()].value = value;
+				return true;
+			}
 			else
 				ASSERT(L"const variable:(" + std::wstring(name) + L") cannot be assigned")
 		}
-		else if (mUpContext != nullptr)
-			mUpContext->AssignVariableByName(name, value);
-		else
-			ASSERT(L"Undefine variable:(" + std::wstring(name) + L") in current context")
+		return false;
 	}
 
-	Value Context::GetVariableByName(std::wstring_view name)
+	Value Scope::GetVariableByName(std::wstring_view name)
 	{
 		auto iter = mValues.find(name.data());
 		if (iter != mValues.end())
 			return iter->second.value;
-		if (mUpContext != nullptr)
-			return mUpContext->GetVariableByName(name);
 		return gInvalidValue;
 	}
 
-	void Context::AssignVariableByAddress(std::wstring_view address, const Value &value)
+	bool Scope::AssignVariableByAddress(std::wstring_view address, const Value &value)
 	{
-		for (auto& [contextKey, contextValue] : mValues)
+		for (auto &[contextKey, contextValue] : mValues)
 		{
 			if (PointerAddressToString(contextValue.value.object) == address)
 			{
 				if (contextValue.type != ValueDescType::CONST)
 				{
 					mValues[contextKey].value = value;
-					return;
+					return true;
 				}
 				else
 					ASSERT(L"const variable at address:(" + std::wstring(address) + L") cannot be assigned")
@@ -89,7 +82,7 @@ namespace lws
 						if (PointerAddressToString(array->elements[i].object) == address)
 						{
 							array->elements[i] = value;
-							return;
+							return true;
 						}
 				}
 				else
@@ -100,11 +93,11 @@ namespace lws
 				TableObject *table = TO_TABLE_VALUE(contextValue.value);
 				if (contextValue.type != ValueDescType::CONST)
 				{
-					for (auto& [tableKey, tableValue] : table->elements)
+					for (auto &[tableKey, tableValue] : table->elements)
 						if (PointerAddressToString(tableValue.object) == address)
 						{
 							table->elements[tableKey] = value;
-							return;
+							return true;
 						}
 				}
 				else
@@ -115,11 +108,11 @@ namespace lws
 				ClassObject *klass = TO_CLASS_VALUE(contextValue.value);
 				if (contextValue.type != ValueDescType::CONST)
 				{
-					for (auto& [classMemberKey, classMemberValue] : klass->members)
+					for (auto &[classMemberKey, classMemberValue] : klass->members)
 						if (PointerAddressToString(classMemberValue.value.object) == address)
 						{
 							klass->members[classMemberKey].value = value;
-							return;
+							return true;
 						}
 				}
 				else
@@ -127,16 +120,13 @@ namespace lws
 			}
 		}
 
-		if (mUpContext)
-			mUpContext->AssignVariableByAddress(address, value);
-		else
-			ASSERT(L"Undefine variable(address:" + std::wstring(address) + L") in current context")
+		return false;
 	}
 
-	Value Context::GetVariableByAddress(std::wstring_view address)
+	Value Scope::GetVariableByAddress(std::wstring_view address)
 	{
 		//first:search the suitable context value in address
-		for (auto& [contextKey, contextValue] : mValues)
+		for (auto &[contextKey, contextValue] : mValues)
 			if (PointerAddressToString(contextValue.value.object) == address)
 				return contextValue.value;
 
@@ -153,7 +143,7 @@ namespace lws
 			else if (IS_TABLE_VALUE(contextValue.value))
 			{
 				TableObject *table = TO_TABLE_VALUE(contextValue.value);
-				for (auto& [tableKey, tableValue] : table->elements)
+				for (auto &[tableKey, tableValue] : table->elements)
 					if (PointerAddressToString(tableValue.object) == address)
 						return table->elements[tableKey];
 			}
@@ -164,27 +154,128 @@ namespace lws
 			}
 		}
 
-		if (mUpContext)
-			return mUpContext->GetVariableByAddress(address);
-
 		return gInvalidValue;
 	}
 
-	Context *Context::GetUpContext()
+	void Scope::Mark()
 	{
-		return mUpContext;
+		for (const auto &[k, v] : mValues)
+			v.value.Mark();
 	}
 
-	void Context::SetUpContext(Context *env)
+	void Scope::Reset()
 	{
-		mUpContext = env;
+		mValues.clear();
 	}
 
-	Context *Context::GetRoot()
+	Context::Context()
 	{
-		Context *ptr = this;
-		while (ptr->mUpContext != nullptr)
-			ptr = ptr->mUpContext;
-		return ptr;
+		mScopeStack = std::vector<Scope>(SCOPE_STACK_MAX);
+		mCurScopeDepth = 0;
+	}
+
+	Context::~Context()
+	{
+	}
+
+	void Context::DefineVariableByName(std::wstring_view name, ValueDescType objDescType, const Value &value)
+	{
+		CurScope().DefineVariableByName(name, objDescType, value);
+	}
+
+	void Context::DefineVariableByName(std::wstring_view name, const ValueDesc &objectDesc)
+	{
+		CurScope().DefineVariableByName(name, objectDesc);
+	}
+
+	void Context::AssignVariableByName(std::wstring_view name, const Value &value)
+	{
+		if (!CurScope().AssignVariableByName(name, value))
+		{
+			for (int32_t i = mCurScopeDepth; i >= 0; --i)
+				if (mScopeStack[i].AssignVariableByName(name, value))
+					return;
+			ASSERT(L"Undefine variable:(" + std::wstring(name) + L") in context")
+		}
+	}
+
+	Value Context::GetVariableByName(std::wstring_view name)
+	{
+		auto value = CurScope().GetVariableByName(name);
+		if (!IS_INVALID_VALUE(value))
+			return value;
+		else
+		{
+			for (int32_t i = mCurScopeDepth; i >= 0; --i)
+			{
+				value = mScopeStack[i].GetVariableByName(name);
+				if (!IS_INVALID_VALUE(value))
+					return value;
+			}
+		}
+		return gInvalidValue;
+	}
+
+	void Context::AssignVariableByAddress(std::wstring_view address, const Value &value)
+	{
+		if (!CurScope().AssignVariableByAddress(address, value))
+		{
+			for (int32_t i = mCurScopeDepth; i >= 0; --i)
+				if (mScopeStack[i].AssignVariableByAddress(address, value))
+					return;
+			ASSERT(L"Undefine variable(address:" + std::wstring(address) + L") in current context")
+		}
+	}
+
+	Value Context::GetVariableByAddress(std::wstring_view address)
+	{
+
+		auto value = CurScope().GetVariableByAddress(address);
+		if (!IS_INVALID_VALUE(value))
+			return value;
+		else
+		{
+			for (int32_t i = mCurScopeDepth; i >= 0; --i)
+			{
+				value = mScopeStack[i].GetVariableByAddress(address);
+				if (!IS_INVALID_VALUE(value))
+					return value;
+			}
+		}
+		return gInvalidValue;
+	}
+
+	Scope &Context::GetUpScope()
+	{
+		return mScopeStack[mCurScopeDepth - 1];
+	}
+
+	Scope &Context::GetRootScope()
+	{
+		return mScopeStack[0];
+	}
+
+	void Context::EnterScope()
+	{
+		++mCurScopeDepth;
+	}
+	void Context::ExitScope()
+	{
+		if (mCurScopeDepth > 0)
+		{
+			CurScope().Reset();
+			--mCurScopeDepth;
+		}
+	}
+
+	Scope &Context::CurScope()
+	{
+		return mScopeStack[mCurScopeDepth];
+	}
+
+	void Context::Mark()
+	{
+		for (int32_t i = 0; i < mCurScopeDepth; ++i)
+			mScopeStack[i].Mark();
 	}
 }

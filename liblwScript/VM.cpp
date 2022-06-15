@@ -152,7 +152,6 @@ namespace lws
 	}
 
 	VM::VM()
-		: mContext(nullptr)
 	{
 		ResetStatus();
 		LibraryManager::RegisterLibrary(L"IO", new IO(this));
@@ -162,11 +161,6 @@ namespace lws
 	}
 	VM::~VM()
 	{
-		if (mContext)
-		{
-			delete mContext;
-			mContext = nullptr;
-		}
 		sp = 0;
 		fp = 0;
 		Gc();
@@ -327,12 +321,8 @@ namespace lws
 				START_RECORD_EXECUTE(OP_RETURN)
 				{
 					auto returnObjCount = PopValue().integer;
-					if (mContext->mUpContext)
-					{
-						Context *tmp = mContext->GetUpContext();
-						delete mContext;
-						mContext = tmp;
-					}
+
+					mContext.ExitScope();
 
 					if (returnObjCount == 1)
 						return PopValue();
@@ -347,17 +337,14 @@ namespace lws
 				START_RECORD_EXECUTE(OP_SAVE_TO_GLOBAL)
 				{
 					auto name = frame->mStrings[frame->mCodes[++ip]];
-					if (mContext->mUpContext)
-					{
-						Context *tmp = mContext->GetUpContext();
-						delete mContext;
-						mContext = tmp;
-					}
+					
+					mContext.ExitScope();
+
 					auto value = PopValue();
 
-					auto rootContext = mContext->GetRoot();
-					if (IS_INVALID_VALUE(rootContext->GetVariableByName(name)))
-						rootContext->DefineVariableByName(name, ValueDescType::CONST, value);
+					auto& rootScope= mContext.GetRootScope();
+					if (IS_INVALID_VALUE(rootScope.GetVariableByName(name)))
+						rootScope.DefineVariableByName(name, ValueDescType::CONST, value);
 					else
 					{
 						// TODO:now only for enum,to avoiding multiple assign enum class object to root context
@@ -586,7 +573,7 @@ namespace lws
 			{
 				START_RECORD_EXECUTE(OP_NEW_VAR)
 				{
-					mContext->DefineVariableByName(frame->mStrings[frame->mCodes[++ip]], ValueDescType::VARIABLE, PopValue());
+					mContext.DefineVariableByName(frame->mStrings[frame->mCodes[++ip]], ValueDescType::VARIABLE, PopValue());
 				}
 				END_RECORD_EXECUTE(OP_NEW_VAR)
 				break;
@@ -595,7 +582,7 @@ namespace lws
 			{
 				START_RECORD_EXECUTE(OP_NEW_CONST)
 				{
-					mContext->DefineVariableByName(frame->mStrings[frame->mCodes[++ip]], ValueDescType::CONST, PopValue());
+					mContext.DefineVariableByName(frame->mStrings[frame->mCodes[++ip]], ValueDescType::CONST, PopValue());
 				}
 				END_RECORD_EXECUTE(OP_NEW_CONST)
 				break;
@@ -607,16 +594,16 @@ namespace lws
 					std::wstring name = frame->mStrings[frame->mCodes[++ip]];
 
 					Value value = PopValue();
-					Value variable = mContext->GetVariableByName(name);
+					Value variable = mContext.GetVariableByName(name);
 
 					if (IS_REF_VALUE(variable) && !TO_REF_VALUE(variable)->isAddressReference)
 					{
 						auto refObject = TO_REF_VALUE(variable);
 						if (IS_INVALID_VALUE(refObject->index))
-							mContext->AssignVariableByName(refObject->name, value);
+							mContext.AssignVariableByName(refObject->name, value);
 						else
 						{
-							variable = mContext->GetVariableByName(refObject->name);
+							variable = mContext.GetVariableByName(refObject->name);
 							auto index = refObject->index;
 							if (IS_ARRAY_VALUE(variable))
 							{
@@ -651,11 +638,11 @@ namespace lws
 					}
 					else if (IS_REF_VALUE(variable))
 					{
-						mContext->AssignVariableByAddress(TO_REF_VALUE(variable)->address, value);
+						mContext.AssignVariableByAddress(TO_REF_VALUE(variable)->address, value);
 						TO_REF_VALUE(variable)->address = PointerAddressToString(value.object); //update ref address
 					}
 					else
-						mContext->AssignVariableByName(name, value);
+						mContext.AssignVariableByName(name, value);
 				}
 				END_RECORD_EXECUTE(OP_SET_VAR)
 				break;
@@ -667,7 +654,7 @@ namespace lws
 				{
 					std::wstring name = frame->mStrings[frame->mCodes[++ip]];
 
-					Value varValue = mContext->GetVariableByName(name);
+					Value varValue = mContext.GetVariableByName(name);
 
 					//create a class object
 					if (IS_INVALID_VALUE(varValue))
@@ -683,7 +670,7 @@ namespace lws
 					else if (IS_REF_VALUE(varValue) && !TO_REF_VALUE(varValue)->isAddressReference)
 					{
 						auto refObject = TO_REF_VALUE(varValue);
-						varValue = mContext->GetVariableByName(refObject->name);
+						varValue = mContext.GetVariableByName(refObject->name);
 
 						if (IS_INVALID_VALUE(refObject->index))
 							PushValue(varValue);
@@ -724,7 +711,7 @@ namespace lws
 					}
 					else if (IS_REF_VALUE(varValue))
 					{
-						varValue = mContext->GetVariableByAddress(TO_REF_VALUE(varValue)->address);
+						varValue = mContext.GetVariableByAddress(TO_REF_VALUE(varValue)->address);
 						PushValue(varValue);
 					}
 					else
@@ -777,7 +764,7 @@ namespace lws
 					std::unordered_map<std::wstring, ValueDesc> members;
 					std::vector<std::pair<std::wstring, ClassObject *>> parentClasses;
 
-					for (auto value : mContext->mValues)
+					for (auto value : mContext.CurScope().mValues)
 					{
 						if (value.first.find_first_of(parentClassPrefixID) == 0 && IS_CLASS_VALUE(value.second.value))
 							parentClasses.emplace_back(value.first.substr(wcslen(parentClassPrefixID)), TO_CLASS_VALUE(value.second.value));
@@ -966,8 +953,7 @@ namespace lws
 			{
 				START_RECORD_EXECUTE(OP_ENTER_SCOPE)
 				{
-
-					mContext = new Context(mContext);
+					mContext.EnterScope();
 				}
 				END_RECORD_EXECUTE(OP_ENTER_SCOPE)
 				break;
@@ -976,9 +962,7 @@ namespace lws
 			{
 				START_RECORD_EXECUTE(OP_EXIT_SCOPE)
 				{
-					Context *tmp = mContext->GetUpContext();
-					delete mContext;
-					mContext = tmp;
+					mContext.ExitScope();
 				}
 				END_RECORD_EXECUTE(OP_EXIT_SCOPE)
 				break;
@@ -1015,9 +999,9 @@ namespace lws
 					std::wstring fnName = frame->mStrings[frame->mCodes[++ip]];
 					if (frame->HasFunctionFrame(fnName)) //function:function add(){return 10;}
 						PushFrame(frame->GetFunctionFrame(fnName));
-					else if (!IS_INVALID_VALUE(mContext->GetVariableByName(fnName))) //lambda:let add=function(){return 10;}
+					else if (!IS_INVALID_VALUE(mContext.GetVariableByName(fnName))) //lambda:let add=function(){return 10;}
 					{
-						auto lambdaObject = mContext->GetVariableByName(fnName);
+						auto lambdaObject = mContext.GetVariableByName(fnName);
 						if (!IS_LAMBDA_VALUE(lambdaObject))
 							ASSERT(L"Not a lambda object of " + fnName)
 						PushFrame(frame->GetLambdaFrame(TO_LAMBDA_VALUE(lambdaObject)->frameIndex));
@@ -1182,13 +1166,6 @@ namespace lws
 		curFrameStackSize = FRAME_STACK_MAX;
 		std::vector<Frame *>().swap(mFrameStack);
 		mFrameStack.resize(curFrameStackSize);
-
-		if (mContext != nullptr)
-		{
-			delete mContext;
-			mContext = nullptr;
-		}
-		mContext = new Context();
 	}
 
 	std::function<Value(std::vector<Value>)> VM::GetNativeFunction(std::wstring_view fnName)
@@ -1253,18 +1230,7 @@ namespace lws
 		//mark all object which in stack;
 		for (size_t i = 0; i < sp; ++i)
 			mValueStack[i].Mark();
-		if (mContext)
-		{
-			auto contextPtr = mContext;
-			for (const auto &[k, v] : contextPtr->mValues)
-				v.value.Mark();
-			while (contextPtr->mUpContext)
-			{
-				contextPtr = contextPtr->mUpContext;
-				for (const auto &[k, v] : contextPtr->mValues)
-					v.value.Mark();
-			}
-		}
+		mContext.Mark();
 
 		//sweep objects which is not reachable
 		Object **object = &objectListsHead;
