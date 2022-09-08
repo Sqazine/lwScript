@@ -64,6 +64,8 @@ namespace lws
 		TOKEN_FOR,					 // for
 		TOKEN_FUNCTION,				 // fn
 		TOKEN_CLASS,				 // class
+		TOKEN_THIS,					 // this
+		TOKEN_BASE,					 // base
 		TOKEN_RETURN,				 // return
 		TOKEN_STATIC,				 // static
 		TOKEN_CONST,				 // const

@@ -14,20 +14,6 @@
 #include "Config.h"
 namespace lws
 {
-
-	struct ExecuteRecorder
-	{
-		void Dump();
-
-		struct record
-		{
-			uint64_t callTimes=0;
-			uint64_t executeTime=0;
-		};
-
-		std::unordered_map<OpCode,record> mOpCodeCallTimes;
-	};
-
 #define STACK_INCREMENT_RATE 2
 #define VALUE_STACK_MAX 8192
 #define FRAME_STACK_MAX 256
@@ -83,10 +69,6 @@ namespace lws
 		int maxObjCount;
 
 		Context mContext;
-
-		#ifdef NEED_TO_RECORD_OPCODE_EXECUTE
-			ExecuteRecorder mRecorder;
-		#endif
 	};
 
 	template<class T,typename ...Args>

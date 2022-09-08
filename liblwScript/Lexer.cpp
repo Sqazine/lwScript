@@ -18,6 +18,8 @@ namespace lws
 		{L"for", TOKEN_FOR},
 		{L"fn", TOKEN_FUNCTION},
 		{L"class", TOKEN_CLASS},
+		{L"this", TOKEN_THIS},
+		{L"base", TOKEN_BASE},
 		{L"return", TOKEN_RETURN},
 		{L"static", TOKEN_STATIC},
 		{L"const", TOKEN_CONST},

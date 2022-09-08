@@ -172,7 +172,7 @@ namespace lws
 
 	Stmt *Parser::ParseAstStmts()
 	{
-		while (!IsMatchCurToken(TOKEN_END))
+		while (!IsMatchCurToken(TOKEN_EOF))
 			mStmts->stmts.emplace_back(ParseStmt());
 		return mStmts;
 	}
@@ -1156,7 +1156,7 @@ namespace lws
 		Token token = GetCurToken();
 		ASSERT(L"[line:" + std::to_wstring(token.line) + L",column:" + std::to_wstring(token.column) + L"]:" + std::wstring(errMsg))
 		// avoid C++ compiler warning
-		return Token(TOKEN_END, L"", -1, -1);
+		return Token(TOKEN_EOF, L"", -1, -1);
 	}
 
 	Token Parser::Consume(const std::vector<TokenType> &types, std::wstring_view errMsg)
@@ -1167,7 +1167,7 @@ namespace lws
 		Token token = GetCurToken();
 		ASSERT(L"[" + std::to_wstring(token.line) + L"," + std::to_wstring(token.column) + L"]:" + std::wstring(errMsg))
 		// avoid C++ compiler warning
-		return Token(TOKEN_END, L"", -1, -1);
+		return Token(TOKEN_EOF, L"", -1, -1);
 	}
 
 	bool Parser::IsAtEnd()
