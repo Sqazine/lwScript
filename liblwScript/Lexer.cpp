@@ -47,6 +47,8 @@ namespace lws
 		{L"bool", TOKEN_BOOL},
 		{L"char", TOKEN_CHAR},
 		{L"void", TOKEN_VOID},
+		{L"get",TOKEN_GET},
+		{L"set",TOKEN_SET},
 	};
 
 	Lexer::Lexer()

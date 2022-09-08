@@ -95,6 +95,8 @@ namespace lws
 		TOKEN_BOOL,					 // bool
 		TOKEN_CHAR,					 // char
 		TOKEN_VOID,					 // void
+		TOKEN_GET,					 // get
+		TOKEN_SET,					 // set
 		TOKEN_EOF,
 	};
 
