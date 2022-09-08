@@ -23,11 +23,28 @@ namespace lws
 		{L"const", TOKEN_CONST},
 		{L"break", TOKEN_BREAK},
 		{L"continue", TOKEN_CONTINUE},
+		{L"import", TOKEN_IMPORT},
+		{L"export", TOKEN_EXPORT},
+		{L"module", TOKEN_MODULE},
+		{L"try", TOKEN_TRY},
+		{L"catch", TOKEN_CATCH},
+		{L"finally", TOKEN_FINALLY},
 		{L"switch", TOKEN_SWITCH},
 		{L"case", TOKEN_CASE},
 		{L"default", TOKEN_DEFAULT},
 		{L"match", TOKEN_MATCH},
 		{L"enum", TOKEN_ENUM},
+		{L"u8", TOKEN_U8},
+		{L"u16", TOKEN_U16},
+		{L"u32", TOKEN_U32},
+		{L"u64", TOKEN_U64},
+		{L"i8", TOKEN_I8},
+		{L"i16", TOKEN_I16},
+		{L"i32", TOKEN_I32},
+		{L"i64", TOKEN_I64},
+		{L"bool", TOKEN_BOOL},
+		{L"char", TOKEN_CHAR},
+		{L"void", TOKEN_VOID},
 	};
 
 	Lexer::Lexer()
@@ -48,7 +65,7 @@ namespace lws
 			ScanToken();
 		}
 
-		AddToken(TOKEN_END, L"EOF");
+		AddToken(TOKEN_EOF,L"EOF");
 
 		return mTokens;
 	}

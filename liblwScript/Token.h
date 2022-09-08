@@ -74,12 +74,26 @@ namespace lws
 		TOKEN_MODULE,				 // module
 		TOKEN_TRY,					 // try
 		TOKEN_CATCH,				 // catch
+		TOKEN_FINALLY,				 // finally
 		TOKEN_SWITCH,				 // switch
 		TOKEN_CASE,					 // case
 		TOKEN_DEFAULT,				 // default
 		TOKEN_MATCH,				 // match
 		TOKEN_ENUM,					 // enum
-		TOKEN_END
+		TOKEN_U8,					 // u8
+		TOKEN_U16,					 // u16
+		TOKEN_U32,					 // u32
+		TOKEN_U64,					 // u64
+		TOKEN_I8,					 // i8
+		TOKEN_I16,					 // i16
+		TOKEN_I32,					 // i32
+		TOKEN_I64,					 // i64
+		TOKEN_F32,					 // f32
+		TOKEN_F64,					 // f64
+		TOKEN_BOOL,					 // bool
+		TOKEN_CHAR,					 // char
+		TOKEN_VOID,					 // void
+		TOKEN_EOF,
 	};
 
 	struct Token
