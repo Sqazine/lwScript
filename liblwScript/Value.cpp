@@ -1,5 +1,4 @@
 #include "Value.h"
-#include "Object.h"
 namespace lws
 {
     Value::Value()
@@ -24,10 +23,7 @@ namespace lws
         : object(object), type(VALUE_OBJECT)
     {
     }
-    Value::Value(ValueType type)
-        : type(type)
-    {
-    }
+
     Value::~Value()
     {
     }
@@ -48,8 +44,8 @@ namespace lws
             return boolean ? L"true" : L"false";
         case VALUE_NULL:
             return L"null";
-        case VALUE_OBJECT:
-            return object->Stringify();
+        // case VALUE_OBJECT:
+        //     return object->Stringify();
         default:
             return L"null";
         }
@@ -57,13 +53,13 @@ namespace lws
     }
     void Value::Mark() const
     {
-        if (type == VALUE_OBJECT)
-            object->Mark();
+        // if (type == VALUE_OBJECT)
+        //     object->Mark();
     }
     void Value::UnMark() const
     {
-        if (type == VALUE_OBJECT)
-            object->UnMark();
+        // if (type == VALUE_OBJECT)
+        //     object->UnMark();
     }
 
     bool operator==(const Value &left, const Value &right)
@@ -99,16 +95,10 @@ namespace lws
         }
         case VALUE_OBJECT:
         {
-            if (IS_OBJECT_VALUE(right))
-                return TO_OBJECT_VALUE(left)->IsEqualTo(TO_OBJECT_VALUE(right));
-            else
-                return false;
-        }
-        case VALUE_INVALID:
-        {
-            if (right.Type() == VALUE_INVALID)
-                return true;
-            return false;
+            // if (IS_OBJECT_VALUE(right))
+            //     return TO_OBJECT_VALUE(left)->IsEqualTo(TO_OBJECT_VALUE(right));
+            // else
+            //     return false;
         }
         default:
             return false;
@@ -126,7 +116,6 @@ namespace lws
         switch (v.type)
         {
         case VALUE_NULL:
-        case VALUE_INVALID:
             return std::hash<ValueType>()(v.type);
         case VALUE_INT:
             return std::hash<ValueType>()(v.type) ^ std::hash<int64_t>()(v.integer);

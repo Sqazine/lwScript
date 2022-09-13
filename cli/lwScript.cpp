@@ -1,7 +1,7 @@
 #include <string>
 #include <string_view>
 #include <codecvt>
-#include "liblwScript/lwScript.h"
+#include "lwScript.h"
 
 #if defined(_WIN32) || defined(_WIN64)
 #pragma warning(disable : 4996)
@@ -19,7 +19,9 @@ void Repl()
 	while (getline(std::wcin, line))
 	{
 		if (line == L"clear")
+		{
 			compiler.ResetStatus();
+		}
 		else
 		{
 			auto tokens = lexer.ScanTokens(line);
@@ -31,12 +33,11 @@ void Repl()
 #ifdef _DEBUG
 			std::wcout << stmt->Stringify() << std::endl;
 #endif
-			lws::Frame *frame = compiler.Compile(stmt);
+			auto chunk = compiler.Compile(stmt);
 #ifdef _DEBUG
-			std::wcout << frame->Stringify() << std::endl;
+			std::wcout << chunk.Stringify() << std::endl;
 #endif
-			vm.ResetStatus();
-			vm.Execute(frame);
+			vm.Run(chunk);
 		}
 		std::wcout << L"> ";
 	}
@@ -59,11 +60,13 @@ void RunFile(std::string_view path)
 #ifdef _DEBUG
 	std::wcout << stmt->Stringify() << std::endl;
 #endif
-	lws::Frame *frame = compiler.Compile(stmt);
+
+	auto chunk = compiler.Compile(stmt);
 #ifdef _DEBUG
-	std::wcout << frame->Stringify() << std::endl;
+	std::wcout << chunk.Stringify() << std::endl;
 #endif
-	vm.Execute(frame);
+
+	vm.Run(chunk);
 }
 
 int main(int argc, const char *argv[])
@@ -78,6 +81,6 @@ int main(int argc, const char *argv[])
 		Repl();
 	else
 		std::wcout << L"Usage: lwScript [filepath]" << std::endl;
-		
+
 	return 0;
 }

@@ -122,9 +122,9 @@ namespace lws
 			{TOKEN_ASTERISK, &Parser::ParseInfixExpr},
 			{TOKEN_SLASH, &Parser::ParseInfixExpr},
 			{TOKEN_PERCENT, &Parser::ParseInfixExpr},
-			{TOKEN_LPAREN, &Parser::ParseFunctionCallExpr},
+			{TOKEN_LPAREN, &Parser::ParseCallExpr},
 			{TOKEN_LBRACKET, &Parser::ParseIndexExpr},
-			{TOKEN_DOT, &Parser::ParseClassCallExpr},
+			{TOKEN_DOT, &Parser::ParseDotExpr},
 	};
 
 	std::unordered_map<TokenType, PostfixFn> Parser::mPostfixFunctions =
@@ -155,7 +155,9 @@ namespace lws
 		ResetStatus();
 		mTokens = tokens;
 
-		return ParseAstStmts();
+		while (!IsMatchCurToken(TOKEN_EOF))
+			mStmts->stmts.emplace_back(ParseDeclaration());
+		return mStmts;
 	}
 
 	void Parser::ResetStatus()
@@ -170,20 +172,209 @@ namespace lws
 		mStmts = new AstStmts();
 	}
 
-	Stmt *Parser::ParseAstStmts()
+	Stmt *Parser::ParseDeclaration()
 	{
-		while (!IsMatchCurToken(TOKEN_EOF))
-			mStmts->stmts.emplace_back(ParseStmt());
-		return mStmts;
+		if (IsMatchCurTokenAndStepOnce(TOKEN_LET))
+			return ParseLetDeclaration();
+		else if (IsMatchCurTokenAndStepOnce(TOKEN_CONST))
+			return ParseConstDeclaration();
+		else if (IsMatchCurTokenAndStepOnce(TOKEN_FUNCTION))
+			return ParseFunctionDeclaration();
+		else if (IsMatchCurTokenAndStepOnce(TOKEN_CLASS))
+			return ParseClassDeclaration();
+		else
+			return ParseStmt();
+	}
+	Stmt *Parser::ParseLetDeclaration()
+	{
+		auto letStmt = new LetStmt();
+		letStmt->line = GetCurToken().line;
+		letStmt->column = GetCurToken().column;
+
+		Consume(TOKEN_LET, L"Expect 'let' key word");
+
+		std::unordered_map<IdentifierExpr *, VarDesc> variables;
+
+		// variable name
+		auto name = (IdentifierExpr *)ParseIdentifierExpr();
+
+		// variable type
+		std::wstring type = L"any";
+		if (IsMatchCurToken(TOKEN_COLON))
+			type = GetCurTokenAndStepOnce().literal;
+
+		// variable value
+		Expr *value = new NullExpr();
+		if (IsMatchCurTokenAndStepOnce(TOKEN_EQUAL))
+			value = ParseExpr();
+		variables[name] = {.type = type, .value = value};
+
+		while (IsMatchCurTokenAndStepOnce(TOKEN_COMMA))
+		{
+			// variable name
+			auto name = (IdentifierExpr *)ParseIdentifierExpr();
+
+			// variable type
+			type = L"any";
+			if (IsMatchCurToken(TOKEN_COLON))
+				type = GetCurTokenAndStepOnce().literal;
+
+			Expr *value = new NullExpr();
+			if (IsMatchCurTokenAndStepOnce(TOKEN_EQUAL))
+				value = ParseExpr();
+			variables[name] = {.type = type, .value = value};
+		}
+
+		Consume(TOKEN_SEMICOLON, L"Expect ';' after let stmt.");
+
+		letStmt->variables = variables;
+
+		return letStmt;
+	}
+	Stmt *Parser::ParseConstDeclaration()
+	{
+		auto constStmt = new ConstStmt();
+		constStmt->line = GetCurToken().line;
+		constStmt->column = GetCurToken().column;
+
+		Consume(TOKEN_CONST, L"Expect 'const' key word");
+
+		std::unordered_map<IdentifierExpr *, VarDesc> consts;
+
+		auto name = (IdentifierExpr *)ParseIdentifierExpr();
+
+		// variable type
+		std::wstring type = L"any";
+		if (IsMatchCurToken(TOKEN_COLON))
+			type = GetCurTokenAndStepOnce().literal;
+
+		Expr *value = new NullExpr();
+		if (IsMatchCurTokenAndStepOnce(TOKEN_EQUAL))
+			value = ParseExpr();
+		consts[name] = {.type = type, .value = value};
+
+		while (IsMatchCurTokenAndStepOnce(TOKEN_COMMA))
+		{
+			auto name = (IdentifierExpr *)ParseIdentifierExpr();
+
+			// variable type
+			type = L"any";
+			if (IsMatchCurToken(TOKEN_COLON))
+				type = GetCurTokenAndStepOnce().literal;
+
+			Expr *value = new NullExpr();
+			if (IsMatchCurTokenAndStepOnce(TOKEN_EQUAL))
+				value = ParseExpr();
+			consts[name] = {.type = type, .value = value};
+		}
+
+		Consume(TOKEN_SEMICOLON, L"Expect ';' after const stmt.");
+
+		constStmt->consts = consts;
+
+		return constStmt;
+	}
+	Stmt *Parser::ParseFunctionDeclaration()
+	{
+		auto funcStmt = new FunctionStmt();
+		funcStmt->line = GetCurToken().line;
+		funcStmt->column = GetCurToken().column;
+
+		Consume(TOKEN_FUNCTION, L"Expect 'function' keyword");
+
+		funcStmt->name = (IdentifierExpr *)ParseIdentifierExpr();
+
+		Consume(TOKEN_LPAREN, L"Expect '(' after 'function' keyword");
+
+		if (!IsMatchCurToken(TOKEN_RPAREN)) // has parameter
+		{
+			IdentifierExpr *idenExpr = (IdentifierExpr *)ParseIdentifierExpr();
+			funcStmt->parameters.emplace_back(idenExpr);
+			while (IsMatchCurTokenAndStepOnce(TOKEN_COMMA))
+			{
+				idenExpr = (IdentifierExpr *)ParseIdentifierExpr();
+				funcStmt->parameters.emplace_back(idenExpr);
+			}
+		}
+		Consume(TOKEN_RPAREN, L"Expect ')' after function stmt's '('");
+
+		funcStmt->body = (ScopeStmt *)ParseScopeStmt();
+
+		return funcStmt;
+	}
+	Stmt *Parser::ParseClassDeclaration()
+	{
+		auto classStmt = new ClassStmt();
+		classStmt->line = GetCurToken().line;
+		classStmt->column = GetCurToken().column;
+
+		Consume(TOKEN_CLASS, L"Expect 'class' keyword");
+
+		classStmt->name = ((IdentifierExpr *)ParseIdentifierExpr())->literal;
+
+		if (IsMatchCurTokenAndStepOnce(TOKEN_COLON))
+		{
+			classStmt->parentClasses.emplace_back((IdentifierExpr *)ParseIdentifierExpr());
+			while (IsMatchCurTokenAndStepOnce(TOKEN_COMMA))
+				classStmt->parentClasses.emplace_back((IdentifierExpr *)ParseIdentifierExpr());
+		}
+
+		Consume(TOKEN_LBRACE, L"Expect '{' after class name or parent class name");
+
+		while (!IsMatchCurToken(TOKEN_RBRACE))
+		{
+			if (IsMatchCurToken(TOKEN_LET))
+				classStmt->letStmts.emplace_back((LetStmt *)ParseLetDeclaration());
+			else if (IsMatchCurToken(TOKEN_CONST))
+				classStmt->constStmts.emplace_back((ConstStmt *)ParseConstDeclaration());
+			else if (IsMatchCurToken(TOKEN_FUNCTION))
+				classStmt->fnStmts.emplace_back((FunctionStmt *)ParseFunctionDeclaration());
+			else
+				Consume({TOKEN_LET, TOKEN_FUNCTION, TOKEN_CONST}, L"UnExpect identifier '" + GetCurToken().literal + L"'.");
+		}
+
+		Consume(TOKEN_RBRACE, L"Expect '}' after class stmt's '{'");
+
+		return classStmt;
+	}
+	Stmt *Parser::ParseEnumDeclaration()
+	{
+		auto enumStmt = new EnumStmt();
+		enumStmt->line = GetCurToken().line;
+		enumStmt->column = GetCurToken().column;
+		Consume(TOKEN_ENUM, L"Expect 'enum' keyword.");
+		enumStmt->enumName = (IdentifierExpr *)ParseIdentifierExpr();
+		Consume(TOKEN_LBRACE, L"Expect '{' after 'enum' keyword.");
+
+		std::unordered_map<IdentifierExpr *, Expr *> items;
+
+		while (!IsMatchCurToken(TOKEN_RBRACE))
+		{
+			auto name = (IdentifierExpr *)ParseIdentifierExpr();
+			Expr *value = new StrExpr(name->literal);
+			if (IsMatchCurTokenAndStepOnce(TOKEN_EQUAL))
+			{
+				delete value;
+				value = nullptr;
+				value = ParseExpr();
+			}
+
+			items[name] = value;
+
+			if (IsMatchCurToken(TOKEN_COMMA))
+				Consume(TOKEN_COMMA, L"Expect ',' after enum item.");
+		}
+
+		Consume(TOKEN_RBRACE, L"Expect '}' at the end of the 'enum' stmt.");
+
+		enumStmt->enumItems = items;
+
+		return enumStmt;
 	}
 
 	Stmt *Parser::ParseStmt()
 	{
-		if (IsMatchCurToken(TOKEN_LET))
-			return ParseLetStmt();
-		else if (IsMatchCurToken(TOKEN_CONST))
-			return ParseConstStmt();
-		else if (IsMatchCurToken(TOKEN_RETURN))
+		if (IsMatchCurToken(TOKEN_RETURN))
 			return ParseReturnStmt();
 		else if (IsMatchCurToken(TOKEN_IF))
 			return ParseIfStmt();
@@ -201,12 +392,6 @@ namespace lws
 			return ParseSwitchStmt();
 		else if (IsMatchCurToken(TOKEN_MATCH))
 			return ParseMatchStmt();
-		else if (IsMatchCurToken(TOKEN_ENUM))
-			return ParseEnumStmt();
-		else if (IsMatchCurToken(TOKEN_FUNCTION))
-			return ParseFunctionStmt();
-		else if (IsMatchCurToken(TOKEN_CLASS))
-			return ParseClassStmt();
 		else
 			return ParseExprStmt();
 	}
@@ -221,97 +406,6 @@ namespace lws
 
 		Consume(TOKEN_SEMICOLON, L"Expect ';' after expr stmt.");
 		return exprStmt;
-	}
-
-	Stmt *Parser::ParseLetStmt()
-	{
-		auto letStmt = new LetStmt();
-		letStmt->line = GetCurToken().line;
-		letStmt->column = GetCurToken().column;
-
-		Consume(TOKEN_LET, L"Expect 'let' key word");
-
-		std::unordered_map<IdentifierExpr *, VarDesc> variables;
-
-		//variable name
-		auto name = (IdentifierExpr *)ParseIdentifierExpr();
-
-		//variable type
-		std::wstring type = L"any";
-		if (IsMatchCurToken(TOKEN_COLON))
-			type = GetCurTokenAndStepOnce().literal;
-
-		//variable value
-		Expr *value = new NullExpr();
-		if (IsMatchCurTokenAndStepOnce(TOKEN_EQUAL))
-			value = ParseExpr();
-		variables[name] = {.type = type, .value = value};
-
-		while (IsMatchCurTokenAndStepOnce(TOKEN_COMMA))
-		{
-			//variable name
-			auto name = (IdentifierExpr *)ParseIdentifierExpr();
-
-			//variable type
-			type = L"any";
-			if (IsMatchCurToken(TOKEN_COLON))
-				type = GetCurTokenAndStepOnce().literal;
-
-			Expr *value = new NullExpr();
-			if (IsMatchCurTokenAndStepOnce(TOKEN_EQUAL))
-				value = ParseExpr();
-			variables[name] = {.type = type, .value = value};
-		}
-
-		Consume(TOKEN_SEMICOLON, L"Expect ';' after let stmt.");
-
-		letStmt->variables = variables;
-
-		return letStmt;
-	}
-
-	Stmt *Parser::ParseConstStmt()
-	{
-		auto constStmt = new ConstStmt();
-		constStmt->line = GetCurToken().line;
-		constStmt->column = GetCurToken().column;
-
-		Consume(TOKEN_CONST, L"Expect 'const' key word");
-
-		std::unordered_map<IdentifierExpr *, VarDesc> consts;
-
-		auto name = (IdentifierExpr *)ParseIdentifierExpr();
-
-		//variable type
-		std::wstring type = L"any";
-		if (IsMatchCurToken(TOKEN_COLON))
-			type = GetCurTokenAndStepOnce().literal;
-
-		Expr *value = new NullExpr();
-		if (IsMatchCurTokenAndStepOnce(TOKEN_EQUAL))
-			value = ParseExpr();
-		consts[name] = {.type = type, .value = value};
-
-		while (IsMatchCurTokenAndStepOnce(TOKEN_COMMA))
-		{
-			auto name = (IdentifierExpr *)ParseIdentifierExpr();
-
-			//variable type
-			type = L"any";
-			if (IsMatchCurToken(TOKEN_COLON))
-				type = GetCurTokenAndStepOnce().literal;
-
-			Expr *value = new NullExpr();
-			if (IsMatchCurTokenAndStepOnce(TOKEN_EQUAL))
-				value = ParseExpr();
-			consts[name] = {.type = type, .value = value};
-		}
-
-		Consume(TOKEN_SEMICOLON, L"Expect ';' after const stmt.");
-
-		constStmt->consts = consts;
-
-		return constStmt;
 	}
 
 	Stmt *Parser::ParseReturnStmt()
@@ -418,7 +512,9 @@ namespace lws
 
 		// initializer
 		if (IsMatchCurToken(TOKEN_LET))
-			scopeStmt->stmts.emplace_back(ParseLetStmt());
+			scopeStmt->stmts.emplace_back(ParseLetDeclaration());
+		else if (IsMatchCurToken(TOKEN_CONST))
+			scopeStmt->stmts.emplace_back(ParseConstDeclaration());
 		else
 		{
 			if (!IsMatchCurToken(TOKEN_SEMICOLON))
@@ -518,7 +614,7 @@ namespace lws
 		ScopeStmt *defaultScopeStmt = nullptr;
 		while (!IsMatchCurToken(TOKEN_RBRACE))
 		{
-			if (IsMatchCurTokenAndStepOnce(TOKEN_CASE)) //the first case
+			if (IsMatchCurTokenAndStepOnce(TOKEN_CASE)) // the first case
 			{
 				CaseItem item;
 
@@ -681,70 +777,6 @@ namespace lws
 		return ifStmt;
 	}
 
-	Stmt *Parser::ParseEnumStmt()
-	{
-		auto enumStmt = new EnumStmt();
-		enumStmt->line = GetCurToken().line;
-		enumStmt->column = GetCurToken().column;
-		Consume(TOKEN_ENUM, L"Expect 'enum' keyword.");
-		enumStmt->enumName = (IdentifierExpr *)ParseIdentifierExpr();
-		Consume(TOKEN_LBRACE, L"Expect '{' after 'enum' keyword.");
-
-		std::unordered_map<IdentifierExpr *, Expr *> items;
-
-		while (!IsMatchCurToken(TOKEN_RBRACE))
-		{
-			auto name = (IdentifierExpr *)ParseIdentifierExpr();
-			Expr *value = new StrExpr(name->literal);
-			if (IsMatchCurTokenAndStepOnce(TOKEN_EQUAL))
-			{
-				delete value;
-				value = nullptr;
-				value = ParseExpr();
-			}
-
-			items[name] = value;
-
-			if (IsMatchCurToken(TOKEN_COMMA))
-				Consume(TOKEN_COMMA, L"Expect ',' after enum item.");
-		}
-
-		Consume(TOKEN_RBRACE, L"Expect '}' at the end of the 'enum' stmt.");
-
-		enumStmt->enumItems = items;
-
-		return enumStmt;
-	}
-
-	Stmt *Parser::ParseFunctionStmt()
-	{
-		auto funcStmt = new FunctionStmt();
-		funcStmt->line = GetCurToken().line;
-		funcStmt->column = GetCurToken().column;
-
-		Consume(TOKEN_FUNCTION, L"Expect 'function' keyword");
-
-		funcStmt->name = (IdentifierExpr *)ParseIdentifierExpr();
-
-		Consume(TOKEN_LPAREN, L"Expect '(' after 'function' keyword");
-
-		if (!IsMatchCurToken(TOKEN_RPAREN)) // has parameter
-		{
-			IdentifierExpr *idenExpr = (IdentifierExpr *)ParseIdentifierExpr();
-			funcStmt->parameters.emplace_back(idenExpr);
-			while (IsMatchCurTokenAndStepOnce(TOKEN_COMMA))
-			{
-				idenExpr = (IdentifierExpr *)ParseIdentifierExpr();
-				funcStmt->parameters.emplace_back(idenExpr);
-			}
-		}
-		Consume(TOKEN_RPAREN, L"Expect ')' after function stmt's '('");
-
-		funcStmt->body = (ScopeStmt *)ParseScopeStmt();
-
-		return funcStmt;
-	}
-
 	Expr *Parser::ParseLambdaExpr()
 	{
 		auto lambdaExpr = new LambdaExpr();
@@ -769,42 +801,6 @@ namespace lws
 		lambdaExpr->body = (ScopeStmt *)ParseScopeStmt();
 
 		return lambdaExpr;
-	}
-
-	Stmt *Parser::ParseClassStmt()
-	{
-		auto classStmt = new ClassStmt();
-		classStmt->line = GetCurToken().line;
-		classStmt->column = GetCurToken().column;
-
-		Consume(TOKEN_CLASS, L"Expect 'class' keyword");
-
-		classStmt->name = ((IdentifierExpr *)ParseIdentifierExpr())->literal;
-
-		if (IsMatchCurTokenAndStepOnce(TOKEN_COLON))
-		{
-			classStmt->parentClasses.emplace_back((IdentifierExpr *)ParseIdentifierExpr());
-			while (IsMatchCurTokenAndStepOnce(TOKEN_COMMA))
-				classStmt->parentClasses.emplace_back((IdentifierExpr *)ParseIdentifierExpr());
-		}
-
-		Consume(TOKEN_LBRACE, L"Expect '{' after class name or parent class name");
-
-		while (!IsMatchCurToken(TOKEN_RBRACE))
-		{
-			if (IsMatchCurToken(TOKEN_LET))
-				classStmt->letStmts.emplace_back((LetStmt *)ParseLetStmt());
-			else if (IsMatchCurToken(TOKEN_CONST))
-				classStmt->constStmts.emplace_back((ConstStmt *)ParseConstStmt());
-			else if (IsMatchCurToken(TOKEN_FUNCTION))
-				classStmt->fnStmts.emplace_back((FunctionStmt *)ParseFunctionStmt());
-			else
-				Consume({TOKEN_LET, TOKEN_FUNCTION, TOKEN_CONST}, L"UnExpect identifier '" + GetCurToken().literal + L"'.");
-		}
-
-		Consume(TOKEN_RBRACE, L"Expect '}' after class stmt's '{'");
-
-		return classStmt;
 	}
 
 	Expr *Parser::ParseExpr(Precedence precedence)
@@ -1039,34 +1035,34 @@ namespace lws
 		return indexExpr;
 	}
 
-	Expr *Parser::ParseFunctionCallExpr(Expr *prefixExpr)
+	Expr *Parser::ParseCallExpr(Expr *prefixExpr)
 	{
-		auto funcCallExpr = new FunctionCallExpr();
-		funcCallExpr->column = GetCurToken().column;
-		funcCallExpr->line = GetCurToken().line;
+		auto callExpr = new CallExpr();
+		callExpr->column = GetCurToken().column;
+		callExpr->line = GetCurToken().line;
 
-		funcCallExpr->name = prefixExpr;
+		callExpr->callee = prefixExpr;
 		Consume(TOKEN_LPAREN, L"Expect '('.");
 		if (!IsMatchCurToken(TOKEN_RPAREN)) // has arguments
 		{
-			funcCallExpr->arguments.emplace_back(ParseExpr());
+			callExpr->arguments.emplace_back(ParseExpr());
 			while (IsMatchCurTokenAndStepOnce(TOKEN_COMMA))
-				funcCallExpr->arguments.emplace_back(ParseExpr());
+				callExpr->arguments.emplace_back(ParseExpr());
 		}
 		Consume(TOKEN_RPAREN, L"Expect ')'.");
 
-		return funcCallExpr;
+		return callExpr;
 	}
 
-	Expr *Parser::ParseClassCallExpr(Expr *prefixExpr)
+	Expr *Parser::ParseDotExpr(Expr *prefixExpr)
 	{
-		auto classCallExpr = new ClassCallExpr();
-		classCallExpr->column = GetCurToken().column;
-		classCallExpr->line = GetCurToken().line;
+		auto dotExpr = new DotExpr();
+		dotExpr->column = GetCurToken().column;
+		dotExpr->line = GetCurToken().line;
 		Consume(TOKEN_DOT, L"Expect '.'.");
-		classCallExpr->callee = prefixExpr;
-		classCallExpr->callMember = ParseExpr(Precedence::INFIX);
-		return classCallExpr;
+		dotExpr->callee = prefixExpr;
+		dotExpr->callMember = (IdentifierExpr *)ParseIdentifierExpr();
+		return dotExpr;
 	}
 
 	Token Parser::GetCurToken()

@@ -20,7 +20,7 @@ namespace lws
 	{
 		return std::to_wstring(value);
 	}
-	AstType IntNumExpr::Type()
+	AstType IntNumExpr::Type() const
 	{
 		return AST_INT;
 	}
@@ -40,7 +40,7 @@ namespace lws
 	{
 		return std::to_wstring(value);
 	}
-	AstType RealNumExpr::Type()
+	AstType RealNumExpr::Type() const
 	{
 		return AST_REAL;
 	}
@@ -62,7 +62,7 @@ namespace lws
 		return L"\"" + value + L"\"";
 	}
 
-	AstType StrExpr::Type()
+	AstType StrExpr::Type() const
 	{
 		return AST_STR;
 	}
@@ -78,7 +78,7 @@ namespace lws
 	{
 		return L"null";
 	}
-	AstType NullExpr::Type()
+	AstType NullExpr::Type() const
 	{
 		return AST_NULL;
 	}
@@ -99,7 +99,7 @@ namespace lws
 	{
 		return value ? L"true" : L"false";
 	}
-	AstType BoolExpr::Type()
+	AstType BoolExpr::Type() const
 	{
 		return AST_BOOL;
 	}
@@ -119,7 +119,7 @@ namespace lws
 	{
 		return literal;
 	}
-	AstType IdentifierExpr::Type()
+	AstType IdentifierExpr::Type() const
 	{
 		return AST_IDENTIFIER;
 	}
@@ -148,7 +148,7 @@ namespace lws
 		result += L"]";
 		return result;
 	}
-	AstType ArrayExpr::Type()
+	AstType ArrayExpr::Type() const
 	{
 		return AST_ARRAY;
 	}
@@ -178,7 +178,7 @@ namespace lws
 		result += L"}";
 		return result;
 	}
-	AstType TableExpr::Type()
+	AstType TableExpr::Type() const
 	{
 		return AST_TABLE;
 	}
@@ -198,7 +198,7 @@ namespace lws
 	{
 		return L"(" + expr->Stringify() + L")";
 	}
-	AstType GroupExpr::Type()
+	AstType GroupExpr::Type() const
 	{
 		return AST_GROUP;
 	}
@@ -221,7 +221,7 @@ namespace lws
 	{
 		return op + right->Stringify();
 	}
-	AstType PrefixExpr::Type()
+	AstType PrefixExpr::Type() const
 	{
 		return AST_PREFIX;
 	}
@@ -247,7 +247,7 @@ namespace lws
 	{
 		return left->Stringify() + op + right->Stringify();
 	}
-	AstType InfixExpr::Type()
+	AstType InfixExpr::Type() const
 	{
 		return AST_INFIX;
 	}
@@ -269,7 +269,7 @@ namespace lws
 	{
 		return left->Stringify() + op;
 	}
-	AstType PostfixExpr::Type()
+	AstType PostfixExpr::Type() const
 	{
 		return AST_POSTFIX;
 	}
@@ -298,7 +298,7 @@ namespace lws
 	{
 		return condition->Stringify() + L"?" + trueBranch->Stringify() + L":" + falseBranch->Stringify();
 	}
-	AstType ConditionExpr::Type()
+	AstType ConditionExpr::Type() const
 	{
 		return AST_CONDITION;
 	}
@@ -323,7 +323,7 @@ namespace lws
 		return ds->Stringify() + L"[" + index->Stringify() + L"]";
 	}
 
-	AstType IndexExpr::Type()
+	AstType IndexExpr::Type() const
 	{
 		return AST_INDEX;
 	}
@@ -343,7 +343,7 @@ namespace lws
 		return L"&" + refExpr->Stringify();
 	}
 
-	AstType RefExpr::Type()
+	AstType RefExpr::Type() const
 	{
 		return AST_REF;
 	}
@@ -377,24 +377,24 @@ namespace lws
 		result += body->Stringify();
 		return result;
 	}
-	AstType LambdaExpr::Type()
+	AstType LambdaExpr::Type() const
 	{
 		return AST_LAMBDA;
 	}
 
-	FunctionCallExpr::FunctionCallExpr()
+	CallExpr::CallExpr()
 	{
 	}
-	FunctionCallExpr::FunctionCallExpr(Expr *name, std::vector<Expr *> arguments)
-		: name(name), arguments(arguments)
+	CallExpr::CallExpr(Expr *callee, std::vector<Expr *> arguments)
+		: callee(callee), arguments(arguments)
 	{
 	}
-	FunctionCallExpr::~FunctionCallExpr()
+	CallExpr::~CallExpr()
 	{
 	}
-	std::wstring FunctionCallExpr::Stringify()
+	std::wstring CallExpr::Stringify()
 	{
-		std::wstring result = name->Stringify() + L"(";
+		std::wstring result = callee->Stringify() + L"(";
 
 		if (!arguments.empty())
 		{
@@ -405,30 +405,30 @@ namespace lws
 		result += L")";
 		return result;
 	}
-	AstType FunctionCallExpr::Type()
+	AstType CallExpr::Type() const
 	{
-		return AST_FUNCTION_CALL;
+		return AST_CALL;
 	}
 
-	ClassCallExpr::ClassCallExpr()
+	DotExpr::DotExpr()
 		: callee(nullptr), callMember(nullptr)
 	{
 	}
-	ClassCallExpr::ClassCallExpr(Expr *callee, Expr *callMember)
+	DotExpr::DotExpr(Expr *callee, IdentifierExpr *callMember)
 		: callee(callee), callMember(callMember)
 	{
 	}
-	ClassCallExpr::~ClassCallExpr()
+	DotExpr::~DotExpr()
 	{
 	}
 
-	std::wstring ClassCallExpr::Stringify()
+	std::wstring DotExpr::Stringify()
 	{
 		return callee->Stringify() + L"." + callMember->Stringify();
 	}
-	AstType ClassCallExpr::Type()
+	AstType DotExpr::Type() const
 	{
-		return AST_CLASS_CALL;
+		return AST_DOT;
 	}
 
 	//----------------------Statements-----------------------------
@@ -451,7 +451,7 @@ namespace lws
 	{
 		return expr->Stringify() + L";";
 	}
-	AstType ExprStmt::Type()
+	AstType ExprStmt::Type() const
 	{
 		return AST_EXPR;
 	}
@@ -480,7 +480,7 @@ namespace lws
 		return result + L";";
 	}
 
-	AstType LetStmt::Type()
+	AstType LetStmt::Type() const
 	{
 		return AST_LET;
 	}
@@ -509,7 +509,7 @@ namespace lws
 		return result + L";";
 	}
 
-	AstType ConstStmt::Type()
+	AstType ConstStmt::Type() const
 	{
 		return AST_CONST;
 	}
@@ -535,7 +535,7 @@ namespace lws
 		else
 			return L"return;";
 	}
-	AstType ReturnStmt::Type()
+	AstType ReturnStmt::Type() const
 	{
 		return AST_RETURN;
 	}
@@ -568,7 +568,7 @@ namespace lws
 			result += L"else " + elseBranch->Stringify();
 		return result;
 	}
-	AstType IfStmt::Type()
+	AstType IfStmt::Type() const
 	{
 		return AST_IF;
 	}
@@ -592,7 +592,7 @@ namespace lws
 		return result;
 	}
 
-	AstType ScopeStmt::Type()
+	AstType ScopeStmt::Type() const
 	{
 		return AST_SCOPE;
 	}
@@ -622,7 +622,7 @@ namespace lws
 			result += increment->Stringify();
 		return result += L"}";
 	}
-	AstType WhileStmt::Type()
+	AstType WhileStmt::Type() const
 	{
 		return AST_WHILE;
 	}
@@ -638,7 +638,7 @@ namespace lws
 	{
 		return L"break;";
 	}
-	AstType BreakStmt::Type()
+	AstType BreakStmt::Type() const
 	{
 		return AST_BREAK;
 	}
@@ -654,7 +654,7 @@ namespace lws
 	{
 		return L"continue;";
 	}
-	AstType ContinueStmt::Type()
+	AstType ContinueStmt::Type() const
 	{
 		return AST_CONTINUE;
 	}
@@ -681,7 +681,7 @@ namespace lws
 		}
 		return result + L"}";
 	}
-	AstType EnumStmt::Type()
+	AstType EnumStmt::Type() const
 	{
 		return AST_ENUM;
 	}
@@ -715,7 +715,7 @@ namespace lws
 		result += body->Stringify();
 		return result;
 	}
-	AstType FunctionStmt::Type()
+	AstType FunctionStmt::Type() const
 	{
 		return AST_FUNCTION;
 	}
@@ -762,7 +762,7 @@ namespace lws
 			result += fnStmt->Stringify();
 		return result + L"}";
 	}
-	AstType ClassStmt::Type()
+	AstType ClassStmt::Type() const
 	{
 		return AST_CLASS;
 	}
@@ -784,7 +784,7 @@ namespace lws
 			result += stmt->Stringify();
 		return result;
 	}
-	AstType AstStmts::Type()
+	AstType AstStmts::Type() const
 	{
 		return AST_ASTSTMTS;
 	}

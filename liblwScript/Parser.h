@@ -51,11 +51,15 @@ namespace lws
 	private:
 		void ResetStatus();
 
-		Stmt *ParseAstStmts();
+		Stmt *ParseDeclaration();
+		Stmt* ParseLetDeclaration();
+		Stmt* ParseConstDeclaration();
+		Stmt* ParseFunctionDeclaration();
+		Stmt* ParseClassDeclaration();
+		Stmt* ParseEnumDeclaration();
+
 		Stmt *ParseStmt();
 		Stmt *ParseExprStmt();
-		Stmt *ParseLetStmt();
-		Stmt *ParseConstStmt();
 		Stmt *ParseReturnStmt();
 		Stmt *ParseIfStmt();
 		Stmt *ParseScopeStmt();
@@ -65,9 +69,6 @@ namespace lws
 		Stmt *ParseContinueStmt();
 		Stmt *ParseSwitchStmt();
 		Stmt *ParseMatchStmt();
-		Stmt *ParseEnumStmt();
-		Stmt *ParseFunctionStmt();
-		Stmt *ParseClassStmt();
 
 		Expr *ParseExpr(Precedence precedence = Precedence::LOWEST);
 		Expr *ParseIdentifierExpr();
@@ -86,8 +87,8 @@ namespace lws
 		Expr *ParsePostfixExpr(Expr *prefixExpr);
 		Expr *ParseConditionExpr(Expr *prefixExpr);
 		Expr *ParseIndexExpr(Expr *prefixExpr);
-		Expr *ParseFunctionCallExpr(Expr *prefixExpr);
-		Expr *ParseClassCallExpr(Expr *prefixExpr);
+		Expr *ParseCallExpr(Expr *prefixExpr);
+		Expr *ParseDotExpr(Expr *prefixExpr);
 
 		Token GetCurToken();
 		Token GetCurTokenAndStepOnce();
