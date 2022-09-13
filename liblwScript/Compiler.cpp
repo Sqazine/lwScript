@@ -246,12 +246,27 @@ namespace lws
     }
     void Compiler::CompileNullExpr(NullExpr *expr)
     {
+        EmitConstant(Value());
     }
     void Compiler::CompileGroupExpr(GroupExpr *expr)
     {
+        CompileExpr(expr->expr);
     }
     void Compiler::CompileArrayExpr(ArrayExpr *expr)
     {
+        for (const auto &e : expr->elements)
+            CompileExpr(e);
+        Emit(OP_ARRAY);
+
+        uint64_t pos = expr->elements.size();
+        Emit(uint8_t(pos >> 56));
+        Emit(uint8_t(pos >> 48));
+        Emit(uint8_t(pos >> 40));
+        Emit(uint8_t(pos >> 32));
+        Emit(uint8_t(pos >> 24));
+        Emit(uint8_t(pos >> 16));
+        Emit(uint8_t(pos >> 8));
+        Emit(uint8_t(pos >> 0));
     }
 
     void Compiler::CompileTableExpr(TableExpr *expr)

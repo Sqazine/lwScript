@@ -1,4 +1,5 @@
 #include "Value.h"
+#include "Object.h"
 namespace lws
 {
     Value::Value()

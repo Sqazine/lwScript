@@ -95,6 +95,20 @@ namespace lws
                 cout << std::setfill(L'0') << std::setw(8) << i << L"    "
                      << L"OP_FACTORIAL" << std::endl;
                 break;
+            case OP_ARRAY:
+            {
+                auto pos = (((uint64_t)opcodes[i + 1]) << 56) |
+                           (((uint64_t)opcodes[i + 2]) << 48) |
+                           (((uint64_t)opcodes[i + 3]) << 40) |
+                           (((uint64_t)opcodes[i + 4]) << 32) |
+                           (((uint64_t)opcodes[i + 5]) << 24) |
+                           (((uint64_t)opcodes[i + 6]) << 16) |
+                           (((uint64_t)opcodes[i + 7]) << 8) |
+                           (((uint64_t)opcodes[i + 8]) << 0);
+                cout << std::setfill(L'0') << std::setw(8) << i << L"    " << L"OP_ARRAY    " << pos << std::endl;
+                i += 8;
+                break;
+            }
             default:
                 break;
             }

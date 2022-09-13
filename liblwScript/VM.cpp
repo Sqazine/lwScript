@@ -215,6 +215,27 @@ namespace lws
                     ASSERT(L"Invalid op:" + value.Stringify() + L"!, only (int expr)! is available.");
                 break;
             }
+            case OP_ARRAY:
+            {
+                auto count = (((uint64_t)mChunk.opCodes[i + 1]) << 56) |
+                             (((uint64_t)mChunk.opCodes[i + 2]) << 48) |
+                             (((uint64_t)mChunk.opCodes[i + 3]) << 40) |
+                             (((uint64_t)mChunk.opCodes[i + 4]) << 32) |
+                             (((uint64_t)mChunk.opCodes[i + 5]) << 24) |
+                             (((uint64_t)mChunk.opCodes[i + 6]) << 16) |
+                             (((uint64_t)mChunk.opCodes[i + 7]) << 8) |
+                             (((uint64_t)mChunk.opCodes[i + 8]) << 0);
+                i += 8;
+
+                std::vector<Value> elements;
+                auto prePtr = mStackTop - count;
+                for (auto i = 0; i < count; ++i)
+                    elements.emplace_back(*prePtr++);
+                mStackTop -= count;
+                auto arrayObject = CreateObject<ArrayObject>(elements);
+                Push(arrayObject);
+                break;
+            }
             default:
                 break;
             }

@@ -28,6 +28,7 @@ namespace lws
         OP_BIT_RIGHT_SHIFT,
         OP_RETURN,
         OP_FACTORIAL,
+        OP_ARRAY,
     };
 
     using OpCodes = std::vector<uint8_t>;

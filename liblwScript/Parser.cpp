@@ -905,7 +905,7 @@ namespace lws
 		auto groupExpr = new GroupExpr();
 		groupExpr->column = token.column;
 		groupExpr->line = token.line;
-		groupExpr->expr = ParseExpr(Precedence::INFIX);
+		groupExpr->expr = ParseExpr();
 		Consume(TOKEN_RPAREN, L"Expect ')'.");
 		return groupExpr;
 	}
