@@ -1,6 +1,7 @@
 #pragma once
 #include <string>
 #include <unordered_map>
+#include "Object.h"
 namespace lws
 {
 #define IS_NULL_VALUE(v) (v.Type() == VALUE_NULL)
@@ -14,13 +15,12 @@ namespace lws
 #define IS_CLASS_VALUE(v) (IS_OBJECT_VALUE(v) && IS_CLASS_OBJ(v.object))
 #define IS_REF_VALUE(v) (IS_OBJECT_VALUE(v) && IS_REF_OBJ(v.object))
 #define IS_LAMBDA_VALUE(v) (IS_OBJECT_VALUE(v) && IS_LAMBDA_OBJ(v.object))
-#define IS_INVALID_VALUE(v) (v == gInvalidValue)
 
 #define TO_INT_VALUE(v) (v.integer)
 #define TO_REAL_VALUE(v) (v.realnum)
 #define TO_BOOL_VALUE(v) (v.boolean)
 #define TO_OBJECT_VALUE(v) (v.object)
-#define TO_STR_VALUE(v) (TO_STR_OBJ(v.object))
+#define TO_STR_VALUE(v) (TO_STR_OBJ(v.object)->value)
 #define TO_ARRAY_VALUE(v) (TO_ARRAY_OBJ(v.object))
 #define TO_TABLE_VALUE(v) (TO_TABLE_OBJ(v.object))
 #define TO_LAMBDA_VALUE(v) (TO_LAMBDA_OBJ(v.object))
@@ -34,7 +34,6 @@ namespace lws
         VALUE_REAL,
         VALUE_BOOL,
         VALUE_OBJECT,
-        VALUE_INVALID,
     };
 
     struct Value
@@ -44,7 +43,6 @@ namespace lws
         Value(double number);
         Value(bool boolean);
         Value(struct Object *object);
-        Value(ValueType type);
         ~Value();
 
         ValueType Type() const;
@@ -62,8 +60,6 @@ namespace lws
             struct Object *object;
         };
     };
-
-    const Value gInvalidValue = Value(VALUE_INVALID);
 
     bool operator==(const Value &left, const Value &right);
     bool operator!=(const Value &left, const Value &right);

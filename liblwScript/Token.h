@@ -94,9 +94,11 @@ namespace lws
 		TOKEN_F64,					 // f64
 		TOKEN_BOOL,					 // bool
 		TOKEN_CHAR,					 // char
+		TOKEN_ANY,					 // any
 		TOKEN_VOID,					 // void
 		TOKEN_GET,					 // get
 		TOKEN_SET,					 // set
+		TOKEN_AS,					 // as
 		TOKEN_EOF,
 	};
 

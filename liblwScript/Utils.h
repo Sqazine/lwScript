@@ -53,10 +53,10 @@ namespace lws
         return address;
     }
 
-    inline int64_t Factorial(int64_t v)
+    inline int64_t Factorial(int64_t v, int64_t tmp=1)
     {
         if (v == 0)
-            return 1;
-        return Factorial(v - 1) * v;
+            return tmp;
+        return Factorial(v - 1, v * tmp);
     }
 }

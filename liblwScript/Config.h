@@ -1,6 +1,5 @@
 #pragma once
-#include <string>
-constexpr const wchar_t* parentClassPrefixID=L"instance__";
-constexpr const wchar_t*  functionNameAndArgumentConnector = L"__";
 
-#define NEED_TO_RECORD_OPCODE_EXECUTE
+#define CONSTANT_MAX 8192
+#define STACK_MAX 2048
+#define GLOBAL_VARIABLE_MAX 512

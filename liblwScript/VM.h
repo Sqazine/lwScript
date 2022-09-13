@@ -1,81 +1,61 @@
 #pragma once
-#include <array>
-#include <cstdint>
-#include <stack>
-#include <functional>
-#include <unordered_map>
-#include <string>
-#include <string_view>
-#include <map>
-#include "Frame.h"
-#include "Object.h"
-#include "Utils.h"
-#include "Context.h"
 #include "Config.h"
+#include "Chunk.h"
 namespace lws
 {
-#define STACK_INCREMENT_RATE 2
-#define VALUE_STACK_MAX 8192
-#define FRAME_STACK_MAX 256
-#define GC_OBJECT_COUNT_THRESHOLD 4096
+    class VM
+    {
+    public:
+        VM();
+        ~VM();
 
-	class VM
-	{
-	public:
-		VM();
-		~VM();
+        void ResetStatus();
 
-		void ResetStatus();
-		Value Execute(Frame *frame);
+        void Run(const Chunk &chunk);
 
-	private:
-		void PreAssemble(Frame *frame);
-		Value ExecuteOpCode(Frame *frame);
+    private:
+        void Execute();
 
-		friend class Linrary;
-		friend class DataStructure;
-		friend class Memory;
-		friend class IO;
+        void Push(const Value &value);
+        Value Pop();
 
-		template<class T,typename ...Args>
-		T* CreateObject(Args&& ...params);
+        template <class T, typename... Args>
+        T *CreateObject(Args &&...params);
 
+        template <class T>
+        void FreeObject(T *object);
 
-		std::function<Value(std::vector<Value>)> GetNativeFunction(std::wstring_view fnName);
-		bool HasNativeFunction(std::wstring_view name);
+        Value mGlobalVariables[GLOBAL_VARIABLE_MAX];
 
-		void PushValue(Value object);
-		Value PopValue();
+        Value *mStackTop;
+        Value mValueStack[STACK_MAX];
 
-		void PushFrame(Frame *frame);
-		Frame *PopFrame();
-		bool IsFrameStackEmpty();
+        Chunk mChunk;
 
-		void Gc();
-		void AddToObjectList(Object* object);
+        Object *objectChain;
 
-		uint64_t sp;
-		uint64_t curValueStackSize;
-		std::vector<Value> mValueStack;
+        friend class Object;
 
-		uint64_t fp;
-		uint64_t curFrameStackSize;
-		std::vector<Frame *> mFrameStack;
+        size_t bytesAllocated;
+    };
 
-		std::unordered_map<std::wstring,Value> mStringTable;
+    template <class T, typename... Args>
+    inline T *VM::CreateObject(Args &&...params)
+    {
+        bytesAllocated += sizeof(T);
 
-		Object *objectListsHead;
-		int curObjCount;
-		int maxObjCount;
+        T *object = new T(std::forward<Args>(params)...);
+        object->next = objectChain;
+        object->marked = false;
+        objectChain = object;
 
-		Context mContext;
-	};
+        return object;
+    }
 
-	template<class T,typename ...Args>
-	inline	T* VM::CreateObject(Args&& ...params)
-	{
-		T* object= new T(std::forward<Args>(params)...);
-		AddToObjectList(object);
-		return object;
-	}
+    template <class T>
+    inline void VM::FreeObject(T *object)
+    {
+        bytesAllocated -= sizeof(T);
+        delete object;
+    }
 }

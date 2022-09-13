@@ -24,10 +24,7 @@ namespace lws
         : object(object), type(VALUE_OBJECT)
     {
     }
-    Value::Value(ValueType type)
-        : type(type)
-    {
-    }
+
     Value::~Value()
     {
     }
@@ -104,12 +101,6 @@ namespace lws
             else
                 return false;
         }
-        case VALUE_INVALID:
-        {
-            if (right.Type() == VALUE_INVALID)
-                return true;
-            return false;
-        }
         default:
             return false;
         }
@@ -126,7 +117,6 @@ namespace lws
         switch (v.type)
         {
         case VALUE_NULL:
-        case VALUE_INVALID:
             return std::hash<ValueType>()(v.type);
         case VALUE_INT:
             return std::hash<ValueType>()(v.type) ^ std::hash<int64_t>()(v.integer);
