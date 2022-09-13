@@ -44,8 +44,8 @@ namespace lws
             return boolean ? L"true" : L"false";
         case VALUE_NULL:
             return L"null";
-        // case VALUE_OBJECT:
-        //     return object->Stringify();
+        case VALUE_OBJECT:
+            return object->Stringify();
         default:
             return L"null";
         }
@@ -53,13 +53,13 @@ namespace lws
     }
     void Value::Mark() const
     {
-        // if (type == VALUE_OBJECT)
-        //     object->Mark();
+        if (type == VALUE_OBJECT)
+            object->Mark();
     }
     void Value::UnMark() const
     {
-        // if (type == VALUE_OBJECT)
-        //     object->UnMark();
+        if (type == VALUE_OBJECT)
+            object->UnMark();
     }
 
     bool operator==(const Value &left, const Value &right)
@@ -95,10 +95,10 @@ namespace lws
         }
         case VALUE_OBJECT:
         {
-            // if (IS_OBJECT_VALUE(right))
-            //     return TO_OBJECT_VALUE(left)->IsEqualTo(TO_OBJECT_VALUE(right));
-            // else
-            //     return false;
+            if (IS_OBJECT_VALUE(right))
+                return TO_OBJECT_VALUE(left)->IsEqualTo(TO_OBJECT_VALUE(right));
+            else
+                return false;
         }
         default:
             return false;

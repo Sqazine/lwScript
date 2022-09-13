@@ -13,6 +13,7 @@ namespace lws
     void VM::ResetStatus()
     {
         mStackTop = mValueStack;
+        objectChain = nullptr;
     }
 
     void VM::Run(const Chunk &chunk)
@@ -123,6 +124,8 @@ namespace lws
                     Push(TO_INT_VALUE(left) + TO_REAL_VALUE(right));
                 else if (IS_REAL_VALUE(left) && IS_INT_VALUE(right))
                     Push(TO_REAL_VALUE(left) + TO_INT_VALUE(right));
+                else if (IS_STR_VALUE(left) && IS_STR_VALUE(right))
+                    Push(CreateObject<StrObject>(TO_STR_VALUE(left) + TO_STR_VALUE(right)));
                 else
                     ASSERT(L"Invalid binary op:" + left.Stringify() + L" + " + right.Stringify());
                 break;

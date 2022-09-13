@@ -1,6 +1,7 @@
 #pragma once
 #include <string>
 #include <unordered_map>
+#include "Object.h"
 namespace lws
 {
 #define IS_NULL_VALUE(v) (v.Type() == VALUE_NULL)
@@ -19,7 +20,7 @@ namespace lws
 #define TO_REAL_VALUE(v) (v.realnum)
 #define TO_BOOL_VALUE(v) (v.boolean)
 #define TO_OBJECT_VALUE(v) (v.object)
-#define TO_STR_VALUE(v) (TO_STR_OBJ(v.object))
+#define TO_STR_VALUE(v) (TO_STR_OBJ(v.object)->value)
 #define TO_ARRAY_VALUE(v) (TO_ARRAY_OBJ(v.object))
 #define TO_TABLE_VALUE(v) (TO_TABLE_OBJ(v.object))
 #define TO_LAMBDA_VALUE(v) (TO_LAMBDA_OBJ(v.object))

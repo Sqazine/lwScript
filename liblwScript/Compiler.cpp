@@ -1,5 +1,6 @@
 #include "Compiler.h"
 #include "Utils.h"
+#include "Object.h"
 namespace lws
 {
     Compiler::Compiler()
@@ -241,6 +242,7 @@ namespace lws
     }
     void Compiler::CompileStrExpr(StrExpr *expr)
     {
+        EmitConstant(new StrObject(expr->value));
     }
     void Compiler::CompileNullExpr(NullExpr *expr)
     {
