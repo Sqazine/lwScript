@@ -275,6 +275,9 @@ namespace lws
 
     void Compiler::CompileIndexExpr(IndexExpr *expr)
     {
+        CompileExpr(expr->ds);
+        CompileExpr(expr->index);
+        Emit(OP_INDEX);
     }
     void Compiler::CompileIdentifierExpr(IdentifierExpr *expr, const RWState &state)
     {

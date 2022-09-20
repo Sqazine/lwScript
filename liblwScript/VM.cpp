@@ -237,6 +237,43 @@ namespace lws
                 Push(CreateObject<TableObject>(elements));
                 break;
             }
+            case OP_INDEX:
+            {
+                auto idxValue = Pop();
+                auto dsValue = Pop();
+                if (IS_ARRAY_VALUE(dsValue))
+                {
+                    auto array = TO_ARRAY_VALUE(dsValue);
+                    if (!IS_INT_VALUE(idxValue))
+                        ASSERT("Invalid idx for array,only integer is available.");
+                    auto intIdx = TO_INT_VALUE(idxValue);
+                    if (intIdx < 0 || intIdx >= array->elements.size())
+                        ASSERT("Idx out of range.");
+                    Push(array->elements[intIdx]);
+                }
+                else if (IS_STR_VALUE(dsValue))
+                {
+                    auto str = TO_STR_VALUE(dsValue);
+                    if (!IS_INT_VALUE(idxValue))
+                        ASSERT("Invalid idx for array,only integer is available.");
+                    auto intIdx = TO_INT_VALUE(idxValue);
+                    if (intIdx < 0 || intIdx >= str.size())
+                        ASSERT("Idx out of range.");
+                    Push(CreateObject<StrObject>(str.substr(intIdx, 1)));
+                }
+                else if (IS_TABLE_VALUE(dsValue))
+                {
+                    auto table = TO_TABLE_VALUE(dsValue);
+
+                    auto iter = table->elements.find(idxValue);
+
+                    if (iter != table->elements.end())
+                        Push(iter->second);
+                    else
+                        ASSERT("No key in table.");
+                }
+                break;
+            }
             default:
                 break;
             }

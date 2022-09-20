@@ -98,18 +98,22 @@ namespace lws
                 break;
             case OP_ARRAY:
             {
-                auto pos =EncodeUint64(opcodes,i);
+                auto pos = EncodeUint64(opcodes, i);
                 cout << std::setfill(L'0') << std::setw(8) << i << L"    " << L"OP_ARRAY    " << pos << std::endl;
                 i += 8;
                 break;
             }
             case OP_TABLE:
             {
-                auto pos =EncodeUint64(opcodes,i);
+                auto pos = EncodeUint64(opcodes, i);
                 cout << std::setfill(L'0') << std::setw(8) << i << L"    " << L"OP_TABLE    " << pos << std::endl;
                 i += 8;
                 break;
             }
+            case OP_INDEX:
+                cout << std::setfill(L'0') << std::setw(8) << i << L"    "
+                     << L"OP_INDEX" << std::endl;
+                break;
             default:
                 break;
             }
