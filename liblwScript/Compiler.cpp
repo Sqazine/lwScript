@@ -22,10 +22,6 @@ namespace lws
         else
             CompileDeclaration(stmt);
 
-        //TODO:for debug only
-        Emit(OP_RETURN);
-        Emit(1);
-
         return chunk;
     }
 
@@ -105,6 +101,9 @@ namespace lws
     }
     void Compiler::CompileReturnStmt(ReturnStmt *stmt)
     {
+        CompileExpr(stmt->expr);
+        Emit(OP_RETURN);
+        Emit(1);
     }
 
     void Compiler::CompileExpr(Expr *expr, const RWState &state)
@@ -259,18 +258,19 @@ namespace lws
         Emit(OP_ARRAY);
 
         uint64_t pos = expr->elements.size();
-        Emit(uint8_t(pos >> 56));
-        Emit(uint8_t(pos >> 48));
-        Emit(uint8_t(pos >> 40));
-        Emit(uint8_t(pos >> 32));
-        Emit(uint8_t(pos >> 24));
-        Emit(uint8_t(pos >> 16));
-        Emit(uint8_t(pos >> 8));
-        Emit(uint8_t(pos >> 0));
+        EmitUint64(pos);
     }
 
     void Compiler::CompileTableExpr(TableExpr *expr)
     {
+        for (const auto &[k, v] : expr->elements)
+        {
+            CompileExpr(v);
+            CompileExpr(k);
+        }
+        Emit(OP_TABLE);
+        uint64_t pos = expr->elements.size();
+        EmitUint64(pos);
     }
 
     void Compiler::CompileIndexExpr(IndexExpr *expr)
@@ -297,18 +297,25 @@ namespace lws
         chunk.opCodes.emplace_back(opcode);
         return chunk.opCodes.size() - 1;
     }
+
+    uint64_t Compiler::EmitUint64(uint64_t opcode)
+    {
+        auto decoded = DecodeUint64(opcode);
+        Emit(decoded[0]);
+        Emit(decoded[1]);
+        Emit(decoded[2]);
+        Emit(decoded[3]);
+        Emit(decoded[4]);
+        Emit(decoded[5]);
+        Emit(decoded[6]);
+        return Emit(decoded[7]);
+    }
+
     uint64_t Compiler::EmitConstant(const Value &value)
     {
         Emit(OP_CONSTANT);
         uint64_t pos = AddConstant(value);
-        Emit(uint8_t(pos >> 56));
-        Emit(uint8_t(pos >> 48));
-        Emit(uint8_t(pos >> 40));
-        Emit(uint8_t(pos >> 32));
-        Emit(uint8_t(pos >> 24));
-        Emit(uint8_t(pos >> 16));
-        Emit(uint8_t(pos >> 8));
-        Emit(uint8_t(pos >> 0));
+        EmitUint64(pos);
         return chunk.opCodes.size() - 1;
     }
     uint64_t Compiler::AddConstant(const Value &value)

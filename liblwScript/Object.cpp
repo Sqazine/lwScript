@@ -95,4 +95,78 @@ namespace lws
 
         return true;
     }
+
+    TableObject::TableObject()
+    {
+    }
+    TableObject::TableObject(const ValueUnorderedMap &elements)
+        : elements(elements)
+    {
+    }
+    TableObject::~TableObject()
+    {
+    }
+
+    std::wstring TableObject::Stringify() const
+    {
+        std::wstring result = L"{";
+        for (const auto &[k, v] : elements)
+            result += k.Stringify() + L":" + v.Stringify() + L",";
+        result = result.substr(0, result.size() - 1);
+        result += L"}";
+        return result;
+    }
+    ObjectType TableObject::Type() const
+    {
+        return OBJECT_TABLE;
+    }
+    void TableObject::Mark()
+    {
+        if (marked)
+            return;
+        marked = true;
+
+        for (const auto &[k, v] : elements)
+        {
+            k.Mark();
+            v.Mark();
+        }
+    }
+    void TableObject::UnMark()
+    {
+        if (!marked)
+            return;
+        marked = true;
+
+        for (const auto &[k, v] : elements)
+        {
+            k.UnMark();
+            v.UnMark();
+        }
+    }
+
+    bool TableObject::IsEqualTo(Object *other)
+    {
+        if (!IS_TABLE_OBJ(other))
+            return false;
+
+        TableObject *tableOther = TO_TABLE_OBJ(other);
+
+        if (tableOther->elements.size() != elements.size())
+            return false;
+
+        for (const auto &[k1, v1] : elements)
+        {
+            bool isFound = false;
+            for (const auto &[k2, v2] : tableOther->elements)
+            {
+                if (k1 == k2 && v1 == v2)
+                    isFound = true;
+            }
+            if (!isFound)
+                return false;
+        }
+
+        return true;
+    }
 }

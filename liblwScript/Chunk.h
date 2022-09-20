@@ -29,6 +29,7 @@ namespace lws
         OP_RETURN,
         OP_FACTORIAL,
         OP_ARRAY,
+        OP_TABLE,
     };
 
     using OpCodes = std::vector<uint8_t>;

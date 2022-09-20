@@ -174,11 +174,11 @@ namespace lws
 
 	Stmt *Parser::ParseDeclaration()
 	{
-		if (IsMatchCurTokenAndStepOnce(TOKEN_LET))
+		if (IsMatchCurToken(TOKEN_LET))
 			return ParseLetDeclaration();
-		else if (IsMatchCurTokenAndStepOnce(TOKEN_CONST))
+		else if (IsMatchCurToken(TOKEN_CONST))
 			return ParseConstDeclaration();
-		else if (IsMatchCurTokenAndStepOnce(TOKEN_FUNCTION))
+		else if (IsMatchCurToken(TOKEN_FUNCTION))
 			return ParseFunctionDeclaration();
 		else if (IsMatchCurTokenAndStepOnce(TOKEN_CLASS))
 			return ParseClassDeclaration();

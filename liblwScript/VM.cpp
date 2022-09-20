@@ -99,14 +99,7 @@ namespace lws
             }
             case OP_CONSTANT:
             {
-                auto pos = (((uint64_t)mChunk.opCodes[i + 1]) << 56) |
-                           (((uint64_t)mChunk.opCodes[i + 2]) << 48) |
-                           (((uint64_t)mChunk.opCodes[i + 3]) << 40) |
-                           (((uint64_t)mChunk.opCodes[i + 4]) << 32) |
-                           (((uint64_t)mChunk.opCodes[i + 5]) << 24) |
-                           (((uint64_t)mChunk.opCodes[i + 6]) << 16) |
-                           (((uint64_t)mChunk.opCodes[i + 7]) << 8) |
-                           (((uint64_t)mChunk.opCodes[i + 8]) << 0);
+                auto pos = EncodeUint64(mChunk.opCodes, i);
                 i += 8;
                 Push(mChunk.constants[pos]);
                 break;
@@ -217,14 +210,8 @@ namespace lws
             }
             case OP_ARRAY:
             {
-                auto count = (((uint64_t)mChunk.opCodes[i + 1]) << 56) |
-                             (((uint64_t)mChunk.opCodes[i + 2]) << 48) |
-                             (((uint64_t)mChunk.opCodes[i + 3]) << 40) |
-                             (((uint64_t)mChunk.opCodes[i + 4]) << 32) |
-                             (((uint64_t)mChunk.opCodes[i + 5]) << 24) |
-                             (((uint64_t)mChunk.opCodes[i + 6]) << 16) |
-                             (((uint64_t)mChunk.opCodes[i + 7]) << 8) |
-                             (((uint64_t)mChunk.opCodes[i + 8]) << 0);
+                auto count = EncodeUint64(mChunk.opCodes, i);
+
                 i += 8;
 
                 std::vector<Value> elements;
@@ -234,6 +221,20 @@ namespace lws
                 mStackTop -= count;
                 auto arrayObject = CreateObject<ArrayObject>(elements);
                 Push(arrayObject);
+                break;
+            }
+            case OP_TABLE:
+            {
+                auto eCount = EncodeUint64(mChunk.opCodes, i);
+                i += 8;
+                ValueUnorderedMap elements;
+                for (int64_t i = 0; i < eCount; ++i)
+                {
+                    auto key = Pop();
+                    auto value = Pop();
+                    elements[key] = value;
+                }
+                Push(CreateObject<TableObject>(elements));
                 break;
             }
             default:

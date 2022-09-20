@@ -63,11 +63,4 @@ namespace lws
 
     bool operator==(const Value &left, const Value &right);
     bool operator!=(const Value &left, const Value &right);
-
-    struct ValueHash
-    {
-        size_t operator()(const Value &v) const;
-    };
-
-    typedef std::unordered_map<Value, Value, ValueHash> ValueUnorderedMap;
 }

@@ -172,7 +172,7 @@ namespace lws
 		if (!elements.empty())
 		{
 			for (auto [key, value] : elements)
-				result += key->Stringify() + L":" + value->Stringify();
+				result += key->Stringify() + L":" + value->Stringify()+L",";
 			result = result.substr(0, result.size() - 1);
 		}
 		result += L"}";

@@ -1,18 +1,22 @@
 #pragma once
 #include <string>
 #include <vector>
+#include <unordered_map>
 namespace lws
 {
 #define IS_STR_OBJ(obj) (obj->Type() == OBJECT_STR)
 #define IS_ARRAY_OBJ(obj) (obj->Type() == OBJECT_ARRAY)
+#define IS_TABLE_OBJ(obj) (obj->Type() == OBJECT_TABLE)
 
 #define TO_STR_OBJ(obj) ((lws::StrObject *)obj)
 #define TO_ARRAY_OBJ(obj) ((lws::ArrayObject *)obj)
+#define TO_TABLE_OBJ(obj) ((lws::TableObject *)obj)
 
     enum ObjectType
     {
         OBJECT_STR,
         OBJECT_ARRAY,
+        OBJECT_TABLE,
     };
 
     struct Object
@@ -58,5 +62,28 @@ namespace lws
         bool IsEqualTo(Object *other) override;
 
         std::vector<struct Value> elements;
+    };
+
+    struct ValueHash
+    {
+        size_t operator()(const Value &v) const;
+    };
+
+    typedef std::unordered_map<Value, Value, ValueHash> ValueUnorderedMap;
+
+    struct TableObject : public Object
+    {
+        TableObject();
+        TableObject(const ValueUnorderedMap &elements);
+        ~TableObject();
+
+        std::wstring Stringify() const override;
+        ObjectType Type() const override;
+        void Mark() override;
+        void UnMark() override;
+
+        bool IsEqualTo(Object *other) override;
+
+        ValueUnorderedMap elements;
     };
 }
