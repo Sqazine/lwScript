@@ -31,6 +31,9 @@ namespace lws
         OP_ARRAY,
         OP_TABLE,
         OP_INDEX,
+        OP_JUMP_IF_FALSE,
+        OP_JUMP,
+        OP_POP,
     };
 
     using OpCodes = std::vector<uint8_t>;

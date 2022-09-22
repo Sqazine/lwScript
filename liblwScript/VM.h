@@ -16,8 +16,11 @@ namespace lws
     private:
         void Execute();
 
+        bool IsFalsey(const Value& v);
+
         void Push(const Value &value);
         Value Pop();
+        Value Peek(int32_t distance);
 
         template <class T, typename... Args>
         T *CreateObject(Args &&...params);

@@ -35,14 +35,7 @@ namespace lws
             {
             case OP_CONSTANT:
             {
-                auto pos = (((uint64_t)opcodes[i + 1]) << 56) |
-                           (((uint64_t)opcodes[i + 2]) << 48) |
-                           (((uint64_t)opcodes[i + 3]) << 40) |
-                           (((uint64_t)opcodes[i + 4]) << 32) |
-                           (((uint64_t)opcodes[i + 5]) << 24) |
-                           (((uint64_t)opcodes[i + 6]) << 16) |
-                           (((uint64_t)opcodes[i + 7]) << 8) |
-                           (((uint64_t)opcodes[i + 8]) << 0);
+                auto pos = EncodeUint64(opcodes, i);
                 cout << std::setfill(L'0') << std::setw(8) << i << L"    "
                      << L"OP_CONSTANT    " << pos << L"    '" << constants[pos].Stringify() << "'" << std::endl;
                 i += 8;
@@ -114,6 +107,25 @@ namespace lws
                 cout << std::setfill(L'0') << std::setw(8) << i << L"    "
                      << L"OP_INDEX" << std::endl;
                 break;
+            case OP_JUMP_IF_FALSE:
+            {
+                auto address = EncodeUint64(opcodes, i);
+                cout << std::setfill(L'0') << std::setw(8) << i << L"    " << L"OP_JUMP_IF_FALSE    " << address << std::endl;
+                i += 8;
+                break;
+            }
+            case OP_JUMP:
+            {
+                auto address = EncodeUint64(opcodes, i);
+                cout << std::setfill(L'0') << std::setw(8) << i << L"    " << L"OP_JUMP    " << address << std::endl;
+                i += 8;
+                break;
+            }
+            case OP_POP:
+            {
+                cout << std::setfill(L'0') << std::setw(8) << i << L"    " << L"OP_POP" << std::endl;
+                break;
+            }
             default:
                 break;
             }

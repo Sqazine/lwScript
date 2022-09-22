@@ -167,46 +167,68 @@ namespace lws
     }
     void Compiler::CompileInfixExpr(InfixExpr *expr)
     {
-        CompileExpr(expr->right);
-        CompileExpr(expr->left);
-        if (expr->op == L"+")
-            Emit(OP_ADD);
-        else if (expr->op == L"-")
-            Emit(OP_SUB);
-        else if (expr->op == L"*")
-            Emit(OP_MUL);
-        else if (expr->op == L"/")
-            Emit(OP_DIV);
-        else if (expr->op == L"%")
-            Emit(OP_MOD);
-        else if (expr->op == L"&")
-            Emit(OP_BIT_AND);
-        else if (expr->op == L"|")
-            Emit(OP_BIT_OR);
-        else if (expr->op == L"<")
-            Emit(OP_LESS);
-        else if (expr->op == L">")
-            Emit(OP_GREATER);
-        else if (expr->op == L"<<")
-            Emit(OP_BIT_LEFT_SHIFT);
-        else if (expr->op == L">>")
-            Emit(OP_BIT_RIGHT_SHIFT);
-        else if (expr->op == L"<=")
+        if (expr->op == L"&&")
         {
-            Emit(OP_GREATER);
-            Emit(OP_NOT);
+            //Short circuit calculation
+            CompileExpr(expr->left);
+            uint64_t address = EmitJump(OP_JUMP_IF_FALSE);
+            Emit(OP_POP);
+            CompileExpr(expr->right);
+            PatchJump(address);
         }
-        else if (expr->op == L">=")
+        else if (expr->op == L"||")
         {
-            Emit(OP_LESS);
-            Emit(OP_NOT);
+            CompileExpr(expr->left);
+            uint64_t elseJumpAddress = EmitJump(OP_JUMP_IF_FALSE);
+            uint64_t jumpAddress = EmitJump(OP_JUMP);
+            PatchJump(elseJumpAddress);
+            Emit(OP_POP);
+            CompileExpr(expr->right);
+            PatchJump(jumpAddress);
         }
-        else if (expr->op == L"==")
-            Emit(OP_EQUAL);
-        else if (expr->op == L"!=")
+        else
         {
-            Emit(OP_EQUAL);
-            Emit(OP_NOT);
+            CompileExpr(expr->right);
+            CompileExpr(expr->left);
+            if (expr->op == L"+")
+                Emit(OP_ADD);
+            else if (expr->op == L"-")
+                Emit(OP_SUB);
+            else if (expr->op == L"*")
+                Emit(OP_MUL);
+            else if (expr->op == L"/")
+                Emit(OP_DIV);
+            else if (expr->op == L"%")
+                Emit(OP_MOD);
+            else if (expr->op == L"&")
+                Emit(OP_BIT_AND);
+            else if (expr->op == L"|")
+                Emit(OP_BIT_OR);
+            else if (expr->op == L"<")
+                Emit(OP_LESS);
+            else if (expr->op == L">")
+                Emit(OP_GREATER);
+            else if (expr->op == L"<<")
+                Emit(OP_BIT_LEFT_SHIFT);
+            else if (expr->op == L">>")
+                Emit(OP_BIT_RIGHT_SHIFT);
+            else if (expr->op == L"<=")
+            {
+                Emit(OP_GREATER);
+                Emit(OP_NOT);
+            }
+            else if (expr->op == L">=")
+            {
+                Emit(OP_LESS);
+                Emit(OP_NOT);
+            }
+            else if (expr->op == L"==")
+                Emit(OP_EQUAL);
+            else if (expr->op == L"!=")
+            {
+                Emit(OP_EQUAL);
+                Emit(OP_NOT);
+            }
         }
     }
     void Compiler::CompileIntNumExpr(IntNumExpr *expr)
@@ -321,6 +343,27 @@ namespace lws
         EmitUint64(pos);
         return chunk.opCodes.size() - 1;
     }
+
+    uint64_t Compiler::EmitJump(uint8_t opcode)
+    {
+        Emit(opcode);
+        EmitUint64(0xFFFFFFFFFFFFFFFF);
+        return chunk.opCodes.size() - 8;
+    }
+
+    void Compiler::PatchJump(uint64_t offset)
+    {
+        uint64_t jumpAddress = chunk.opCodes.size() - 1;
+        chunk.opCodes[offset + 0] = (jumpAddress >> 56) & 0xFF;
+        chunk.opCodes[offset + 1] = (jumpAddress >> 48) & 0xFF;
+        chunk.opCodes[offset + 2] = (jumpAddress >> 40) & 0xFF;
+        chunk.opCodes[offset + 3] = (jumpAddress >> 32) & 0xFF;
+        chunk.opCodes[offset + 4] = (jumpAddress >> 24) & 0xFF;
+        chunk.opCodes[offset + 5] = (jumpAddress >> 16) & 0xFF;
+        chunk.opCodes[offset + 6] = (jumpAddress >> 8) & 0xFF;
+        chunk.opCodes[offset + 7] = (jumpAddress >> 0) & 0xFF;
+    }
+
     uint64_t Compiler::AddConstant(const Value &value)
     {
         chunk.constants.emplace_back(value);

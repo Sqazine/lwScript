@@ -55,6 +55,8 @@ namespace lws
         uint64_t Emit(uint8_t opcode);
         uint64_t EmitUint64(uint64_t opcode);
         uint64_t EmitConstant(const Value& value);
+        uint64_t EmitJump(uint8_t opcode);
+        void PatchJump(uint64_t offset);
         uint64_t AddConstant(const Value &value);
 
         Chunk chunk;

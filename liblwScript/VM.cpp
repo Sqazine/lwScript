@@ -274,10 +274,34 @@ namespace lws
                 }
                 break;
             }
+            case OP_POP:
+            {
+                Pop();
+                break;
+            }
+            case OP_JUMP_IF_FALSE:
+            {
+                auto address = EncodeUint64(mChunk.opCodes, i);
+                i += 8;
+                if (IsFalsey(Peek(0)))
+                    i = address;
+                break;
+            }
+            case OP_JUMP:
+            {
+                auto address = EncodeUint64(mChunk.opCodes, i);
+                i = address;
+                break;
+            }
             default:
                 break;
             }
         }
+    }
+
+    bool VM::IsFalsey(const Value &v)
+    {
+        return IS_NULL_VALUE(v) || (IS_BOOL_VALUE(v) && !TO_BOOL_VALUE(v));
     }
 
     void VM::Push(const Value &value)
@@ -287,5 +311,10 @@ namespace lws
     Value VM::Pop()
     {
         return *(--mStackTop);
+    }
+
+    Value VM::Peek(int32_t distance)
+    {
+        return *(mStackTop - distance - 1);
     }
 }
