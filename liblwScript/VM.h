@@ -37,7 +37,7 @@ namespace lws
 
         Object *objectChain;
 
-        friend class Object;
+        friend struct Object;
 
         size_t bytesAllocated;
     };

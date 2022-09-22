@@ -59,6 +59,10 @@ namespace lws
         void PatchJump(uint64_t offset);
         uint64_t AddConstant(const Value &value);
 
-        Chunk chunk;
+        Chunk& CurChunk();
+        OpCodes& CurOpCodes();
+
+        std::vector<Chunk> mChunkList;
+        
     };
 }

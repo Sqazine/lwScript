@@ -13,6 +13,7 @@ namespace lws
 
     Chunk Compiler::Compile(Stmt *stmt)
     {
+        mChunkList.emplace_back(Chunk());
         if (stmt->Type() == AST_ASTSTMTS)
         {
             auto stmts = ((AstStmts *)stmt)->stmts;
@@ -22,7 +23,7 @@ namespace lws
         else
             CompileDeclaration(stmt);
 
-        return chunk;
+        return CurChunk();
     }
 
     void Compiler::ResetStatus()
@@ -319,8 +320,8 @@ namespace lws
 
     uint64_t Compiler::Emit(uint8_t opcode)
     {
-        chunk.opCodes.emplace_back(opcode);
-        return chunk.opCodes.size() - 1;
+        CurOpCodes().emplace_back(opcode);
+        return CurOpCodes().size() - 1;
     }
 
     uint64_t Compiler::EmitUint64(uint64_t opcode)
@@ -341,32 +342,41 @@ namespace lws
         Emit(OP_CONSTANT);
         uint64_t pos = AddConstant(value);
         EmitUint64(pos);
-        return chunk.opCodes.size() - 1;
+        return CurOpCodes().size() - 1;
     }
 
     uint64_t Compiler::EmitJump(uint8_t opcode)
     {
         Emit(opcode);
         EmitUint64(0xFFFFFFFFFFFFFFFF);
-        return chunk.opCodes.size() - 8;
+        return CurOpCodes().size() - 8;
     }
 
     void Compiler::PatchJump(uint64_t offset)
     {
-        uint64_t jumpAddress = chunk.opCodes.size() - 1;
-        chunk.opCodes[offset + 0] = (jumpAddress >> 56) & 0xFF;
-        chunk.opCodes[offset + 1] = (jumpAddress >> 48) & 0xFF;
-        chunk.opCodes[offset + 2] = (jumpAddress >> 40) & 0xFF;
-        chunk.opCodes[offset + 3] = (jumpAddress >> 32) & 0xFF;
-        chunk.opCodes[offset + 4] = (jumpAddress >> 24) & 0xFF;
-        chunk.opCodes[offset + 5] = (jumpAddress >> 16) & 0xFF;
-        chunk.opCodes[offset + 6] = (jumpAddress >> 8) & 0xFF;
-        chunk.opCodes[offset + 7] = (jumpAddress >> 0) & 0xFF;
+        uint64_t jumpAddress = CurOpCodes().size() - 1;
+        CurOpCodes()[offset + 0] = (jumpAddress >> 56) & 0xFF;
+        CurOpCodes()[offset + 1] = (jumpAddress >> 48) & 0xFF;
+        CurOpCodes()[offset + 2] = (jumpAddress >> 40) & 0xFF;
+        CurOpCodes()[offset + 3] = (jumpAddress >> 32) & 0xFF;
+        CurOpCodes()[offset + 4] = (jumpAddress >> 24) & 0xFF;
+        CurOpCodes()[offset + 5] = (jumpAddress >> 16) & 0xFF;
+        CurOpCodes()[offset + 6] = (jumpAddress >> 8) & 0xFF;
+        CurOpCodes()[offset + 7] = (jumpAddress >> 0) & 0xFF;
     }
 
     uint64_t Compiler::AddConstant(const Value &value)
     {
-        chunk.constants.emplace_back(value);
-        return chunk.constants.size() - 1;
+        CurChunk().constants.emplace_back(value);
+        return CurChunk().constants.size() - 1;
+    }
+
+    Chunk &Compiler::CurChunk()
+    {
+        return mChunkList.back();
+    }
+    OpCodes &Compiler::CurOpCodes()
+    {
+        return CurChunk().opCodes;
     }
 }

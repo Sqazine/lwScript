@@ -85,7 +85,7 @@ namespace lws
             ASSERT("Invalid op:" + left.Stringify() + (L#op) + right.Stringify());          \
     } while (0);
 
-        for (int32_t i = 0; i < mChunk.opCodes.size(); ++i)
+        for (int64_t i = 0; i < (int64_t)mChunk.opCodes.size(); ++i)
         {
             auto instruction = mChunk.opCodes[i];
             switch (instruction)
@@ -228,7 +228,7 @@ namespace lws
                 auto eCount = EncodeUint64(mChunk.opCodes, i);
                 i += 8;
                 ValueUnorderedMap elements;
-                for (int64_t i = 0; i < eCount; ++i)
+                for (int64_t i = 0; i < (int64_t)eCount; ++i)
                 {
                     auto key = Pop();
                     auto value = Pop();
@@ -247,7 +247,7 @@ namespace lws
                     if (!IS_INT_VALUE(idxValue))
                         ASSERT("Invalid idx for array,only integer is available.");
                     auto intIdx = TO_INT_VALUE(idxValue);
-                    if (intIdx < 0 || intIdx >= array->elements.size())
+                    if (intIdx < 0 || intIdx >= (int64_t)array->elements.size())
                         ASSERT("Idx out of range.");
                     Push(array->elements[intIdx]);
                 }
@@ -257,7 +257,7 @@ namespace lws
                     if (!IS_INT_VALUE(idxValue))
                         ASSERT("Invalid idx for array,only integer is available.");
                     auto intIdx = TO_INT_VALUE(idxValue);
-                    if (intIdx < 0 || intIdx >= str.size())
+                    if (intIdx < 0 || intIdx >= (int64_t)str.size())
                         ASSERT("Idx out of range.");
                     Push(CreateObject<StrObject>(str.substr(intIdx, 1)));
                 }
