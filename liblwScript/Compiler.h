@@ -1,6 +1,7 @@
 #pragma once
 #include "Chunk.h"
 #include "Ast.h"
+#include "SymbolTable.h"
 namespace lws
 {
     enum class RWState // read write state
@@ -15,7 +16,7 @@ namespace lws
         Compiler();
         ~Compiler();
 
-        Chunk Compile(Stmt* stmt);
+        Chunk Compile(Stmt *stmt);
 
         void ResetStatus();
 
@@ -54,15 +55,15 @@ namespace lws
 
         uint64_t Emit(uint8_t opcode);
         uint64_t EmitUint64(uint64_t opcode);
-        uint64_t EmitConstant(const Value& value);
+        uint64_t EmitConstant(const Value &value);
         uint64_t EmitJump(uint8_t opcode);
         void PatchJump(uint64_t offset);
         uint64_t AddConstant(const Value &value);
 
-        Chunk& CurChunk();
-        OpCodes& CurOpCodes();
+        Chunk &CurChunk();
+        OpCodes &CurOpCodes();
 
         std::vector<Chunk> mChunkList;
-        
+        SymbolTable *mSymbolTable;
     };
 }

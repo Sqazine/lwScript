@@ -104,6 +104,12 @@ namespace lws
                 Push(mChunk.constants[pos]);
                 break;
             }
+            case OP_SET_GLOBAL:
+            {
+                auto pos=mChunk.opCodes[++i];
+                mGlobalVariables[pos]=Pop();
+                break;
+            }
             case OP_ADD:
             {
                 Value left = Pop();

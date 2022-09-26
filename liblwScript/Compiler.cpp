@@ -4,7 +4,9 @@
 namespace lws
 {
     Compiler::Compiler()
+    :mSymbolTable(nullptr)
     {
+        ResetStatus();
     }
 
     Compiler::~Compiler()
@@ -13,6 +15,7 @@ namespace lws
 
     Chunk Compiler::Compile(Stmt *stmt)
     {
+        ResetStatus();
         mChunkList.emplace_back(Chunk());
         if (stmt->Type() == AST_ASTSTMTS)
         {
@@ -28,6 +31,10 @@ namespace lws
 
     void Compiler::ResetStatus()
     {
+        std::vector<Chunk>().swap(mChunkList);
+        if(mSymbolTable)
+            delete mSymbolTable;
+        mSymbolTable=new SymbolTable();
     }
 
     void Compiler::CompileDeclaration(Stmt *stmt)
@@ -53,6 +60,17 @@ namespace lws
     }
     void Compiler::CompileLetDeclaration(LetStmt *stmt)
     {
+        for (const auto &[k, v] : stmt->variables)
+        {
+            auto idx = mSymbolTable->DeclareVariable(k->literal);
+            CompileExpr(v.value);
+            auto symbol = mSymbolTable->DefineVariable(idx);
+            if (symbol.type == SymbolType::GLOBAL)
+            {
+                Emit(OP_SET_GLOBAL);
+                Emit(idx);
+            }
+        }
     }
 
     void Compiler::CompileConstDeclaration(ConstStmt *stmt)

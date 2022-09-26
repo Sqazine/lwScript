@@ -126,6 +126,13 @@ namespace lws
                 cout << std::setfill(L'0') << std::setw(8) << i << L"    " << L"OP_POP" << std::endl;
                 break;
             }
+            case OP_SET_GLOBAL:
+            {
+                auto pos = opcodes[i + 1];
+                cout << std::setfill(L'0') << std::setw(8) << i << L"    " << L"OP_SET_GLOBAL    " << pos << std::endl;
+                i++;
+                break;
+            }
             default:
                 break;
             }

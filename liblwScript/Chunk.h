@@ -34,6 +34,7 @@ namespace lws
         OP_JUMP_IF_FALSE,
         OP_JUMP,
         OP_POP,
+        OP_SET_GLOBAL,
     };
 
     using OpCodes = std::vector<uint8_t>;
