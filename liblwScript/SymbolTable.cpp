@@ -7,7 +7,7 @@ namespace lws
     {
     }
 
-    Symbol SymbolTable::DefineVariable(const std::wstring &name)
+    Symbol SymbolTable::Define(SymbolDescType descType,const std::wstring &name)
     {
         if (mSymbolIdx >= mSymbols.size())
             ASSERT(L"Too many variables in current scope.");
@@ -20,6 +20,7 @@ namespace lws
         auto *symbol = &mSymbols[mSymbolIdx++];
         symbol->name = name;
         symbol->idx = mSymbolIdx - 1;
+        symbol->descType=descType;
         symbol->type = SymbolType::GLOBAL;
         return *symbol;
     }

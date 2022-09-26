@@ -9,18 +9,26 @@ namespace lws
        GLOBAL,
        LOCAL,
     };
+
+    enum class SymbolDescType
+    {
+        VARIABLE,
+        CONSTANT,
+    };
+
     struct Symbol
     {
         Symbol() {}
         std::wstring name;
         SymbolType type;
+        SymbolDescType descType;
         uint8_t idx;
     };
     class SymbolTable
     {
     public:
         SymbolTable();
-        Symbol DefineVariable(const std::wstring &name);
+        Symbol Define(SymbolDescType descType, const std::wstring &name);
 
         Symbol Resolve(const std::wstring& name);
     private:

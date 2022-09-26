@@ -15,7 +15,6 @@ namespace lws
 
     Chunk Compiler::Compile(Stmt *stmt)
     {
-        mChunkList.emplace_back(Chunk());
         if (stmt->Type() == AST_ASTSTMTS)
         {
             auto stmts = ((AstStmts *)stmt)->stmts;
@@ -31,6 +30,7 @@ namespace lws
     void Compiler::ResetStatus()
     {
         std::vector<Chunk>().swap(mChunkList);
+        mChunkList.emplace_back(Chunk());
         if (mSymbolTable)
             delete mSymbolTable;
         mSymbolTable = new SymbolTable();
@@ -62,7 +62,7 @@ namespace lws
         for (const auto &[k, v] : stmt->variables)
         {
             CompileExpr(v.value);
-            auto symbol = mSymbolTable->DefineVariable(k->literal);
+            auto symbol = mSymbolTable->Define(SymbolDescType::VARIABLE, k->literal);
             if (symbol.type == SymbolType::GLOBAL)
             {
                 Emit(OP_SET_GLOBAL);
@@ -73,6 +73,16 @@ namespace lws
 
     void Compiler::CompileConstDeclaration(ConstStmt *stmt)
     {
+        for (const auto &[k, v] : stmt->consts)
+        {
+            CompileExpr(v.value);
+            auto symbol = mSymbolTable->Define(SymbolDescType::CONSTANT, k->literal);
+            if (symbol.type == SymbolType::GLOBAL)
+            {
+                Emit(OP_SET_GLOBAL);
+                Emit(symbol.idx);
+            }
+        }
     }
 
     void Compiler::CompileFunctionDeclaration(FunctionStmt *stmt)
@@ -184,7 +194,12 @@ namespace lws
     }
     void Compiler::CompileInfixExpr(InfixExpr *expr)
     {
-        if (expr->op == L"&&")
+        if(expr->op==L"=")
+        {
+            CompileExpr(expr->right);
+            CompileExpr(expr->left,RWState::WRITE);
+        }
+        else if (expr->op == L"&&")
         {
             //Short circuit calculation
             CompileExpr(expr->left);
@@ -330,8 +345,13 @@ namespace lws
 
         if (state == RWState::WRITE)
         {
-            Emit(setOp);
-            Emit(symbol.idx);
+            if (symbol.descType == SymbolDescType::VARIABLE)
+            {
+                Emit(setOp);
+                Emit(symbol.idx);
+            }
+            else
+                ASSERT("Constant cannot be assigned!");
         }
         else
         {
