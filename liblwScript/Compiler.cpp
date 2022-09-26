@@ -4,7 +4,7 @@
 namespace lws
 {
     Compiler::Compiler()
-    :mSymbolTable(nullptr)
+        : mSymbolTable(nullptr)
     {
         ResetStatus();
     }
@@ -15,7 +15,6 @@ namespace lws
 
     Chunk Compiler::Compile(Stmt *stmt)
     {
-        ResetStatus();
         mChunkList.emplace_back(Chunk());
         if (stmt->Type() == AST_ASTSTMTS)
         {
@@ -32,9 +31,9 @@ namespace lws
     void Compiler::ResetStatus()
     {
         std::vector<Chunk>().swap(mChunkList);
-        if(mSymbolTable)
+        if (mSymbolTable)
             delete mSymbolTable;
-        mSymbolTable=new SymbolTable();
+        mSymbolTable = new SymbolTable();
     }
 
     void Compiler::CompileDeclaration(Stmt *stmt)
@@ -62,13 +61,12 @@ namespace lws
     {
         for (const auto &[k, v] : stmt->variables)
         {
-            auto idx = mSymbolTable->DeclareVariable(k->literal);
             CompileExpr(v.value);
-            auto symbol = mSymbolTable->DefineVariable(idx);
+            auto symbol = mSymbolTable->DefineVariable(k->literal);
             if (symbol.type == SymbolType::GLOBAL)
             {
                 Emit(OP_SET_GLOBAL);
-                Emit(idx);
+                Emit(symbol.idx);
             }
         }
     }
@@ -322,6 +320,24 @@ namespace lws
     }
     void Compiler::CompileIdentifierExpr(IdentifierExpr *expr, const RWState &state)
     {
+        OpCode getOp, setOp;
+        auto symbol = mSymbolTable->Resolve(expr->literal);
+        if (symbol.type == SymbolType::GLOBAL)
+        {
+            getOp = OP_GET_GLOBAL;
+            setOp = OP_SET_GLOBAL;
+        }
+
+        if (state == RWState::WRITE)
+        {
+            Emit(setOp);
+            Emit(symbol.idx);
+        }
+        else
+        {
+            Emit(getOp);
+            Emit(symbol.idx);
+        }
     }
     void Compiler::CompileLambdaExpr(LambdaExpr *expr)
     {
