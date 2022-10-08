@@ -136,16 +136,16 @@ namespace lws
     void Compiler::CompileIfStmt(IfStmt *stmt)
     {
         CompileExpr(stmt->condition);
-        auto jmpIfFalseAddress=EmitJump(OP_JUMP_IF_FALSE);
+        auto jmpIfFalseAddress = EmitJump(OP_JUMP_IF_FALSE);
 
         CompileStmt(stmt->thenBranch);
 
-        auto jmpAddress=EmitJump(OP_JUMP);
+        auto jmpAddress = EmitJump(OP_JUMP);
 
         PatchJump(jmpIfFalseAddress);
 
-        if(stmt->elseBranch)
-        CompileStmt(stmt->elseBranch);
+        if (stmt->elseBranch)
+            CompileStmt(stmt->elseBranch);
 
         PatchJump(jmpAddress);
     }
@@ -156,6 +156,16 @@ namespace lws
     }
     void Compiler::CompileWhileStmt(WhileStmt *stmt)
     {
+        uint64_t jmpAddress = CurOpCodes().size() - 1;
+        CompileExpr(stmt->condition);
+        auto jmpIfFalseAddress = EmitJump(OP_JUMP_IF_FALSE);
+        CompileStmt(stmt->body);
+        if (stmt->increment)
+            CompileStmt(stmt->increment);
+        Emit(OP_JUMP);
+        EmitUint64(jmpAddress);
+
+        PatchJump(jmpIfFalseAddress);
     }
     void Compiler::CompileReturnStmt(ReturnStmt *stmt)
     {
