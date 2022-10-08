@@ -135,6 +135,19 @@ namespace lws
     }
     void Compiler::CompileIfStmt(IfStmt *stmt)
     {
+        CompileExpr(stmt->condition);
+        auto jmpIfFalseAddress=EmitJump(OP_JUMP_IF_FALSE);
+
+        CompileStmt(stmt->thenBranch);
+
+        auto jmpAddress=EmitJump(OP_JUMP);
+
+        PatchJump(jmpIfFalseAddress);
+
+        if(stmt->elseBranch)
+        CompileStmt(stmt->elseBranch);
+
+        PatchJump(jmpAddress);
     }
     void Compiler::CompileScopeStmt(ScopeStmt *stmt)
     {
