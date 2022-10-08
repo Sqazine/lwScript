@@ -60,6 +60,9 @@ namespace lws
         void PatchJump(uint64_t offset);
         uint64_t AddConstant(const Value &value);
 
+        void EnterScope();
+        void ExitScope();
+
         Chunk &CurChunk();
         OpCodes &CurOpCodes();
 

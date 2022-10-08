@@ -451,7 +451,7 @@ namespace lws
 
 		Consume(TOKEN_LBRACE, L"Expect '{'.");
 		while (!IsMatchCurToken(TOKEN_RBRACE))
-			scopeStmt->stmts.emplace_back(ParseStmt());
+			scopeStmt->stmts.emplace_back(ParseDeclaration());
 		Consume(TOKEN_RBRACE, L"Expect '}'.");
 		return scopeStmt;
 	}

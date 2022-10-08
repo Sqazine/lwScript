@@ -20,19 +20,28 @@ namespace lws
     {
         Symbol() {}
         std::wstring name;
-        SymbolType type;
-        SymbolDescType descType;
-        uint8_t idx;
+        SymbolType type=SymbolType::GLOBAL;
+        SymbolDescType descType=SymbolDescType::VARIABLE;
+        uint8_t idx=0;
+        int8_t depth=-1;
     };
     class SymbolTable
     {
     public:
         SymbolTable();
-        Symbol Define(SymbolDescType descType, const std::wstring &name);
+        SymbolTable(SymbolTable* enclosing);
+
+        uint8_t Declare(SymbolDescType descType, const std::wstring &name);
+
+        Symbol Define(uint8_t idx);
 
         Symbol Resolve(const std::wstring& name);
-    private:
+        
         std::array<Symbol, UINT8_COUNT> mSymbols;
+        uint8_t mLocalCount;
+        uint8_t mGlobalCount;
         uint8_t mSymbolIdx;
+        uint8_t mScopeDepth;
+        SymbolTable* enclosing;
     };
 }

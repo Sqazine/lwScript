@@ -36,6 +36,8 @@ namespace lws
         OP_POP,
         OP_SET_GLOBAL,
         OP_GET_GLOBAL,
+        OP_SET_LOCAL,
+        OP_GET_LOCAL,
     };
 
     using OpCodes = std::vector<uint8_t>;

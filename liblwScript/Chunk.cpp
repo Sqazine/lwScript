@@ -140,6 +140,20 @@ namespace lws
                 i++;
                 break;
             }
+             case OP_SET_LOCAL:
+            {
+                auto pos = opcodes[i + 1];
+                cout << std::setfill(L'0') << std::setw(8) << i << L"    " << L"OP_SET_LOCAL    " << pos << std::endl;
+                i++;
+                break;
+            }
+            case OP_GET_LOCAL:
+            {
+                auto pos = opcodes[i + 1];
+                cout << std::setfill(L'0') << std::setw(8) << i << L"    " << L"OP_GET_LOCAL    " << pos << std::endl;
+                i++;
+                break;
+            }
             default:
                 break;
             }

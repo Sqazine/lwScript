@@ -116,6 +116,19 @@ namespace lws
                 Push(mGlobalVariables[pos]);
                 break;
             }
+            case OP_SET_LOCAL:
+            {
+                auto pos = mChunk.opCodes[++i];
+                auto value = Peek(0);
+                mValueStack[pos] = value; //now assume base ptr on the stack bottom
+                break;
+            }
+            case OP_GET_LOCAL:
+            {
+                auto pos = mChunk.opCodes[++i];
+                Push(mValueStack[pos]); //now assume base ptr on the stack bottom
+                break;
+            }
             case OP_ADD:
             {
                 Value left = Pop();

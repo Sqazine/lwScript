@@ -61,11 +61,17 @@ namespace lws
     {
         for (const auto &[k, v] : stmt->variables)
         {
+            auto idx = mSymbolTable->Declare(SymbolDescType::VARIABLE, k->literal);
             CompileExpr(v.value);
-            auto symbol = mSymbolTable->Define(SymbolDescType::VARIABLE, k->literal);
+            auto symbol = mSymbolTable->Define(idx);
             if (symbol.type == SymbolType::GLOBAL)
             {
                 Emit(OP_SET_GLOBAL);
+                Emit(symbol.idx);
+            }
+            else if (symbol.type == SymbolType::LOCAL)
+            {
+                Emit(OP_SET_LOCAL);
                 Emit(symbol.idx);
             }
         }
@@ -75,11 +81,17 @@ namespace lws
     {
         for (const auto &[k, v] : stmt->consts)
         {
+            auto idx = mSymbolTable->Declare(SymbolDescType::CONSTANT, k->literal);
             CompileExpr(v.value);
-            auto symbol = mSymbolTable->Define(SymbolDescType::CONSTANT, k->literal);
+            auto symbol = mSymbolTable->Define(idx);
             if (symbol.type == SymbolType::GLOBAL)
             {
                 Emit(OP_SET_GLOBAL);
+                Emit(symbol.idx);
+            }
+            else if (symbol.type == SymbolType::LOCAL)
+            {
+                Emit(OP_SET_LOCAL);
                 Emit(symbol.idx);
             }
         }
@@ -100,8 +112,12 @@ namespace lws
             CompileIfStmt((IfStmt *)stmt);
             break;
         case AST_SCOPE:
+        {
+            EnterScope();
             CompileScopeStmt((ScopeStmt *)stmt);
+            ExitScope();
             break;
+        }
         case AST_WHILE:
             CompileWhileStmt((WhileStmt *)stmt);
             break;
@@ -122,6 +138,8 @@ namespace lws
     }
     void Compiler::CompileScopeStmt(ScopeStmt *stmt)
     {
+        for (const auto &s : stmt->stmts)
+            CompileDeclaration(s);
     }
     void Compiler::CompileWhileStmt(WhileStmt *stmt)
     {
@@ -194,10 +212,10 @@ namespace lws
     }
     void Compiler::CompileInfixExpr(InfixExpr *expr)
     {
-        if(expr->op==L"=")
+        if (expr->op == L"=")
         {
             CompileExpr(expr->right);
-            CompileExpr(expr->left,RWState::WRITE);
+            CompileExpr(expr->left, RWState::WRITE);
         }
         else if (expr->op == L"&&")
         {
@@ -342,6 +360,11 @@ namespace lws
             getOp = OP_GET_GLOBAL;
             setOp = OP_SET_GLOBAL;
         }
+        else if (symbol.type == SymbolType::LOCAL)
+        {
+            getOp = OP_GET_LOCAL;
+            setOp = OP_SET_LOCAL;
+        }
 
         if (state == RWState::WRITE)
         {
@@ -423,6 +446,25 @@ namespace lws
     {
         CurChunk().constants.emplace_back(value);
         return CurChunk().constants.size() - 1;
+    }
+
+    void Compiler::EnterScope()
+    {
+        mSymbolTable->mScopeDepth++;
+    }
+    void Compiler::ExitScope()
+    {
+        mSymbolTable->mScopeDepth--;
+
+        for (int32_t i = 0; i < mSymbolTable->mSymbols.size(); ++i)
+        {
+            if (mSymbolTable->mSymbols[i].type == SymbolType::LOCAL &&
+                mSymbolTable->mSymbols[i].depth > mSymbolTable->mScopeDepth)
+            {
+                Emit(OP_POP);
+                mSymbolTable->mSymbols[i].type = SymbolType::GLOBAL; //mark as global to avoid second pop
+            }
+        }
     }
 
     Chunk &Compiler::CurChunk()
