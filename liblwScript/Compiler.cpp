@@ -68,6 +68,7 @@ namespace lws
             {
                 Emit(OP_SET_GLOBAL);
                 Emit(symbol.idx);
+                Emit(OP_POP);
             }
             else if (symbol.type == SymbolType::LOCAL)
             {
@@ -132,6 +133,7 @@ namespace lws
     void Compiler::CompileExprStmt(ExprStmt *stmt)
     {
         CompileExpr(stmt->expr);
+        Emit(OP_POP);
     }
     void Compiler::CompileIfStmt(IfStmt *stmt)
     {
@@ -323,6 +325,15 @@ namespace lws
             Emit(OP_NOT);
         else if (expr->op == L"-")
             Emit(OP_MINUS);
+        else if (expr->op == L"++")
+        {
+            while (expr->right->Type() == AST_PREFIX && ((PrefixExpr *)expr->right)->op == L"++" || ((PrefixExpr *)expr->right)->op == L"--")
+                expr = (PrefixExpr *)expr->right;
+            EmitConstant((int64_t)1);
+            Emit(OP_ADD);
+            CompileExpr(expr->right, RWState::WRITE);
+            CompileExpr(expr->right, RWState::READ);
+        }
         else
             ASSERT(L"No prefix op:" + expr->op);
     }
@@ -395,6 +406,9 @@ namespace lws
             {
                 Emit(setOp);
                 Emit(symbol.idx);
+
+                if (symbol.type == SymbolType::GLOBAL)
+                    Emit(OP_POP);
             }
             else
                 ASSERT("Constant cannot be assigned!");

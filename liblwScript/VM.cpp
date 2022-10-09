@@ -107,7 +107,7 @@ namespace lws
             case OP_SET_GLOBAL:
             {
                 auto pos = mChunk.opCodes[++i];
-                mGlobalVariables[pos] = Pop();
+                mGlobalVariables[pos] = Peek(0);
                 break;
             }
             case OP_GET_GLOBAL:
