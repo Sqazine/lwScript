@@ -59,6 +59,8 @@ namespace lws
     }
     void Compiler::CompileLetDeclaration(LetStmt *stmt)
     {
+        auto postfixExprs = StatsPostfixExprs(stmt);
+
         for (const auto &[k, v] : stmt->variables)
         {
             auto idx = mSymbolTable->Declare(SymbolDescType::VARIABLE, k->literal);
@@ -76,10 +78,18 @@ namespace lws
                 Emit(symbol.idx);
             }
         }
+
+        if (!postfixExprs.empty())
+        {
+            for (const auto &postfixExpr : postfixExprs)
+                CompilePostfixExpr((PostfixExpr *)postfixExpr, false);
+        }
     }
 
     void Compiler::CompileConstDeclaration(ConstStmt *stmt)
     {
+        auto postfixExprs = StatsPostfixExprs(stmt);
+
         for (const auto &[k, v] : stmt->consts)
         {
             auto idx = mSymbolTable->Declare(SymbolDescType::CONSTANT, k->literal);
@@ -95,6 +105,12 @@ namespace lws
                 Emit(OP_SET_LOCAL);
                 Emit(symbol.idx);
             }
+        }
+
+        if (!postfixExprs.empty())
+        {
+            for (const auto &postfixExpr : postfixExprs)
+                CompilePostfixExpr((PostfixExpr *)postfixExpr, false);
         }
     }
 
@@ -132,12 +148,29 @@ namespace lws
     }
     void Compiler::CompileExprStmt(ExprStmt *stmt)
     {
+        auto postfixExprs = StatsPostfixExprs(stmt->expr);
+
         CompileExpr(stmt->expr);
         Emit(OP_POP);
+
+        if (!postfixExprs.empty())
+        {
+            for (const auto &postfixExpr : postfixExprs)
+                CompilePostfixExpr((PostfixExpr *)postfixExpr, false);
+        }
     }
     void Compiler::CompileIfStmt(IfStmt *stmt)
     {
+        auto conditionPostfixExprs = StatsPostfixExprs(stmt->condition);
+
         CompileExpr(stmt->condition);
+
+        if (!conditionPostfixExprs.empty())
+        {
+            for (const auto &postfixExpr : conditionPostfixExprs)
+                CompilePostfixExpr((PostfixExpr *)postfixExpr, false);
+        }
+
         auto jmpIfFalseAddress = EmitJump(OP_JUMP_IF_FALSE);
 
         CompileStmt(stmt->thenBranch);
@@ -159,7 +192,17 @@ namespace lws
     void Compiler::CompileWhileStmt(WhileStmt *stmt)
     {
         uint64_t jmpAddress = CurOpCodes().size() - 1;
+
+        auto conditionPostfixExprs = StatsPostfixExprs(stmt->condition);
+
         CompileExpr(stmt->condition);
+
+        if (!conditionPostfixExprs.empty())
+        {
+            for (const auto &postfixExpr : conditionPostfixExprs)
+                CompilePostfixExpr((PostfixExpr *)postfixExpr, false);
+        }
+
         auto jmpIfFalseAddress = EmitJump(OP_JUMP_IF_FALSE);
         CompileStmt(stmt->body);
         if (stmt->increment)
@@ -171,9 +214,25 @@ namespace lws
     }
     void Compiler::CompileReturnStmt(ReturnStmt *stmt)
     {
-        CompileExpr(stmt->expr);
-        Emit(OP_RETURN);
-        Emit(1);
+        auto postfixExprs = StatsPostfixExprs(stmt->expr);
+
+        if (stmt->expr)
+        {
+            CompileExpr(stmt->expr);
+            Emit(OP_RETURN);
+            Emit(1);
+        }
+        else
+        {
+            Emit(OP_RETURN);
+            Emit(0);
+        }
+
+        if (!postfixExprs.empty())
+        {
+            for (const auto &postfixExpr : postfixExprs)
+                CompilePostfixExpr((PostfixExpr *)postfixExpr, false);
+        }
     }
 
     void Compiler::CompileExpr(Expr *expr, const RWState &state)
@@ -346,13 +405,22 @@ namespace lws
         else
             ASSERT(L"No prefix op:" + expr->op);
     }
-    void Compiler::CompilePostfixExpr(PostfixExpr *expr)
+    void Compiler::CompilePostfixExpr(PostfixExpr *expr, bool isDelayCompile)
     {
         CompileExpr(expr->left);
         if (expr->op == L"!")
             Emit(OP_FACTORIAL);
-        else
-            ASSERT(L"No postfix op:" + expr->op);
+        else if (!isDelayCompile)
+        {
+            EmitConstant((int64_t)1);
+            if (expr->op == L"++")
+                Emit(OP_ADD);
+            else if (expr->op == L"--")
+                Emit(OP_SUB);
+            else
+                ASSERT(L"No postfix op:" + expr->op);
+            CompileExpr(expr->left, RWState::WRITE);
+        }
     }
     void Compiler::CompileStrExpr(StrExpr *expr)
     {
@@ -520,5 +588,226 @@ namespace lws
     OpCodes &Compiler::CurOpCodes()
     {
         return CurChunk().opCodes;
+    }
+
+    std::vector<Expr *> Compiler::StatsPostfixExprs(AstNode *astNode)
+    {
+        if (!astNode) //check astnode is nullptr
+            return {};
+
+        switch (astNode->Type())
+        {
+        case AST_BREAK:
+        case AST_CONTINUE:
+        case AST_REAL:
+        case AST_INT:
+        case AST_STR:
+        case AST_BOOL:
+        case AST_NULL:
+        case AST_IDENTIFIER:
+            return {};
+        case AST_ASTSTMTS:
+        {
+            std::vector<Expr *> result;
+            for (const auto &stmt : ((AstStmts *)astNode)->stmts)
+            {
+                auto stmtResult = StatsPostfixExprs(stmt);
+                result.insert(result.end(), stmtResult.begin(), stmtResult.end());
+            }
+            return result;
+        }
+        case AST_RETURN:
+            return StatsPostfixExprs(((ReturnStmt *)astNode)->expr);
+        case AST_EXPR:
+            return StatsPostfixExprs(((ExprStmt *)astNode)->expr);
+        case AST_LET:
+        {
+            std::vector<Expr *> result;
+            for (const auto &[k, v] : ((LetStmt *)astNode)->variables)
+            {
+                auto varResult = StatsPostfixExprs(v.value);
+                result.insert(result.end(), varResult.begin(), varResult.end());
+            }
+            return result;
+        }
+        case AST_CONST:
+        {
+            std::vector<Expr *> result;
+            for (const auto &[k, v] : ((ConstStmt *)astNode)->consts)
+            {
+                auto varResult = StatsPostfixExprs(v.value);
+                result.insert(result.end(), varResult.begin(), varResult.end());
+            }
+            return result;
+        }
+        case AST_SCOPE:
+        {
+            std::vector<Expr *> result;
+            for (const auto &stmt : ((ScopeStmt *)astNode)->stmts)
+            {
+                auto stmtResult = StatsPostfixExprs(stmt);
+                result.insert(result.end(), stmtResult.begin(), stmtResult.end());
+            }
+            return result;
+        }
+        case AST_IF:
+        {
+            std::vector<Expr *> result;
+            auto conditionResult = StatsPostfixExprs(((IfStmt *)astNode)->condition);
+            result.insert(result.end(), conditionResult.begin(), conditionResult.end());
+            auto thenBranchResult = StatsPostfixExprs(((IfStmt *)astNode)->thenBranch);
+            result.insert(result.end(), thenBranchResult.begin(), thenBranchResult.end());
+            auto elseBranchResult = StatsPostfixExprs(((IfStmt *)astNode)->elseBranch);
+            result.insert(result.end(), elseBranchResult.begin(), elseBranchResult.end());
+            return result;
+        }
+        case AST_WHILE:
+        {
+            std::vector<Expr *> result = StatsPostfixExprs(((WhileStmt *)astNode)->condition);
+            auto bodyResult = StatsPostfixExprs(((WhileStmt *)astNode)->body);
+            result.insert(result.end(), bodyResult.begin(), bodyResult.end());
+            if (((WhileStmt *)astNode)->increment)
+            {
+                auto incrementResult = StatsPostfixExprs(((WhileStmt *)astNode)->increment);
+                result.insert(result.end(), incrementResult.begin(), incrementResult.end());
+            }
+            return result;
+        }
+        case AST_ENUM:
+        {
+            std::vector<Expr *> result;
+            for (const auto &[k, v] : ((EnumStmt *)astNode)->enumItems)
+            {
+                auto kResult = StatsPostfixExprs(k);
+                auto vResult = StatsPostfixExprs(v);
+                result.insert(result.end(), kResult.begin(), kResult.end());
+                result.insert(result.end(), vResult.begin(), vResult.end());
+            }
+            return result;
+        }
+        case AST_FUNCTION:
+        {
+            std::vector<Expr *> result;
+            auto bodyResult = StatsPostfixExprs(((FunctionStmt *)astNode)->body);
+            result.insert(result.end(), bodyResult.begin(), bodyResult.end());
+            return result;
+        }
+        case AST_CLASS:
+        {
+            std::vector<Expr *> result;
+
+            for (const auto &letStmt : ((ClassStmt *)astNode)->letStmts)
+            {
+                auto letStmtResult = StatsPostfixExprs(letStmt);
+                result.insert(result.end(), letStmtResult.begin(), letStmtResult.end());
+            }
+
+            for (const auto &constStmt : ((ClassStmt *)astNode)->constStmts)
+            {
+                auto constStmtResult = StatsPostfixExprs(constStmt);
+                result.insert(result.end(), constStmtResult.begin(), constStmtResult.end());
+            }
+
+            for (const auto &fnStmt : ((ClassStmt *)astNode)->fnStmts)
+            {
+                auto fnStmtResult = StatsPostfixExprs(fnStmt);
+                result.insert(result.end(), fnStmtResult.begin(), fnStmtResult.end());
+            }
+            return result;
+        }
+        case AST_GROUP:
+            return StatsPostfixExprs(((GroupExpr *)astNode)->expr);
+        case AST_ARRAY:
+        {
+            std::vector<Expr *> result;
+            for (const auto &e : ((ArrayExpr *)astNode)->elements)
+            {
+                auto eResult = StatsPostfixExprs(e);
+                result.insert(result.end(), eResult.begin(), eResult.end());
+            }
+            return result;
+        }
+        case AST_TABLE:
+        {
+            std::vector<Expr *> result;
+            for (const auto &[k, v] : ((TableExpr *)astNode)->elements)
+            {
+                auto kResult = StatsPostfixExprs(k);
+                auto vResult = StatsPostfixExprs(v);
+                result.insert(result.end(), kResult.begin(), kResult.end());
+                result.insert(result.end(), vResult.begin(), vResult.end());
+            }
+            return result;
+        }
+        case AST_INDEX:
+        {
+            std::vector<Expr *> result;
+            auto dsResult = StatsPostfixExprs(((IndexExpr *)astNode)->ds);
+            result.insert(result.end(), dsResult.begin(), dsResult.end());
+            auto indexResult = StatsPostfixExprs(((IndexExpr *)astNode)->index);
+            result.insert(result.end(), indexResult.begin(), indexResult.end());
+            return result;
+        }
+        case AST_PREFIX:
+            return StatsPostfixExprs(((PrefixExpr *)astNode)->right);
+        case AST_INFIX:
+        {
+            std::vector<Expr *> result;
+            auto leftResult = StatsPostfixExprs(((InfixExpr *)astNode)->left);
+            auto rightResult = StatsPostfixExprs(((InfixExpr *)astNode)->right);
+
+            result.insert(result.end(), leftResult.begin(), leftResult.end());
+            result.insert(result.end(), rightResult.begin(), rightResult.end());
+            return result;
+        }
+        case AST_POSTFIX:
+        {
+            std::vector<Expr *> result;
+            auto leftResult = StatsPostfixExprs(((PostfixExpr *)astNode)->left);
+            result.insert(result.end(), leftResult.begin(), leftResult.end());
+            result.emplace_back((PostfixExpr *)astNode);
+            return result;
+        }
+        case AST_CONDITION:
+        {
+            std::vector<Expr *> result;
+            auto conditionResult = StatsPostfixExprs(((ConditionExpr *)astNode)->condition);
+            result.insert(result.end(), conditionResult.begin(), conditionResult.end());
+            auto trueBranchResult = StatsPostfixExprs(((ConditionExpr *)astNode)->trueBranch);
+            result.insert(result.end(), trueBranchResult.begin(), trueBranchResult.end());
+            auto falseBranchResult = StatsPostfixExprs(((ConditionExpr *)astNode)->falseBranch);
+            result.insert(result.end(), falseBranchResult.begin(), falseBranchResult.end());
+            return result;
+        }
+        case AST_LAMBDA:
+        {
+            std::vector<Expr *> result;
+            for (const auto &param : ((LambdaExpr *)astNode)->parameters)
+            {
+                auto paramResult = StatsPostfixExprs(param);
+                result.insert(result.end(), paramResult.begin(), paramResult.end());
+            }
+            auto bodyResult = StatsPostfixExprs(((LambdaExpr *)astNode)->body);
+            result.insert(result.end(), bodyResult.begin(), bodyResult.end());
+            return result;
+        }
+        case AST_CALL:
+        {
+            std::vector<Expr *> result;
+            auto calleeResult = StatsPostfixExprs(((CallExpr *)astNode)->callee);
+            result.insert(result.end(), calleeResult.begin(), calleeResult.end());
+            for (const auto &argument : ((CallExpr *)astNode)->arguments)
+            {
+                auto argumentResult = StatsPostfixExprs(argument);
+                result.insert(result.end(), argumentResult.begin(), argumentResult.end());
+            }
+            return result;
+        }
+        case AST_REF:
+            return StatsPostfixExprs(((RefExpr *)astNode)->refExpr);
+        default:
+            return {};
+        }
+        return {};
     }
 }

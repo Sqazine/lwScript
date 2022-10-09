@@ -40,7 +40,7 @@ namespace lws
         void CompileRealNumExpr(RealNumExpr *expr);
         void CompileBoolExpr(BoolExpr *expr);
         void CompilePrefixExpr(PrefixExpr *expr);
-        void CompilePostfixExpr(PostfixExpr *expr);
+        void CompilePostfixExpr(PostfixExpr *expr, bool isDelayCompile = true);
         void CompileStrExpr(StrExpr *expr);
         void CompileNullExpr(NullExpr *expr);
         void CompileGroupExpr(GroupExpr *expr);
@@ -65,6 +65,8 @@ namespace lws
 
         Chunk &CurChunk();
         OpCodes &CurOpCodes();
+
+        std::vector<Expr *> StatsPostfixExprs(AstNode *astNode);
 
         std::vector<Chunk> mChunkList;
         SymbolTable *mSymbolTable;
