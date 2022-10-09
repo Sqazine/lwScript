@@ -263,8 +263,8 @@ namespace lws
         }
         else
         {
-            CompileExpr(expr->right);
             CompileExpr(expr->left);
+            CompileExpr(expr->right);
             if (expr->op == L"+")
                 Emit(OP_ADD);
             else if (expr->op == L"-")
@@ -331,6 +331,15 @@ namespace lws
                 expr = (PrefixExpr *)expr->right;
             EmitConstant((int64_t)1);
             Emit(OP_ADD);
+            CompileExpr(expr->right, RWState::WRITE);
+            CompileExpr(expr->right, RWState::READ);
+        }
+        else if (expr->op == L"--")
+        {
+            while (expr->right->Type() == AST_PREFIX && ((PrefixExpr *)expr->right)->op == L"++" || ((PrefixExpr *)expr->right)->op == L"--")
+                expr = (PrefixExpr *)expr->right;
+            EmitConstant((int64_t)1);
+            Emit(OP_SUB);
             CompileExpr(expr->right, RWState::WRITE);
             CompileExpr(expr->right, RWState::READ);
         }

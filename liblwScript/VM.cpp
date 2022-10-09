@@ -29,8 +29,8 @@ namespace lws
 #define COMMON_BINARY(op)                                                                  \
     do                                                                                     \
     {                                                                                      \
-        Value left = Pop();                                                                \
         Value right = Pop();                                                               \
+        Value left = Pop();                                                                \
         if (IS_INT_VALUE(left) && IS_INT_VALUE(right))                                     \
             Push(TO_INT_VALUE(left) op TO_INT_VALUE(right));                               \
         else if (IS_REAL_VALUE(left) && IS_REAL_VALUE(right))                              \
@@ -47,8 +47,8 @@ namespace lws
 #define INTEGER_BINARY(op)                                                                 \
     do                                                                                     \
     {                                                                                      \
-        Value left = Pop();                                                                \
         Value right = Pop();                                                               \
+        Value left = Pop();                                                                \
         if (IS_INT_VALUE(left) && IS_INT_VALUE(right))                                     \
             Push(TO_INT_VALUE(left) op TO_INT_VALUE(right));                               \
         else                                                                               \
@@ -59,8 +59,8 @@ namespace lws
 #define COMPARE_BINARY(op)                                                    \
     do                                                                        \
     {                                                                         \
-        Value left = Pop();                                                   \
         Value right = Pop();                                                  \
+        Value left = Pop();                                                   \
         if (IS_INT_VALUE(left) && IS_INT_VALUE(right))                        \
             Push(TO_INT_VALUE(left) op TO_INT_VALUE(right) ? true : false);   \
         else if (IS_REAL_VALUE(left) && IS_REAL_VALUE(right))                 \
@@ -77,8 +77,8 @@ namespace lws
 #define LOGIC_BINARY(op)                                                                    \
     do                                                                                      \
     {                                                                                       \
-        Value left = Pop();                                                                 \
         Value right = Pop();                                                                \
+        Value left = Pop();                                                                 \
         if (IS_BOOL_VALUE(left) && IS_BOOL_VALUE(right))                                    \
             Push(TO_BOOL_VALUE(left) op TO_BOOL_VALUE(right) ? Value(true) : Value(false)); \
         else                                                                                \
