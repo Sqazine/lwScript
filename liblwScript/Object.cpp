@@ -1,6 +1,7 @@
 #include "Object.h"
 #include "Value.h"
 #include "Chunk.h"
+#include "Utils.h"
 namespace lws
 {
 
@@ -185,7 +186,7 @@ namespace lws
 
     std::wstring FunctionObject::Stringify() const
     {
-        auto result= L"<fn " + name + L">\n";
+        auto result= L"<fn " + name +L":0x"+PointerAddressToString((void*)this)+ L">\n";
         result+=chunk.Stringify();
         return result;
     }

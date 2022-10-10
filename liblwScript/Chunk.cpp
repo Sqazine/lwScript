@@ -2,6 +2,7 @@
 #include <iomanip>
 #include <sstream>
 #include "Utils.h"
+#include "Object.h"
 namespace lws
 {
     Chunk::Chunk()
@@ -18,7 +19,14 @@ namespace lws
 
     std::wstring Chunk::Stringify() const
     {
-        return OpCodeStringify(opCodes);
+        std::wstring result;
+        result += OpCodeStringify(opCodes);
+        for (const auto &c : constants)
+        {
+            if (IS_FUNCTION_VALUE(c))
+                result += TO_FUNCTION_VALUE(c)->Stringify();
+        }
+        return result;
     }
     std::vector<uint8_t> Chunk::Serialization() const
     {
@@ -36,8 +44,13 @@ namespace lws
             case OP_CONSTANT:
             {
                 auto pos = EncodeUint64(opcodes, i);
+                std::wstring constantStr;
+                if (IS_FUNCTION_VALUE(constants[pos]))
+                    constantStr = (L"<fn " + TO_FUNCTION_VALUE(constants[pos])->name + L":0x" + PointerAddressToString((void *)TO_FUNCTION_VALUE(constants[pos])) + L">");
+                else
+                    constantStr = constants[pos].Stringify();
                 cout << std::setfill(L'0') << std::setw(8) << i << L"    "
-                     << L"OP_CONSTANT    " << pos << L"    '" << constants[pos].Stringify() << "'" << std::endl;
+                     << L"OP_CONSTANT    " << pos << L"    '" << constantStr << L"'" << std::endl;
                 i += 8;
                 break;
             }
@@ -140,7 +153,7 @@ namespace lws
                 i++;
                 break;
             }
-             case OP_SET_LOCAL:
+            case OP_SET_LOCAL:
             {
                 auto pos = opcodes[i + 1];
                 cout << std::setfill(L'0') << std::setw(8) << i << L"    " << L"OP_SET_LOCAL    " << pos << std::endl;

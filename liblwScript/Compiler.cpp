@@ -33,7 +33,7 @@ namespace lws
     void Compiler::ResetStatus()
     {
         std::vector<FunctionObject *>().swap(mFunctionList);
-        mFunctionList.emplace_back(new FunctionObject(L"main"));
+        mFunctionList.emplace_back(new FunctionObject(L"_main_start_up"));
 
         if (mSymbolTable)
             delete mSymbolTable;
@@ -125,7 +125,6 @@ namespace lws
         mFunctionList.emplace_back(new FunctionObject(stmt->name->literal));
         mSymbolTable = new SymbolTable(mSymbolTable);
 
-        EnterScope();
 
         CurFunction()->arity = stmt->parameters.size();
         for (const auto &param : stmt->parameters)
@@ -133,6 +132,8 @@ namespace lws
             auto idx = mSymbolTable->Declare(SymbolDescType::VARIABLE, param->literal);
             auto symbol = mSymbolTable->Define(idx);
         }
+        
+        EnterScope();
 
         CompileScopeStmt(stmt->body);
 
