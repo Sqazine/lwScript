@@ -1,5 +1,6 @@
 #include "Object.h"
 #include "Value.h"
+#include "Chunk.h"
 namespace lws
 {
 
@@ -168,5 +169,41 @@ namespace lws
         }
 
         return true;
+    }
+
+    FunctionObject::FunctionObject()
+        : arity(0), upValueCount(0)
+    {
+    }
+    FunctionObject::FunctionObject(std::wstring_view name)
+        : arity(0), upValueCount(0), name(name)
+    {
+    }
+    FunctionObject::~FunctionObject()
+    {
+    }
+
+    std::wstring FunctionObject::Stringify() const
+    {
+        auto result= L"<fn " + name + L">\n";
+        result+=chunk.Stringify();
+        return result;
+    }
+    ObjectType FunctionObject::Type() const
+    {
+        return OBJECT_FUNCTION;
+    }
+    void FunctionObject::Mark()
+    {
+        marked = true;
+    }
+    void FunctionObject::UnMark()
+    {
+        marked = false;
+    }
+
+    bool FunctionObject::IsEqualTo(Object *other)
+    {
+        return false;
     }
 }

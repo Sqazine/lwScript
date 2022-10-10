@@ -33,11 +33,11 @@ void Repl()
 #ifdef _DEBUG
 			std::wcout << stmt->Stringify() << std::endl;
 #endif
-			auto chunk = compiler.Compile(stmt);
+			auto mainFunc = compiler.Compile(stmt);
 #ifdef _DEBUG
-			std::wcout << chunk.Stringify() << std::endl;
+			std::wcout << mainFunc->Stringify() << std::endl;
 #endif
-			vm.Run(chunk);
+			vm.Run(mainFunc);
 		}
 		std::wcout << L"> ";
 	}
@@ -61,12 +61,12 @@ void RunFile(std::string_view path)
 	std::wcout << stmt->Stringify() << std::endl;
 #endif
 
-	auto chunk = compiler.Compile(stmt);
+	auto mainFunc = compiler.Compile(stmt);
 #ifdef _DEBUG
-	std::wcout << chunk.Stringify() << std::endl;
+	std::wcout << mainFunc->Stringify() << std::endl;
 #endif
 
-	vm.Run(chunk);
+	vm.Run(mainFunc);
 }
 
 int main(int argc, const char *argv[])

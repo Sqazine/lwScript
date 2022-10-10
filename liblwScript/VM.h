@@ -1,8 +1,17 @@
 #pragma once
 #include "Config.h"
 #include "Chunk.h"
+#include "Object.h"
 namespace lws
 {
+
+    struct CallFrame
+    {
+        FunctionObject *function;
+        uint8_t *ip;
+        Value *slots;
+    };
+
     class VM
     {
     public:
@@ -11,12 +20,12 @@ namespace lws
 
         void ResetStatus();
 
-        void Run(const Chunk &chunk);
+        void Run(FunctionObject *mainFunc);
 
     private:
         void Execute();
 
-        bool IsFalsey(const Value& v);
+        bool IsFalsey(const Value &v);
 
         void Push(const Value &value);
         Value Pop();
@@ -33,7 +42,8 @@ namespace lws
         Value *mStackTop;
         Value mValueStack[STACK_MAX];
 
-        Chunk mChunk;
+        CallFrame mFrames[STACK_MAX];
+        int32_t mFrameCount;
 
         Object *objectChain;
 

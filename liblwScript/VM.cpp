@@ -1,10 +1,12 @@
 #include "VM.h"
 #include <iostream>
 #include "Utils.h"
+#include "Object.h"
 namespace lws
 {
     VM::VM()
     {
+        ResetStatus();
     }
     VM::~VM()
     {
@@ -12,14 +14,19 @@ namespace lws
 
     void VM::ResetStatus()
     {
+        mFrameCount=0;
         mStackTop = mValueStack;
         objectChain = nullptr;
     }
 
-    void VM::Run(const Chunk &chunk)
+    void VM::Run(FunctionObject *mainFunc)
     {
-        mChunk = chunk;
         ResetStatus();
+        CallFrame *mainCallFrame = &mFrames[mFrameCount++];
+        mainCallFrame->function = mainFunc;
+        mainCallFrame->ip = mainFunc->chunk.opCodes.data();
+        mainCallFrame->slots = mStackTop;
+
         Execute();
     }
 
@@ -85,47 +92,57 @@ namespace lws
             ASSERT("Invalid op:" + left.Stringify() + (L#op) + right.Stringify());          \
     } while (0);
 
-        for (int64_t i = 0; i < (int64_t)mChunk.opCodes.size(); ++i)
+        CallFrame *frame = &mFrames[mFrameCount - 1];
+
+        while (1)
         {
-            auto instruction = mChunk.opCodes[i];
+            auto instruction = *frame->ip++;
             switch (instruction)
             {
             case OP_RETURN:
             {
-                auto retCount = mChunk.opCodes[++i];
+                auto retCount = *frame->ip++;
                 if (retCount > 0)
+                {
                     std::wcout << Pop().Stringify() << std::endl;
+                }
+                else //TODO: for debug only
+                {
+                    mFrameCount--;
+                    if (mFrameCount == 0)
+                        return;
+                }
                 break;
             }
             case OP_CONSTANT:
             {
-                auto pos = EncodeUint64(mChunk.opCodes, i);
-                i += 8;
-                Push(mChunk.constants[pos]);
+                auto pos = EncodeUint64(frame->function->chunk.opCodes, frame->ip - frame->function->chunk.opCodes.data() - 1);
+                frame->ip += 8;
+                Push(frame->function->chunk.constants[pos]);
                 break;
             }
             case OP_SET_GLOBAL:
             {
-                auto pos = mChunk.opCodes[++i];
+                auto pos = *frame->ip++;
                 mGlobalVariables[pos] = Peek(0);
                 break;
             }
             case OP_GET_GLOBAL:
             {
-                auto pos = mChunk.opCodes[++i];
+                auto pos = *frame->ip++;
                 Push(mGlobalVariables[pos]);
                 break;
             }
             case OP_SET_LOCAL:
             {
-                auto pos = mChunk.opCodes[++i];
+                auto pos = *frame->ip++;
                 auto value = Peek(0);
                 mValueStack[pos] = value; //now assume base ptr on the stack bottom
                 break;
             }
             case OP_GET_LOCAL:
             {
-                auto pos = mChunk.opCodes[++i];
+                auto pos = *frame->ip++;
                 Push(mValueStack[pos]); //now assume base ptr on the stack bottom
                 break;
             }
@@ -235,9 +252,9 @@ namespace lws
             }
             case OP_ARRAY:
             {
-                auto count = EncodeUint64(mChunk.opCodes, i);
+                auto count = EncodeUint64(frame->function->chunk.opCodes, frame->ip - frame->function->chunk.opCodes.data() - 1);
 
-                i += 8;
+                frame->ip += 8;
 
                 std::vector<Value> elements;
                 auto prePtr = mStackTop - count;
@@ -250,8 +267,8 @@ namespace lws
             }
             case OP_TABLE:
             {
-                auto eCount = EncodeUint64(mChunk.opCodes, i);
-                i += 8;
+                auto eCount = EncodeUint64(frame->function->chunk.opCodes, frame->ip - frame->function->chunk.opCodes.data() - 1);
+                frame->ip += 8;
                 ValueUnorderedMap elements;
                 for (int64_t i = 0; i < (int64_t)eCount; ++i)
                 {
@@ -306,16 +323,16 @@ namespace lws
             }
             case OP_JUMP_IF_FALSE:
             {
-                auto address = EncodeUint64(mChunk.opCodes, i);
-                i += 8;
+                auto address = EncodeUint64(frame->function->chunk.opCodes, frame->ip - frame->function->chunk.opCodes.data() - 1);
+                frame->ip += 8;
                 if (IsFalsey(Peek(0)))
-                    i = address;
+                    frame->ip = frame->function->chunk.opCodes.data() + address + 1;
                 break;
             }
             case OP_JUMP:
             {
-                auto address = EncodeUint64(mChunk.opCodes, i);
-                i = address;
+                auto address = EncodeUint64(frame->function->chunk.opCodes, frame->ip - frame->function->chunk.opCodes.data() - 1);
+                frame->ip=frame->function->chunk.opCodes.data()+address + 1;
                 break;
             }
             default:

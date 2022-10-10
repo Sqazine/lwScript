@@ -2,7 +2,6 @@
 #include <vector>
 #include "Config.h"
 #include "Value.h"
-
 namespace lws
 {
     enum OpCode

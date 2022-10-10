@@ -13,7 +13,7 @@ namespace lws
     {
     }
 
-    Chunk Compiler::Compile(Stmt *stmt)
+    FunctionObject *Compiler::Compile(Stmt *stmt)
     {
         if (stmt->Type() == AST_ASTSTMTS)
         {
@@ -24,13 +24,17 @@ namespace lws
         else
             CompileDeclaration(stmt);
 
-        return CurChunk();
+        Emit(OP_RETURN);
+        Emit(0);
+
+        return CurFunction();
     }
 
     void Compiler::ResetStatus()
     {
-        std::vector<Chunk>().swap(mChunkList);
-        mChunkList.emplace_back(Chunk());
+        std::vector<FunctionObject *>().swap(mFunctionList);
+        mFunctionList.emplace_back(new FunctionObject(L"main"));
+
         if (mSymbolTable)
             delete mSymbolTable;
         mSymbolTable = new SymbolTable();
@@ -116,6 +120,45 @@ namespace lws
 
     void Compiler::CompileFunctionDeclaration(FunctionStmt *stmt)
     {
+        auto idx = mSymbolTable->Declare(SymbolDescType::CONSTANT, stmt->name->literal);
+
+        mFunctionList.emplace_back(new FunctionObject(stmt->name->literal));
+        mSymbolTable = new SymbolTable(mSymbolTable);
+
+        EnterScope();
+
+        CurFunction()->arity = stmt->parameters.size();
+        for (const auto &param : stmt->parameters)
+        {
+            auto idx = mSymbolTable->Declare(SymbolDescType::VARIABLE, param->literal);
+            auto symbol = mSymbolTable->Define(idx);
+        }
+
+        CompileScopeStmt(stmt->body);
+
+        Emit(OP_RETURN);
+        Emit(0);
+
+        ExitScope();
+        mSymbolTable = mSymbolTable->enclosing;
+
+        auto function = mFunctionList.back();
+        mFunctionList.pop_back();
+
+        EmitConstant(function);
+
+        auto symbol = mSymbolTable->Define(idx);
+        if (symbol.type == SymbolType::GLOBAL)
+        {
+            Emit(OP_SET_GLOBAL);
+            Emit(symbol.idx);
+            Emit(OP_POP);
+        }
+        else if (symbol.type == SymbolType::LOCAL)
+        {
+            Emit(OP_SET_LOCAL);
+            Emit(symbol.idx);
+        }
     }
     void Compiler::CompileClassDeclaration(ClassStmt *stmt)
     {
@@ -583,8 +626,14 @@ namespace lws
 
     Chunk &Compiler::CurChunk()
     {
-        return mChunkList.back();
+        return CurFunction()->chunk;
     }
+
+    FunctionObject *Compiler::CurFunction()
+    {
+        return mFunctionList.back();
+    }
+
     OpCodes &Compiler::CurOpCodes()
     {
         return CurChunk().opCodes;

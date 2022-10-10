@@ -2,6 +2,7 @@
 #include "Chunk.h"
 #include "Ast.h"
 #include "SymbolTable.h"
+#include "Object.h"
 namespace lws
 {
     enum class RWState // read write state
@@ -16,7 +17,7 @@ namespace lws
         Compiler();
         ~Compiler();
 
-        Chunk Compile(Stmt *stmt);
+        FunctionObject *Compile(Stmt *stmt);
 
         void ResetStatus();
 
@@ -64,11 +65,12 @@ namespace lws
         void ExitScope();
 
         Chunk &CurChunk();
+        FunctionObject* CurFunction();
         OpCodes &CurOpCodes();
 
         std::vector<Expr *> StatsPostfixExprs(AstNode *astNode);
 
-        std::vector<Chunk> mChunkList;
+        std::vector<FunctionObject *> mFunctionList;
         SymbolTable *mSymbolTable;
     };
 }
