@@ -14,7 +14,7 @@ namespace lws
 
     void VM::ResetStatus()
     {
-        mFrameCount=0;
+        mFrameCount = 0;
         mStackTop = mValueStack;
         objectChain = nullptr;
     }
@@ -102,16 +102,28 @@ namespace lws
             case OP_RETURN:
             {
                 auto retCount = *frame->ip++;
-                if (retCount > 0)
+                std::vector<Value> retValues;
+
+                while (retCount > 0)
                 {
-                    std::wcout << Pop().Stringify() << std::endl;
+                    retValues.emplace_back(Pop());
+                    std::wcout << retValues.back().Stringify() << std::endl;
+                    retCount--;
                 }
-                else //TODO: for debug only
+
+                mFrameCount--;
+                if (mFrameCount == 0)
+                    return;
+
+                mStackTop = frame->slots - 1; //-1 for pop the current function object
+
+                while (retCount < retValues.size())
                 {
-                    mFrameCount--;
-                    if (mFrameCount == 0)
-                        return;
+                    Push(retValues[retCount]);
+                    retCount++;
                 }
+
+                frame = &mFrames[mFrameCount - 1];
                 break;
             }
             case OP_CONSTANT:
@@ -137,13 +149,13 @@ namespace lws
             {
                 auto pos = *frame->ip++;
                 auto value = Peek(0);
-                mValueStack[pos] = value; //now assume base ptr on the stack bottom
+                frame->slots[pos] = value; //now assume base ptr on the stack bottom
                 break;
             }
             case OP_GET_LOCAL:
             {
                 auto pos = *frame->ip++;
-                Push(mValueStack[pos]); //now assume base ptr on the stack bottom
+                Push(frame->slots[pos]); //now assume base ptr on the stack bottom
                 break;
             }
             case OP_ADD:
@@ -332,7 +344,25 @@ namespace lws
             case OP_JUMP:
             {
                 auto address = EncodeUint64(frame->function->chunk.opCodes, frame->ip - frame->function->chunk.opCodes.data() - 1);
-                frame->ip=frame->function->chunk.opCodes.data()+address + 1;
+                frame->ip = frame->function->chunk.opCodes.data() + address + 1;
+                break;
+            }
+            case OP_CALL:
+            {
+                auto argCount = *frame->ip++;
+                auto callee = Peek(argCount);
+                if (!IS_FUNCTION_VALUE(callee))
+                    ASSERT(L"Invalid callee,Only function is available.");
+                if (argCount != TO_FUNCTION_VALUE(callee)->arity)
+                    ASSERT(L"No matching argument count.");
+
+                // init a new frame
+                CallFrame *newframe = &mFrames[mFrameCount++];
+                newframe->function = TO_FUNCTION_VALUE(callee);
+                newframe->ip = newframe->function->chunk.opCodes.data();
+                newframe->slots = mStackTop - argCount;
+
+                frame = &mFrames[mFrameCount - 1];
                 break;
             }
             default:

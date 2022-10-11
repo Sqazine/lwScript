@@ -167,6 +167,13 @@ namespace lws
                 i++;
                 break;
             }
+            case OP_CALL:
+            {
+                auto argCount = opcodes[i + 1];
+                cout << std::setfill(L'0') << std::setw(8) << i << L"    " << L"OP_CALL    " << argCount << std::endl;
+                i++;
+                break;
+            }
             default:
                 break;
             }

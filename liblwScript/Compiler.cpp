@@ -24,8 +24,9 @@ namespace lws
         else
             CompileDeclaration(stmt);
 
+        EmitConstant(Value());
         Emit(OP_RETURN);
-        Emit(0);
+        Emit(1);
 
         return CurFunction();
     }
@@ -125,20 +126,23 @@ namespace lws
         mFunctionList.emplace_back(new FunctionObject(stmt->name->literal));
         mSymbolTable = new SymbolTable(mSymbolTable);
 
-
         CurFunction()->arity = stmt->parameters.size();
         for (const auto &param : stmt->parameters)
         {
             auto idx = mSymbolTable->Declare(SymbolDescType::VARIABLE, param->literal);
             auto symbol = mSymbolTable->Define(idx);
         }
-        
+
         EnterScope();
 
         CompileScopeStmt(stmt->body);
 
-        Emit(OP_RETURN);
-        Emit(0);
+        if (CurChunk().opCodes[CurChunk().opCodes.size() - 2] != OP_RETURN)
+        {
+            EmitConstant(Value());
+            Emit(OP_RETURN);
+            Emit(1);
+        }
 
         ExitScope();
         mSymbolTable = mSymbolTable->enclosing;
@@ -268,8 +272,9 @@ namespace lws
         }
         else
         {
+            EmitConstant(Value());
             Emit(OP_RETURN);
-            Emit(0);
+            Emit(1);
         }
 
         if (!postfixExprs.empty())
@@ -545,6 +550,11 @@ namespace lws
     }
     void Compiler::CompileCallExpr(CallExpr *expr)
     {
+        CompileExpr(expr->callee);
+        for (const auto &arg : expr->arguments)
+            CompileExpr(arg);
+        Emit(OP_CALL);
+        Emit(expr->arguments.size());
     }
     void Compiler::CompileDotExpr(DotExpr *expr, const RWState &state)
     {
