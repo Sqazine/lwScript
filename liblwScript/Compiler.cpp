@@ -104,6 +104,7 @@ namespace lws
             {
                 Emit(OP_SET_GLOBAL);
                 Emit(symbol.idx);
+                Emit(OP_POP);
             }
             else if (symbol.type == SymbolType::LOCAL)
             {
@@ -122,6 +123,8 @@ namespace lws
     void Compiler::CompileFunctionDeclaration(FunctionStmt *stmt)
     {
         auto idx = mSymbolTable->Declare(SymbolDescType::CONSTANT, stmt->name->literal);
+
+        auto symbol=mSymbolTable->Define(idx);
 
         mFunctionList.emplace_back(new FunctionObject(stmt->name->literal));
         mSymbolTable = new SymbolTable(mSymbolTable);
@@ -152,7 +155,6 @@ namespace lws
 
         EmitConstant(function);
 
-        auto symbol = mSymbolTable->Define(idx);
         if (symbol.type == SymbolType::GLOBAL)
         {
             Emit(OP_SET_GLOBAL);
@@ -221,14 +223,18 @@ namespace lws
 
         auto jmpIfFalseAddress = EmitJump(OP_JUMP_IF_FALSE);
 
-        CompileStmt(stmt->thenBranch);
+        Emit(OP_POP);
+        
+        CompileDeclaration(stmt->thenBranch);
 
         auto jmpAddress = EmitJump(OP_JUMP);
 
         PatchJump(jmpIfFalseAddress);
 
+        Emit(OP_POP);
+
         if (stmt->elseBranch)
-            CompileStmt(stmt->elseBranch);
+            CompileDeclaration(stmt->elseBranch);
 
         PatchJump(jmpAddress);
     }
@@ -352,7 +358,7 @@ namespace lws
         }
         else if (expr->op == L"&&")
         {
-            //Short circuit calculation
+            // Short circuit calculation
             CompileExpr(expr->left);
             uint64_t address = EmitJump(OP_JUMP_IF_FALSE);
             Emit(OP_POP);
@@ -630,7 +636,7 @@ namespace lws
                 mSymbolTable->mSymbols[i].depth > mSymbolTable->mScopeDepth)
             {
                 Emit(OP_POP);
-                mSymbolTable->mSymbols[i].type = SymbolType::GLOBAL; //mark as global to avoid second pop
+                mSymbolTable->mSymbols[i].type = SymbolType::GLOBAL; // mark as global to avoid second pop
             }
         }
     }
@@ -652,7 +658,7 @@ namespace lws
 
     std::vector<Expr *> Compiler::StatsPostfixExprs(AstNode *astNode)
     {
-        if (!astNode) //check astnode is nullptr
+        if (!astNode) // check astnode is nullptr
             return {};
 
         switch (astNode->Type())
