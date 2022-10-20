@@ -538,9 +538,6 @@ namespace lws
             {
                 Emit(setOp);
                 Emit(symbol.idx);
-
-                if (symbol.type == SymbolType::GLOBAL)
-                    Emit(OP_POP);
             }
             else
                 ASSERT("Constant cannot be assigned!");
@@ -567,6 +564,17 @@ namespace lws
     }
     void Compiler::CompileRefExpr(RefExpr *expr)
     {
+        auto symbol = mSymbolTable->Resolve(expr->refExpr->Stringify());
+        if (symbol.type == SymbolType::GLOBAL)
+        {
+            Emit(OP_REF_GLOBAL);
+            Emit(symbol.idx);
+        }
+        else if (symbol.type == SymbolType::LOCAL)
+        {
+            Emit(OP_REF_LOCAL);
+            Emit(symbol.idx);
+        }
     }
 
     uint64_t Compiler::Emit(uint8_t opcode)

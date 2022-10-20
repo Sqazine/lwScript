@@ -186,8 +186,8 @@ namespace lws
 
     std::wstring FunctionObject::Stringify() const
     {
-        auto result= L"<fn " + name +L":0x"+PointerAddressToString((void*)this)+ L">\n";
-        result+=chunk.Stringify();
+        auto result = L"<fn " + name + L":0x" + PointerAddressToString((void *)this) + L">\n";
+        result += chunk.Stringify();
         return result;
     }
     ObjectType FunctionObject::Type() const
@@ -206,5 +206,36 @@ namespace lws
     bool FunctionObject::IsEqualTo(Object *other)
     {
         return false;
+    }
+
+    RefObject::RefObject(Value *pointer)
+        : pointer(pointer)
+    {
+    }
+    RefObject::~RefObject()
+    {
+    }
+
+    std::wstring RefObject::Stringify() const
+    {
+        return pointer->Stringify();
+    }
+    ObjectType RefObject::Type() const
+    {
+        return OBJECT_REF;
+    }
+    void RefObject::Mark()
+    {
+        marked = true;
+    }
+    void RefObject::UnMark()
+    {
+        marked = false;
+    }
+    bool RefObject::IsEqualTo(Object *other)
+    {
+        if (!IS_REF_OBJ(other))
+            return false;
+        return *pointer == *TO_REF_OBJ(other)->pointer;
     }
 }

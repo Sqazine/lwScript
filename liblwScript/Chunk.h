@@ -37,6 +37,8 @@ namespace lws
         OP_GET_GLOBAL,
         OP_SET_LOCAL,
         OP_GET_LOCAL,
+        OP_REF_GLOBAL,
+        OP_REF_LOCAL,
         OP_CALL,
     };
 

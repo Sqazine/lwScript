@@ -9,11 +9,13 @@ namespace lws
 #define IS_ARRAY_OBJ(obj) (obj->Type() == OBJECT_ARRAY)
 #define IS_TABLE_OBJ(obj) (obj->Type() == OBJECT_TABLE)
 #define IS_FUNCTION_OBJ(obj) (obj->Type() == OBJECT_FUNCTION)
+#define IS_REF_OBJ(obj) (obj->Type() == OBJECT_REF)
 
 #define TO_STR_OBJ(obj) ((lws::StrObject *)obj)
 #define TO_ARRAY_OBJ(obj) ((lws::ArrayObject *)obj)
 #define TO_TABLE_OBJ(obj) ((lws::TableObject *)obj)
 #define TO_FUNCTION_OBJ(obj) ((lws::FunctionObject *)obj)
+#define TO_REF_OBJ(obj) ((lws::RefObject *)obj)
 
 #define IS_NULL_VALUE(v) (v.Type() == VALUE_NULL)
 #define IS_INT_VALUE(v) (v.Type() == VALUE_INT)
@@ -24,8 +26,8 @@ namespace lws
 #define IS_ARRAY_VALUE(v) (IS_OBJECT_VALUE(v) && IS_ARRAY_OBJ(v.object))
 #define IS_TABLE_VALUE(v) (IS_OBJECT_VALUE(v) && IS_TABLE_OBJ(v.object))
 #define IS_FUNCTION_VALUE(v) (IS_OBJECT_VALUE(v) && IS_FUNCTION_OBJ(v.object))
-#define IS_CLASS_VALUE(v) (IS_OBJECT_VALUE(v) && IS_CLASS_OBJ(v.object))
 #define IS_REF_VALUE(v) (IS_OBJECT_VALUE(v) && IS_REF_OBJ(v.object))
+#define IS_CLASS_VALUE(v) (IS_OBJECT_VALUE(v) && IS_CLASS_OBJ(v.object))
 #define IS_LAMBDA_VALUE(v) (IS_OBJECT_VALUE(v) && IS_LAMBDA_OBJ(v.object))
 
 #define TO_INT_VALUE(v) (v.integer)
@@ -36,9 +38,9 @@ namespace lws
 #define TO_ARRAY_VALUE(v) (TO_ARRAY_OBJ(v.object))
 #define TO_TABLE_VALUE(v) (TO_TABLE_OBJ(v.object))
 #define TO_FUNCTION_VALUE(v) (TO_FUNCTION_OBJ(v.object))
-#define TO_LAMBDA_VALUE(v) (TO_LAMBDA_OBJ(v.object))
-#define TO_CLASS_VALUE(v) (TO_CLASS_OBJ(v.object))
 #define TO_REF_VALUE(v) (TO_REF_OBJ(v.object))
+#define TO_CLASS_VALUE(v) (TO_CLASS_OBJ(v.object))
+#define TO_LAMBDA_VALUE(v) (TO_LAMBDA_OBJ(v.object))
 
     enum ObjectType
     {
@@ -46,6 +48,7 @@ namespace lws
         OBJECT_ARRAY,
         OBJECT_TABLE,
         OBJECT_FUNCTION,
+        OBJECT_REF,
     };
 
     struct Object
@@ -133,5 +136,19 @@ namespace lws
         int32_t upValueCount;
         Chunk chunk;
         std::wstring name;
+    };
+
+    struct RefObject : public Object
+    {
+        RefObject(Value *pointer);
+        ~RefObject();
+
+        std::wstring Stringify() const override;
+        ObjectType Type() const override;
+        void Mark() override;
+        void UnMark() override;
+        bool IsEqualTo(Object *other) override;
+
+        Value *pointer;
     };
 }
