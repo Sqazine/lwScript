@@ -41,6 +41,8 @@ namespace lws
         OP_REF_LOCAL,
         OP_CALL,
         OP_CLASS,
+        OP_SET_PROPERTY,
+        OP_GET_PROPERTY,
     };
 
     using OpCodes = std::vector<uint8_t>;

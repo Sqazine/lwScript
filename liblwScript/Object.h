@@ -166,7 +166,7 @@ namespace lws
         void UnMark() override;
         bool IsEqualTo(Object *other) override;
 
-        StrObject* name;
-        std::unordered_map<StrObject *, Value> members;
+        std::wstring name;
+        std::unordered_map<std::wstring, Value> members;
     };
 }

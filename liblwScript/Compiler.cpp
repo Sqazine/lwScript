@@ -147,7 +147,7 @@ namespace lws
 
 		EnterScope();
 
-		int8_t memCount=0;
+		int8_t memCount = 0;
 		for (const auto &letStmt : stmt->letStmts)
 		{
 			for (const auto &[k, v] : letStmt->variables)
@@ -371,7 +371,7 @@ namespace lws
 			CompileCallExpr((CallExpr *)expr);
 			break;
 		case AST_DOT:
-			CompileDotExpr((DotExpr *)expr);
+			CompileDotExpr((DotExpr *)expr,state);
 			break;
 		case AST_REF:
 			CompileRefExpr((RefExpr *)expr);
@@ -603,6 +603,12 @@ namespace lws
 	}
 	void Compiler::CompileDotExpr(DotExpr *expr, const RWState &state)
 	{
+		CompileExpr(expr->callee);
+		EmitConstant(new StrObject(expr->callMember->literal));
+		if (state == RWState::WRITE)
+			Emit(OP_SET_PROPERTY);
+		else
+			Emit(OP_GET_PROPERTY);
 	}
 	void Compiler::CompileRefExpr(RefExpr *expr)
 	{

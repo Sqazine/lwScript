@@ -175,13 +175,13 @@ namespace lws
 				if (IS_REF_VALUE((*slot)))
 					*TO_REF_VALUE((*slot))->pointer = value;
 				else
-					*slot = value; //now assume base ptr on the stack bottom
+					*slot = value; // now assume base ptr on the stack bottom
 				break;
 			}
 			case OP_GET_LOCAL:
 			{
 				auto pos = *frame->ip++;
-				Push(frame->slots[pos]); //now assume base ptr on the stack bottom
+				Push(frame->slots[pos]); // now assume base ptr on the stack bottom
 				break;
 			}
 			case OP_ADD:
@@ -422,15 +422,36 @@ namespace lws
 				auto memCount = *frame->ip++;
 
 				auto classObj = CreateObject<ClassObject>();
-				classObj->name = TO_STR_OBJ(name.object);
+				classObj->name = TO_STR_VALUE(name);
 				for (int i = 0; i < memCount; ++i)
 				{
 					name = Pop();
 					auto v = Pop();
-					classObj->members[TO_STR_OBJ(name.object)] = v;
+					classObj->members[TO_STR_VALUE(name)] = v;
 				}
 
 				Push(classObj);
+				break;
+			}
+			case OP_GET_PROPERTY:
+			{
+				if (!IS_CLASS_VALUE(Peek(1)))
+					ASSERT(L"Invalid class call:not a valid class instance.");
+				auto propName = TO_STR_VALUE(Pop());
+				auto klass = TO_CLASS_VALUE(Pop());
+				auto iter = klass->members.find(propName);
+				if (iter == klass->members.end())
+					ASSERT(L"No property in class.");
+				Push(iter->second);
+				break;
+			}
+			case OP_SET_PROPERTY:
+			{
+				if (!IS_CLASS_VALUE(Peek(1)))
+					ASSERT(L"Invalid class call:not a valid class instance.");
+				auto propName = TO_STR_VALUE(Pop());
+				auto klass = TO_CLASS_VALUE(Pop());
+				klass->members[propName] = Peek(0);
 				break;
 			}
 			default:

@@ -248,10 +248,10 @@ namespace lws
 
     std::wstring ClassObject::Stringify() const
     {
-        std::wstring result = L"class " + name->Stringify() + L"\n{\n";
+        std::wstring result = L"class " + name + L"\n{\n";
         for (const auto &[k, v] : members)
         {
-            result += k->Stringify() + L":" + v.Stringify() + L"\n";
+            result += k+ L":" + v.Stringify() + L"\n";
         }
 
         return result + L"}\n";
