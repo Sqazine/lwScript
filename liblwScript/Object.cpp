@@ -208,6 +208,38 @@ namespace lws
         return false;
     }
 
+    NativeFunctionObject::NativeFunctionObject()
+    {
+    }
+    NativeFunctionObject::NativeFunctionObject(NativeFunction f)
+        : fn(f)
+    {
+    }
+    NativeFunctionObject::~NativeFunctionObject()
+    {
+    }
+
+    std::wstring NativeFunctionObject::Stringify() const
+    {
+        return L"<native function>";
+    }
+    ObjectType NativeFunctionObject::Type() const
+    {
+        return OBJECT_NATIVE_FUNCTION;
+    }
+    void NativeFunctionObject::Mark()
+    {
+        marked = true;
+    }
+    void NativeFunctionObject::UnMark()
+    {
+        marked = false;
+    }
+
+    bool NativeFunctionObject::IsEqualTo(Object *other)
+    {
+    }
+
     RefObject::RefObject(Value *pointer)
         : pointer(pointer)
     {
@@ -242,6 +274,12 @@ namespace lws
     ClassObject::ClassObject()
     {
     }
+
+    ClassObject::ClassObject(std::wstring_view name)
+        : name(name)
+    {
+    }
+
     ClassObject::~ClassObject()
     {
     }
@@ -251,7 +289,7 @@ namespace lws
         std::wstring result = L"class " + name + L"\n{\n";
         for (const auto &[k, v] : members)
         {
-            result += k+ L":" + v.Stringify() + L"\n";
+            result += k + L":" + v.Stringify() + L"\n";
         }
 
         return result + L"}\n";

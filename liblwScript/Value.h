@@ -3,8 +3,6 @@
 #include <unordered_map>
 namespace lws
 {
-
-
     enum ValueType
     {
         VALUE_NULL,

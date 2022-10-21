@@ -1,6 +1,7 @@
 #include "Compiler.h"
 #include "Utils.h"
 #include "Object.h"
+#include "Library.h"
 namespace lws
 {
 	Compiler::Compiler()
@@ -39,6 +40,12 @@ namespace lws
 		if (mSymbolTable)
 			delete mSymbolTable;
 		mSymbolTable = new SymbolTable();
+
+		for (const auto &libName : gLibraryMap)
+		{
+			auto idx = mSymbolTable->Declare(SymbolDescType::CONSTANT, libName);
+			mSymbolTable->Define(idx);
+		}
 	}
 
 	void Compiler::CompileDeclaration(Stmt *stmt)
@@ -371,7 +378,7 @@ namespace lws
 			CompileCallExpr((CallExpr *)expr);
 			break;
 		case AST_DOT:
-			CompileDotExpr((DotExpr *)expr,state);
+			CompileDotExpr((DotExpr *)expr, state);
 			break;
 		case AST_REF:
 			CompileRefExpr((RefExpr *)expr);

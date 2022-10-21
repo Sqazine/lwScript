@@ -2,6 +2,7 @@
 #include "Config.h"
 #include "Chunk.h"
 #include "Object.h"
+#include "Library.h"
 namespace lws
 {
 
@@ -36,6 +37,8 @@ namespace lws
 
         template <class T>
         void FreeObject(T *object);
+
+        LibraryManager mLibraryManager;
 
         Value mGlobalVariables[GLOBAL_VARIABLE_MAX];
 

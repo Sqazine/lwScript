@@ -17,6 +17,9 @@ namespace lws
 		mFrameCount = 0;
 		mStackTop = mValueStack;
 		objectChain = nullptr;
+
+		for (int32_t i = 0; i < mLibraryManager.mLibraries.size(); ++i)
+			mGlobalVariables[i] = mLibraryManager.mLibraries[i];
 	}
 
 	void VM::Run(FunctionObject *mainFunc)
@@ -118,14 +121,8 @@ namespace lws
 			case OP_RETURN:
 			{
 				auto retCount = *frame->ip++;
-				std::vector<Value> retValues;
-
-				while (retCount > 0)
-				{
-					retValues.emplace_back(Pop());
-					std::wcout << retValues.back().Stringify() << std::endl;
-					retCount--;
-				}
+				Value *retValues;
+				retValues = mStackTop - retCount;
 
 				mFrameCount--;
 				if (mFrameCount == 0)
@@ -133,10 +130,12 @@ namespace lws
 
 				mStackTop = frame->slots - 1; //-1 for pop the current function object
 
-				while (retCount < retValues.size())
+				uint8_t i = 0;
+				while (i < retCount)
 				{
-					Push(retValues[retCount]);
-					retCount++;
+					auto value=*(retValues+i);
+					Push(value);
+					i++;
 				}
 
 				frame = &mFrames[mFrameCount - 1];
@@ -402,18 +401,37 @@ namespace lws
 			{
 				auto argCount = *frame->ip++;
 				auto callee = Peek(argCount);
-				if (!IS_FUNCTION_VALUE(callee))
+				if (IS_FUNCTION_VALUE(callee))
+				{
+					if (argCount != TO_FUNCTION_VALUE(callee)->arity)
+						ASSERT(L"No matching argument count.");
+					// init a new frame
+					CallFrame *newframe = &mFrames[mFrameCount++];
+					newframe->function = TO_FUNCTION_VALUE(callee);
+					newframe->ip = newframe->function->chunk.opCodes.data();
+					newframe->slots = mStackTop - argCount;
+
+					frame = &mFrames[mFrameCount - 1];
+				}
+				else if (IS_NATIVE_FUNCTION_VALUE(callee))
+				{
+					std::vector<Value> args(argCount);
+
+					int32_t j = 0;
+					for (Value *slot = mStackTop - argCount; slot < mStackTop && j < argCount; ++slot, ++j)
+						args[j] = *slot;
+
+					mStackTop -= (argCount + 1);
+
+					Value retV;
+
+					bool hasRetV = TO_NATIVE_FUNCTION_VALUE(callee)->fn(args, retV);
+
+					if (hasRetV)
+						Push(retV);
+				}
+				else
 					ASSERT(L"Invalid callee,Only function is available.");
-				if (argCount != TO_FUNCTION_VALUE(callee)->arity)
-					ASSERT(L"No matching argument count.");
-
-				// init a new frame
-				CallFrame *newframe = &mFrames[mFrameCount++];
-				newframe->function = TO_FUNCTION_VALUE(callee);
-				newframe->ip = newframe->function->chunk.opCodes.data();
-				newframe->slots = mStackTop - argCount;
-
-				frame = &mFrames[mFrameCount - 1];
 				break;
 			}
 			case OP_CLASS:
