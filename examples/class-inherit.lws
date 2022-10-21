@@ -38,5 +38,5 @@ class vec5:vec4
 
 let a=vec5;
 
-println(a.sqLength());// 4664
+io.println(a.sqLength());// 4664
 

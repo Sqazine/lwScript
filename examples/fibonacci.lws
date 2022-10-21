@@ -16,8 +16,9 @@ fn fib(x)
 //        return fib(x-1,cur,pre+cur);
 //}
 
-let start=clock();
+let start=time.clock();
+//let a=fib(35,0,1);
 let a=fib(35);
-let end=clock();
-println("{}",a);//9227465
-println("{}",end-start);
+let end=time.clock();
+io.println("{}",a);//9227465
+io.println("{}",end-start);

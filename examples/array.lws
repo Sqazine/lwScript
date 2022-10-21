@@ -12,5 +12,5 @@ let vec2=[2,2];
 
 let vec3=add(vec1,vec2);
 
-println("{}",vec3);//[5,5]
-println("{}",vec3[0+1]);//5
+io.println("{}",vec3);//[5,5]
+io.println("{}",vec3[0+1]);//5

@@ -6,10 +6,10 @@ fn twosum(nums,target)
     let i=0;
     let j=i+1;
 
-    while(i<sizeof(nums)-1)
+    while(i<ds.sizeof(nums)-1)
     {
         j=i+1;
-        while(j<sizeof(nums))
+        while(j<ds.sizeof(nums))
         {
             if(nums[i]+nums[j]==target)
                 return [i,j];
@@ -19,4 +19,4 @@ fn twosum(nums,target)
     }
 }
 
-println("{}",twosum(nums,target));//[0.000000,1.000000]
+io.println("{}",twosum(nums,target));//[0.000000,1.000000]

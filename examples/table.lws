@@ -1,12 +1,12 @@
 let a={1:2,2:3};
-println("{}",a);//{1:2,2:3} or {2:3,1:2} **There is no fixed order
-println("{}",a[1]);//2
+io.println("{}",a);//{1:2,2:3} or {2:3,1:2} **There is no fixed order
+io.println("{}",a[1]);//2
 
-insert(a,3,4);//use native function 'insert' to insert a new key-value pair to table object a
-println("{}",a[3]);//4
+ds.insert(a,3,4);//use native function 'ds.insert' to ds.insert a new key-value pair to table object a
+io.println("{}",a[3]);//4
 
 a[3]=7;//assign new value for key 3
-println("{}",a[3]);//7
+io.println("{}",a[3]);//7
 
 a[4]=10;//add a new key-value pair 4:10 to table object a
-println("{}",a);//{2:3,1:2,3:7,4:10}
+io.println("{}",a);//{2:3,1:2,3:7,4:10}

@@ -25,11 +25,11 @@ class Sparrow:Animal,Flyable
 
 
 let a=Sparrow;
-println("{}",a.health);//100
-println("{}",a.flySpeed);//10
+io.println("{}",a.health);//100
+io.println("{}",a.flySpeed);//10
 
 a.SetHealth(1000);
-println("{}",a.health);//1000
+io.println("{}",a.health);//1000
 
 /*
                ---Animal---

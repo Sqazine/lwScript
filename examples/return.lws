@@ -5,6 +5,6 @@ fn check(x)
     return x;
 }
 
-println("{}",check("str"));//str
-println("{}",check(10));//10
-println("{}",check(null));//null
+io.println("{}",check("str"));//str
+io.println("{}",check(10));//10
+io.println("{}",check(null));//null

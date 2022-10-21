@@ -18,13 +18,13 @@ class Shape
 
 let s1=Shape;
 s1.init(10,8);
-println(s1);
+io.println(s1);
 //Shape
 //{
 //    x
 //    y
 //}
-println(s1.area());//0.0
+io.println(s1.area());//0.0
 
 
 class Rectangle:Shape
@@ -48,13 +48,13 @@ class Rectangle:Shape
 
 let r1=Rectangle;
 r1.init(10,10,3,5);
-println(r1);
+io.println(r1);
 //Rectangle:Shape
 //{
 //    width
 //    height
 //}
-println(r1.area());//15
+io.println(r1.area());//15
 
 
 class Square:Rectangle
@@ -70,13 +70,13 @@ class Square:Rectangle
 
 let sq1=Square;
 sq1.init(10,10,3);
-println(sq1);
+io.println(sq1);
 //Rectangle:Shape
 //{
 //    width
 //    height
 //}
-println(sq1.area());//9
+io.println(sq1.area());//9
 
 class Circle:Shape
 {
@@ -97,9 +97,9 @@ class Circle:Shape
 
 let c1=Circle;
 c1.init(10,10,4);
-println(c1);
+io.println(c1);
 //Circle:Shape
 //{
 //    radius
 //}
-println(c1.area());//16
+io.println(c1.area());//16

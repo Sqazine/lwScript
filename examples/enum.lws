@@ -10,11 +10,11 @@ let a=Vec.VEC2;
 match(a)
 {
     Vec.VEC2:
-        println("{}",Vec.VEC2);
+        io.println("{}",Vec.VEC2);
     Vec.VEC3:
-        println("{}",Vec.VEC3);
+        io.println("{}",Vec.VEC3);
     Vec.VEC4:
-        println("{}",Vec.VEC4);
+        io.println("{}",Vec.VEC4);
     default:
-        println("{}","Not matching enum type.");
+        io.println("{}","Not matching enum type.");
 }

@@ -2,17 +2,17 @@ let a=3;
 switch(a)
 {
     default:
-        println("{}",0);//0
+        io.println("{}",0);//0
     case 1:
     {
-        println("{}",a);
+        io.println("{}",a);
     }
     case 2:
-        println("{}",2);
+        io.println("{}",2);
 }
 
 switch(a)
 {
     default:
-        println("{}",10);//10
+        io.println("{}",10);//10
 }

@@ -22,7 +22,7 @@ while(i<10)
 
 while(head.next!=null)
 {
-    println(head.v);
+    io.println(head.v);
     head=head.next;
 }
 

@@ -133,7 +133,7 @@ namespace lws
 				uint8_t i = 0;
 				while (i < retCount)
 				{
-					auto value=*(retValues+i);
+					auto value = *(retValues + i);
 					Push(value);
 					i++;
 				}
@@ -423,12 +423,8 @@ namespace lws
 
 					mStackTop -= (argCount + 1);
 
-					Value retV;
-
-					bool hasRetV = TO_NATIVE_FUNCTION_VALUE(callee)->fn(args, retV);
-
-					if (hasRetV)
-						Push(retV);
+					auto retV = TO_NATIVE_FUNCTION_VALUE(callee)->fn(args);
+					Push(retV);
 				}
 				else
 					ASSERT(L"Invalid callee,Only function is available.");

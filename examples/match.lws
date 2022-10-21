@@ -2,13 +2,13 @@ let a=3;
 match(a)
 {
     1:
-    println("{}",1);
+    io.println("{}",1);
     default:
     {
-        println("{}",a);
+        io.println("{}",a);
     }
     2:
     {
-        println("{}",b);
+        io.println("{}",b);
     }
 }

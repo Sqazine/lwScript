@@ -2,7 +2,7 @@ let a=0;
 
 while(a<100)
 {
-    println("{}",a);
+    io.println("{}",a);
     a=a+1;
 }
 
@@ -14,7 +14,7 @@ while(a<100)
 
 for(a=0;a<100;a=a+1)
 {
-    println("{}",a);
+    io.println("{}",a);
     a=a+1;
 }
 
@@ -22,7 +22,7 @@ for(a=0;a<10;a=a+1)
 {
     if(a==5)
         break;
-    println("{}",a);
+    io.println("{}",a);
 }
 
 
@@ -33,12 +33,12 @@ for(a=0;a<10;a=a+1)
         a=a+1;
         continue;
     }
-    println("{}",a);
+    io.println("{}",a);
 }
 
 for(a=0;a<10;a=a+1)
 {
     if(a==5)
         continue;
-    println("{}",a);
+    io.println("{}",a);
 }

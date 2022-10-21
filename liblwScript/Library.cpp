@@ -12,22 +12,22 @@ namespace lws
         auto memClass = new ClassObject(L"mem");
         auto timeClass = new ClassObject(L"time");
 
-        ioClass->members[L"print"] = new NativeFunctionObject([](const std::vector<Value> &args, Value &retValue) -> bool
+        ioClass->members[L"print"] = new NativeFunctionObject([](const std::vector<Value> &args) -> Value
                                                               {
             if (args.empty())
-                return false;
+                return Value();
 
             if (args.size() == 1)
             {
                 std::wcout << args[0].Stringify();
-                return false;
+                return Value();
             }
 
             if (!IS_STR_VALUE(args[0]))
             {
                 for (const auto &arg : args)
                     std::wcout << arg.Stringify();
-                return false;
+                return Value();
             }
 
             std::wstring content = TO_STR_VALUE(args[0]);
@@ -71,24 +71,24 @@ namespace lws
             }
 
             std::wcout << content;
-            return false; });
+            return Value(); });
 
-        ioClass->members[L"println"] = new NativeFunctionObject([](const std::vector<Value> &args, Value &retValue) -> bool
+        ioClass->members[L"println"] = new NativeFunctionObject([](const std::vector<Value> &args) -> Value
                                                                 {
             if (args.empty())
-                return false;
+                return Value();
 
             if (args.size() == 1)
             {
                 std::wcout << args[0].Stringify() << std::endl;
-                return false;
+                return Value();
             }
 
             if (!IS_STR_VALUE(args[0]))
             {
                 for (const auto &arg : args)
                     std::wcout << arg.Stringify() << std::endl;
-                return false;
+                return Value();
             }
 
             std::wstring content = TO_STR_VALUE(args[0]);
@@ -132,28 +132,26 @@ namespace lws
             }
 
             std::wcout << content << std::endl;
-            return false; });
+            return Value(); });
 
-        dsClass->members[L"sizeof"] = new NativeFunctionObject([](const std::vector<Value> &args, Value &retValue) -> bool
+        dsClass->members[L"sizeof"] = new NativeFunctionObject([](const std::vector<Value> &args) -> Value
                                                                {
             
              if (args.empty() || args.size() > 1)
                 ASSERT(L"[Native function 'sizeof']:Expect a argument.")
 
             if (IS_ARRAY_VALUE(args[0]))
-                retValue= Value((int64_t)TO_ARRAY_VALUE(args[0])->elements.size());
+                return Value((int64_t)TO_ARRAY_VALUE(args[0])->elements.size());
             else if (IS_TABLE_VALUE(args[0]))
-                retValue=Value((int64_t)TO_TABLE_VALUE(args[0])->elements.size());
+                return Value((int64_t)TO_TABLE_VALUE(args[0])->elements.size());
             else if (IS_STR_VALUE(args[0]))
-                retValue= Value((int64_t)TO_STR_VALUE(args[0]).size());
+                return Value((int64_t)TO_STR_VALUE(args[0]).size());
             else
                 ASSERT(L"[Native function 'sizeof']:Expect a array,table ot string argument.")
             
-            retValue=Value();
-            
-            return true; });
+            return Value(); });
 
-        dsClass->members[L"insert"] = new NativeFunctionObject([](const std::vector<Value> &args, Value &retValue) -> bool
+        dsClass->members[L"insert"] = new NativeFunctionObject([](const std::vector<Value> &args) -> Value
                                                                {
             
              if (args.empty() || args.size() != 3)
@@ -198,10 +196,9 @@ namespace lws
             else
                 ASSERT(L"[Native function 'insert']:Expect a array,table ot string argument.")
 
-            retValue=args[0];
-            return true; });
+            return args[0]; });
 
-        dsClass->members[L"insert"] = new NativeFunctionObject([](const std::vector<Value> &args, Value &retValue) -> bool
+        dsClass->members[L"erase"] = new NativeFunctionObject([](const std::vector<Value> &args) -> Value
                                                                {
               if (args.empty() || args.size() != 2)
                 ASSERT(L"[Native function 'erase']:Expect 2 arguments,the arg0 must be array,table or string object.The arg1 is the corresponding index object.");
@@ -251,10 +248,9 @@ namespace lws
             }
             else
                 ASSERT(L"[Native function 'erase']:Expect a array,table ot string argument.");
-            retValue=args[0];
-            return true; });
+            return args[0]; });
 
-        memClass->members[L"addressof"] = new NativeFunctionObject([](const std::vector<Value> &args, Value &retValue) -> bool
+        memClass->members[L"addressof"] = new NativeFunctionObject([](const std::vector<Value> &args) -> Value
                                                                    {
                         if (args.empty() || args.size() != 1)
                     ASSERT(L"[Native function 'addressof']:Expect 1 arguments.")
@@ -262,13 +258,10 @@ namespace lws
                 if (!IS_OBJECT_VALUE(args[0]))
                     ASSERT(L"[Native function 'addressof']:The arg0 is a value,only object has address.")
 
-                retValue= new StrObject(PointerAddressToString(args[0].object));
-                return true; });
+                return new StrObject(PointerAddressToString(args[0].object)); });
 
-        memClass->members[L"addressof"] = new NativeFunctionObject([](const std::vector<Value> &args, Value &retValue) -> bool
-                                                                   {
-                   retValue=  Value((double)clock() / CLOCKS_PER_SEC);
-                   return true; });
+        timeClass->members[L"clock"] = new NativeFunctionObject([](const std::vector<Value> &args) -> Value
+                                                                   { return Value((double)clock() / CLOCKS_PER_SEC); });
 
         AddLibrary(ioClass);
         AddLibrary(dsClass);

@@ -147,7 +147,7 @@ namespace lws
         std::wstring name;
     };
 
-    using NativeFunction = std::function<bool(const std::vector<Value> &, Value &retValue)>;
+    using NativeFunction = std::function<Value(const std::vector<Value> &)>;
 
     struct NativeFunctionObject : public Object
     {

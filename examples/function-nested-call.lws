@@ -7,4 +7,4 @@ fn set()
     return add;
 } 
 let a=set()(10,30);
-println("{}",a);//40
+io.println("{}",a);//40
