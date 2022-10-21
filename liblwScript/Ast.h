@@ -27,6 +27,7 @@ namespace lws
 		AST_LAMBDA,
 		AST_DOT,
 		AST_CALL,
+		AST_NEW,
 		// stmt
 		AST_LET,
 		AST_CONST,
@@ -285,6 +286,18 @@ namespace lws
 
 		Expr *callee;
 		IdentifierExpr *callMember;
+	};
+
+	struct NewExpr : public Expr
+	{
+		NewExpr();
+		NewExpr(IdentifierExpr *callee);
+		~NewExpr();
+
+		std::wstring Stringify() override;
+		AstType Type() const override;
+
+		IdentifierExpr *callee;
 	};
 
 	struct Stmt : public AstNode

@@ -238,4 +238,37 @@ namespace lws
             return false;
         return *pointer == *TO_REF_OBJ(other)->pointer;
     }
+
+    ClassObject::ClassObject()
+    {
+    }
+    ClassObject::~ClassObject()
+    {
+    }
+
+    std::wstring ClassObject::Stringify() const
+    {
+        std::wstring result = L"class " + name->Stringify() + L"\n{\n";
+        for (const auto &[k, v] : members)
+        {
+            result += k->Stringify() + L":" + v.Stringify() + L"\n";
+        }
+
+        return result + L"}\n";
+    }
+    ObjectType ClassObject::Type() const
+    {
+        return OBJECT_CLASS;
+    }
+    void ClassObject::Mark()
+    {
+        marked = true;
+    }
+    void ClassObject::UnMark()
+    {
+        marked = false;
+    }
+    bool ClassObject::IsEqualTo(Object *other)
+    {
+    }
 }

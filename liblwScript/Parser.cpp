@@ -88,6 +88,7 @@ namespace lws
 			{TOKEN_FUNCTION, &Parser::ParseLambdaExpr},
 			{TOKEN_PLUS_PLUS, &Parser::ParsePrefixExpr},
 			{TOKEN_MINUS_MINUS, &Parser::ParsePrefixExpr},
+			{TOKEN_NEW, &Parser::ParseNewExpr},
 	};
 
 	std::unordered_map<TokenType, InfixFn> Parser::mInfixFunctions =
@@ -180,7 +181,7 @@ namespace lws
 			return ParseConstDeclaration();
 		else if (IsMatchCurToken(TOKEN_FUNCTION))
 			return ParseFunctionDeclaration();
-		else if (IsMatchCurTokenAndStepOnce(TOKEN_CLASS))
+		else if (IsMatchCurToken(TOKEN_CLASS))
 			return ParseClassDeclaration();
 		else
 			return ParseStmt();
@@ -801,6 +802,17 @@ namespace lws
 		lambdaExpr->body = (ScopeStmt *)ParseScopeStmt();
 
 		return lambdaExpr;
+	}
+
+	Expr *Parser::ParseNewExpr()
+	{
+		auto newExpr = new NewExpr();
+		newExpr->line = GetCurToken().line;
+		newExpr->column = GetCurToken().column;
+
+		Consume(TOKEN_NEW, L"Expect 'new' keyword");
+		newExpr->callee = (IdentifierExpr *)ParseIdentifierExpr();
+		return newExpr;
 	}
 
 	Expr *Parser::ParseExpr(Precedence precedence)

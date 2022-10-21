@@ -19,10 +19,10 @@ namespace lws
 		objectChain = nullptr;
 	}
 
-	void VM::Run(FunctionObject* mainFunc)
+	void VM::Run(FunctionObject *mainFunc)
 	{
 		ResetStatus();
-		CallFrame* mainCallFrame = &mFrames[mFrameCount++];
+		CallFrame *mainCallFrame = &mFrames[mFrameCount++];
 		mainCallFrame->function = mainFunc;
 		mainCallFrame->ip = mainFunc->chunk.opCodes.data();
 		mainCallFrame->slots = mStackTop;
@@ -34,81 +34,81 @@ namespace lws
 	{
 		//  - * /
 #define COMMON_BINARY(op)                                                                  \
-    do                                                                                     \
-    {                                                                                      \
-        Value right = Pop();                                                               \
-        Value left = Pop(); \
-        if(IS_REF_VALUE(left)) \
-            left=*TO_REF_VALUE(left)->pointer;\
-         if(IS_REF_VALUE(right)) \
-            right=*TO_REF_VALUE(right)->pointer;\
-        if (IS_INT_VALUE(left) && IS_INT_VALUE(right))                                     \
-            Push(TO_INT_VALUE(left) op TO_INT_VALUE(right));                               \
-        else if (IS_REAL_VALUE(left) && IS_REAL_VALUE(right))                              \
-            Push(TO_REAL_VALUE(left) op TO_REAL_VALUE(right));                             \
-        else if (IS_INT_VALUE(left) && IS_REAL_VALUE(right))                               \
-            Push(TO_INT_VALUE(left) op TO_REAL_VALUE(right));                              \
-        else if (IS_REAL_VALUE(left) && IS_INT_VALUE(right))                               \
-            Push(TO_REAL_VALUE(left) op TO_INT_VALUE(right));                              \
-        else                                                                               \
-            ASSERT(L"Invalid binary op:" + left.Stringify() + (L#op) + right.Stringify()); \
-    } while (0);
+	do                                                                                     \
+	{                                                                                      \
+		Value right = Pop();                                                               \
+		Value left = Pop();                                                                \
+		if (IS_REF_VALUE(left))                                                            \
+			left = *TO_REF_VALUE(left)->pointer;                                           \
+		if (IS_REF_VALUE(right))                                                           \
+			right = *TO_REF_VALUE(right)->pointer;                                         \
+		if (IS_INT_VALUE(left) && IS_INT_VALUE(right))                                     \
+			Push(TO_INT_VALUE(left) op TO_INT_VALUE(right));                               \
+		else if (IS_REAL_VALUE(left) && IS_REAL_VALUE(right))                              \
+			Push(TO_REAL_VALUE(left) op TO_REAL_VALUE(right));                             \
+		else if (IS_INT_VALUE(left) && IS_REAL_VALUE(right))                               \
+			Push(TO_INT_VALUE(left) op TO_REAL_VALUE(right));                              \
+		else if (IS_REAL_VALUE(left) && IS_INT_VALUE(right))                               \
+			Push(TO_REAL_VALUE(left) op TO_INT_VALUE(right));                              \
+		else                                                                               \
+			ASSERT(L"Invalid binary op:" + left.Stringify() + (L#op) + right.Stringify()); \
+	} while (0);
 
 // & | << >>
 #define INTEGER_BINARY(op)                                                                 \
-    do                                                                                     \
-    {                                                                                      \
-        Value right = Pop();                                                               \
-        Value left = Pop();                                                                \
-if(IS_REF_VALUE(left)) \
-            left=*TO_REF_VALUE(left)->pointer;\
-         if(IS_REF_VALUE(right)) \
-            right=*TO_REF_VALUE(right)->pointer;\
-        if (IS_INT_VALUE(left) && IS_INT_VALUE(right))                                     \
-            Push(TO_INT_VALUE(left) op TO_INT_VALUE(right));                               \
-        else                                                                               \
-            ASSERT(L"Invalid binary op:" + left.Stringify() + (L#op) + right.Stringify()); \
-    } while (0);
+	do                                                                                     \
+	{                                                                                      \
+		Value right = Pop();                                                               \
+		Value left = Pop();                                                                \
+		if (IS_REF_VALUE(left))                                                            \
+			left = *TO_REF_VALUE(left)->pointer;                                           \
+		if (IS_REF_VALUE(right))                                                           \
+			right = *TO_REF_VALUE(right)->pointer;                                         \
+		if (IS_INT_VALUE(left) && IS_INT_VALUE(right))                                     \
+			Push(TO_INT_VALUE(left) op TO_INT_VALUE(right));                               \
+		else                                                                               \
+			ASSERT(L"Invalid binary op:" + left.Stringify() + (L#op) + right.Stringify()); \
+	} while (0);
 
 // > <
 #define COMPARE_BINARY(op)                                                    \
-    do                                                                        \
-    {                                                                         \
-        Value right = Pop();                                                  \
-        Value left = Pop();                                                   \
-if(IS_REF_VALUE(left)) \
-            left=*TO_REF_VALUE(left)->pointer;\
-         if(IS_REF_VALUE(right)) \
-            right=*TO_REF_VALUE(right)->pointer;\
-        if (IS_INT_VALUE(left) && IS_INT_VALUE(right))                        \
-            Push(TO_INT_VALUE(left) op TO_INT_VALUE(right) ? true : false);   \
-        else if (IS_REAL_VALUE(left) && IS_REAL_VALUE(right))                 \
-            Push(TO_REAL_VALUE(left) op TO_REAL_VALUE(right) ? true : false); \
-        else if (IS_INT_VALUE(left) && IS_REAL_VALUE(right))                  \
-            Push(TO_INT_VALUE(left) op TO_REAL_VALUE(right) ? true : false);  \
-        else if (IS_REAL_VALUE(left) && IS_INT_VALUE(right))                  \
-            Push(TO_REAL_VALUE(left) op TO_INT_VALUE(right) ? true : false);  \
-        else                                                                  \
-            Push(false);                                                      \
-    } while (0);
+	do                                                                        \
+	{                                                                         \
+		Value right = Pop();                                                  \
+		Value left = Pop();                                                   \
+		if (IS_REF_VALUE(left))                                               \
+			left = *TO_REF_VALUE(left)->pointer;                              \
+		if (IS_REF_VALUE(right))                                              \
+			right = *TO_REF_VALUE(right)->pointer;                            \
+		if (IS_INT_VALUE(left) && IS_INT_VALUE(right))                        \
+			Push(TO_INT_VALUE(left) op TO_INT_VALUE(right) ? true : false);   \
+		else if (IS_REAL_VALUE(left) && IS_REAL_VALUE(right))                 \
+			Push(TO_REAL_VALUE(left) op TO_REAL_VALUE(right) ? true : false); \
+		else if (IS_INT_VALUE(left) && IS_REAL_VALUE(right))                  \
+			Push(TO_INT_VALUE(left) op TO_REAL_VALUE(right) ? true : false);  \
+		else if (IS_REAL_VALUE(left) && IS_INT_VALUE(right))                  \
+			Push(TO_REAL_VALUE(left) op TO_INT_VALUE(right) ? true : false);  \
+		else                                                                  \
+			Push(false);                                                      \
+	} while (0);
 
 // && ||
 #define LOGIC_BINARY(op)                                                                    \
-    do                                                                                      \
-    {                                                                                       \
-        Value right = Pop();                                                                \
-        Value left = Pop();                                                                 \
-if(IS_REF_VALUE(left)) \
-            left=*TO_REF_VALUE(left)->pointer;\
-         if(IS_REF_VALUE(right)) \
-            right=*TO_REF_VALUE(right)->pointer;\
-        if (IS_BOOL_VALUE(left) && IS_BOOL_VALUE(right))                                    \
-            Push(TO_BOOL_VALUE(left) op TO_BOOL_VALUE(right) ? Value(true) : Value(false)); \
-        else                                                                                \
-            ASSERT("Invalid op:" + left.Stringify() + (L#op) + right.Stringify());          \
-    } while (0);
+	do                                                                                      \
+	{                                                                                       \
+		Value right = Pop();                                                                \
+		Value left = Pop();                                                                 \
+		if (IS_REF_VALUE(left))                                                             \
+			left = *TO_REF_VALUE(left)->pointer;                                            \
+		if (IS_REF_VALUE(right))                                                            \
+			right = *TO_REF_VALUE(right)->pointer;                                          \
+		if (IS_BOOL_VALUE(left) && IS_BOOL_VALUE(right))                                    \
+			Push(TO_BOOL_VALUE(left) op TO_BOOL_VALUE(right) ? Value(true) : Value(false)); \
+		else                                                                                \
+			ASSERT("Invalid op:" + left.Stringify() + (L#op) + right.Stringify());          \
+	} while (0);
 
-		CallFrame* frame = &mFrames[mFrameCount - 1];
+		CallFrame *frame = &mFrames[mFrameCount - 1];
 
 		while (1)
 		{
@@ -218,7 +218,7 @@ if(IS_REF_VALUE(left)) \
 			}
 			case OP_DIV:
 			{
-				COMMON_BINARY(/ );
+				COMMON_BINARY(/);
 				break;
 			}
 			case OP_MOD:
@@ -233,27 +233,27 @@ if(IS_REF_VALUE(left)) \
 			}
 			case OP_BIT_OR:
 			{
-				INTEGER_BINARY(| );
+				INTEGER_BINARY(|);
 				break;
 			}
 			case OP_BIT_LEFT_SHIFT:
 			{
-				INTEGER_BINARY(<< );
+				INTEGER_BINARY(<<);
 				break;
 			}
 			case OP_BIT_RIGHT_SHIFT:
 			{
-				INTEGER_BINARY(>> );
+				INTEGER_BINARY(>>);
 				break;
 			}
 			case OP_LESS:
 			{
-				COMPARE_BINARY(< );
+				COMPARE_BINARY(<);
 				break;
 			}
 			case OP_GREATER:
 			{
-				COMPARE_BINARY(> );
+				COMPARE_BINARY(>);
 				break;
 			}
 			case OP_NOT:
@@ -408,12 +408,29 @@ if(IS_REF_VALUE(left)) \
 					ASSERT(L"No matching argument count.");
 
 				// init a new frame
-				CallFrame* newframe = &mFrames[mFrameCount++];
+				CallFrame *newframe = &mFrames[mFrameCount++];
 				newframe->function = TO_FUNCTION_VALUE(callee);
 				newframe->ip = newframe->function->chunk.opCodes.data();
 				newframe->slots = mStackTop - argCount;
 
 				frame = &mFrames[mFrameCount - 1];
+				break;
+			}
+			case OP_CLASS:
+			{
+				auto name = Pop();
+				auto memCount = *frame->ip++;
+
+				auto classObj = CreateObject<ClassObject>();
+				classObj->name = TO_STR_OBJ(name.object);
+				for (int i = 0; i < memCount; ++i)
+				{
+					name = Pop();
+					auto v = Pop();
+					classObj->members[TO_STR_OBJ(name.object)] = v;
+				}
+
+				Push(classObj);
 				break;
 			}
 			default:
@@ -422,12 +439,12 @@ if(IS_REF_VALUE(left)) \
 		}
 	}
 
-	bool VM::IsFalsey(const Value& v)
+	bool VM::IsFalsey(const Value &v)
 	{
 		return IS_NULL_VALUE(v) || (IS_BOOL_VALUE(v) && !TO_BOOL_VALUE(v));
 	}
 
-	void VM::Push(const Value& value)
+	void VM::Push(const Value &value)
 	{
 		*(mStackTop++) = value;
 	}

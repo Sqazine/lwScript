@@ -172,7 +172,7 @@ namespace lws
 		if (!elements.empty())
 		{
 			for (auto [key, value] : elements)
-				result += key->Stringify() + L":" + value->Stringify()+L",";
+				result += key->Stringify() + L":" + value->Stringify() + L",";
 			result = result.substr(0, result.size() - 1);
 		}
 		result += L"}";
@@ -429,6 +429,26 @@ namespace lws
 	AstType DotExpr::Type() const
 	{
 		return AST_DOT;
+	}
+
+	NewExpr::NewExpr()
+	{
+	}
+	NewExpr::NewExpr(IdentifierExpr *callee)
+		: callee(callee)
+	{
+	}
+	NewExpr::~NewExpr()
+	{
+	}
+
+	std::wstring NewExpr::Stringify()
+	{
+		return L"new " + callee->Stringify();
+	}
+	AstType NewExpr::Type() const
+	{
+		return AST_NEW;
 	}
 
 	//----------------------Statements-----------------------------

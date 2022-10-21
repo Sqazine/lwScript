@@ -48,11 +48,14 @@ namespace lws
         void CompileArrayExpr(ArrayExpr *expr);
         void CompileTableExpr(TableExpr *expr);
         void CompileIndexExpr(IndexExpr *expr);
+        void CompileNewExpr(NewExpr *expr);
         void CompileIdentifierExpr(IdentifierExpr *expr, const RWState &state);
         void CompileLambdaExpr(LambdaExpr *expr);
         void CompileCallExpr(CallExpr *expr);
         void CompileDotExpr(DotExpr *expr, const RWState &state = RWState::READ);
         void CompileRefExpr(RefExpr *expr);
+
+        Symbol CompileFunction(FunctionStmt* stmt);
 
         uint64_t Emit(uint8_t opcode);
         uint64_t EmitUint64(uint64_t opcode);

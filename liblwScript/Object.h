@@ -10,12 +10,14 @@ namespace lws
 #define IS_TABLE_OBJ(obj) (obj->Type() == OBJECT_TABLE)
 #define IS_FUNCTION_OBJ(obj) (obj->Type() == OBJECT_FUNCTION)
 #define IS_REF_OBJ(obj) (obj->Type() == OBJECT_REF)
+#define IS_CLASS_OBJ(obj) (obj->Type() == OBJECT_CLASS)
 
 #define TO_STR_OBJ(obj) ((lws::StrObject *)obj)
 #define TO_ARRAY_OBJ(obj) ((lws::ArrayObject *)obj)
 #define TO_TABLE_OBJ(obj) ((lws::TableObject *)obj)
 #define TO_FUNCTION_OBJ(obj) ((lws::FunctionObject *)obj)
 #define TO_REF_OBJ(obj) ((lws::RefObject *)obj)
+#define TO_CLASS_OBJ(obj) ((lws::ClassObject *)obj)
 
 #define IS_NULL_VALUE(v) (v.Type() == VALUE_NULL)
 #define IS_INT_VALUE(v) (v.Type() == VALUE_INT)
@@ -49,6 +51,7 @@ namespace lws
         OBJECT_TABLE,
         OBJECT_FUNCTION,
         OBJECT_REF,
+        OBJECT_CLASS,
     };
 
     struct Object
@@ -150,5 +153,20 @@ namespace lws
         bool IsEqualTo(Object *other) override;
 
         Value *pointer;
+    };
+
+    struct ClassObject : public Object
+    {
+        ClassObject();
+        ~ClassObject();
+
+        std::wstring Stringify() const override;
+        ObjectType Type() const override;
+        void Mark() override;
+        void UnMark() override;
+        bool IsEqualTo(Object *other) override;
+
+        StrObject* name;
+        std::unordered_map<StrObject *, Value> members;
     };
 }

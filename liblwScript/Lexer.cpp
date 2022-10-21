@@ -47,8 +47,10 @@ namespace lws
 		{L"bool", TOKEN_BOOL},
 		{L"char", TOKEN_CHAR},
 		{L"void", TOKEN_VOID},
-		{L"get",TOKEN_GET},
-		{L"set",TOKEN_SET},
+		{L"get", TOKEN_GET},
+		{L"set", TOKEN_SET},
+		{L"as", TOKEN_AS},
+		{L"new", TOKEN_NEW},
 	};
 
 	Lexer::Lexer()
@@ -69,7 +71,7 @@ namespace lws
 			ScanToken();
 		}
 
-		AddToken(TOKEN_EOF,L"EOF");
+		AddToken(TOKEN_EOF, L"EOF");
 
 		return mTokens;
 	}

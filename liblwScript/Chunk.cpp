@@ -9,7 +9,7 @@ namespace lws
 	{
 	}
 
-	Chunk::Chunk(const OpCodes& opcodes, const std::vector<Value>& constants)
+	Chunk::Chunk(const OpCodes &opcodes, const std::vector<Value> &constants)
 		: opCodes(opcodes), constants(constants)
 	{
 	}
@@ -21,7 +21,7 @@ namespace lws
 	{
 		std::wstring result;
 		result += OpCodeStringify(opCodes);
-		for (const auto& c : constants)
+		for (const auto &c : constants)
 		{
 			if (IS_FUNCTION_VALUE(c))
 				result += TO_FUNCTION_VALUE(c)->Stringify();
@@ -33,7 +33,7 @@ namespace lws
 		return {};
 	}
 
-	std::wstring Chunk::OpCodeStringify(const OpCodes& opcodes) const
+	std::wstring Chunk::OpCodeStringify(const OpCodes &opcodes) const
 	{
 		std::wstringstream cout;
 		for (int32_t i = 0; i < opcodes.size(); ++i)
@@ -46,61 +46,61 @@ namespace lws
 				auto pos = EncodeUint64(opcodes, i);
 				std::wstring constantStr;
 				if (IS_FUNCTION_VALUE(constants[pos]))
-					constantStr = (L"<fn " + TO_FUNCTION_VALUE(constants[pos])->name + L":0x" + PointerAddressToString((void*)TO_FUNCTION_VALUE(constants[pos])) + L">");
+					constantStr = (L"<fn " + TO_FUNCTION_VALUE(constants[pos])->name + L":0x" + PointerAddressToString((void *)TO_FUNCTION_VALUE(constants[pos])) + L">");
 				else
 					constantStr = constants[pos].Stringify();
 				cout << std::setfill(L'0') << std::setw(8) << i << L"    "
-					<< L"OP_CONSTANT    " << pos << L"    '" << constantStr << L"'" << std::endl;
+					 << L"OP_CONSTANT    " << pos << L"    '" << constantStr << L"'" << std::endl;
 				i += 8;
 				break;
 			}
 			case OP_ADD:
 				cout << std::setfill(L'0') << std::setw(8) << i << L"    "
-					<< L"OP_ADD" << std::endl;
+					 << L"OP_ADD" << std::endl;
 				break;
 			case OP_SUB:
 				cout << std::setfill(L'0') << std::setw(8) << i << L"    "
-					<< L"OP_SUB" << std::endl;
+					 << L"OP_SUB" << std::endl;
 				break;
 			case OP_MUL:
 				cout << std::setfill(L'0') << std::setw(8) << i << L"    "
-					<< L"OP_MUL" << std::endl;
+					 << L"OP_MUL" << std::endl;
 				break;
 			case OP_DIV:
 				cout << std::setfill(L'0') << std::setw(8) << i << L"    "
-					<< L"OP_DIV" << std::endl;
+					 << L"OP_DIV" << std::endl;
 				break;
 			case OP_LESS:
 				cout << std::setfill(L'0') << std::setw(8) << i << L"    "
-					<< L"OP_LESS" << std::endl;
+					 << L"OP_LESS" << std::endl;
 				break;
 			case OP_GREATER:
 				cout << std::setfill(L'0') << std::setw(8) << i << L"    "
-					<< L"OP_GREATER" << std::endl;
+					 << L"OP_GREATER" << std::endl;
 				break;
 			case OP_NOT:
 				cout << std::setfill(L'0') << std::setw(8) << i << L"    "
-					<< L"OP_NOT" << std::endl;
+					 << L"OP_NOT" << std::endl;
 				break;
 			case OP_MINUS:
 				cout << std::setfill(L'0') << std::setw(8) << i << L"    "
-					<< L"OP_MINUS" << std::endl;
+					 << L"OP_MINUS" << std::endl;
 				break;
 			case OP_EQUAL:
 				cout << std::setfill(L'0') << std::setw(8) << i << L"    "
-					<< L"OP_EQUAL" << std::endl;
+					 << L"OP_EQUAL" << std::endl;
 				break;
 			case OP_RETURN:
 			{
 				auto pos = opcodes[i + 1];
 				cout << std::setfill(L'0') << std::setw(8) << i << L"    "
-					<< L"OP_RETURN    " << pos << std::endl;
+					 << L"OP_RETURN    " << pos << std::endl;
 				i++;
 				break;
 			}
 			case OP_FACTORIAL:
 				cout << std::setfill(L'0') << std::setw(8) << i << L"    "
-					<< L"OP_FACTORIAL" << std::endl;
+					 << L"OP_FACTORIAL" << std::endl;
 				break;
 			case OP_ARRAY:
 			{
@@ -118,7 +118,7 @@ namespace lws
 			}
 			case OP_INDEX:
 				cout << std::setfill(L'0') << std::setw(8) << i << L"    "
-					<< L"OP_INDEX" << std::endl;
+					 << L"OP_INDEX" << std::endl;
 				break;
 			case OP_JUMP_IF_FALSE:
 			{
@@ -185,6 +185,14 @@ namespace lws
 			{
 				auto argCount = opcodes[i + 1];
 				cout << std::setfill(L'0') << std::setw(8) << i << L"    " << L"OP_CALL    " << argCount << std::endl;
+				i++;
+				break;
+			}
+			case OP_CLASS:
+			{
+				auto memCount = opcodes[i + 1];
+
+				cout << std::setfill(L'0') << std::setw(8) << i << L"    " << L"OP_CLASS    " << memCount << std::endl;
 				i++;
 				break;
 			}

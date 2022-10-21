@@ -99,6 +99,7 @@ namespace lws
 		TOKEN_GET,					 // get
 		TOKEN_SET,					 // set
 		TOKEN_AS,					 // as
+		TOKEN_NEW,					 // new
 		TOKEN_EOF,
 	};
 
