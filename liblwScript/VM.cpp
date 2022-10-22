@@ -434,9 +434,18 @@ namespace lws
 			{
 				auto name = Pop();
 				auto memCount = *frame->ip++;
+				auto parentClassCount = *frame->ip++;
 
 				auto classObj = CreateObject<ClassObject>();
 				classObj->name = TO_STR_VALUE(name);
+
+				for(int i=0;i<parentClassCount;++i)
+				{
+					name=Pop();
+					auto parentClass=Pop();
+					classObj->parents[TO_STR_VALUE(name)]=TO_CLASS_VALUE(parentClass);
+				}
+
 				for (int i = 0; i < memCount; ++i)
 				{
 					name = Pop();
@@ -453,10 +462,11 @@ namespace lws
 					ASSERT(L"Invalid class call:not a valid class instance.");
 				auto propName = TO_STR_VALUE(Pop());
 				auto klass = TO_CLASS_VALUE(Pop());
-				auto iter = klass->members.find(propName);
-				if (iter == klass->members.end())
-					ASSERT(L"No property in class.");
-				Push(iter->second);
+				Value member;
+				bool hasValue=klass->GetMember(propName,member);
+				if(!hasValue)
+					ASSERT(L"No member:"+propName+L"in class:"+klass->name);
+				Push(member);
 				break;
 			}
 			case OP_SET_PROPERTY:

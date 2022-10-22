@@ -238,6 +238,7 @@ namespace lws
 
     bool NativeFunctionObject::IsEqualTo(Object *other)
     {
+        return true;
     }
 
     RefObject::RefObject(Value *pointer)
@@ -308,5 +309,34 @@ namespace lws
     }
     bool ClassObject::IsEqualTo(Object *other)
     {
+        return true;
+    }
+
+    bool ClassObject::GetMember(const std::wstring &name, Value &retV)
+    {
+        auto iter = members.find(name);
+        if (iter != members.end())
+        {
+            retV = iter->second;
+            return true;
+        }
+        else if (!parents.empty())
+        {
+            bool hasValue=false;
+            for (const auto &[k, v] : parents)
+            {
+                if (name == k)
+                    {
+                        retV=v;
+                        hasValue=true;
+                    }
+                else
+                {
+                    hasValue= v->GetMember(name,retV);
+                }
+            }
+            return hasValue;
+        }
+        return false;
     }
 }

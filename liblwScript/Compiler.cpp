@@ -182,9 +182,18 @@ namespace lws
 			memCount++;
 		}
 
+		for(const auto& parentClass:stmt->parentClasses)
+		{
+			CompileIdentifierExpr(parentClass, RWState::READ);
+			Emit(OP_CALL);
+			Emit(0);
+			EmitConstant(new StrObject(parentClass->literal));
+		}
+
 		EmitConstant(new StrObject(stmt->name));
 		Emit(OP_CLASS);
 		Emit(memCount);
+		Emit(stmt->parentClasses.size());
 		Emit(OP_RETURN);
 		Emit(1);
 

@@ -3,6 +3,7 @@
 #include <functional>
 #include <vector>
 #include <unordered_map>
+#include <map>
 #include "Chunk.h"
 namespace lws
 {
@@ -191,7 +192,10 @@ namespace lws
         void UnMark() override;
         bool IsEqualTo(Object *other) override;
 
+        bool GetMember(const std::wstring &name,Value& retV);
+
         std::wstring name;
         std::unordered_map<std::wstring, Value> members;
+        std::map<std::wstring, ClassObject *> parents;
     };
 }
