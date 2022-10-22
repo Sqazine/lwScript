@@ -339,4 +339,34 @@ namespace lws
         }
         return false;
     }
+    ClassFunctionBindObject::ClassFunctionBindObject()
+    {
+    }
+    ClassFunctionBindObject::ClassFunctionBindObject(const Value& receiver, FunctionObject* fn)
+        :receiver(receiver),function(fn)
+    {
+    }
+    ClassFunctionBindObject::~ClassFunctionBindObject()
+    {
+    }
+    std::wstring ClassFunctionBindObject::Stringify() const
+    {
+        return function->Stringify();
+    }
+    ObjectType ClassFunctionBindObject::Type() const
+    {
+        return OBJECT_CLASS_FUNCTION_BIND;
+    }
+    void ClassFunctionBindObject::Mark()
+    {
+        marked = true;
+    }
+    void ClassFunctionBindObject::UnMark()
+    {
+        marked = false;
+    }
+    bool ClassFunctionBindObject::IsEqualTo(Object* other)
+    {
+        return true;
+    }
 }

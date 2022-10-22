@@ -84,6 +84,7 @@ namespace lws
 		Expr *ParseRefExpr();
 		Expr *ParseLambdaExpr();
 		Expr *ParseNewExpr();
+		Expr *ParseThisExpr();
 		Expr *ParseInfixExpr(Expr *prefixExpr);
 		Expr *ParsePostfixExpr(Expr *prefixExpr);
 		Expr *ParseConditionExpr(Expr *prefixExpr);
@@ -109,6 +110,8 @@ namespace lws
 		Token Consume(const std::vector<TokenType> &types, std::wstring_view errMsg);
 
 		bool IsAtEnd();
+
+		int32_t mClassScopeDepth;
 
 		int64_t mCurPos;
 		AstStmts *mStmts;

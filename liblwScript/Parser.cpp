@@ -89,6 +89,7 @@ namespace lws
 			{TOKEN_PLUS_PLUS, &Parser::ParsePrefixExpr},
 			{TOKEN_MINUS_MINUS, &Parser::ParsePrefixExpr},
 			{TOKEN_NEW, &Parser::ParseNewExpr},
+			{TOKEN_THIS, &Parser::ParseThisExpr},
 	};
 
 	std::unordered_map<TokenType, InfixFn> Parser::mInfixFunctions =
@@ -164,6 +165,8 @@ namespace lws
 	void Parser::ResetStatus()
 	{
 		mCurPos = 0;
+
+		mClassScopeDepth=0;
 
 		if (mStmts != nullptr)
 		{
@@ -281,6 +284,9 @@ namespace lws
 		funcStmt->line = GetCurToken().line;
 		funcStmt->column = GetCurToken().column;
 
+		if(mClassScopeDepth>0)
+			funcStmt->type=FunctionType::CLASS_FUNCTION;
+
 		Consume(TOKEN_FUNCTION, L"Expect 'function' keyword");
 
 		funcStmt->name = (IdentifierExpr *)ParseIdentifierExpr();
@@ -305,6 +311,8 @@ namespace lws
 	}
 	Stmt *Parser::ParseClassDeclaration()
 	{
+		mClassScopeDepth++;
+
 		auto classStmt = new ClassStmt();
 		classStmt->line = GetCurToken().line;
 		classStmt->column = GetCurToken().column;
@@ -335,6 +343,8 @@ namespace lws
 		}
 
 		Consume(TOKEN_RBRACE, L"Expect '}' after class stmt's '{'");
+
+		--mClassScopeDepth;
 
 		return classStmt;
 	}
@@ -813,6 +823,14 @@ namespace lws
 		Consume(TOKEN_NEW, L"Expect 'new' keyword");
 		newExpr->callee = (IdentifierExpr *)ParseIdentifierExpr();
 		return newExpr;
+	}
+
+	Expr *Parser::ParseThisExpr()
+	{
+		Consume(TOKEN_THIS, L"Expect 'this' keyword");
+		if (mClassScopeDepth == 0)
+			ASSERT(L"Invalid 'this' keyword:Cannot use 'this' outside class.");
+		return new ThisExpr();
 	}
 
 	Expr *Parser::ParseExpr(Precedence precedence)

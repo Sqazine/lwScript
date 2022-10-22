@@ -49,6 +49,7 @@ namespace lws
         void CompileTableExpr(TableExpr *expr);
         void CompileIndexExpr(IndexExpr *expr);
         void CompileNewExpr(NewExpr *expr);
+        void CompileThisExpr(ThisExpr *expr);
         void CompileIdentifierExpr(IdentifierExpr *expr, const RWState &state);
         void CompileLambdaExpr(LambdaExpr *expr);
         void CompileCallExpr(CallExpr *expr);

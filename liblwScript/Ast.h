@@ -28,6 +28,7 @@ namespace lws
 		AST_DOT,
 		AST_CALL,
 		AST_NEW,
+		AST_THIS,
 		// stmt
 		AST_LET,
 		AST_CONST,
@@ -300,6 +301,15 @@ namespace lws
 		IdentifierExpr *callee;
 	};
 
+	struct ThisExpr : public Expr
+	{
+		ThisExpr();
+		~ThisExpr();
+
+		std::wstring Stringify() override;
+		AstType Type() const override;
+	};
+
 	struct Stmt : public AstNode
 	{
 		Stmt() {}
@@ -433,15 +443,23 @@ namespace lws
 		std::unordered_map<IdentifierExpr *, Expr *> enumItems;
 	};
 
+	enum class FunctionType
+	{
+		CLASS_INITIALIZER,
+		CLASS_FUNCTION,
+		NORMAL_FUNCTION,
+	};
+
 	struct FunctionStmt : public Stmt
 	{
 		FunctionStmt();
-		FunctionStmt(IdentifierExpr *name, std::vector<IdentifierExpr *> parameters, ScopeStmt *body);
+		FunctionStmt(FunctionType type, IdentifierExpr *name, std::vector<IdentifierExpr *> parameters, ScopeStmt *body);
 		~FunctionStmt();
 
 		std::wstring Stringify() override;
 		AstType Type() const override;
 
+		FunctionType type;
 		IdentifierExpr *name;
 		std::vector<IdentifierExpr *> parameters;
 		ScopeStmt *body;

@@ -14,12 +14,12 @@ namespace lws
 	{
 	}
 
-	FunctionObject *Compiler::Compile(Stmt *stmt)
+	FunctionObject* Compiler::Compile(Stmt* stmt)
 	{
 		if (stmt->Type() == AST_ASTSTMTS)
 		{
-			auto stmts = ((AstStmts *)stmt)->stmts;
-			for (const auto &s : stmts)
+			auto stmts = ((AstStmts*)stmt)->stmts;
+			for (const auto& s : stmts)
 				CompileDeclaration(s);
 		}
 		else
@@ -34,46 +34,46 @@ namespace lws
 
 	void Compiler::ResetStatus()
 	{
-		std::vector<FunctionObject *>().swap(mFunctionList);
+		std::vector<FunctionObject*>().swap(mFunctionList);
 		mFunctionList.emplace_back(new FunctionObject(L"_main_start_up"));
 
 		if (mSymbolTable)
 			delete mSymbolTable;
 		mSymbolTable = new SymbolTable();
 
-		for (const auto &libName : gLibraryMap)
+		for (const auto& libName : gLibraryMap)
 		{
 			auto idx = mSymbolTable->Declare(SymbolDescType::CONSTANT, libName);
 			mSymbolTable->Define(idx);
 		}
 	}
 
-	void Compiler::CompileDeclaration(Stmt *stmt)
+	void Compiler::CompileDeclaration(Stmt* stmt)
 	{
 		switch (stmt->Type())
 		{
 		case AST_LET:
-			CompileLetDeclaration((LetStmt *)stmt);
+			CompileLetDeclaration((LetStmt*)stmt);
 			break;
 		case AST_CONST:
-			CompileConstDeclaration((ConstStmt *)stmt);
+			CompileConstDeclaration((ConstStmt*)stmt);
 			break;
 		case AST_FUNCTION:
-			CompileFunctionDeclaration((FunctionStmt *)stmt);
+			CompileFunctionDeclaration((FunctionStmt*)stmt);
 			break;
 		case AST_CLASS:
-			CompileClassDeclaration((ClassStmt *)stmt);
+			CompileClassDeclaration((ClassStmt*)stmt);
 			break;
 		default:
-			CompileStmt((Stmt *)stmt);
+			CompileStmt((Stmt*)stmt);
 			break;
 		}
 	}
-	void Compiler::CompileLetDeclaration(LetStmt *stmt)
+	void Compiler::CompileLetDeclaration(LetStmt* stmt)
 	{
 		auto postfixExprs = StatsPostfixExprs(stmt);
 
-		for (const auto &[k, v] : stmt->variables)
+		for (const auto& [k, v] : stmt->variables)
 		{
 			auto idx = mSymbolTable->Declare(SymbolDescType::VARIABLE, k->literal);
 			CompileExpr(v.value);
@@ -82,7 +82,6 @@ namespace lws
 			{
 				Emit(OP_SET_GLOBAL);
 				Emit(symbol.idx);
-				Emit(OP_POP);
 			}
 			else if (symbol.type == SymbolType::LOCAL)
 			{
@@ -93,16 +92,16 @@ namespace lws
 
 		if (!postfixExprs.empty())
 		{
-			for (const auto &postfixExpr : postfixExprs)
-				CompilePostfixExpr((PostfixExpr *)postfixExpr, false);
+			for (const auto& postfixExpr : postfixExprs)
+				CompilePostfixExpr((PostfixExpr*)postfixExpr, false);
 		}
 	}
 
-	void Compiler::CompileConstDeclaration(ConstStmt *stmt)
+	void Compiler::CompileConstDeclaration(ConstStmt* stmt)
 	{
 		auto postfixExprs = StatsPostfixExprs(stmt);
 
-		for (const auto &[k, v] : stmt->consts)
+		for (const auto& [k, v] : stmt->consts)
 		{
 			auto idx = mSymbolTable->Declare(SymbolDescType::CONSTANT, k->literal);
 			CompileExpr(v.value);
@@ -111,7 +110,6 @@ namespace lws
 			{
 				Emit(OP_SET_GLOBAL);
 				Emit(symbol.idx);
-				Emit(OP_POP);
 			}
 			else if (symbol.type == SymbolType::LOCAL)
 			{
@@ -122,12 +120,12 @@ namespace lws
 
 		if (!postfixExprs.empty())
 		{
-			for (const auto &postfixExpr : postfixExprs)
-				CompilePostfixExpr((PostfixExpr *)postfixExpr, false);
+			for (const auto& postfixExpr : postfixExprs)
+				CompilePostfixExpr((PostfixExpr*)postfixExpr, false);
 		}
 	}
 
-	void Compiler::CompileFunctionDeclaration(FunctionStmt *stmt)
+	void Compiler::CompileFunctionDeclaration(FunctionStmt* stmt)
 	{
 		auto symbol = CompileFunction(stmt);
 
@@ -135,7 +133,6 @@ namespace lws
 		{
 			Emit(OP_SET_GLOBAL);
 			Emit(symbol.idx);
-			Emit(OP_POP);
 		}
 		else if (symbol.type == SymbolType::LOCAL)
 		{
@@ -143,7 +140,7 @@ namespace lws
 			Emit(symbol.idx);
 		}
 	}
-	void Compiler::CompileClassDeclaration(ClassStmt *stmt)
+	void Compiler::CompileClassDeclaration(ClassStmt* stmt)
 	{
 		auto idx = mSymbolTable->Declare(SymbolDescType::CONSTANT, stmt->name);
 
@@ -155,9 +152,9 @@ namespace lws
 		EnterScope();
 
 		int8_t memCount = 0;
-		for (const auto &letStmt : stmt->letStmts)
+		for (const auto& letStmt : stmt->letStmts)
 		{
-			for (const auto &[k, v] : letStmt->variables)
+			for (const auto& [k, v] : letStmt->variables)
 			{
 				CompileExpr(v.value);
 				EmitConstant(new StrObject(k->literal));
@@ -165,9 +162,9 @@ namespace lws
 			}
 		}
 
-		for (const auto &constStmt : stmt->constStmts)
+		for (const auto& constStmt : stmt->constStmts)
 		{
-			for (const auto &[k, v] : constStmt->consts)
+			for (const auto& [k, v] : constStmt->consts)
 			{
 				CompileExpr(v.value);
 				EmitConstant(new StrObject(k->literal));
@@ -175,14 +172,14 @@ namespace lws
 			}
 		}
 
-		for (const auto &fnStmt : stmt->fnStmts)
+		for (const auto& fnStmt : stmt->fnStmts)
 		{
 			CompileFunction(fnStmt);
 			EmitConstant(new StrObject(fnStmt->name->literal));
 			memCount++;
 		}
 
-		for(const auto& parentClass:stmt->parentClasses)
+		for (const auto& parentClass : stmt->parentClasses)
 		{
 			CompileIdentifierExpr(parentClass, RWState::READ);
 			Emit(OP_CALL);
@@ -209,7 +206,6 @@ namespace lws
 		{
 			Emit(OP_SET_GLOBAL);
 			Emit(symbol.idx);
-			Emit(OP_POP);
 		}
 		else if (symbol.type == SymbolType::LOCAL)
 		{
@@ -218,32 +214,32 @@ namespace lws
 		}
 	}
 
-	void Compiler::CompileStmt(Stmt *stmt)
+	void Compiler::CompileStmt(Stmt* stmt)
 	{
 		switch (stmt->Type())
 		{
 		case AST_IF:
-			CompileIfStmt((IfStmt *)stmt);
+			CompileIfStmt((IfStmt*)stmt);
 			break;
 		case AST_SCOPE:
 		{
 			EnterScope();
-			CompileScopeStmt((ScopeStmt *)stmt);
+			CompileScopeStmt((ScopeStmt*)stmt);
 			ExitScope();
 			break;
 		}
 		case AST_WHILE:
-			CompileWhileStmt((WhileStmt *)stmt);
+			CompileWhileStmt((WhileStmt*)stmt);
 			break;
 		case AST_RETURN:
-			CompileReturnStmt((ReturnStmt *)stmt);
+			CompileReturnStmt((ReturnStmt*)stmt);
 			break;
 		default:
-			CompileExprStmt((ExprStmt *)stmt);
+			CompileExprStmt((ExprStmt*)stmt);
 			break;
 		}
 	}
-	void Compiler::CompileExprStmt(ExprStmt *stmt)
+	void Compiler::CompileExprStmt(ExprStmt* stmt)
 	{
 		auto postfixExprs = StatsPostfixExprs(stmt->expr);
 
@@ -252,11 +248,11 @@ namespace lws
 
 		if (!postfixExprs.empty())
 		{
-			for (const auto &postfixExpr : postfixExprs)
-				CompilePostfixExpr((PostfixExpr *)postfixExpr, false);
+			for (const auto& postfixExpr : postfixExprs)
+				CompilePostfixExpr((PostfixExpr*)postfixExpr, false);
 		}
 	}
-	void Compiler::CompileIfStmt(IfStmt *stmt)
+	void Compiler::CompileIfStmt(IfStmt* stmt)
 	{
 		auto conditionPostfixExprs = StatsPostfixExprs(stmt->condition);
 
@@ -264,8 +260,8 @@ namespace lws
 
 		if (!conditionPostfixExprs.empty())
 		{
-			for (const auto &postfixExpr : conditionPostfixExprs)
-				CompilePostfixExpr((PostfixExpr *)postfixExpr, false);
+			for (const auto& postfixExpr : conditionPostfixExprs)
+				CompilePostfixExpr((PostfixExpr*)postfixExpr, false);
 		}
 
 		auto jmpIfFalseAddress = EmitJump(OP_JUMP_IF_FALSE);
@@ -285,12 +281,12 @@ namespace lws
 
 		PatchJump(jmpAddress);
 	}
-	void Compiler::CompileScopeStmt(ScopeStmt *stmt)
+	void Compiler::CompileScopeStmt(ScopeStmt* stmt)
 	{
-		for (const auto &s : stmt->stmts)
+		for (const auto& s : stmt->stmts)
 			CompileDeclaration(s);
 	}
-	void Compiler::CompileWhileStmt(WhileStmt *stmt)
+	void Compiler::CompileWhileStmt(WhileStmt* stmt)
 	{
 		uint64_t jmpAddress = CurOpCodes().size() - 1;
 
@@ -300,8 +296,8 @@ namespace lws
 
 		if (!conditionPostfixExprs.empty())
 		{
-			for (const auto &postfixExpr : conditionPostfixExprs)
-				CompilePostfixExpr((PostfixExpr *)postfixExpr, false);
+			for (const auto& postfixExpr : conditionPostfixExprs)
+				CompilePostfixExpr((PostfixExpr*)postfixExpr, false);
 		}
 
 		auto jmpIfFalseAddress = EmitJump(OP_JUMP_IF_FALSE);
@@ -313,7 +309,7 @@ namespace lws
 
 		PatchJump(jmpIfFalseAddress);
 	}
-	void Compiler::CompileReturnStmt(ReturnStmt *stmt)
+	void Compiler::CompileReturnStmt(ReturnStmt* stmt)
 	{
 		auto postfixExprs = StatsPostfixExprs(stmt->expr);
 
@@ -332,74 +328,77 @@ namespace lws
 
 		if (!postfixExprs.empty())
 		{
-			for (const auto &postfixExpr : postfixExprs)
-				CompilePostfixExpr((PostfixExpr *)postfixExpr, false);
+			for (const auto& postfixExpr : postfixExprs)
+				CompilePostfixExpr((PostfixExpr*)postfixExpr, false);
 		}
 	}
 
-	void Compiler::CompileExpr(Expr *expr, const RWState &state)
+	void Compiler::CompileExpr(Expr* expr, const RWState& state)
 	{
 		switch (expr->Type())
 		{
 		case AST_INFIX:
-			CompileInfixExpr((InfixExpr *)expr);
+			CompileInfixExpr((InfixExpr*)expr);
 			break;
 		case AST_INT:
-			CompileIntNumExpr((IntNumExpr *)expr);
+			CompileIntNumExpr((IntNumExpr*)expr);
 			break;
 		case AST_REAL:
-			CompileRealNumExpr((RealNumExpr *)expr);
+			CompileRealNumExpr((RealNumExpr*)expr);
 			break;
 		case AST_BOOL:
-			CompileBoolExpr((BoolExpr *)expr);
+			CompileBoolExpr((BoolExpr*)expr);
 			break;
 		case AST_PREFIX:
-			CompilePrefixExpr((PrefixExpr *)expr);
+			CompilePrefixExpr((PrefixExpr*)expr);
 			break;
 		case AST_POSTFIX:
-			CompilePostfixExpr((PostfixExpr *)expr);
+			CompilePostfixExpr((PostfixExpr*)expr);
 			break;
 		case AST_STR:
-			CompileStrExpr((StrExpr *)expr);
+			CompileStrExpr((StrExpr*)expr);
 			break;
 		case AST_NULL:
-			CompileNullExpr((NullExpr *)expr);
+			CompileNullExpr((NullExpr*)expr);
 			break;
 		case AST_GROUP:
-			CompileGroupExpr((GroupExpr *)expr);
+			CompileGroupExpr((GroupExpr*)expr);
 			break;
 		case AST_ARRAY:
-			CompileArrayExpr((ArrayExpr *)expr);
+			CompileArrayExpr((ArrayExpr*)expr);
 			break;
 		case AST_TABLE:
-			CompileTableExpr((TableExpr *)expr);
+			CompileTableExpr((TableExpr*)expr);
 			break;
 		case AST_INDEX:
-			CompileIndexExpr((IndexExpr *)expr);
+			CompileIndexExpr((IndexExpr*)expr);
 			break;
 		case AST_IDENTIFIER:
-			CompileIdentifierExpr((IdentifierExpr *)expr, state);
+			CompileIdentifierExpr((IdentifierExpr*)expr, state);
 			break;
 		case AST_LAMBDA:
-			CompileLambdaExpr((LambdaExpr *)expr);
+			CompileLambdaExpr((LambdaExpr*)expr);
 			break;
 		case AST_CALL:
-			CompileCallExpr((CallExpr *)expr);
+			CompileCallExpr((CallExpr*)expr);
 			break;
 		case AST_DOT:
-			CompileDotExpr((DotExpr *)expr, state);
+			CompileDotExpr((DotExpr*)expr, state);
 			break;
 		case AST_REF:
-			CompileRefExpr((RefExpr *)expr);
+			CompileRefExpr((RefExpr*)expr);
 			break;
 		case AST_NEW:
-			CompileNewExpr((NewExpr *)expr);
+			CompileNewExpr((NewExpr*)expr);
+			break;
+		case AST_THIS:
+			CompileThisExpr((ThisExpr*)expr);
 			break;
 		default:
 			break;
 		}
 	}
-	void Compiler::CompileInfixExpr(InfixExpr *expr)
+	void Compiler::CompileInfixExpr(InfixExpr* expr)
 	{
 		if (expr->op == L"=")
 		{
@@ -470,19 +469,19 @@ namespace lws
 			}
 		}
 	}
-	void Compiler::CompileIntNumExpr(IntNumExpr *expr)
+	void Compiler::CompileIntNumExpr(IntNumExpr* expr)
 	{
 		EmitConstant(expr->value);
 	}
-	void Compiler::CompileRealNumExpr(RealNumExpr *expr)
+	void Compiler::CompileRealNumExpr(RealNumExpr* expr)
 	{
 		EmitConstant(expr->value);
 	}
-	void Compiler::CompileBoolExpr(BoolExpr *expr)
+	void Compiler::CompileBoolExpr(BoolExpr* expr)
 	{
 		EmitConstant(expr->value);
 	}
-	void Compiler::CompilePrefixExpr(PrefixExpr *expr)
+	void Compiler::CompilePrefixExpr(PrefixExpr* expr)
 	{
 		CompileExpr(expr->right);
 		if (expr->op == L"!")
@@ -491,8 +490,8 @@ namespace lws
 			Emit(OP_MINUS);
 		else if (expr->op == L"++")
 		{
-			while (expr->right->Type() == AST_PREFIX && ((PrefixExpr *)expr->right)->op == L"++" || ((PrefixExpr *)expr->right)->op == L"--")
-				expr = (PrefixExpr *)expr->right;
+			while (expr->right->Type() == AST_PREFIX && ((PrefixExpr*)expr->right)->op == L"++" || ((PrefixExpr*)expr->right)->op == L"--")
+				expr = (PrefixExpr*)expr->right;
 			EmitConstant((int64_t)1);
 			Emit(OP_ADD);
 			CompileExpr(expr->right, RWState::WRITE);
@@ -500,8 +499,8 @@ namespace lws
 		}
 		else if (expr->op == L"--")
 		{
-			while (expr->right->Type() == AST_PREFIX && ((PrefixExpr *)expr->right)->op == L"++" || ((PrefixExpr *)expr->right)->op == L"--")
-				expr = (PrefixExpr *)expr->right;
+			while (expr->right->Type() == AST_PREFIX && ((PrefixExpr*)expr->right)->op == L"++" || ((PrefixExpr*)expr->right)->op == L"--")
+				expr = (PrefixExpr*)expr->right;
 			EmitConstant((int64_t)1);
 			Emit(OP_SUB);
 			CompileExpr(expr->right, RWState::WRITE);
@@ -510,7 +509,7 @@ namespace lws
 		else
 			ASSERT(L"No prefix op:" + expr->op);
 	}
-	void Compiler::CompilePostfixExpr(PostfixExpr *expr, bool isDelayCompile)
+	void Compiler::CompilePostfixExpr(PostfixExpr* expr, bool isDelayCompile)
 	{
 		CompileExpr(expr->left);
 		if (expr->op == L"!")
@@ -527,21 +526,21 @@ namespace lws
 			CompileExpr(expr->left, RWState::WRITE);
 		}
 	}
-	void Compiler::CompileStrExpr(StrExpr *expr)
+	void Compiler::CompileStrExpr(StrExpr* expr)
 	{
 		EmitConstant(new StrObject(expr->value));
 	}
-	void Compiler::CompileNullExpr(NullExpr *expr)
+	void Compiler::CompileNullExpr(NullExpr* expr)
 	{
 		EmitConstant(Value());
 	}
-	void Compiler::CompileGroupExpr(GroupExpr *expr)
+	void Compiler::CompileGroupExpr(GroupExpr* expr)
 	{
 		CompileExpr(expr->expr);
 	}
-	void Compiler::CompileArrayExpr(ArrayExpr *expr)
+	void Compiler::CompileArrayExpr(ArrayExpr* expr)
 	{
-		for (const auto &e : expr->elements)
+		for (const auto& e : expr->elements)
 			CompileExpr(e);
 		Emit(OP_ARRAY);
 
@@ -549,9 +548,9 @@ namespace lws
 		EmitUint64(pos);
 	}
 
-	void Compiler::CompileTableExpr(TableExpr *expr)
+	void Compiler::CompileTableExpr(TableExpr* expr)
 	{
-		for (const auto &[k, v] : expr->elements)
+		for (const auto& [k, v] : expr->elements)
 		{
 			CompileExpr(v);
 			CompileExpr(k);
@@ -561,21 +560,26 @@ namespace lws
 		EmitUint64(pos);
 	}
 
-	void Compiler::CompileIndexExpr(IndexExpr *expr)
+	void Compiler::CompileIndexExpr(IndexExpr* expr)
 	{
 		CompileExpr(expr->ds);
 		CompileExpr(expr->index);
 		Emit(OP_INDEX);
 	}
 
-	void Compiler::CompileNewExpr(NewExpr *expr)
+	void Compiler::CompileNewExpr(NewExpr* expr)
 	{
 		CompileIdentifierExpr(expr->callee, RWState::READ);
 		Emit(OP_CALL);
 		Emit(0);
 	}
 
-	void Compiler::CompileIdentifierExpr(IdentifierExpr *expr, const RWState &state)
+	void Compiler::CompileThisExpr(ThisExpr* expr)
+	{
+		CompileExpr(new IdentifierExpr(L"this"));
+	}
+
+	void Compiler::CompileIdentifierExpr(IdentifierExpr* expr, const RWState& state)
 	{
 		OpCode getOp, setOp;
 		auto symbol = mSymbolTable->Resolve(expr->literal);
@@ -606,18 +610,18 @@ namespace lws
 			Emit(symbol.idx);
 		}
 	}
-	void Compiler::CompileLambdaExpr(LambdaExpr *expr)
+	void Compiler::CompileLambdaExpr(LambdaExpr* expr)
 	{
 	}
-	void Compiler::CompileCallExpr(CallExpr *expr)
+	void Compiler::CompileCallExpr(CallExpr* expr)
 	{
 		CompileExpr(expr->callee);
-		for (const auto &arg : expr->arguments)
+		for (const auto& arg : expr->arguments)
 			CompileExpr(arg);
 		Emit(OP_CALL);
 		Emit(expr->arguments.size());
 	}
-	void Compiler::CompileDotExpr(DotExpr *expr, const RWState &state)
+	void Compiler::CompileDotExpr(DotExpr* expr, const RWState& state)
 	{
 		CompileExpr(expr->callee);
 		EmitConstant(new StrObject(expr->callMember->literal));
@@ -626,7 +630,7 @@ namespace lws
 		else
 			Emit(OP_GET_PROPERTY);
 	}
-	void Compiler::CompileRefExpr(RefExpr *expr)
+	void Compiler::CompileRefExpr(RefExpr* expr)
 	{
 		auto symbol = mSymbolTable->Resolve(expr->refExpr->Stringify());
 		if (symbol.type == SymbolType::GLOBAL)
@@ -641,7 +645,7 @@ namespace lws
 		}
 	}
 
-	Symbol Compiler::CompileFunction(FunctionStmt *stmt)
+	Symbol Compiler::CompileFunction(FunctionStmt* stmt)
 	{
 		auto idx = mSymbolTable->Declare(SymbolDescType::CONSTANT, stmt->name->literal);
 
@@ -650,8 +654,16 @@ namespace lws
 		mFunctionList.emplace_back(new FunctionObject(stmt->name->literal));
 		mSymbolTable = new SymbolTable(mSymbolTable);
 
+		if (stmt->type == FunctionType::CLASS_FUNCTION || stmt->type == FunctionType::CLASS_INITIALIZER) {
+			Symbol* symbol = &mSymbolTable->mSymbols[mSymbolTable->mSymbolIdx++];
+			symbol->depth = 0;
+			symbol->type = SymbolType::LOCAL;
+			symbol->descType = SymbolDescType::CONSTANT;
+			symbol->name = L"this";
+		}
 		CurFunction()->arity = stmt->parameters.size();
-		for (const auto &param : stmt->parameters)
+
+		for (const auto& param : stmt->parameters)
 		{
 			auto idx = mSymbolTable->Declare(SymbolDescType::VARIABLE, param->literal);
 			auto symbol = mSymbolTable->Define(idx);
@@ -698,7 +710,7 @@ namespace lws
 		return Emit(decoded[7]);
 	}
 
-	uint64_t Compiler::EmitConstant(const Value &value)
+	uint64_t Compiler::EmitConstant(const Value& value)
 	{
 		Emit(OP_CONSTANT);
 		uint64_t pos = AddConstant(value);
@@ -726,7 +738,7 @@ namespace lws
 		CurOpCodes()[offset + 7] = (jumpAddress >> 0) & 0xFF;
 	}
 
-	uint64_t Compiler::AddConstant(const Value &value)
+	uint64_t Compiler::AddConstant(const Value& value)
 	{
 		CurChunk().constants.emplace_back(value);
 		return CurChunk().constants.size() - 1;
@@ -751,22 +763,22 @@ namespace lws
 		}
 	}
 
-	Chunk &Compiler::CurChunk()
+	Chunk& Compiler::CurChunk()
 	{
 		return CurFunction()->chunk;
 	}
 
-	FunctionObject *Compiler::CurFunction()
+	FunctionObject* Compiler::CurFunction()
 	{
 		return mFunctionList.back();
 	}
 
-	OpCodes &Compiler::CurOpCodes()
+	OpCodes& Compiler::CurOpCodes()
 	{
 		return CurChunk().opCodes;
 	}
 
-	std::vector<Expr *> Compiler::StatsPostfixExprs(AstNode *astNode)
+	std::vector<Expr*> Compiler::StatsPostfixExprs(AstNode* astNode)
 	{
 		if (!astNode) // check astnode is nullptr
 			return {};
@@ -784,8 +796,8 @@ namespace lws
 			return {};
 		case AST_ASTSTMTS:
 		{
-			std::vector<Expr *> result;
-			for (const auto &stmt : ((AstStmts *)astNode)->stmts)
+			std::vector<Expr*> result;
+			for (const auto& stmt : ((AstStmts*)astNode)->stmts)
 			{
 				auto stmtResult = StatsPostfixExprs(stmt);
 				result.insert(result.end(), stmtResult.begin(), stmtResult.end());
@@ -793,13 +805,13 @@ namespace lws
 			return result;
 		}
 		case AST_RETURN:
-			return StatsPostfixExprs(((ReturnStmt *)astNode)->expr);
+			return StatsPostfixExprs(((ReturnStmt*)astNode)->expr);
 		case AST_EXPR:
-			return StatsPostfixExprs(((ExprStmt *)astNode)->expr);
+			return StatsPostfixExprs(((ExprStmt*)astNode)->expr);
 		case AST_LET:
 		{
-			std::vector<Expr *> result;
-			for (const auto &[k, v] : ((LetStmt *)astNode)->variables)
+			std::vector<Expr*> result;
+			for (const auto& [k, v] : ((LetStmt*)astNode)->variables)
 			{
 				auto varResult = StatsPostfixExprs(v.value);
 				result.insert(result.end(), varResult.begin(), varResult.end());
@@ -808,8 +820,8 @@ namespace lws
 		}
 		case AST_CONST:
 		{
-			std::vector<Expr *> result;
-			for (const auto &[k, v] : ((ConstStmt *)astNode)->consts)
+			std::vector<Expr*> result;
+			for (const auto& [k, v] : ((ConstStmt*)astNode)->consts)
 			{
 				auto varResult = StatsPostfixExprs(v.value);
 				result.insert(result.end(), varResult.begin(), varResult.end());
@@ -818,8 +830,8 @@ namespace lws
 		}
 		case AST_SCOPE:
 		{
-			std::vector<Expr *> result;
-			for (const auto &stmt : ((ScopeStmt *)astNode)->stmts)
+			std::vector<Expr*> result;
+			for (const auto& stmt : ((ScopeStmt*)astNode)->stmts)
 			{
 				auto stmtResult = StatsPostfixExprs(stmt);
 				result.insert(result.end(), stmtResult.begin(), stmtResult.end());
@@ -828,31 +840,31 @@ namespace lws
 		}
 		case AST_IF:
 		{
-			std::vector<Expr *> result;
-			auto conditionResult = StatsPostfixExprs(((IfStmt *)astNode)->condition);
+			std::vector<Expr*> result;
+			auto conditionResult = StatsPostfixExprs(((IfStmt*)astNode)->condition);
 			result.insert(result.end(), conditionResult.begin(), conditionResult.end());
-			auto thenBranchResult = StatsPostfixExprs(((IfStmt *)astNode)->thenBranch);
+			auto thenBranchResult = StatsPostfixExprs(((IfStmt*)astNode)->thenBranch);
 			result.insert(result.end(), thenBranchResult.begin(), thenBranchResult.end());
-			auto elseBranchResult = StatsPostfixExprs(((IfStmt *)astNode)->elseBranch);
+			auto elseBranchResult = StatsPostfixExprs(((IfStmt*)astNode)->elseBranch);
 			result.insert(result.end(), elseBranchResult.begin(), elseBranchResult.end());
 			return result;
 		}
 		case AST_WHILE:
 		{
-			std::vector<Expr *> result = StatsPostfixExprs(((WhileStmt *)astNode)->condition);
-			auto bodyResult = StatsPostfixExprs(((WhileStmt *)astNode)->body);
+			std::vector<Expr*> result = StatsPostfixExprs(((WhileStmt*)astNode)->condition);
+			auto bodyResult = StatsPostfixExprs(((WhileStmt*)astNode)->body);
 			result.insert(result.end(), bodyResult.begin(), bodyResult.end());
-			if (((WhileStmt *)astNode)->increment)
+			if (((WhileStmt*)astNode)->increment)
 			{
-				auto incrementResult = StatsPostfixExprs(((WhileStmt *)astNode)->increment);
+				auto incrementResult = StatsPostfixExprs(((WhileStmt*)astNode)->increment);
 				result.insert(result.end(), incrementResult.begin(), incrementResult.end());
 			}
 			return result;
 		}
 		case AST_ENUM:
 		{
-			std::vector<Expr *> result;
-			for (const auto &[k, v] : ((EnumStmt *)astNode)->enumItems)
+			std::vector<Expr*> result;
+			for (const auto& [k, v] : ((EnumStmt*)astNode)->enumItems)
 			{
 				auto kResult = StatsPostfixExprs(k);
 				auto vResult = StatsPostfixExprs(v);
@@ -863,28 +875,28 @@ namespace lws
 		}
 		case AST_FUNCTION:
 		{
-			std::vector<Expr *> result;
-			auto bodyResult = StatsPostfixExprs(((FunctionStmt *)astNode)->body);
+			std::vector<Expr*> result;
+			auto bodyResult = StatsPostfixExprs(((FunctionStmt*)astNode)->body);
 			result.insert(result.end(), bodyResult.begin(), bodyResult.end());
 			return result;
 		}
 		case AST_CLASS:
 		{
-			std::vector<Expr *> result;
+			std::vector<Expr*> result;
 
-			for (const auto &letStmt : ((ClassStmt *)astNode)->letStmts)
+			for (const auto& letStmt : ((ClassStmt*)astNode)->letStmts)
 			{
 				auto letStmtResult = StatsPostfixExprs(letStmt);
 				result.insert(result.end(), letStmtResult.begin(), letStmtResult.end());
 			}
 
-			for (const auto &constStmt : ((ClassStmt *)astNode)->constStmts)
+			for (const auto& constStmt : ((ClassStmt*)astNode)->constStmts)
 			{
 				auto constStmtResult = StatsPostfixExprs(constStmt);
 				result.insert(result.end(), constStmtResult.begin(), constStmtResult.end());
 			}
 
-			for (const auto &fnStmt : ((ClassStmt *)astNode)->fnStmts)
+			for (const auto& fnStmt : ((ClassStmt*)astNode)->fnStmts)
 			{
 				auto fnStmtResult = StatsPostfixExprs(fnStmt);
 				result.insert(result.end(), fnStmtResult.begin(), fnStmtResult.end());
@@ -892,11 +904,11 @@ namespace lws
 			return result;
 		}
 		case AST_GROUP:
-			return StatsPostfixExprs(((GroupExpr *)astNode)->expr);
+			return StatsPostfixExprs(((GroupExpr*)astNode)->expr);
 		case AST_ARRAY:
 		{
-			std::vector<Expr *> result;
-			for (const auto &e : ((ArrayExpr *)astNode)->elements)
+			std::vector<Expr*> result;
+			for (const auto& e : ((ArrayExpr*)astNode)->elements)
 			{
 				auto eResult = StatsPostfixExprs(e);
 				result.insert(result.end(), eResult.begin(), eResult.end());
@@ -905,8 +917,8 @@ namespace lws
 		}
 		case AST_TABLE:
 		{
-			std::vector<Expr *> result;
-			for (const auto &[k, v] : ((TableExpr *)astNode)->elements)
+			std::vector<Expr*> result;
+			for (const auto& [k, v] : ((TableExpr*)astNode)->elements)
 			{
 				auto kResult = StatsPostfixExprs(k);
 				auto vResult = StatsPostfixExprs(v);
@@ -917,20 +929,20 @@ namespace lws
 		}
 		case AST_INDEX:
 		{
-			std::vector<Expr *> result;
-			auto dsResult = StatsPostfixExprs(((IndexExpr *)astNode)->ds);
+			std::vector<Expr*> result;
+			auto dsResult = StatsPostfixExprs(((IndexExpr*)astNode)->ds);
 			result.insert(result.end(), dsResult.begin(), dsResult.end());
-			auto indexResult = StatsPostfixExprs(((IndexExpr *)astNode)->index);
+			auto indexResult = StatsPostfixExprs(((IndexExpr*)astNode)->index);
 			result.insert(result.end(), indexResult.begin(), indexResult.end());
 			return result;
 		}
 		case AST_PREFIX:
-			return StatsPostfixExprs(((PrefixExpr *)astNode)->right);
+			return StatsPostfixExprs(((PrefixExpr*)astNode)->right);
 		case AST_INFIX:
 		{
-			std::vector<Expr *> result;
-			auto leftResult = StatsPostfixExprs(((InfixExpr *)astNode)->left);
-			auto rightResult = StatsPostfixExprs(((InfixExpr *)astNode)->right);
+			std::vector<Expr*> result;
+			auto leftResult = StatsPostfixExprs(((InfixExpr*)astNode)->left);
+			auto rightResult = StatsPostfixExprs(((InfixExpr*)astNode)->right);
 
 			result.insert(result.end(), leftResult.begin(), leftResult.end());
 			result.insert(result.end(), rightResult.begin(), rightResult.end());
@@ -938,41 +950,41 @@ namespace lws
 		}
 		case AST_POSTFIX:
 		{
-			std::vector<Expr *> result;
-			auto leftResult = StatsPostfixExprs(((PostfixExpr *)astNode)->left);
+			std::vector<Expr*> result;
+			auto leftResult = StatsPostfixExprs(((PostfixExpr*)astNode)->left);
 			result.insert(result.end(), leftResult.begin(), leftResult.end());
-			result.emplace_back((PostfixExpr *)astNode);
+			result.emplace_back((PostfixExpr*)astNode);
 			return result;
 		}
 		case AST_CONDITION:
 		{
-			std::vector<Expr *> result;
-			auto conditionResult = StatsPostfixExprs(((ConditionExpr *)astNode)->condition);
+			std::vector<Expr*> result;
+			auto conditionResult = StatsPostfixExprs(((ConditionExpr*)astNode)->condition);
 			result.insert(result.end(), conditionResult.begin(), conditionResult.end());
-			auto trueBranchResult = StatsPostfixExprs(((ConditionExpr *)astNode)->trueBranch);
+			auto trueBranchResult = StatsPostfixExprs(((ConditionExpr*)astNode)->trueBranch);
 			result.insert(result.end(), trueBranchResult.begin(), trueBranchResult.end());
-			auto falseBranchResult = StatsPostfixExprs(((ConditionExpr *)astNode)->falseBranch);
+			auto falseBranchResult = StatsPostfixExprs(((ConditionExpr*)astNode)->falseBranch);
 			result.insert(result.end(), falseBranchResult.begin(), falseBranchResult.end());
 			return result;
 		}
 		case AST_LAMBDA:
 		{
-			std::vector<Expr *> result;
-			for (const auto &param : ((LambdaExpr *)astNode)->parameters)
+			std::vector<Expr*> result;
+			for (const auto& param : ((LambdaExpr*)astNode)->parameters)
 			{
 				auto paramResult = StatsPostfixExprs(param);
 				result.insert(result.end(), paramResult.begin(), paramResult.end());
 			}
-			auto bodyResult = StatsPostfixExprs(((LambdaExpr *)astNode)->body);
+			auto bodyResult = StatsPostfixExprs(((LambdaExpr*)astNode)->body);
 			result.insert(result.end(), bodyResult.begin(), bodyResult.end());
 			return result;
 		}
 		case AST_CALL:
 		{
-			std::vector<Expr *> result;
-			auto calleeResult = StatsPostfixExprs(((CallExpr *)astNode)->callee);
+			std::vector<Expr*> result;
+			auto calleeResult = StatsPostfixExprs(((CallExpr*)astNode)->callee);
 			result.insert(result.end(), calleeResult.begin(), calleeResult.end());
-			for (const auto &argument : ((CallExpr *)astNode)->arguments)
+			for (const auto& argument : ((CallExpr*)astNode)->arguments)
 			{
 				auto argumentResult = StatsPostfixExprs(argument);
 				result.insert(result.end(), argumentResult.begin(), argumentResult.end());
@@ -980,7 +992,7 @@ namespace lws
 			return result;
 		}
 		case AST_REF:
-			return StatsPostfixExprs(((RefExpr *)astNode)->refExpr);
+			return StatsPostfixExprs(((RefExpr*)astNode)->refExpr);
 		default:
 			return {};
 		}

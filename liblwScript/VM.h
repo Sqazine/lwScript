@@ -38,6 +38,8 @@ namespace lws
         template <class T>
         void FreeObject(T *object);
 
+        void BindClassFunction(ClassObject* klass,const std::wstring& funcName);
+
         LibraryManager mLibraryManager;
 
         Value mGlobalVariables[GLOBAL_VARIABLE_MAX];
