@@ -329,7 +329,7 @@ namespace lws
 				Push(CreateObject<TableObject>(elements));
 				break;
 			}
-			case OP_INDEX:
+			case OP_GET_INDEX:
 			{
 				auto idxValue = Pop();
 				auto dsValue = Pop();
@@ -363,6 +363,42 @@ namespace lws
 						Push(iter->second);
 					else
 						ASSERT("No key in table.");
+				}
+				break;
+			}
+			case OP_SET_INDEX:
+			{
+				auto idxValue = Pop();
+				auto dsValue = Pop();
+				auto newValue=Pop();
+				if (IS_ARRAY_VALUE(dsValue))
+				{
+					auto array = TO_ARRAY_VALUE(dsValue);
+					if (!IS_INT_VALUE(idxValue))
+						ASSERT(L"Invalid idx for array,only integer is available.");
+					auto intIdx = TO_INT_VALUE(idxValue);
+					if (intIdx < 0 || intIdx >= (int64_t)array->elements.size())
+						ASSERT(L"Idx out of range.");
+					array->elements[intIdx]=newValue;
+				}
+				else if (IS_STR_VALUE(dsValue))
+				{
+					auto str = TO_STR_VALUE(dsValue);
+					if (!IS_INT_VALUE(idxValue))
+						ASSERT(L"Invalid idx for array,only integer is available.");
+					auto intIdx = TO_INT_VALUE(idxValue);
+					if (intIdx < 0 || intIdx >= (int64_t)str.size())
+						ASSERT("Idx out of range.");
+
+					if(!IS_STR_VALUE(newValue))
+						ASSERT(L"Cannot insert a non string clip:"+newValue.Stringify()+L" to string:"+str);
+					
+					str.append(TO_STR_VALUE(newValue),intIdx,TO_STR_VALUE(newValue).size());
+				}
+				else if (IS_TABLE_VALUE(dsValue))
+				{
+					auto table = TO_TABLE_VALUE(dsValue);
+					table->elements[idxValue]=newValue;
 				}
 				break;
 			}

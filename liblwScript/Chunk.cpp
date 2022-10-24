@@ -116,10 +116,16 @@ namespace lws
 				i += 8;
 				break;
 			}
-			case OP_INDEX:
-				cout << std::setfill(L'0') << std::setw(8) << i << L"    "
-					 << L"OP_INDEX" << std::endl;
+			case OP_GET_INDEX:
+			{
+				cout << std::setfill(L'0') << std::setw(8) << i << L"    " << L"OP_GET_INDEX" << std::endl;
 				break;
+			}
+			case OP_SET_INDEX:
+			{
+				cout << std::setfill(L'0') << std::setw(8) << i << L"    " << L"OP_SET_INDEX" << std::endl;
+				break;
+			}
 			case OP_JUMP_IF_FALSE:
 			{
 				auto address = EncodeUint64(opcodes, i);
@@ -191,9 +197,9 @@ namespace lws
 			case OP_CLASS:
 			{
 				auto memCount = opcodes[i + 1];
-				auto parentClassCount=opcodes[i+2];
-				cout << std::setfill(L'0') << std::setw(8) << i << L"    " << L"OP_CLASS    " << memCount<<L"    "<<parentClassCount << std::endl;
-				i+=2;
+				auto parentClassCount = opcodes[i + 2];
+				cout << std::setfill(L'0') << std::setw(8) << i << L"    " << L"OP_CLASS    " << memCount << L"    " << parentClassCount << std::endl;
+				i += 2;
 				break;
 			}
 			case OP_GET_PROPERTY:

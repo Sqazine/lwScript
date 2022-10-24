@@ -244,7 +244,6 @@ namespace lws
 		auto postfixExprs = StatsPostfixExprs(stmt->expr);
 
 		CompileExpr(stmt->expr);
-		Emit(OP_POP);
 
 		if (!postfixExprs.empty())
 		{
@@ -371,7 +370,7 @@ namespace lws
 			CompileTableExpr((TableExpr *)expr);
 			break;
 		case AST_INDEX:
-			CompileIndexExpr((IndexExpr *)expr);
+			CompileIndexExpr((IndexExpr *)expr,state);
 			break;
 		case AST_IDENTIFIER:
 			CompileIdentifierExpr((IdentifierExpr *)expr, state);
@@ -395,7 +394,7 @@ namespace lws
 			CompileThisExpr((ThisExpr *)expr);
 			break;
 		case AST_BASE:
-			CompileBaseExpr((BaseExpr*)expr);
+			CompileBaseExpr((BaseExpr *)expr);
 			break;
 		default:
 			break;
@@ -563,11 +562,14 @@ namespace lws
 		EmitUint64(pos);
 	}
 
-	void Compiler::CompileIndexExpr(IndexExpr *expr)
+	void Compiler::CompileIndexExpr(IndexExpr *expr, const RWState &state)
 	{
 		CompileExpr(expr->ds);
 		CompileExpr(expr->index);
-		Emit(OP_INDEX);
+		if (state == RWState::READ)
+			Emit(OP_GET_INDEX);
+		else
+			Emit(OP_SET_INDEX);
 	}
 
 	void Compiler::CompileNewExpr(NewExpr *expr)
