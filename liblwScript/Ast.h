@@ -29,6 +29,7 @@ namespace lws
 		AST_CALL,
 		AST_NEW,
 		AST_THIS,
+		AST_BASE,
 		// stmt
 		AST_LET,
 		AST_CONST,
@@ -308,6 +309,17 @@ namespace lws
 
 		std::wstring Stringify() override;
 		AstType Type() const override;
+	};
+
+	struct BaseExpr:public Expr
+	{
+		BaseExpr(IdentifierExpr* callMember);
+		~BaseExpr();
+
+		std::wstring Stringify() override;
+		AstType Type() const override;	
+
+		IdentifierExpr* callMember;
 	};
 
 	struct Stmt : public AstNode

@@ -198,6 +198,7 @@ namespace lws
         bool IsEqualTo(Object *other) override;
 
         bool GetMember(const std::wstring &name,Value& retV);
+        bool GetParentMember(const std::wstring &name,Value& retV);
 
         std::wstring name;
         std::unordered_map<std::wstring, Value> members;

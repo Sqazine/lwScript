@@ -43,6 +43,7 @@ namespace lws
         OP_CLASS,
         OP_SET_PROPERTY,
         OP_GET_PROPERTY,
+        OP_GET_BASE,
     };
 
     using OpCodes = std::vector<uint8_t>;

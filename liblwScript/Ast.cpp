@@ -127,12 +127,12 @@ namespace lws
 	ArrayExpr::ArrayExpr()
 	{
 	}
-	ArrayExpr::ArrayExpr(std::vector<Expr*> elements) : elements(elements)
+	ArrayExpr::ArrayExpr(std::vector<Expr *> elements) : elements(elements)
 	{
 	}
 	ArrayExpr::~ArrayExpr()
 	{
-		std::vector<Expr*>().swap(elements);
+		std::vector<Expr *>().swap(elements);
 	}
 
 	std::wstring ArrayExpr::Stringify()
@@ -156,13 +156,13 @@ namespace lws
 	TableExpr::TableExpr()
 	{
 	}
-	TableExpr::TableExpr(std::unordered_map<Expr*, Expr*> elements)
+	TableExpr::TableExpr(std::unordered_map<Expr *, Expr *> elements)
 		: elements(elements)
 	{
 	}
 	TableExpr::~TableExpr()
 	{
-		std::unordered_map<Expr*, Expr*>().swap(elements);
+		std::unordered_map<Expr *, Expr *>().swap(elements);
 	}
 
 	std::wstring TableExpr::Stringify()
@@ -187,7 +187,7 @@ namespace lws
 		: expr(nullptr)
 	{
 	}
-	GroupExpr::GroupExpr(Expr* expr)
+	GroupExpr::GroupExpr(Expr *expr)
 		: expr(expr)
 	{
 	}
@@ -207,7 +207,7 @@ namespace lws
 		: right(nullptr)
 	{
 	}
-	PrefixExpr::PrefixExpr(std::wstring_view op, Expr* right)
+	PrefixExpr::PrefixExpr(std::wstring_view op, Expr *right)
 		: op(op), right(right)
 	{
 	}
@@ -230,7 +230,7 @@ namespace lws
 		: left(nullptr), right(nullptr)
 	{
 	}
-	InfixExpr::InfixExpr(std::wstring_view op, Expr* left, Expr* right)
+	InfixExpr::InfixExpr(std::wstring_view op, Expr *left, Expr *right)
 		: op(op), left(left), right(right)
 	{
 	}
@@ -256,7 +256,7 @@ namespace lws
 		: left(nullptr)
 	{
 	}
-	PostfixExpr::PostfixExpr(Expr* left, std::wstring_view op)
+	PostfixExpr::PostfixExpr(Expr *left, std::wstring_view op)
 		: left(left), op(op)
 	{
 	}
@@ -278,7 +278,7 @@ namespace lws
 		: condition(nullptr), trueBranch(nullptr), falseBranch(nullptr)
 	{
 	}
-	ConditionExpr::ConditionExpr(Expr* condition, Expr* trueBranch, Expr* falseBranch)
+	ConditionExpr::ConditionExpr(Expr *condition, Expr *trueBranch, Expr *falseBranch)
 		: condition(condition), trueBranch(trueBranch), falseBranch(falseBranch)
 	{
 	}
@@ -307,7 +307,7 @@ namespace lws
 		: ds(nullptr), index(nullptr)
 	{
 	}
-	IndexExpr::IndexExpr(Expr* ds, Expr* index)
+	IndexExpr::IndexExpr(Expr *ds, Expr *index)
 		: ds(ds), index(index)
 	{
 	}
@@ -332,7 +332,7 @@ namespace lws
 		: refExpr(nullptr)
 	{
 	}
-	RefExpr::RefExpr(Expr* refExpr)
+	RefExpr::RefExpr(Expr *refExpr)
 		: refExpr(refExpr) {}
 	RefExpr::~RefExpr()
 	{
@@ -352,13 +352,13 @@ namespace lws
 		: body(nullptr)
 	{
 	}
-	LambdaExpr::LambdaExpr(std::vector<IdentifierExpr*> parameters, ScopeStmt* body)
+	LambdaExpr::LambdaExpr(std::vector<IdentifierExpr *> parameters, ScopeStmt *body)
 		: parameters(parameters), body(body)
 	{
 	}
 	LambdaExpr::~LambdaExpr()
 	{
-		std::vector<IdentifierExpr*>().swap(parameters);
+		std::vector<IdentifierExpr *>().swap(parameters);
 
 		delete body;
 		body = nullptr;
@@ -385,7 +385,7 @@ namespace lws
 	CallExpr::CallExpr()
 	{
 	}
-	CallExpr::CallExpr(Expr* callee, std::vector<Expr*> arguments)
+	CallExpr::CallExpr(Expr *callee, std::vector<Expr *> arguments)
 		: callee(callee), arguments(arguments)
 	{
 	}
@@ -398,7 +398,7 @@ namespace lws
 
 		if (!arguments.empty())
 		{
-			for (const auto& arg : arguments)
+			for (const auto &arg : arguments)
 				result += arg->Stringify() + L",";
 			result = result.substr(0, result.size() - 1);
 		}
@@ -414,7 +414,7 @@ namespace lws
 		: callee(nullptr), callMember(nullptr)
 	{
 	}
-	DotExpr::DotExpr(Expr* callee, IdentifierExpr* callMember)
+	DotExpr::DotExpr(Expr *callee, IdentifierExpr *callMember)
 		: callee(callee), callMember(callMember)
 	{
 	}
@@ -434,7 +434,7 @@ namespace lws
 	NewExpr::NewExpr()
 	{
 	}
-	NewExpr::NewExpr(IdentifierExpr* callee)
+	NewExpr::NewExpr(IdentifierExpr *callee)
 		: callee(callee)
 	{
 	}
@@ -468,13 +468,30 @@ namespace lws
 		return AST_THIS;
 	}
 
+	BaseExpr::BaseExpr(IdentifierExpr* callMember)
+	:callMember(callMember)
+	{
+	}
+	BaseExpr::~BaseExpr()
+	{
+	}
+
+	std::wstring BaseExpr::Stringify()
+	{
+		return L"base."+callMember->Stringify();
+	}
+	AstType BaseExpr::Type() const
+	{
+		return AST_BASE;
+	}
+
 	//----------------------Statements-----------------------------
 
 	ExprStmt::ExprStmt()
 		: expr(nullptr)
 	{
 	}
-	ExprStmt::ExprStmt(Expr* expr)
+	ExprStmt::ExprStmt(Expr *expr)
 		: expr(expr)
 	{
 	}
@@ -496,13 +513,13 @@ namespace lws
 	LetStmt::LetStmt()
 	{
 	}
-	LetStmt::LetStmt(const std::unordered_map<IdentifierExpr*, VarDesc>& variables)
+	LetStmt::LetStmt(const std::unordered_map<IdentifierExpr *, VarDesc> &variables)
 		: variables(variables)
 	{
 	}
 	LetStmt::~LetStmt()
 	{
-		std::unordered_map<IdentifierExpr*, VarDesc>().swap(variables);
+		std::unordered_map<IdentifierExpr *, VarDesc>().swap(variables);
 	}
 
 	std::wstring LetStmt::Stringify()
@@ -525,13 +542,13 @@ namespace lws
 	ConstStmt::ConstStmt()
 	{
 	}
-	ConstStmt::ConstStmt(const std::unordered_map<IdentifierExpr*, VarDesc>& consts)
+	ConstStmt::ConstStmt(const std::unordered_map<IdentifierExpr *, VarDesc> &consts)
 		: consts(consts)
 	{
 	}
 	ConstStmt::~ConstStmt()
 	{
-		std::unordered_map<IdentifierExpr*, VarDesc>().swap(consts);
+		std::unordered_map<IdentifierExpr *, VarDesc>().swap(consts);
 	}
 
 	std::wstring ConstStmt::Stringify()
@@ -555,7 +572,7 @@ namespace lws
 		: expr(nullptr)
 	{
 	}
-	ReturnStmt::ReturnStmt(Expr* expr)
+	ReturnStmt::ReturnStmt(Expr *expr)
 		: expr(expr)
 	{
 	}
@@ -581,10 +598,10 @@ namespace lws
 		: condition(nullptr), thenBranch(nullptr), elseBranch(nullptr)
 	{
 	}
-	IfStmt::IfStmt(Expr* condition, Stmt* thenBranch, Stmt* elseBranch)
+	IfStmt::IfStmt(Expr *condition, Stmt *thenBranch, Stmt *elseBranch)
 		: condition(condition),
-		thenBranch(thenBranch),
-		elseBranch(elseBranch)
+		  thenBranch(thenBranch),
+		  elseBranch(elseBranch)
 	{
 	}
 	IfStmt::~IfStmt()
@@ -613,17 +630,17 @@ namespace lws
 	ScopeStmt::ScopeStmt()
 	{
 	}
-	ScopeStmt::ScopeStmt(std::vector<Stmt*> stmts)
+	ScopeStmt::ScopeStmt(std::vector<Stmt *> stmts)
 		: stmts(stmts) {}
 	ScopeStmt::~ScopeStmt()
 	{
-		std::vector<Stmt*>().swap(stmts);
+		std::vector<Stmt *>().swap(stmts);
 	}
 
 	std::wstring ScopeStmt::Stringify()
 	{
 		std::wstring result = L"{";
-		for (const auto& stmt : stmts)
+		for (const auto &stmt : stmts)
 			result += stmt->Stringify();
 		result += L"}";
 		return result;
@@ -638,7 +655,7 @@ namespace lws
 		: condition(nullptr), body(nullptr), increment(nullptr)
 	{
 	}
-	WhileStmt::WhileStmt(Expr* condition, ScopeStmt* body, ScopeStmt* increment)
+	WhileStmt::WhileStmt(Expr *condition, ScopeStmt *body, ScopeStmt *increment)
 		: condition(condition), body(body), increment(increment)
 	{
 	}
@@ -699,7 +716,7 @@ namespace lws
 	EnumStmt::EnumStmt()
 	{
 	}
-	EnumStmt::EnumStmt(IdentifierExpr* enumName, const std::unordered_map<IdentifierExpr*, Expr*>& enumItems)
+	EnumStmt::EnumStmt(IdentifierExpr *enumName, const std::unordered_map<IdentifierExpr *, Expr *> &enumItems)
 		: enumName(enumName), enumItems(enumItems)
 	{
 	}
@@ -727,13 +744,13 @@ namespace lws
 		: name(nullptr), body(nullptr)
 	{
 	}
-	FunctionStmt::FunctionStmt(FunctionType type, IdentifierExpr* name, std::vector<IdentifierExpr*> parameters, ScopeStmt* body)
+	FunctionStmt::FunctionStmt(FunctionType type, IdentifierExpr *name, std::vector<IdentifierExpr *> parameters, ScopeStmt *body)
 		: type(type), name(name), parameters(parameters), body(body)
 	{
 	}
 	FunctionStmt::~FunctionStmt()
 	{
-		std::vector<IdentifierExpr*>().swap(parameters);
+		std::vector<IdentifierExpr *>().swap(parameters);
 
 		delete body;
 		body = nullptr;
@@ -761,23 +778,23 @@ namespace lws
 	{
 	}
 	ClassStmt::ClassStmt(std::wstring name,
-		std::vector<LetStmt*> letStmts,
-		std::vector<ConstStmt*> constStmts,
-		std::vector<FunctionStmt*> fnStmts,
-		std::vector<IdentifierExpr*> parentClasses)
+						 std::vector<LetStmt *> letStmts,
+						 std::vector<ConstStmt *> constStmts,
+						 std::vector<FunctionStmt *> fnStmts,
+						 std::vector<IdentifierExpr *> parentClasses)
 		: name(name),
-		letStmts(letStmts),
-		constStmts(constStmts),
-		fnStmts(fnStmts),
-		parentClasses(parentClasses)
+		  letStmts(letStmts),
+		  constStmts(constStmts),
+		  fnStmts(fnStmts),
+		  parentClasses(parentClasses)
 	{
 	}
 	ClassStmt::~ClassStmt()
 	{
-		std::vector<IdentifierExpr*>().swap(parentClasses);
-		std::vector<LetStmt*>().swap(letStmts);
-		std::vector<ConstStmt*>().swap(constStmts);
-		std::vector<FunctionStmt*>().swap(fnStmts);
+		std::vector<IdentifierExpr *>().swap(parentClasses);
+		std::vector<LetStmt *>().swap(letStmts);
+		std::vector<ConstStmt *>().swap(constStmts);
+		std::vector<FunctionStmt *>().swap(fnStmts);
 	}
 
 	std::wstring ClassStmt::Stringify()
@@ -786,7 +803,7 @@ namespace lws
 		if (!parentClasses.empty())
 		{
 			result += L":";
-			for (const auto& parentClass : parentClasses)
+			for (const auto &parentClass : parentClasses)
 				result += parentClass->Stringify() + L",";
 			result = result.substr(0, result.size() - 1);
 		}
@@ -807,17 +824,17 @@ namespace lws
 	AstStmts::AstStmts()
 	{
 	}
-	AstStmts::AstStmts(std::vector<Stmt*> stmts)
+	AstStmts::AstStmts(std::vector<Stmt *> stmts)
 		: stmts(stmts) {}
 	AstStmts::~AstStmts()
 	{
-		std::vector<Stmt*>().swap(stmts);
+		std::vector<Stmt *>().swap(stmts);
 	}
 
 	std::wstring AstStmts::Stringify()
 	{
 		std::wstring result;
-		for (const auto& stmt : stmts)
+		for (const auto &stmt : stmts)
 			result += stmt->Stringify();
 		return result;
 	}

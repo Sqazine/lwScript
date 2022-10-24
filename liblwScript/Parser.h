@@ -34,6 +34,12 @@ namespace lws
 		R2L	 //right->left
 	};
 
+	struct ClassInfo
+	{
+		ClassInfo* enclosing;
+		bool hasSuperClass;
+	};
+
 	class Parser;
 
 	typedef Expr *(Parser::*PrefixFn)();
@@ -85,6 +91,7 @@ namespace lws
 		Expr *ParseLambdaExpr();
 		Expr *ParseNewExpr();
 		Expr *ParseThisExpr();
+		Expr *ParseBaseExpr();
 		Expr *ParseInfixExpr(Expr *prefixExpr);
 		Expr *ParsePostfixExpr(Expr *prefixExpr);
 		Expr *ParseConditionExpr(Expr *prefixExpr);
@@ -111,7 +118,7 @@ namespace lws
 
 		bool IsAtEnd();
 
-		int32_t mClassScopeDepth;
+		 ClassInfo *mCurClassInfo;
 
 		int64_t mCurPos;
 		AstStmts *mStmts;

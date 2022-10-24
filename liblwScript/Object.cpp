@@ -322,28 +322,51 @@ namespace lws
         }
         else if (!parents.empty())
         {
-            bool hasValue=false;
+            bool hasValue = false;
             for (const auto &[k, v] : parents)
             {
                 if (name == k)
-                    {
-                        retV=v;
-                        hasValue=true;
-                    }
+                {
+                    retV = v;
+                    hasValue = true;
+                }
                 else
                 {
-                    hasValue= v->GetMember(name,retV);
+                    hasValue = v->GetMember(name, retV);
                 }
             }
             return hasValue;
         }
         return false;
     }
+
+    bool ClassObject::GetParentMember(const std::wstring &name, Value &retV)
+    {
+        if (!parents.empty())
+        {
+            bool hasValue = false;
+            for (const auto &[k, v] : parents)
+            {
+                if (name == k)
+                {
+                    retV = v;
+                    hasValue = true;
+                }
+                else
+                {
+                    hasValue = v->GetMember(name, retV);
+                }
+            }
+            return hasValue;
+        }
+        return false;
+    }
+
     ClassFunctionBindObject::ClassFunctionBindObject()
     {
     }
-    ClassFunctionBindObject::ClassFunctionBindObject(const Value& receiver, FunctionObject* fn)
-        :receiver(receiver),function(fn)
+    ClassFunctionBindObject::ClassFunctionBindObject(const Value &receiver, FunctionObject *fn)
+        : receiver(receiver), function(fn)
     {
     }
     ClassFunctionBindObject::~ClassFunctionBindObject()
@@ -365,7 +388,7 @@ namespace lws
     {
         marked = false;
     }
-    bool ClassFunctionBindObject::IsEqualTo(Object* other)
+    bool ClassFunctionBindObject::IsEqualTo(Object *other)
     {
         return true;
     }

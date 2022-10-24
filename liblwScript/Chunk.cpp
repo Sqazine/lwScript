@@ -206,6 +206,11 @@ namespace lws
 				cout << std::setfill(L'0') << std::setw(8) << i << L"    " << L"OP_SET_PROPERTY" << std::endl;
 				break;
 			}
+			case OP_GET_BASE:
+			{
+				cout << std::setfill(L'0') << std::setw(8) << i << L"    " << L"OP_GET_BASE" << std::endl;
+				break;
+			}
 			default:
 				break;
 			}

@@ -90,6 +90,7 @@ namespace lws
 			{TOKEN_MINUS_MINUS, &Parser::ParsePrefixExpr},
 			{TOKEN_NEW, &Parser::ParseNewExpr},
 			{TOKEN_THIS, &Parser::ParseThisExpr},
+			{TOKEN_BASE, &Parser::ParseBaseExpr},
 	};
 
 	std::unordered_map<TokenType, InfixFn> Parser::mInfixFunctions =
@@ -166,7 +167,7 @@ namespace lws
 	{
 		mCurPos = 0;
 
-		mClassScopeDepth=0;
+		mCurClassInfo=nullptr;
 
 		if (mStmts != nullptr)
 		{
@@ -284,7 +285,7 @@ namespace lws
 		funcStmt->line = GetCurToken().line;
 		funcStmt->column = GetCurToken().column;
 
-		if(mClassScopeDepth>0)
+		if(mCurClassInfo)
 			funcStmt->type=FunctionType::CLASS_FUNCTION;
 
 		Consume(TOKEN_FUNCTION, L"Expect 'function' keyword");
@@ -311,7 +312,11 @@ namespace lws
 	}
 	Stmt *Parser::ParseClassDeclaration()
 	{
-		mClassScopeDepth++;
+		 ClassInfo classInfo;
+    	classInfo.hasSuperClass = false;
+    	classInfo.enclosing = mCurClassInfo;
+    	mCurClassInfo = &classInfo;
+
 
 		auto classStmt = new ClassStmt();
 		classStmt->line = GetCurToken().line;
@@ -326,6 +331,8 @@ namespace lws
 			classStmt->parentClasses.emplace_back((IdentifierExpr *)ParseIdentifierExpr());
 			while (IsMatchCurTokenAndStepOnce(TOKEN_COMMA))
 				classStmt->parentClasses.emplace_back((IdentifierExpr *)ParseIdentifierExpr());
+
+			mCurClassInfo->hasSuperClass=true;
 		}
 
 		Consume(TOKEN_LBRACE, L"Expect '{' after class name or parent class name");
@@ -344,7 +351,7 @@ namespace lws
 
 		Consume(TOKEN_RBRACE, L"Expect '}' after class stmt's '{'");
 
-		--mClassScopeDepth;
+		mCurClassInfo=mCurClassInfo->enclosing;
 
 		return classStmt;
 	}
@@ -828,9 +835,20 @@ namespace lws
 	Expr *Parser::ParseThisExpr()
 	{
 		Consume(TOKEN_THIS, L"Expect 'this' keyword");
-		if (mClassScopeDepth == 0)
+		if (!mCurClassInfo)
 			ASSERT(L"Invalid 'this' keyword:Cannot use 'this' outside class.");
 		return new ThisExpr();
+	}
+
+	Expr *Parser::ParseBaseExpr()
+	{
+		Consume(TOKEN_BASE, L"Expect 'base' keyword");
+		if (!mCurClassInfo)
+			ASSERT(L"Invalid 'base' keyword:Cannot use 'base' outside class.");
+
+		Consume(TOKEN_DOT,L"Expect '.' after 'base' keyword");
+
+		return new BaseExpr((IdentifierExpr*)ParseIdentifierExpr());	
 	}
 
 	Expr *Parser::ParseExpr(Precedence precedence)

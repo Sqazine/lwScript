@@ -22,10 +22,10 @@ namespace lws
 			mGlobalVariables[i] = mLibraryManager.mLibraries[i];
 	}
 
-	void VM::Run(FunctionObject* mainFunc)
+	void VM::Run(FunctionObject *mainFunc)
 	{
 		ResetStatus();
-		CallFrame* mainCallFrame = &mFrames[mFrameCount++];
+		CallFrame *mainCallFrame = &mFrames[mFrameCount++];
 		mainCallFrame->function = mainFunc;
 		mainCallFrame->ip = mainFunc->chunk.opCodes.data();
 		mainCallFrame->slots = mStackTop;
@@ -111,7 +111,7 @@ namespace lws
 			ASSERT("Invalid op:" + left.Stringify() + (L#op) + right.Stringify());          \
 	} while (0);
 
-		CallFrame* frame = &mFrames[mFrameCount - 1];
+		CallFrame *frame = &mFrames[mFrameCount - 1];
 
 		while (1)
 		{
@@ -121,7 +121,7 @@ namespace lws
 			case OP_RETURN:
 			{
 				auto retCount = *frame->ip++;
-				Value* retValues;
+				Value *retValues;
 				retValues = mStackTop - retCount;
 
 				mFrameCount--;
@@ -217,7 +217,7 @@ namespace lws
 			}
 			case OP_DIV:
 			{
-				COMMON_BINARY(/ );
+				COMMON_BINARY(/);
 				break;
 			}
 			case OP_MOD:
@@ -232,27 +232,27 @@ namespace lws
 			}
 			case OP_BIT_OR:
 			{
-				INTEGER_BINARY(| );
+				INTEGER_BINARY(|);
 				break;
 			}
 			case OP_BIT_LEFT_SHIFT:
 			{
-				INTEGER_BINARY(<< );
+				INTEGER_BINARY(<<);
 				break;
 			}
 			case OP_BIT_RIGHT_SHIFT:
 			{
-				INTEGER_BINARY(>> );
+				INTEGER_BINARY(>>);
 				break;
 			}
 			case OP_LESS:
 			{
-				COMPARE_BINARY(< );
+				COMPARE_BINARY(<);
 				break;
 			}
 			case OP_GREATER:
 			{
-				COMPARE_BINARY(> );
+				COMPARE_BINARY(>);
 				break;
 			}
 			case OP_NOT:
@@ -401,7 +401,7 @@ namespace lws
 			{
 				auto argCount = *frame->ip++;
 				auto callee = Peek(argCount);
-				if (IS_FUNCTION_VALUE(callee) || IS_CLASS_FUNCTION_BIND_VALUE(callee))// normal function
+				if (IS_FUNCTION_VALUE(callee) || IS_CLASS_FUNCTION_BIND_VALUE(callee)) // normal function
 				{
 
 					if (IS_CLASS_FUNCTION_BIND_VALUE(callee))
@@ -414,7 +414,7 @@ namespace lws
 					if (argCount != TO_FUNCTION_VALUE(callee)->arity)
 						ASSERT(L"No matching argument count.");
 					// init a new frame
-					CallFrame* newframe = &mFrames[mFrameCount++];
+					CallFrame *newframe = &mFrames[mFrameCount++];
 					newframe->function = TO_FUNCTION_VALUE(callee);
 					newframe->ip = newframe->function->chunk.opCodes.data();
 					newframe->slots = mStackTop - argCount;
@@ -426,7 +426,7 @@ namespace lws
 					std::vector<Value> args(argCount);
 
 					int32_t j = 0;
-					for (Value* slot = mStackTop - argCount; slot < mStackTop && j < argCount; ++slot, ++j)
+					for (Value *slot = mStackTop - argCount; slot < mStackTop && j < argCount; ++slot, ++j)
 						args[j] = *slot;
 
 					mStackTop -= argCount + 1;
@@ -477,7 +477,7 @@ namespace lws
 
 				if (IS_FUNCTION_VALUE(member))
 				{
-					ClassFunctionBindObject* binding = CreateObject<ClassFunctionBindObject>(klass, TO_FUNCTION_VALUE(member));
+					ClassFunctionBindObject *binding = CreateObject<ClassFunctionBindObject>(klass, TO_FUNCTION_VALUE(member));
 					member = Value(binding);
 				}
 
@@ -493,18 +493,31 @@ namespace lws
 				klass->members[propName] = Peek(0);
 				break;
 			}
+			case OP_GET_BASE:
+			{
+				if (!IS_CLASS_VALUE(Peek(1)))
+					ASSERT(L"Invalid class call:not a valid class instance.");
+				auto propName = TO_STR_VALUE(Pop());
+				auto klass = TO_CLASS_VALUE(Pop());
+				Value member;
+				bool hasValue = klass->GetParentMember(propName, member);
+				if (!hasValue)
+					ASSERT(L"No member:" + propName + L"in class:" + klass->name + L" 's parent class(es).");
+				Push(member);
+				break;
+			}
 			default:
 				break;
 			}
 		}
 	}
 
-	bool VM::IsFalsey(const Value& v)
+	bool VM::IsFalsey(const Value &v)
 	{
 		return IS_NULL_VALUE(v) || (IS_BOOL_VALUE(v) && !TO_BOOL_VALUE(v));
 	}
 
-	void VM::Push(const Value& value)
+	void VM::Push(const Value &value)
 	{
 		*(mStackTop++) = value;
 	}
@@ -517,8 +530,7 @@ namespace lws
 	{
 		return *(mStackTop - distance - 1);
 	}
-	void VM::BindClassFunction(ClassObject* klass, const std::wstring& funcName)
+	void VM::BindClassFunction(ClassObject *klass, const std::wstring &funcName)
 	{
-
 	}
 }
