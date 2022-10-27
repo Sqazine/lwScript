@@ -36,7 +36,7 @@ namespace lws
 
 	struct ClassInfo
 	{
-		ClassInfo* enclosing;
+		ClassInfo *enclosing;
 		bool hasSuperClass;
 	};
 
@@ -58,11 +58,11 @@ namespace lws
 		void ResetStatus();
 
 		Stmt *ParseDeclaration();
-		Stmt* ParseLetDeclaration();
-		Stmt* ParseConstDeclaration();
-		Stmt* ParseFunctionDeclaration();
-		Stmt* ParseClassDeclaration();
-		Stmt* ParseEnumDeclaration();
+		Stmt *ParseLetDeclaration();
+		Stmt *ParseConstDeclaration();
+		Stmt *ParseFunctionDeclaration();
+		Stmt *ParseClassDeclaration();
+		Stmt *ParseEnumDeclaration();
 
 		Stmt *ParseStmt();
 		Stmt *ParseExprStmt();
@@ -118,7 +118,9 @@ namespace lws
 
 		bool IsAtEnd();
 
-		 ClassInfo *mCurClassInfo;
+		ClassInfo *mCurClassInfo;
+
+		uint32_t loopDepth; //record cur stmt or expr is in 'for' or 'while' loop
 
 		int64_t mCurPos;
 		AstStmts *mStmts;

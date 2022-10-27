@@ -50,6 +50,13 @@ namespace lws
 
 	void Compiler::CompileDeclaration(Stmt *stmt)
 	{
+		int64_t breakStmtAddress = -1;	  //useless
+		int64_t contineuStmtAddress = -1; //useless
+		CompileDeclaration(stmt, breakStmtAddress, contineuStmtAddress);
+	}
+
+	void Compiler::CompileDeclaration(Stmt *stmt, int64_t &breakStmtAddress, int64_t &continueStmtAddress)
+	{
 		switch (stmt->Type())
 		{
 		case AST_LET:
@@ -65,7 +72,7 @@ namespace lws
 			CompileClassDeclaration((ClassStmt *)stmt);
 			break;
 		default:
-			CompileStmt((Stmt *)stmt);
+			CompileStmt((Stmt *)stmt, breakStmtAddress, continueStmtAddress);
 			break;
 		}
 	}
@@ -214,17 +221,17 @@ namespace lws
 		}
 	}
 
-	void Compiler::CompileStmt(Stmt *stmt)
+	void Compiler::CompileStmt(Stmt *stmt, int64_t &breakStmtAddress, int64_t &continueStmtAddress)
 	{
 		switch (stmt->Type())
 		{
 		case AST_IF:
-			CompileIfStmt((IfStmt *)stmt);
+			CompileIfStmt((IfStmt *)stmt, breakStmtAddress, continueStmtAddress);
 			break;
 		case AST_SCOPE:
 		{
 			EnterScope();
-			CompileScopeStmt((ScopeStmt *)stmt);
+			CompileScopeStmt((ScopeStmt *)stmt, breakStmtAddress, continueStmtAddress);
 			ExitScope();
 			break;
 		}
@@ -233,6 +240,12 @@ namespace lws
 			break;
 		case AST_RETURN:
 			CompileReturnStmt((ReturnStmt *)stmt);
+			break;
+		case AST_BREAK:
+			CompileBreakStmt(breakStmtAddress);
+			break;
+		case AST_CONTINUE:
+			CompileContinueStmt(continueStmtAddress);
 			break;
 		default:
 			CompileExprStmt((ExprStmt *)stmt);
@@ -251,7 +264,7 @@ namespace lws
 				CompilePostfixExpr((PostfixExpr *)postfixExpr, false);
 		}
 	}
-	void Compiler::CompileIfStmt(IfStmt *stmt)
+	void Compiler::CompileIfStmt(IfStmt *stmt, int64_t &breakStmtAddress, int64_t &continueStmtAddress)
 	{
 		auto conditionPostfixExprs = StatsPostfixExprs(stmt->condition);
 
@@ -267,7 +280,7 @@ namespace lws
 
 		Emit(OP_POP);
 
-		CompileDeclaration(stmt->thenBranch);
+		CompileDeclaration(stmt->thenBranch, breakStmtAddress, continueStmtAddress);
 
 		auto jmpAddress = EmitJump(OP_JUMP);
 
@@ -276,14 +289,14 @@ namespace lws
 		Emit(OP_POP);
 
 		if (stmt->elseBranch)
-			CompileDeclaration(stmt->elseBranch);
+			CompileDeclaration(stmt->elseBranch, breakStmtAddress, continueStmtAddress);
 
 		PatchJump(jmpAddress);
 	}
-	void Compiler::CompileScopeStmt(ScopeStmt *stmt)
+	void Compiler::CompileScopeStmt(ScopeStmt *stmt, int64_t &breakStmtAddress, int64_t &continueStmtAddress)
 	{
 		for (const auto &s : stmt->stmts)
-			CompileDeclaration(s);
+			CompileDeclaration(s, breakStmtAddress, continueStmtAddress);
 	}
 	void Compiler::CompileWhileStmt(WhileStmt *stmt)
 	{
@@ -300,13 +313,24 @@ namespace lws
 		}
 
 		auto jmpIfFalseAddress = EmitJump(OP_JUMP_IF_FALSE);
-		CompileStmt(stmt->body);
+
+		int64_t breakStmtAddress = -1;
+		int64_t continueStmtAddress = -1;
+
+		CompileStmt(stmt->body, breakStmtAddress, continueStmtAddress);
+
+		if (continueStmtAddress != -1)
+			PatchJump(continueStmtAddress);
 		if (stmt->increment)
-			CompileStmt(stmt->increment);
+			CompileStmt(stmt->increment, breakStmtAddress, breakStmtAddress);
+
 		Emit(OP_JUMP);
 		EmitUint64(jmpAddress);
 
 		PatchJump(jmpIfFalseAddress);
+
+		if (breakStmtAddress != -1)
+			PatchJump(breakStmtAddress);
 	}
 	void Compiler::CompileReturnStmt(ReturnStmt *stmt)
 	{
@@ -330,6 +354,15 @@ namespace lws
 			for (const auto &postfixExpr : postfixExprs)
 				CompilePostfixExpr((PostfixExpr *)postfixExpr, false);
 		}
+	}
+
+	void Compiler::CompileBreakStmt(int64_t &stmtAddress)
+	{
+		stmtAddress = EmitJump(OP_JUMP);
+	}
+	void Compiler::CompileContinueStmt(int64_t &stmtAddress)
+	{
+		stmtAddress = EmitJump(OP_JUMP);
 	}
 
 	void Compiler::CompileExpr(Expr *expr, const RWState &state)
@@ -370,7 +403,7 @@ namespace lws
 			CompileTableExpr((TableExpr *)expr);
 			break;
 		case AST_INDEX:
-			CompileIndexExpr((IndexExpr *)expr,state);
+			CompileIndexExpr((IndexExpr *)expr, state);
 			break;
 		case AST_IDENTIFIER:
 			CompileIdentifierExpr((IdentifierExpr *)expr, state);
@@ -685,7 +718,9 @@ namespace lws
 
 		EnterScope();
 
-		CompileScopeStmt(stmt->body);
+		int64_t breakStmtAddress = -1;
+		int64_t continueStmtAddress = -1;
+		CompileScopeStmt(stmt->body, breakStmtAddress, continueStmtAddress);
 
 		if (CurChunk().opCodes[CurChunk().opCodes.size() - 2] != OP_RETURN)
 		{

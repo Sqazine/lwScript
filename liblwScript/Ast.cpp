@@ -468,8 +468,8 @@ namespace lws
 		return AST_THIS;
 	}
 
-	BaseExpr::BaseExpr(IdentifierExpr* callMember)
-	:callMember(callMember)
+	BaseExpr::BaseExpr(IdentifierExpr *callMember)
+		: callMember(callMember)
 	{
 	}
 	BaseExpr::~BaseExpr()
@@ -478,7 +478,7 @@ namespace lws
 
 	std::wstring BaseExpr::Stringify()
 	{
-		return L"base."+callMember->Stringify();
+		return L"base." + callMember->Stringify();
 	}
 	AstType BaseExpr::Type() const
 	{

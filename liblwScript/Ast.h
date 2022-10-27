@@ -311,15 +311,15 @@ namespace lws
 		AstType Type() const override;
 	};
 
-	struct BaseExpr:public Expr
+	struct BaseExpr : public Expr
 	{
-		BaseExpr(IdentifierExpr* callMember);
+		BaseExpr(IdentifierExpr *callMember);
 		~BaseExpr();
 
 		std::wstring Stringify() override;
-		AstType Type() const override;	
+		AstType Type() const override;
 
-		IdentifierExpr* callMember;
+		IdentifierExpr *callMember;
 	};
 
 	struct Stmt : public AstNode

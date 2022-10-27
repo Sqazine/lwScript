@@ -167,7 +167,9 @@ namespace lws
 	{
 		mCurPos = 0;
 
-		mCurClassInfo=nullptr;
+		loopDepth = 0;
+
+		mCurClassInfo = nullptr;
 
 		if (mStmts != nullptr)
 		{
@@ -285,8 +287,8 @@ namespace lws
 		funcStmt->line = GetCurToken().line;
 		funcStmt->column = GetCurToken().column;
 
-		if(mCurClassInfo)
-			funcStmt->type=FunctionType::CLASS_FUNCTION;
+		if (mCurClassInfo)
+			funcStmt->type = FunctionType::CLASS_FUNCTION;
 
 		Consume(TOKEN_FUNCTION, L"Expect 'function' keyword");
 
@@ -312,11 +314,10 @@ namespace lws
 	}
 	Stmt *Parser::ParseClassDeclaration()
 	{
-		 ClassInfo classInfo;
-    	classInfo.hasSuperClass = false;
-    	classInfo.enclosing = mCurClassInfo;
-    	mCurClassInfo = &classInfo;
-
+		ClassInfo classInfo;
+		classInfo.hasSuperClass = false;
+		classInfo.enclosing = mCurClassInfo;
+		mCurClassInfo = &classInfo;
 
 		auto classStmt = new ClassStmt();
 		classStmt->line = GetCurToken().line;
@@ -332,7 +333,7 @@ namespace lws
 			while (IsMatchCurTokenAndStepOnce(TOKEN_COMMA))
 				classStmt->parentClasses.emplace_back((IdentifierExpr *)ParseIdentifierExpr());
 
-			mCurClassInfo->hasSuperClass=true;
+			mCurClassInfo->hasSuperClass = true;
 		}
 
 		Consume(TOKEN_LBRACE, L"Expect '{' after class name or parent class name");
@@ -351,7 +352,7 @@ namespace lws
 
 		Consume(TOKEN_RBRACE, L"Expect '}' after class stmt's '{'");
 
-		mCurClassInfo=mCurClassInfo->enclosing;
+		mCurClassInfo = mCurClassInfo->enclosing;
 
 		return classStmt;
 	}
@@ -476,6 +477,8 @@ namespace lws
 
 	Stmt *Parser::ParseWhileStmt()
 	{
+		loopDepth++;
+
 		auto whileStmt = new WhileStmt();
 		whileStmt->line = GetCurToken().line;
 		whileStmt->column = GetCurToken().column;
@@ -494,6 +497,8 @@ namespace lws
 			scopeStmt->stmts.emplace_back(ParseStmt());
 			whileStmt->body = scopeStmt;
 		}
+
+		loopDepth--;
 
 		return whileStmt;
 	}
@@ -521,6 +526,9 @@ namespace lws
 		//			}
 		//		}
 		// }
+
+		loopDepth++;
+
 		auto scopeStmt = new ScopeStmt();
 		scopeStmt->line = GetCurToken().line;
 		scopeStmt->column = GetCurToken().column;
@@ -579,11 +587,16 @@ namespace lws
 
 		scopeStmt->stmts.emplace_back(whileStmt);
 
+		loopDepth--;
+
 		return scopeStmt;
 	}
 
 	Stmt *Parser::ParseBreakStmt()
 	{
+		if (loopDepth == 0)
+			ASSERT(L"Cannot use 'break' stmt outside of 'for' or 'while' loop.");
+
 		auto breakStmt = new BreakStmt();
 		breakStmt->line = GetCurToken().line;
 		breakStmt->column = GetCurToken().column;
@@ -594,6 +607,9 @@ namespace lws
 
 	Stmt *Parser::ParseContinueStmt()
 	{
+		if (loopDepth == 0)
+			ASSERT(L"Cannot use 'break' stmt outside of 'for' or 'while' loop.");
+
 		auto continueStmt = new ContinueStmt();
 		continueStmt->line = GetCurToken().line;
 		continueStmt->column = GetCurToken().column;
@@ -846,9 +862,9 @@ namespace lws
 		if (!mCurClassInfo)
 			ASSERT(L"Invalid 'base' keyword:Cannot use 'base' outside class.");
 
-		Consume(TOKEN_DOT,L"Expect '.' after 'base' keyword");
+		Consume(TOKEN_DOT, L"Expect '.' after 'base' keyword");
 
-		return new BaseExpr((IdentifierExpr*)ParseIdentifierExpr());	
+		return new BaseExpr((IdentifierExpr *)ParseIdentifierExpr());
 	}
 
 	Expr *Parser::ParseExpr(Precedence precedence)

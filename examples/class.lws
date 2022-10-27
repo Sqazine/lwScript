@@ -6,13 +6,13 @@ class Vec2
 
 class Vec3
 {
-    let vec2=Vec2;
+    let vec2=new Vec2;
     let z=0;
 }
 
 class Vec4
 {
-    let vec3=Vec3;
+    let vec3=new Vec3;
     let w=0;
 
     fn output()
