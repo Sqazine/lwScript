@@ -24,7 +24,7 @@ class Sparrow:Animal,Flyable
 }
 
 
-let a=Sparrow;
+let a=new Sparrow;
 io.println("{}",a.health);//100
 io.println("{}",a.flySpeed);//10
 
