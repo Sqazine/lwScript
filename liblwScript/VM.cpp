@@ -370,7 +370,7 @@ namespace lws
 			{
 				auto idxValue = Pop();
 				auto dsValue = Pop();
-				auto newValue=Pop();
+				auto newValue = Pop();
 				if (IS_ARRAY_VALUE(dsValue))
 				{
 					auto array = TO_ARRAY_VALUE(dsValue);
@@ -379,7 +379,7 @@ namespace lws
 					auto intIdx = TO_INT_VALUE(idxValue);
 					if (intIdx < 0 || intIdx >= (int64_t)array->elements.size())
 						ASSERT(L"Idx out of range.");
-					array->elements[intIdx]=newValue;
+					array->elements[intIdx] = newValue;
 				}
 				else if (IS_STR_VALUE(dsValue))
 				{
@@ -390,15 +390,15 @@ namespace lws
 					if (intIdx < 0 || intIdx >= (int64_t)str.size())
 						ASSERT("Idx out of range.");
 
-					if(!IS_STR_VALUE(newValue))
-						ASSERT(L"Cannot insert a non string clip:"+newValue.Stringify()+L" to string:"+str);
-					
-					str.append(TO_STR_VALUE(newValue),intIdx,TO_STR_VALUE(newValue).size());
+					if (!IS_STR_VALUE(newValue))
+						ASSERT(L"Cannot insert a non string clip:" + newValue.Stringify() + L" to string:" + str);
+
+					str.append(TO_STR_VALUE(newValue), intIdx, TO_STR_VALUE(newValue).size());
 				}
 				else if (IS_TABLE_VALUE(dsValue))
 				{
 					auto table = TO_TABLE_VALUE(dsValue);
-					table->elements[idxValue]=newValue;
+					table->elements[idxValue] = newValue;
 				}
 				break;
 			}
@@ -457,7 +457,7 @@ namespace lws
 
 					frame = &mFrames[mFrameCount - 1];
 				}
-				else if (IS_NATIVE_FUNCTION_VALUE(callee)) //native function
+				else if (IS_NATIVE_FUNCTION_VALUE(callee)) // native function
 				{
 					std::vector<Value> args(argCount);
 
@@ -505,7 +505,13 @@ namespace lws
 				if (!IS_CLASS_VALUE(Peek(1)))
 					ASSERT(L"Invalid class call:not a valid class instance.");
 				auto propName = TO_STR_VALUE(Pop());
-				auto klass = TO_CLASS_VALUE(Pop());
+
+				ClassObject* klass = nullptr;
+				if (mStackTop == frame->slots + 1)//avoid pop root class object
+					klass = TO_CLASS_VALUE(Peek(0));
+				else
+					klass = TO_CLASS_VALUE(Pop());
+
 				Value member;
 				bool hasValue = klass->GetMember(propName, member);
 				if (!hasValue)
