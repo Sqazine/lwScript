@@ -25,8 +25,7 @@ namespace lws
 		else
 			CompileDeclaration(stmt);
 
-		Emit(OP_RETURN);
-		Emit(0);
+		EmitReturn(0);
 
 		return CurFunction();
 	}
@@ -197,8 +196,8 @@ namespace lws
 		Emit(OP_CLASS);
 		Emit(memCount);
 		Emit(stmt->parentClasses.size());
-		Emit(OP_RETURN);
-		Emit(1);
+
+		EmitReturn(1);
 
 		ExitScope();
 		mSymbolTable = mSymbolTable->enclosing;
@@ -338,14 +337,10 @@ namespace lws
 		if (stmt->expr)
 		{
 			CompileExpr(stmt->expr);
-			Emit(OP_RETURN);
-			Emit(1);
+			EmitReturn(1);
 		}
 		else
-		{
-			Emit(OP_RETURN);
-			Emit(0);
-		}
+			EmitReturn(0);
 
 		if (!postfixExprs.empty())
 		{
@@ -565,7 +560,7 @@ namespace lws
 	}
 	void Compiler::CompileNullExpr(NullExpr *expr)
 	{
-		EmitConstant(Value());
+		Emit(OP_NULL);
 	}
 	void Compiler::CompileGroupExpr(GroupExpr *expr)
 	{
@@ -692,26 +687,24 @@ namespace lws
 	{
 		auto idx = mSymbolTable->Declare(SymbolDescType::CONSTANT, stmt->name->literal);
 
-		auto symbol = mSymbolTable->Define(idx);
+		auto functionSymbol = mSymbolTable->Define(idx);
 
 		mFunctionList.emplace_back(new FunctionObject(stmt->name->literal));
 		mSymbolTable = new SymbolTable(mSymbolTable);
 
+		Symbol *symbol = &mSymbolTable->mSymbols[mSymbolTable->mSymbolIdx++];
+		symbol->depth = 0;
+		symbol->type = SymbolType::LOCAL;
+		symbol->descType = SymbolDescType::CONSTANT;
 		if (stmt->type == FunctionType::CLASS_FUNCTION || stmt->type == FunctionType::CLASS_INITIALIZER)
-		{
-			Symbol *symbol = &mSymbolTable->mSymbols[mSymbolTable->mSymbolIdx++];
-			symbol->depth = 0;
-			symbol->type = SymbolType::LOCAL;
-			symbol->descType = SymbolDescType::CONSTANT;
 			symbol->name = L"this";
-		}
 
 		CurFunction()->arity = stmt->parameters.size();
 
 		for (const auto &param : stmt->parameters)
 		{
 			auto idx = mSymbolTable->Declare(SymbolDescType::VARIABLE, param->literal);
-			auto symbol = mSymbolTable->Define(idx);
+			mSymbolTable->Define(idx);
 		}
 
 		EnterScope();
@@ -721,10 +714,7 @@ namespace lws
 		CompileScopeStmt(stmt->body, breakStmtAddress, continueStmtAddress);
 
 		if (CurChunk().opCodes[CurChunk().opCodes.size() - 2] != OP_RETURN)
-		{
-			Emit(OP_RETURN);
-			Emit(0);
-		}
+			EmitReturn(OP_RETURN);
 
 		ExitScope();
 		mSymbolTable = mSymbolTable->enclosing;
@@ -734,7 +724,7 @@ namespace lws
 
 		EmitConstant(function);
 
-		return symbol;
+		return functionSymbol;
 	}
 
 	uint8_t Compiler::Emit(uint8_t opcode)
@@ -748,6 +738,13 @@ namespace lws
 		Emit(OP_CONSTANT);
 		uint8_t pos = AddConstant(value);
 		Emit(pos);
+		return CurOpCodes().size() - 1;
+	}
+
+	uint8_t Compiler::EmitReturn(uint8_t retCount)
+	{
+		Emit(OP_RETURN);
+		Emit(retCount);
 		return CurOpCodes().size() - 1;
 	}
 

@@ -7,6 +7,7 @@ namespace lws
     enum OpCode
     {
         OP_CONSTANT,
+        OP_NULL,
         OP_ADD,
         OP_SUB,
         OP_MUL,

@@ -4,6 +4,8 @@
 #include "Object.h"
 namespace lws
 {
+	Value VM::sNullValue = Value();
+
 	VM::VM()
 	{
 		ResetStatus();
@@ -22,15 +24,27 @@ namespace lws
 			mGlobalVariables[i] = mLibraryManager.mLibraries[i];
 	}
 
-	void VM::Run(FunctionObject *mainFunc)
+	std::vector<Value> VM::Run(FunctionObject *mainFunc)
 	{
 		ResetStatus();
+
+		Push(mainFunc);
+
 		CallFrame *mainCallFrame = &mFrames[mFrameCount++];
 		mainCallFrame->function = mainFunc;
 		mainCallFrame->ip = mainFunc->chunk.opCodes.data();
-		mainCallFrame->slots = mStackTop;
+		mainCallFrame->slots = mStackTop - 1;
 
 		Execute();
+
+		std::vector<Value> returnValues;
+
+		while (mStackTop != mValueStack + 1)
+			returnValues.emplace_back(Pop());
+
+		Pop();
+
+		return returnValues;
 	}
 
 	void VM::Execute()
@@ -121,21 +135,19 @@ namespace lws
 			case OP_RETURN:
 			{
 				auto retCount = *frame->ip++;
+				Value *retValues;
+				retValues = mStackTop - retCount;
 
 				mFrameCount--;
 				if (mFrameCount == 0)
 					return;
 
-				mStackTop = frame->slots - 1; //-1 for pop the current function object
+				mStackTop = frame->slots;
 
 				if (retCount == 0)
-				{
-					Push(Value());
-				}
+					Push(sNullValue);
 				else
 				{
-					Value *retValues;
-					retValues = mStackTop - retCount;
 					uint8_t i = 0;
 					while (i < retCount)
 					{
@@ -152,6 +164,11 @@ namespace lws
 			{
 				auto pos = *frame->ip++;
 				Push(frame->function->chunk.constants[pos]);
+				break;
+			}
+			case OP_NULL:
+			{
+				Push(sNullValue);
 				break;
 			}
 			case OP_SET_GLOBAL:
@@ -446,7 +463,7 @@ namespace lws
 					if (IS_CLASS_FUNCTION_BIND_VALUE(callee))
 					{
 						auto binding = TO_CLASS_FUNCTION_BIND_VALUE(callee);
-						mStackTop[-argCount] = binding->receiver;
+						mStackTop[-argCount - 1] = binding->receiver;
 						callee = binding->function;
 					}
 
@@ -456,7 +473,7 @@ namespace lws
 					CallFrame *newframe = &mFrames[mFrameCount++];
 					newframe->function = TO_FUNCTION_VALUE(callee);
 					newframe->ip = newframe->function->chunk.opCodes.data();
-					newframe->slots = mStackTop - argCount;
+					newframe->slots = mStackTop - argCount - 1;
 
 					frame = &mFrames[mFrameCount - 1];
 				}
@@ -507,26 +524,24 @@ namespace lws
 			{
 				if (!IS_CLASS_VALUE(Peek(1)))
 					ASSERT(L"Invalid class call:not a valid class instance.");
+				ClassObject *klass = TO_CLASS_VALUE(Peek(1));
 				auto propName = TO_STR_VALUE(Pop());
 
-				ClassObject *klass = nullptr;
-				if (mStackTop == frame->slots + 1) //avoid pop root class object
-					klass = TO_CLASS_VALUE(Peek(0));
-				else
-					klass = TO_CLASS_VALUE(Pop());
-
 				Value member;
-				bool hasValue = klass->GetMember(propName, member);
-				if (!hasValue)
-					ASSERT(L"No member:" + propName + L"in class:" + klass->name);
-
-				if (IS_FUNCTION_VALUE(member))
+				if (klass->GetMember(propName, member))
 				{
-					ClassFunctionBindObject *binding = CreateObject<ClassFunctionBindObject>(klass, TO_FUNCTION_VALUE(member));
-					member = Value(binding);
+					Pop(); //pop class object
+					if (IS_FUNCTION_VALUE(member))
+					{
+						ClassFunctionBindObject *binding = CreateObject<ClassFunctionBindObject>(klass, TO_FUNCTION_VALUE(member));
+						member = Value(binding);
+					}
+					Push(member);
+					break;
 				}
+				else
+					ASSERT(L"No member:" + propName + L" in class object" + klass->name);
 
-				Push(member);
 				break;
 			}
 			case OP_SET_PROPERTY:
@@ -574,8 +589,5 @@ namespace lws
 	Value VM::Peek(int32_t distance)
 	{
 		return *(mStackTop - distance - 1);
-	}
-	void VM::BindClassFunction(ClassObject *klass, const std::wstring &funcName)
-	{
 	}
 }

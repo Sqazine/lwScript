@@ -3,12 +3,12 @@
 namespace lws
 {
     SymbolTable::SymbolTable()
-        : mSymbolIdx(0), enclosing(nullptr), mScopeDepth(0), mGlobalCount(0), mLocalCount(0)
+        : mSymbolIdx(0), enclosing(nullptr), mScopeDepth(0)
     {
     }
 
     SymbolTable::SymbolTable(SymbolTable *enclosing)
-        : mSymbolIdx(0), enclosing(enclosing), mGlobalCount(0), mLocalCount(0)
+        : mSymbolIdx(0), enclosing(enclosing)
     {
         mScopeDepth = enclosing->mScopeDepth + 1;
     }
@@ -37,15 +37,10 @@ namespace lws
 
         auto symbol = &mSymbols[idx];
         if (mScopeDepth == 0)
-        {
             symbol->type = SymbolType::GLOBAL;
-            symbol->idx = mGlobalCount++;
-        }
         else
-        {
             symbol->type = SymbolType::LOCAL;
-            symbol->idx = mLocalCount++;
-        }
+        symbol->idx = idx;
         symbol->depth = mScopeDepth;
         return *symbol;
     }

@@ -42,7 +42,7 @@ namespace lws
 			{
 			case OP_CONSTANT:
 			{
-				auto pos = opcodes[i+1];
+				auto pos = opcodes[i + 1];
 				std::wstring constantStr;
 				if (IS_FUNCTION_VALUE(constants[pos]))
 					constantStr = (L"<fn " + TO_FUNCTION_VALUE(constants[pos])->name + L":0x" + PointerAddressToString((void *)TO_FUNCTION_VALUE(constants[pos])) + L">");
@@ -53,6 +53,10 @@ namespace lws
 				i++;
 				break;
 			}
+			case OP_NULL:
+				cout << std::setfill(L'0') << std::setw(8) << i << L"    "
+					 << L"OP_NULL" << std::endl;
+				break;
 			case OP_ADD:
 				cout << std::setfill(L'0') << std::setw(8) << i << L"    "
 					 << L"OP_ADD" << std::endl;
@@ -103,14 +107,14 @@ namespace lws
 				break;
 			case OP_ARRAY:
 			{
-				auto pos = opcodes[i+1];
+				auto pos = opcodes[i + 1];
 				cout << std::setfill(L'0') << std::setw(8) << i << L"    " << L"OP_ARRAY    " << pos << std::endl;
 				i++;
 				break;
 			}
 			case OP_TABLE:
 			{
-				auto pos = opcodes[i+1];
+				auto pos = opcodes[i + 1];
 				cout << std::setfill(L'0') << std::setw(8) << i << L"    " << L"OP_TABLE    " << pos << std::endl;
 				i++;
 				break;
@@ -127,14 +131,14 @@ namespace lws
 			}
 			case OP_JUMP_IF_FALSE:
 			{
-				auto address = opcodes[i+1];
+				auto address = opcodes[i + 1];
 				cout << std::setfill(L'0') << std::setw(8) << i << L"    " << L"OP_JUMP_IF_FALSE    " << address << std::endl;
 				i++;
 				break;
 			}
 			case OP_JUMP:
 			{
-				auto address = opcodes[i+1];
+				auto address = opcodes[i + 1];
 				cout << std::setfill(L'0') << std::setw(8) << i << L"    " << L"OP_JUMP    " << address << std::endl;
 				i++;
 				break;

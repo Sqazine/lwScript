@@ -8,9 +8,9 @@ namespace lws
 
     struct CallFrame
     {
-        FunctionObject *function;
-        uint8_t *ip;
-        Value *slots;
+        FunctionObject *function=nullptr;
+        uint8_t *ip=nullptr;
+        Value *slots=nullptr;
     };
 
     class VM
@@ -21,7 +21,7 @@ namespace lws
 
         void ResetStatus();
 
-        void Run(FunctionObject *mainFunc);
+        std::vector<Value> Run(FunctionObject *mainFunc);
 
     private:
         void Execute();
@@ -38,9 +38,9 @@ namespace lws
         template <class T>
         void FreeObject(T *object);
 
-        void BindClassFunction(ClassObject* klass,const std::wstring& funcName);
-
         LibraryManager mLibraryManager;
+
+        static Value sNullValue;
 
         Value mGlobalVariables[GLOBAL_VARIABLE_MAX];
 
@@ -51,8 +51,6 @@ namespace lws
         int32_t mFrameCount;
 
         Object *objectChain;
-
-        friend struct Object;
 
         size_t bytesAllocated;
     };

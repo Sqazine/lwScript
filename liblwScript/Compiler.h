@@ -64,6 +64,7 @@ namespace lws
 
 		uint8_t Emit(uint8_t opcode);
 		uint8_t EmitConstant(const Value &value);
+		uint8_t EmitReturn(uint8_t retCount);
 		uint8_t EmitJump(uint8_t opcode);
 		void PatchJump(uint8_t offset);
 		uint8_t AddConstant(const Value &value);
