@@ -429,16 +429,15 @@ namespace lws
 			}
 			case OP_JUMP_IF_FALSE:
 			{
-				auto address = *frame->ip++;
-				frame->ip += 8;
+				uint16_t address = (*(frame->ip++) << 8) | (*(frame->ip++));
 				if (IsFalsey(Peek(0)))
-					frame->ip = frame->function->chunk.opCodes.data() + address + 1;
+					frame->ip += address;
 				break;
 			}
 			case OP_JUMP:
 			{
-				auto address = *frame->ip++;
-				frame->ip = frame->function->chunk.opCodes.data() + address + 1;
+				uint16_t address = (*(frame->ip++) << 8) | (*(frame->ip++));
+				frame->ip += address;
 				break;
 			}
 			case OP_REF_GLOBAL:

@@ -131,16 +131,16 @@ namespace lws
 			}
 			case OP_JUMP_IF_FALSE:
 			{
-				auto address = opcodes[i + 1];
-				cout << std::setfill(L'0') << std::setw(8) << i << L"    " << L"OP_JUMP_IF_FALSE    " << address << std::endl;
-				i++;
+				uint16_t addressOffset = int16_t(opcodes[i + 1] << 8 | opcodes[i + 2]);
+				cout << std::setfill(L'0') << std::setw(8) << i << L"    " << L"OP_JUMP_IF_FALSE    " << i << "->" << i + addressOffset + 3 << std::endl;
+				i += 2;
 				break;
 			}
 			case OP_JUMP:
 			{
-				auto address = opcodes[i + 1];
-				cout << std::setfill(L'0') << std::setw(8) << i << L"    " << L"OP_JUMP    " << address << std::endl;
-				i++;
+				uint16_t addressOffset = opcodes[i + 1] << 8 | opcodes[i + 2];
+				cout << std::setfill(L'0') << std::setw(8) << i << L"    " << L"OP_JUMP    " << i << "->" << i + addressOffset + 3 << std::endl;
+				i += 2;
 				break;
 			}
 			case OP_POP:

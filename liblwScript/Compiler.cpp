@@ -752,13 +752,15 @@ namespace lws
 	{
 		Emit(opcode);
 		Emit(0xFF);
-		return CurOpCodes().size() - 1;
+		Emit(0xFF);
+		return CurOpCodes().size() - 2;
 	}
 
 	void Compiler::PatchJump(uint8_t offset)
 	{
-		uint8_t jumpAddress = CurOpCodes().size() - 1;
-		CurOpCodes()[offset] = jumpAddress & 0xFF;
+		uint16_t jumpOffset = CurOpCodes().size() -offset- 2;
+		CurOpCodes()[offset] = (jumpOffset>>8) & 0xFF;
+		CurOpCodes()[offset+1] = (jumpOffset) & 0xFF;
 	}
 
 	uint8_t Compiler::AddConstant(const Value &value)
