@@ -34,6 +34,7 @@ namespace lws
         OP_SET_INDEX,
         OP_JUMP_IF_FALSE,
         OP_JUMP,
+        OP_LOOP,
         OP_POP,
         OP_SET_GLOBAL,
         OP_GET_GLOBAL,

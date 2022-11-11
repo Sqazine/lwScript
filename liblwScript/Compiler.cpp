@@ -298,7 +298,7 @@ namespace lws
 	}
 	void Compiler::CompileWhileStmt(WhileStmt *stmt)
 	{
-		uint8_t jmpAddress = CurOpCodes().size() - 1;
+		uint16_t jmpAddress = CurOpCodes().size();
 
 		auto conditionPostfixExprs = StatsPostfixExprs(stmt->condition);
 
@@ -312,6 +312,8 @@ namespace lws
 
 		auto jmpIfFalseAddress = EmitJump(OP_JUMP_IF_FALSE);
 
+		Emit(OP_POP);
+
 		int64_t breakStmtAddress = -1;
 		int64_t continueStmtAddress = -1;
 
@@ -322,13 +324,14 @@ namespace lws
 		if (stmt->increment)
 			CompileStmt(stmt->increment, breakStmtAddress, breakStmtAddress);
 
-		Emit(OP_JUMP);
-		Emit(jmpAddress);
+		EmitLoop(jmpAddress);
 
 		PatchJump(jmpIfFalseAddress);
 
 		if (breakStmtAddress != -1)
 			PatchJump(breakStmtAddress);
+
+		Emit(OP_POP);
 	}
 	void Compiler::CompileReturnStmt(ReturnStmt *stmt)
 	{
@@ -756,11 +759,20 @@ namespace lws
 		return CurOpCodes().size() - 2;
 	}
 
+	void Compiler::EmitLoop(uint16_t opcode)
+	{
+		Emit(OP_LOOP);
+		uint16_t offset = CurOpCodes().size() - opcode + 2;
+
+		Emit((offset >> 8) & 0xFF);
+		Emit(offset & 0xFF);
+	}
+
 	void Compiler::PatchJump(uint8_t offset)
 	{
-		uint16_t jumpOffset = CurOpCodes().size() -offset- 2;
-		CurOpCodes()[offset] = (jumpOffset>>8) & 0xFF;
-		CurOpCodes()[offset+1] = (jumpOffset) & 0xFF;
+		uint16_t jumpOffset = CurOpCodes().size() - offset - 2;
+		CurOpCodes()[offset] = (jumpOffset >> 8) & 0xFF;
+		CurOpCodes()[offset + 1] = (jumpOffset)&0xFF;
 	}
 
 	uint8_t Compiler::AddConstant(const Value &value)

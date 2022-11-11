@@ -440,6 +440,12 @@ namespace lws
 				frame->ip += address;
 				break;
 			}
+			case OP_LOOP:
+			{
+				uint16_t address = (*(frame->ip++) << 8) | (*(frame->ip++));
+				frame->ip -= address;
+				break;
+			}
 			case OP_REF_GLOBAL:
 			{
 				auto index = *frame->ip++;
