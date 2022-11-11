@@ -38,12 +38,11 @@ namespace lws
 		std::wstringstream cout;
 		for (int32_t i = 0; i < opcodes.size(); ++i)
 		{
-
 			switch (opcodes[i])
 			{
 			case OP_CONSTANT:
 			{
-				auto pos = EncodeUint64(opcodes, i);
+				auto pos = opcodes[i+1];
 				std::wstring constantStr;
 				if (IS_FUNCTION_VALUE(constants[pos]))
 					constantStr = (L"<fn " + TO_FUNCTION_VALUE(constants[pos])->name + L":0x" + PointerAddressToString((void *)TO_FUNCTION_VALUE(constants[pos])) + L">");
@@ -51,7 +50,7 @@ namespace lws
 					constantStr = constants[pos].Stringify();
 				cout << std::setfill(L'0') << std::setw(8) << i << L"    "
 					 << L"OP_CONSTANT    " << pos << L"    '" << constantStr << L"'" << std::endl;
-				i += 8;
+				i++;
 				break;
 			}
 			case OP_ADD:
@@ -104,16 +103,16 @@ namespace lws
 				break;
 			case OP_ARRAY:
 			{
-				auto pos = EncodeUint64(opcodes, i);
+				auto pos = opcodes[i+1];
 				cout << std::setfill(L'0') << std::setw(8) << i << L"    " << L"OP_ARRAY    " << pos << std::endl;
-				i += 8;
+				i++;
 				break;
 			}
 			case OP_TABLE:
 			{
-				auto pos = EncodeUint64(opcodes, i);
+				auto pos = opcodes[i+1];
 				cout << std::setfill(L'0') << std::setw(8) << i << L"    " << L"OP_TABLE    " << pos << std::endl;
-				i += 8;
+				i++;
 				break;
 			}
 			case OP_GET_INDEX:
@@ -128,16 +127,16 @@ namespace lws
 			}
 			case OP_JUMP_IF_FALSE:
 			{
-				auto address = EncodeUint64(opcodes, i);
+				auto address = opcodes[i+1];
 				cout << std::setfill(L'0') << std::setw(8) << i << L"    " << L"OP_JUMP_IF_FALSE    " << address << std::endl;
-				i += 8;
+				i++;
 				break;
 			}
 			case OP_JUMP:
 			{
-				auto address = EncodeUint64(opcodes, i);
+				auto address = opcodes[i+1];
 				cout << std::setfill(L'0') << std::setw(8) << i << L"    " << L"OP_JUMP    " << address << std::endl;
-				i += 8;
+				i++;
 				break;
 			}
 			case OP_POP:

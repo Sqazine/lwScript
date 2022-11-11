@@ -121,8 +121,6 @@ namespace lws
 			case OP_RETURN:
 			{
 				auto retCount = *frame->ip++;
-				Value *retValues;
-				retValues = mStackTop - retCount;
 
 				mFrameCount--;
 				if (mFrameCount == 0)
@@ -130,12 +128,21 @@ namespace lws
 
 				mStackTop = frame->slots - 1; //-1 for pop the current function object
 
-				uint8_t i = 0;
-				while (i < retCount)
+				if (retCount == 0)
 				{
-					auto value = *(retValues + i);
-					Push(value);
-					i++;
+					Push(Value());
+				}
+				else
+				{
+					Value *retValues;
+					retValues = mStackTop - retCount;
+					uint8_t i = 0;
+					while (i < retCount)
+					{
+						auto value = *(retValues + i);
+						Push(value);
+						i++;
+					}
 				}
 
 				frame = &mFrames[mFrameCount - 1];
@@ -143,8 +150,7 @@ namespace lws
 			}
 			case OP_CONSTANT:
 			{
-				auto pos = EncodeUint64(frame->function->chunk.opCodes, frame->ip - frame->function->chunk.opCodes.data() - 1);
-				frame->ip += 8;
+				auto pos = *frame->ip++;
 				Push(frame->function->chunk.constants[pos]);
 				break;
 			}
@@ -302,9 +308,7 @@ namespace lws
 			}
 			case OP_ARRAY:
 			{
-				auto count = EncodeUint64(frame->function->chunk.opCodes, frame->ip - frame->function->chunk.opCodes.data() - 1);
-
-				frame->ip += 8;
+				auto count = *frame->ip++;
 
 				std::vector<Value> elements;
 				auto prePtr = mStackTop - count;
@@ -317,8 +321,7 @@ namespace lws
 			}
 			case OP_TABLE:
 			{
-				auto eCount = EncodeUint64(frame->function->chunk.opCodes, frame->ip - frame->function->chunk.opCodes.data() - 1);
-				frame->ip += 8;
+				auto eCount = *frame->ip++;
 				ValueUnorderedMap elements;
 				for (int64_t i = 0; i < (int64_t)eCount; ++i)
 				{
@@ -409,7 +412,7 @@ namespace lws
 			}
 			case OP_JUMP_IF_FALSE:
 			{
-				auto address = EncodeUint64(frame->function->chunk.opCodes, frame->ip - frame->function->chunk.opCodes.data() - 1);
+				auto address = *frame->ip++;
 				frame->ip += 8;
 				if (IsFalsey(Peek(0)))
 					frame->ip = frame->function->chunk.opCodes.data() + address + 1;
@@ -417,7 +420,7 @@ namespace lws
 			}
 			case OP_JUMP:
 			{
-				auto address = EncodeUint64(frame->function->chunk.opCodes, frame->ip - frame->function->chunk.opCodes.data() - 1);
+				auto address = *frame->ip++;
 				frame->ip = frame->function->chunk.opCodes.data() + address + 1;
 				break;
 			}
@@ -506,8 +509,8 @@ namespace lws
 					ASSERT(L"Invalid class call:not a valid class instance.");
 				auto propName = TO_STR_VALUE(Pop());
 
-				ClassObject* klass = nullptr;
-				if (mStackTop == frame->slots + 1)//avoid pop root class object
+				ClassObject *klass = nullptr;
+				if (mStackTop == frame->slots + 1) //avoid pop root class object
 					klass = TO_CLASS_VALUE(Peek(0));
 				else
 					klass = TO_CLASS_VALUE(Pop());

@@ -25,9 +25,8 @@ namespace lws
 		else
 			CompileDeclaration(stmt);
 
-		EmitConstant(Value());
 		Emit(OP_RETURN);
-		Emit(1);
+		Emit(0);
 
 		return CurFunction();
 	}
@@ -300,7 +299,7 @@ namespace lws
 	}
 	void Compiler::CompileWhileStmt(WhileStmt *stmt)
 	{
-		uint64_t jmpAddress = CurOpCodes().size() - 1;
+		uint8_t jmpAddress = CurOpCodes().size() - 1;
 
 		auto conditionPostfixExprs = StatsPostfixExprs(stmt->condition);
 
@@ -325,7 +324,7 @@ namespace lws
 			CompileStmt(stmt->increment, breakStmtAddress, breakStmtAddress);
 
 		Emit(OP_JUMP);
-		EmitUint64(jmpAddress);
+		Emit(jmpAddress);
 
 		PatchJump(jmpIfFalseAddress);
 
@@ -344,9 +343,8 @@ namespace lws
 		}
 		else
 		{
-			EmitConstant(Value());
 			Emit(OP_RETURN);
-			Emit(1);
+			Emit(0);
 		}
 
 		if (!postfixExprs.empty())
@@ -444,7 +442,7 @@ namespace lws
 		{
 			// Short circuit calculation
 			CompileExpr(expr->left);
-			uint64_t address = EmitJump(OP_JUMP_IF_FALSE);
+			uint8_t address = EmitJump(OP_JUMP_IF_FALSE);
 			Emit(OP_POP);
 			CompileExpr(expr->right);
 			PatchJump(address);
@@ -452,8 +450,8 @@ namespace lws
 		else if (expr->op == L"||")
 		{
 			CompileExpr(expr->left);
-			uint64_t elseJumpAddress = EmitJump(OP_JUMP_IF_FALSE);
-			uint64_t jumpAddress = EmitJump(OP_JUMP);
+			uint8_t elseJumpAddress = EmitJump(OP_JUMP_IF_FALSE);
+			uint8_t jumpAddress = EmitJump(OP_JUMP);
 			PatchJump(elseJumpAddress);
 			Emit(OP_POP);
 			CompileExpr(expr->right);
@@ -579,8 +577,8 @@ namespace lws
 			CompileExpr(e);
 		Emit(OP_ARRAY);
 
-		uint64_t pos = expr->elements.size();
-		EmitUint64(pos);
+		uint8_t pos = expr->elements.size();
+		Emit(pos);
 	}
 
 	void Compiler::CompileTableExpr(TableExpr *expr)
@@ -591,8 +589,8 @@ namespace lws
 			CompileExpr(k);
 		}
 		Emit(OP_TABLE);
-		uint64_t pos = expr->elements.size();
-		EmitUint64(pos);
+		uint8_t pos = expr->elements.size();
+		Emit(pos);
 	}
 
 	void Compiler::CompileIndexExpr(IndexExpr *expr, const RWState &state)
@@ -724,9 +722,8 @@ namespace lws
 
 		if (CurChunk().opCodes[CurChunk().opCodes.size() - 2] != OP_RETURN)
 		{
-			EmitConstant(Value());
 			Emit(OP_RETURN);
-			Emit(1);
+			Emit(0);
 		}
 
 		ExitScope();
@@ -740,54 +737,34 @@ namespace lws
 		return symbol;
 	}
 
-	uint64_t Compiler::Emit(uint8_t opcode)
+	uint8_t Compiler::Emit(uint8_t opcode)
 	{
 		CurOpCodes().emplace_back(opcode);
 		return CurOpCodes().size() - 1;
 	}
 
-	uint64_t Compiler::EmitUint64(uint64_t opcode)
-	{
-		auto decoded = DecodeUint64(opcode);
-		Emit(decoded[0]);
-		Emit(decoded[1]);
-		Emit(decoded[2]);
-		Emit(decoded[3]);
-		Emit(decoded[4]);
-		Emit(decoded[5]);
-		Emit(decoded[6]);
-		return Emit(decoded[7]);
-	}
-
-	uint64_t Compiler::EmitConstant(const Value &value)
+	uint8_t Compiler::EmitConstant(const Value &value)
 	{
 		Emit(OP_CONSTANT);
-		uint64_t pos = AddConstant(value);
-		EmitUint64(pos);
+		uint8_t pos = AddConstant(value);
+		Emit(pos);
 		return CurOpCodes().size() - 1;
 	}
 
-	uint64_t Compiler::EmitJump(uint8_t opcode)
+	uint8_t Compiler::EmitJump(uint8_t opcode)
 	{
 		Emit(opcode);
-		EmitUint64(0xFFFFFFFFFFFFFFFF);
-		return CurOpCodes().size() - 8;
+		Emit(0xFF);
+		return CurOpCodes().size() - 1;
 	}
 
-	void Compiler::PatchJump(uint64_t offset)
+	void Compiler::PatchJump(uint8_t offset)
 	{
-		uint64_t jumpAddress = CurOpCodes().size() - 1;
-		CurOpCodes()[offset + 0] = (jumpAddress >> 56) & 0xFF;
-		CurOpCodes()[offset + 1] = (jumpAddress >> 48) & 0xFF;
-		CurOpCodes()[offset + 2] = (jumpAddress >> 40) & 0xFF;
-		CurOpCodes()[offset + 3] = (jumpAddress >> 32) & 0xFF;
-		CurOpCodes()[offset + 4] = (jumpAddress >> 24) & 0xFF;
-		CurOpCodes()[offset + 5] = (jumpAddress >> 16) & 0xFF;
-		CurOpCodes()[offset + 6] = (jumpAddress >> 8) & 0xFF;
-		CurOpCodes()[offset + 7] = (jumpAddress >> 0) & 0xFF;
+		uint8_t jumpAddress = CurOpCodes().size() - 1;
+		CurOpCodes()[offset] = jumpAddress & 0xFF;
 	}
 
-	uint64_t Compiler::AddConstant(const Value &value)
+	uint8_t Compiler::AddConstant(const Value &value)
 	{
 		CurChunk().constants.emplace_back(value);
 		return CurChunk().constants.size() - 1;

@@ -62,12 +62,11 @@ namespace lws
 
 		Symbol CompileFunction(FunctionStmt *stmt);
 
-		uint64_t Emit(uint8_t opcode);
-		uint64_t EmitUint64(uint64_t opcode);
-		uint64_t EmitConstant(const Value &value);
-		uint64_t EmitJump(uint8_t opcode);
-		void PatchJump(uint64_t offset);
-		uint64_t AddConstant(const Value &value);
+		uint8_t Emit(uint8_t opcode);
+		uint8_t EmitConstant(const Value &value);
+		uint8_t EmitJump(uint8_t opcode);
+		void PatchJump(uint8_t offset);
+		uint8_t AddConstant(const Value &value);
 
 		void EnterScope();
 		void ExitScope();

@@ -61,31 +61,4 @@ namespace lws
             return tmp;
         return Factorial(v - 1, v * tmp);
     }
-
-    inline std::array<uint8_t, 8> DecodeUint64(uint64_t ui)
-    {
-        std::array<uint8_t, 8> result;
-        result[0] = uint8_t(ui >> 56);
-        result[1] = uint8_t(ui >> 48);
-        result[2] = uint8_t(ui >> 40);
-        result[3] = uint8_t(ui >> 32);
-        result[4] = uint8_t(ui >> 24);
-        result[5] = uint8_t(ui >> 16);
-        result[6] = uint8_t(ui >> 8);
-        result[7] = uint8_t(ui >> 0);
-
-        return result;
-    }
-
-    inline uint64_t EncodeUint64(const std::vector<uint8_t>& byteList,int64_t idx)
-    {
-        return (((uint64_t)byteList[idx+1]) << 56) |
-               (((uint64_t)byteList[idx+2]) << 48) |
-               (((uint64_t)byteList[idx+3]) << 40) |
-               (((uint64_t)byteList[idx+4]) << 32) |
-               (((uint64_t)byteList[idx+5]) << 24) |
-               (((uint64_t)byteList[idx+6]) << 16) |
-               (((uint64_t)byteList[idx+7]) << 8) |
-               (((uint64_t)byteList[idx+8]) << 0);
-    }
 }
