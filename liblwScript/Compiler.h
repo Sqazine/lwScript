@@ -44,7 +44,7 @@ namespace lws
 		void CompileRealNumExpr(RealNumExpr *expr);
 		void CompileBoolExpr(BoolExpr *expr);
 		void CompilePrefixExpr(PrefixExpr *expr);
-		void CompilePostfixExpr(PostfixExpr *expr, bool isDelayCompile = true);
+		void CompilePostfixExpr(PostfixExpr *expr,const RWState &state = RWState::READ, bool isDelayCompile = true);
 		void CompileStrExpr(StrExpr *expr);
 		void CompileNullExpr(NullExpr *expr);
 		void CompileGroupExpr(GroupExpr *expr);

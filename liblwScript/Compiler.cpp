@@ -98,7 +98,7 @@ namespace lws
 		if (!postfixExprs.empty())
 		{
 			for (const auto &postfixExpr : postfixExprs)
-				CompilePostfixExpr((PostfixExpr *)postfixExpr, false);
+				CompilePostfixExpr((PostfixExpr *)postfixExpr,RWState::READ, false);
 		}
 	}
 
@@ -121,7 +121,7 @@ namespace lws
 		if (!postfixExprs.empty())
 		{
 			for (const auto &postfixExpr : postfixExprs)
-				CompilePostfixExpr((PostfixExpr *)postfixExpr, false);
+				CompilePostfixExpr((PostfixExpr *)postfixExpr,RWState::READ, false);
 		}
 	}
 
@@ -256,7 +256,7 @@ namespace lws
 		if (!postfixExprs.empty())
 		{
 			for (const auto &postfixExpr : postfixExprs)
-				CompilePostfixExpr((PostfixExpr *)postfixExpr, false);
+				CompilePostfixExpr((PostfixExpr *)postfixExpr,RWState::READ, false);
 		}
 	}
 	void Compiler::CompileIfStmt(IfStmt *stmt, int64_t &breakStmtAddress, int64_t &continueStmtAddress)
@@ -268,7 +268,7 @@ namespace lws
 		if (!conditionPostfixExprs.empty())
 		{
 			for (const auto &postfixExpr : conditionPostfixExprs)
-				CompilePostfixExpr((PostfixExpr *)postfixExpr, false);
+				CompilePostfixExpr((PostfixExpr *)postfixExpr,RWState::READ, false);
 		}
 
 		auto jmpIfFalseAddress = EmitJump(OP_JUMP_IF_FALSE);
@@ -304,7 +304,7 @@ namespace lws
 		if (!conditionPostfixExprs.empty())
 		{
 			for (const auto &postfixExpr : conditionPostfixExprs)
-				CompilePostfixExpr((PostfixExpr *)postfixExpr, false);
+				CompilePostfixExpr((PostfixExpr *)postfixExpr,RWState::READ, false);
 		}
 
 		auto jmpIfFalseAddress = EmitJump(OP_JUMP_IF_FALSE);
@@ -345,7 +345,7 @@ namespace lws
 		if (!postfixExprs.empty())
 		{
 			for (const auto &postfixExpr : postfixExprs)
-				CompilePostfixExpr((PostfixExpr *)postfixExpr, false);
+				CompilePostfixExpr((PostfixExpr *)postfixExpr,RWState::READ, false);
 		}
 	}
 
@@ -378,7 +378,7 @@ namespace lws
 			CompilePrefixExpr((PrefixExpr *)expr);
 			break;
 		case AST_POSTFIX:
-			CompilePostfixExpr((PostfixExpr *)expr);
+			CompilePostfixExpr((PostfixExpr *)expr,state);
 			break;
 		case AST_STR:
 			CompileStrExpr((StrExpr *)expr);
@@ -535,9 +535,9 @@ namespace lws
 		else
 			ASSERT(L"No prefix op:" + expr->op);
 	}
-	void Compiler::CompilePostfixExpr(PostfixExpr *expr, bool isDelayCompile)
+	void Compiler::CompilePostfixExpr(PostfixExpr *expr,const RWState &state, bool isDelayCompile)
 	{
-		CompileExpr(expr->left);
+		CompileExpr(expr->left,state);
 		if (expr->op == L"!")
 			Emit(OP_FACTORIAL);
 		else if (!isDelayCompile)
