@@ -13,7 +13,7 @@ namespace lws
         mScopeDepth = enclosing->mScopeDepth + 1;
     }
 
-    uint8_t SymbolTable::Declare(SymbolDescType descType, const std::wstring &name)
+    Symbol SymbolTable::Define(SymbolDescType descType, const std::wstring &name)
     {
         if (mSymbolIdx >= mSymbols.size())
             ASSERT(L"Too many variables in current scope.");
@@ -27,20 +27,12 @@ namespace lws
         auto *symbol = &mSymbols[mSymbolIdx++];
         symbol->name = name;
         symbol->descType = descType;
-        symbol->depth = -1;
 
-        return mSymbolIdx - 1;
-    }
-
-    Symbol SymbolTable::Define(uint8_t idx)
-    {
-
-        auto symbol = &mSymbols[idx];
         if (mScopeDepth == 0)
             symbol->type = SymbolType::GLOBAL;
         else
             symbol->type = SymbolType::LOCAL;
-        symbol->idx = idx;
+        symbol->location = mSymbolIdx - 1;
         symbol->depth = mScopeDepth;
         return *symbol;
     }

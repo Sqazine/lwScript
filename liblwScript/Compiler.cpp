@@ -40,10 +40,7 @@ namespace lws
 		mSymbolTable = new SymbolTable();
 
 		for (const auto &libName : gLibraryMap)
-		{
-			auto idx = mSymbolTable->Declare(SymbolDescType::CONSTANT, libName);
-			mSymbolTable->Define(idx);
-		}
+			mSymbolTable->Define(SymbolDescType::CONSTANT, libName);
 	}
 
 	void Compiler::CompileDeclaration(Stmt *stmt)
@@ -80,18 +77,17 @@ namespace lws
 
 		for (const auto &[k, v] : stmt->variables)
 		{
-			auto idx = mSymbolTable->Declare(SymbolDescType::VARIABLE, k->literal);
 			CompileExpr(v.value);
-			auto symbol = mSymbolTable->Define(idx);
+			auto symbol = mSymbolTable->Define(SymbolDescType::VARIABLE, k->literal);
 			if (symbol.type == SymbolType::GLOBAL)
 			{
 				Emit(OP_SET_GLOBAL);
-				Emit(symbol.idx);
+				Emit(symbol.location);
 			}
 			else if (symbol.type == SymbolType::LOCAL)
 			{
 				Emit(OP_SET_LOCAL);
-				Emit(symbol.idx);
+				Emit(symbol.location);
 			}
 		}
 
@@ -108,18 +104,17 @@ namespace lws
 
 		for (const auto &[k, v] : stmt->consts)
 		{
-			auto idx = mSymbolTable->Declare(SymbolDescType::CONSTANT, k->literal);
 			CompileExpr(v.value);
-			auto symbol = mSymbolTable->Define(idx);
+			auto symbol = mSymbolTable->Define(SymbolDescType::CONSTANT, k->literal);
 			if (symbol.type == SymbolType::GLOBAL)
 			{
 				Emit(OP_SET_GLOBAL);
-				Emit(symbol.idx);
+				Emit(symbol.location);
 			}
 			else if (symbol.type == SymbolType::LOCAL)
 			{
 				Emit(OP_SET_LOCAL);
-				Emit(symbol.idx);
+				Emit(symbol.location);
 			}
 		}
 
@@ -137,19 +132,17 @@ namespace lws
 		if (symbol.type == SymbolType::GLOBAL)
 		{
 			Emit(OP_SET_GLOBAL);
-			Emit(symbol.idx);
+			Emit(symbol.location);
 		}
 		else if (symbol.type == SymbolType::LOCAL)
 		{
 			Emit(OP_SET_LOCAL);
-			Emit(symbol.idx);
+			Emit(symbol.location);
 		}
 	}
 	void Compiler::CompileClassDeclaration(ClassStmt *stmt)
 	{
-		auto idx = mSymbolTable->Declare(SymbolDescType::CONSTANT, stmt->name);
-
-		auto symbol = mSymbolTable->Define(idx);
+		auto symbol = mSymbolTable->Define(SymbolDescType::CONSTANT, stmt->name);
 
 		mFunctionList.emplace_back(new FunctionObject(stmt->name));
 		mSymbolTable = new SymbolTable(mSymbolTable);
@@ -210,12 +203,12 @@ namespace lws
 		if (symbol.type == SymbolType::GLOBAL)
 		{
 			Emit(OP_SET_GLOBAL);
-			Emit(symbol.idx);
+			Emit(symbol.location);
 		}
 		else if (symbol.type == SymbolType::LOCAL)
 		{
 			Emit(OP_SET_LOCAL);
-			Emit(symbol.idx);
+			Emit(symbol.location);
 		}
 	}
 
@@ -640,7 +633,7 @@ namespace lws
 			if (symbol.descType == SymbolDescType::VARIABLE)
 			{
 				Emit(setOp);
-				Emit(symbol.idx);
+				Emit(symbol.location);
 			}
 			else
 				ASSERT("Constant cannot be assigned!");
@@ -648,7 +641,7 @@ namespace lws
 		else
 		{
 			Emit(getOp);
-			Emit(symbol.idx);
+			Emit(symbol.location);
 		}
 	}
 	void Compiler::CompileLambdaExpr(LambdaExpr *expr)
@@ -677,20 +670,18 @@ namespace lws
 		if (symbol.type == SymbolType::GLOBAL)
 		{
 			Emit(OP_REF_GLOBAL);
-			Emit(symbol.idx);
+			Emit(symbol.location);
 		}
 		else if (symbol.type == SymbolType::LOCAL)
 		{
 			Emit(OP_REF_LOCAL);
-			Emit(symbol.idx);
+			Emit(symbol.location);
 		}
 	}
 
 	Symbol Compiler::CompileFunction(FunctionStmt *stmt)
 	{
-		auto idx = mSymbolTable->Declare(SymbolDescType::CONSTANT, stmt->name->literal);
-
-		auto functionSymbol = mSymbolTable->Define(idx);
+		auto functionSymbol = mSymbolTable->Define(SymbolDescType::CONSTANT, stmt->name->literal);
 
 		mFunctionList.emplace_back(new FunctionObject(stmt->name->literal));
 		mSymbolTable = new SymbolTable(mSymbolTable);
@@ -705,10 +696,7 @@ namespace lws
 		CurFunction()->arity = stmt->parameters.size();
 
 		for (const auto &param : stmt->parameters)
-		{
-			auto idx = mSymbolTable->Declare(SymbolDescType::VARIABLE, param->literal);
-			mSymbolTable->Define(idx);
-		}
+			mSymbolTable->Define(SymbolDescType::VARIABLE, param->literal);
 
 		EnterScope();
 

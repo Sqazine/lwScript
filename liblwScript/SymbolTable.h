@@ -22,7 +22,7 @@ namespace lws
         std::wstring name;
         SymbolType type = SymbolType::GLOBAL;
         SymbolDescType descType = SymbolDescType::VARIABLE;
-        uint8_t idx = 0;
+        uint8_t location = 0;
         int8_t depth = -1;
     };
     class SymbolTable
@@ -31,9 +31,7 @@ namespace lws
         SymbolTable();
         SymbolTable(SymbolTable *enclosing);
 
-        uint8_t Declare(SymbolDescType descType, const std::wstring &name);
-
-        Symbol Define(uint8_t idx);
+        Symbol Define(SymbolDescType descType, const std::wstring &name);
 
         Symbol Resolve(const std::wstring &name);
 
