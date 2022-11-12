@@ -125,16 +125,22 @@ namespace lws
 			ASSERT("Invalid op:" + left.Stringify() + (L#op) + right.Stringify());          \
 	} while (0);
 
+#define READ_INS() (*frame->ip++)
+
 		CallFrame *frame = &mFrames[mFrameCount - 1];
 
 		while (1)
 		{
-			auto instruction = *frame->ip++;
+			if(frame->ip- frame->function->chunk.opCodes.data()>=frame->function->chunk.opCodes.size())
+				ASSERT("Over flow");
+
+				
+			auto instruction = READ_INS();
 			switch (instruction)
 			{
 			case OP_RETURN:
 			{
-				auto retCount = *frame->ip++;
+				auto retCount = READ_INS();
 				Value *retValues;
 				retValues = mStackTop - retCount;
 
@@ -162,7 +168,7 @@ namespace lws
 			}
 			case OP_CONSTANT:
 			{
-				auto pos = *frame->ip++;
+				auto pos = READ_INS();
 				Push(frame->function->chunk.constants[pos]);
 				break;
 			}
@@ -173,7 +179,7 @@ namespace lws
 			}
 			case OP_SET_GLOBAL:
 			{
-				auto pos = *frame->ip++;
+				auto pos = READ_INS();
 				auto v = Pop();
 				if (IS_REF_VALUE(mGlobalVariables[pos]))
 					*TO_REF_VALUE(mGlobalVariables[pos])->pointer = v;
@@ -183,13 +189,13 @@ namespace lws
 			}
 			case OP_GET_GLOBAL:
 			{
-				auto pos = *frame->ip++;
+				auto pos = READ_INS();
 				Push(mGlobalVariables[pos]);
 				break;
 			}
 			case OP_SET_LOCAL:
 			{
-				auto pos = *frame->ip++;
+				auto pos = READ_INS();
 				auto value = Peek(0);
 
 				auto slot = frame->slots + pos;
@@ -202,7 +208,7 @@ namespace lws
 			}
 			case OP_GET_LOCAL:
 			{
-				auto pos = *frame->ip++;
+				auto pos = READ_INS();
 				Push(frame->slots[pos]); // now assume base ptr on the stack bottom
 				break;
 			}
@@ -325,7 +331,7 @@ namespace lws
 			}
 			case OP_ARRAY:
 			{
-				auto count = *frame->ip++;
+				auto count = READ_INS();
 
 				std::vector<Value> elements;
 				auto prePtr = mStackTop - count;
@@ -338,7 +344,7 @@ namespace lws
 			}
 			case OP_TABLE:
 			{
-				auto eCount = *frame->ip++;
+				auto eCount = READ_INS();
 				ValueUnorderedMap elements;
 				for (int64_t i = 0; i < (int64_t)eCount; ++i)
 				{
@@ -448,19 +454,19 @@ namespace lws
 			}
 			case OP_REF_GLOBAL:
 			{
-				auto index = *frame->ip++;
+				auto index = READ_INS();
 				Push(CreateObject<RefObject>(&mGlobalVariables[index]));
 				break;
 			}
 			case OP_REF_LOCAL:
 			{
-				auto index = *frame->ip++;
+				auto index = READ_INS();
 				Push(CreateObject<RefObject>(frame->slots + index));
 				break;
 			}
 			case OP_CALL:
 			{
-				auto argCount = *frame->ip++;
+				auto argCount = READ_INS();
 				auto callee = Peek(argCount);
 				if (IS_FUNCTION_VALUE(callee) || IS_CLASS_FUNCTION_BIND_VALUE(callee)) // normal function
 				{
@@ -502,8 +508,8 @@ namespace lws
 			case OP_CLASS:
 			{
 				auto name = Pop();
-				auto memCount = *frame->ip++;
-				auto parentClassCount = *frame->ip++;
+				auto memCount = READ_INS();
+				auto parentClassCount = READ_INS();
 
 				auto classObj = CreateObject<ClassObject>();
 				classObj->name = TO_STR_VALUE(name);
