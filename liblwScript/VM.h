@@ -5,12 +5,11 @@
 #include "Library.h"
 namespace lws
 {
-
     struct CallFrame
     {
-        FunctionObject *function=nullptr;
-        uint8_t *ip=nullptr;
-        Value *slots=nullptr;
+        FunctionObject *function = nullptr;
+        uint8_t *ip = nullptr;
+        Value *slots = nullptr;
     };
 
     class VM

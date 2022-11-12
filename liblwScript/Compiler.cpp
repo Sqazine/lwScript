@@ -39,6 +39,14 @@ namespace lws
 			delete mSymbolTable;
 		mSymbolTable = new SymbolTable();
 
+		auto symbol = &mSymbolTable->mSymbols[mSymbolTable->mSymbolCount++];
+		symbol->type = SymbolType::LOCAL;
+		symbol->index = mSymbolTable->mLocalSymbolCount++;
+		symbol->location = 0;
+		symbol->descType = SymbolDescType::CONSTANT;
+		symbol->depth = 0;
+		symbol->name = L"_main_start_up";
+
 		for (const auto &libName : gLibraryMap)
 			mSymbolTable->Define(SymbolDescType::CONSTANT, libName);
 	}
@@ -82,12 +90,8 @@ namespace lws
 			if (symbol.type == SymbolType::GLOBAL)
 			{
 				Emit(OP_SET_GLOBAL);
-				Emit(symbol.location);
-			}
-			else if (symbol.type == SymbolType::LOCAL)
-			{
-				Emit(OP_SET_LOCAL);
-				Emit(symbol.location);
+				Emit(symbol.index);
+				Emit(OP_POP);
 			}
 		}
 
@@ -109,12 +113,8 @@ namespace lws
 			if (symbol.type == SymbolType::GLOBAL)
 			{
 				Emit(OP_SET_GLOBAL);
-				Emit(symbol.location);
-			}
-			else if (symbol.type == SymbolType::LOCAL)
-			{
-				Emit(OP_SET_LOCAL);
-				Emit(symbol.location);
+				Emit(symbol.index);
+				Emit(OP_POP);
 			}
 		}
 
@@ -132,13 +132,14 @@ namespace lws
 		if (symbol.type == SymbolType::GLOBAL)
 		{
 			Emit(OP_SET_GLOBAL);
-			Emit(symbol.location);
+			Emit(symbol.index);
 		}
 		else if (symbol.type == SymbolType::LOCAL)
 		{
 			Emit(OP_SET_LOCAL);
-			Emit(symbol.location);
+			Emit(symbol.index);
 		}
+		Emit(OP_POP);
 	}
 	void Compiler::CompileClassDeclaration(ClassStmt *stmt)
 	{
@@ -203,13 +204,14 @@ namespace lws
 		if (symbol.type == SymbolType::GLOBAL)
 		{
 			Emit(OP_SET_GLOBAL);
-			Emit(symbol.location);
+			Emit(symbol.index);
 		}
 		else if (symbol.type == SymbolType::LOCAL)
 		{
 			Emit(OP_SET_LOCAL);
-			Emit(symbol.location);
+			Emit(symbol.index);
 		}
+		Emit(OP_POP);
 	}
 
 	void Compiler::CompileStmt(Stmt *stmt, int64_t &breakStmtAddress, int64_t &continueStmtAddress)
@@ -248,6 +250,8 @@ namespace lws
 		auto postfixExprs = StatsPostfixExprs(stmt->expr);
 
 		CompileExpr(stmt->expr);
+
+		Emit(OP_POP);
 
 		if (!postfixExprs.empty())
 		{
@@ -519,7 +523,6 @@ namespace lws
 			EmitConstant((int64_t)1);
 			Emit(OP_ADD);
 			CompileExpr(expr->right, RWState::WRITE);
-			CompileExpr(expr->right, RWState::READ);
 		}
 		else if (expr->op == L"--")
 		{
@@ -528,7 +531,6 @@ namespace lws
 			EmitConstant((int64_t)1);
 			Emit(OP_SUB);
 			CompileExpr(expr->right, RWState::WRITE);
-			CompileExpr(expr->right, RWState::READ);
 		}
 		else
 			ASSERT(L"No prefix op:" + expr->op);
@@ -548,6 +550,7 @@ namespace lws
 			else
 				ASSERT(L"No postfix op:" + expr->op);
 			CompileExpr(expr->left, RWState::WRITE);
+			Emit(OP_POP);
 		}
 	}
 	void Compiler::CompileStrExpr(StrExpr *expr)
@@ -633,7 +636,7 @@ namespace lws
 			if (symbol.descType == SymbolDescType::VARIABLE)
 			{
 				Emit(setOp);
-				Emit(symbol.location);
+				Emit(symbol.index);
 			}
 			else
 				ASSERT("Constant cannot be assigned!");
@@ -641,7 +644,7 @@ namespace lws
 		else
 		{
 			Emit(getOp);
-			Emit(symbol.location);
+			Emit(symbol.index);
 		}
 	}
 	void Compiler::CompileLambdaExpr(LambdaExpr *expr)
@@ -670,12 +673,12 @@ namespace lws
 		if (symbol.type == SymbolType::GLOBAL)
 		{
 			Emit(OP_REF_GLOBAL);
-			Emit(symbol.location);
+			Emit(symbol.index);
 		}
 		else if (symbol.type == SymbolType::LOCAL)
 		{
 			Emit(OP_REF_LOCAL);
-			Emit(symbol.location);
+			Emit(symbol.index);
 		}
 	}
 
@@ -686,12 +689,10 @@ namespace lws
 		mFunctionList.emplace_back(new FunctionObject(stmt->name->literal));
 		mSymbolTable = new SymbolTable(mSymbolTable);
 
-		Symbol *symbol = &mSymbolTable->mSymbols[mSymbolTable->mSymbolIdx++];
-		symbol->depth = 0;
-		symbol->type = SymbolType::LOCAL;
-		symbol->descType = SymbolDescType::CONSTANT;
+		std::wstring symbolName = L"";
 		if (stmt->type == FunctionType::CLASS_FUNCTION || stmt->type == FunctionType::CLASS_INITIALIZER)
-			symbol->name = L"this";
+			symbolName = L"this";
+		mSymbolTable->Define(SymbolDescType::CONSTANT, symbolName);
 
 		CurFunction()->arity = stmt->parameters.size();
 

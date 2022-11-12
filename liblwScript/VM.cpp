@@ -131,10 +131,6 @@ namespace lws
 
 		while (1)
 		{
-			if(frame->ip- frame->function->chunk.opCodes.data()>=frame->function->chunk.opCodes.size())
-				ASSERT("Over flow");
-
-				
 			auto instruction = READ_INS();
 			switch (instruction)
 			{
@@ -180,7 +176,7 @@ namespace lws
 			case OP_SET_GLOBAL:
 			{
 				auto pos = READ_INS();
-				auto v = Pop();
+				auto v = Peek(0);
 				if (IS_REF_VALUE(mGlobalVariables[pos]))
 					*TO_REF_VALUE(mGlobalVariables[pos])->pointer = v;
 				else

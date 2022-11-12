@@ -3,36 +3,43 @@
 namespace lws
 {
     SymbolTable::SymbolTable()
-        : mSymbolIdx(0), enclosing(nullptr), mScopeDepth(0)
+        : mSymbolCount(0), mGlobalSymbolCount(0), mLocalSymbolCount(0), enclosing(nullptr), mScopeDepth(0)
     {
     }
 
     SymbolTable::SymbolTable(SymbolTable *enclosing)
-        : mSymbolIdx(0), enclosing(enclosing)
+        : mSymbolCount(0), mGlobalSymbolCount(0), mLocalSymbolCount(0), enclosing(enclosing)
     {
         mScopeDepth = enclosing->mScopeDepth + 1;
     }
 
     Symbol SymbolTable::Define(SymbolDescType descType, const std::wstring &name)
     {
-        if (mSymbolIdx >= mSymbols.size())
+        if (mSymbolCount >= mSymbols.size())
             ASSERT(L"Too many variables in current scope.");
-        for (int16_t i = mSymbolIdx - 1; i >= 0; --i)
+        for (int16_t i = mSymbolCount - 1; i >= 0; --i)
         {
-            if (mSymbols[mSymbolIdx].name == name)
+            if (mSymbols[mSymbolCount].name == name)
                 ASSERT(L"Redefinition variable:" + name);
-            if (mSymbols[mSymbolIdx].depth == -1 && mSymbols[mSymbolIdx].depth < mScopeDepth)
+            if (mSymbols[mSymbolCount].depth == -1 && mSymbols[mSymbolCount].depth < mScopeDepth)
                 break;
         }
-        auto *symbol = &mSymbols[mSymbolIdx++];
+
+        auto *symbol = &mSymbols[mSymbolCount++];
         symbol->name = name;
         symbol->descType = descType;
 
         if (mScopeDepth == 0)
+        {
             symbol->type = SymbolType::GLOBAL;
+            symbol->index = mGlobalSymbolCount++;
+        }
         else
+        {
             symbol->type = SymbolType::LOCAL;
-        symbol->location = mSymbolIdx - 1;
+            symbol->index = mLocalSymbolCount++;
+        }
+        symbol->location = mSymbolCount - 1;
         symbol->depth = mScopeDepth;
         return *symbol;
     }
@@ -40,7 +47,7 @@ namespace lws
     Symbol SymbolTable::Resolve(const std::wstring &name)
     {
 
-        for (int16_t i = mSymbolIdx - 1; i >= 0; --i)
+        for (int16_t i = mSymbolCount - 1; i >= 0; --i)
             if (mSymbols[i].name == name && mSymbols[i].depth <= mScopeDepth)
             {
                 if (mSymbols[i].depth == -1)
