@@ -16,13 +16,15 @@ class Shape
     let y=0;
 }
 
-let s1=Shape;
+let s1=new Shape;
 s1.init(10,8);
 io.println(s1);
 //Shape
 //{
-//    x
-//    y
+//    area:<fn area>
+//    init:<fn init>
+//    x:8
+//    y:10
 //}
 io.println(s1.area());//0.0
 
@@ -46,13 +48,17 @@ class Rectangle:Shape
     let height;
 }
 
-let r1=Rectangle;
+let r1=new Rectangle;
 r1.init(10,10,3,5);
 io.println(r1);
 //Rectangle:Shape
 //{
-//    width
-//    height
+//    x:10
+//    y:10
+//    width:3
+//    height:5
+//    area:<fn area>
+//    init:<fn init>
 //}
 io.println(r1.area());//15
 
@@ -68,13 +74,16 @@ class Square:Rectangle
     }
 }
 
-let sq1=Square;
+let sq1=new Square;
 sq1.init(10,10,3);
 io.println(sq1);
 //Rectangle:Shape
 //{
-//    width
-//    height
+//    init:<fn init>
+//    x:10
+//    y:10
+//    width:3
+//    height:3
 //}
 io.println(sq1.area());//9
 
@@ -95,11 +104,15 @@ class Circle:Shape
     let radius;
 }
 
-let c1=Circle;
+let c1=new Circle;
 c1.init(10,10,4);
 io.println(c1);
 //Circle:Shape
 //{
-//    radius
+//    area:<fn area>
+//    init:<fn init>
+//    x:10
+//    y:10
+//    radius:4
 //}
 io.println(c1.area());//16

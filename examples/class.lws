@@ -27,11 +27,19 @@ a.vec3.vec2.x=1000;
 
 io.println("{}",a);
 
-//instance of class:
-//Vec4
+//class Vec4
 //{
-//    vec3
-//    w
+//    vec3:class Vec3
+//    {
+//      vec2:class Vec2
+//      {
+//          y:0
+//          x:1000
+//      }
+//      z:0    
+//    }
+//    w:0
+//    output:<fn output>
 //}
 
 io.println("{}",a.vec3.vec2.x);// 1000.000000

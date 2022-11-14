@@ -186,8 +186,10 @@ namespace lws
 
     std::wstring FunctionObject::Stringify() const
     {
-        auto result = L"<fn " + name + L":0x" + PointerAddressToString((void *)this) + L">\n";
-        result += chunk.Stringify();
+        auto result = L"<fn " + name + L":0x" + PointerAddressToString((void *)this) + L">";
+#ifdef _DEBUG
+        result +=L"\n"+chunk.Stringify();
+#endif
         return result;
     }
     ObjectType FunctionObject::Type() const
@@ -287,11 +289,17 @@ namespace lws
 
     std::wstring ClassObject::Stringify() const
     {
-        std::wstring result = L"class " + name + L"\n{\n";
-        for (const auto &[k, v] : members)
+        std::wstring result = L"class " + name;
+        if(!parents.empty())
         {
-            result += k + L":" + v.Stringify() + L"\n";
+            result+=L":";
+            for(const auto& [k,v]:parents)
+                result+=k+L",";
+            result=result.substr(0,result.size()-1);
         }
+        result+= L"\n{\n";
+        for (const auto &[k, v] : members)
+            result += k + L":" + v.Stringify() + L"\n";
 
         return result + L"}\n";
     }

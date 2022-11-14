@@ -530,7 +530,7 @@ namespace lws
 			case OP_GET_PROPERTY:
 			{
 				if (!IS_CLASS_VALUE(Peek(1)))
-					ASSERT(L"Invalid class call:not a valid class instance.");
+					ASSERT(L"Invalid class call:not a valid class instance");
 				ClassObject *klass = TO_CLASS_VALUE(Peek(1));
 				auto propName = TO_STR_VALUE(Pop());
 
