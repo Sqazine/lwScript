@@ -392,7 +392,7 @@ namespace lws
 			{
 				auto idxValue = Pop();
 				auto dsValue = Pop();
-				auto newValue = Pop();
+				auto newValue = Peek(0);
 				if (IS_ARRAY_VALUE(dsValue))
 				{
 					auto array = TO_ARRAY_VALUE(dsValue);
