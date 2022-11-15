@@ -74,6 +74,9 @@ namespace lws
 		case AST_CLASS:
 			CompileClassDeclaration((ClassStmt *)stmt);
 			break;
+		case AST_ENUM:
+			CompileEnumDeclaration((EnumStmt *)stmt);
+			break;
 		default:
 			CompileStmt((Stmt *)stmt, breakStmtAddress, continueStmtAddress);
 			break;
@@ -216,6 +219,36 @@ namespace lws
 		Emit(OP_POP);
 	}
 
+	void Compiler::CompileEnumDeclaration(EnumStmt *stmt)
+	{
+		std::unordered_map<std::wstring, Value> pairs;
+		for (const auto &[k, v] : stmt->enumItems)
+		{
+			Value enumValue;
+			if (v->Type() == AST_INT)
+				enumValue = ((IntNumExpr *)v)->value;
+			else if (v->Type() == AST_REAL)
+				enumValue = ((RealNumExpr *)v)->value;
+			else if (v->Type() == AST_BOOL)
+				enumValue = ((BoolExpr *)v)->value;
+			else if (v->Type() == AST_STR)
+				enumValue = new StrObject(((StrExpr *)v)->value);
+			else
+				ASSERT(L"Enum value only integer num,floating point num,boolean or string is available");
+
+			pairs[k->literal] = enumValue;
+		}
+
+		EmitConstant(new EnumObject(stmt->enumName->literal, pairs));
+		auto symbol = mSymbolTable->Define(DESC_CONSTANT, stmt->enumName->literal);
+		if (symbol.type == SYMBOL_GLOBAL)
+		{
+			Emit(OP_SET_GLOBAL);
+			Emit(symbol.index);
+			Emit(OP_POP);
+		}
+	}
+
 	void Compiler::CompileStmt(Stmt *stmt, int64_t &breakStmtAddress, int64_t &continueStmtAddress)
 	{
 		switch (stmt->Type())
@@ -328,10 +361,9 @@ namespace lws
 		PatchJump(jmpIfFalseAddress);
 
 		Emit(OP_POP);
-		
+
 		if (breakStmtAddress != -1)
 			PatchJump(breakStmtAddress);
-
 	}
 	void Compiler::CompileReturnStmt(ReturnStmt *stmt)
 	{

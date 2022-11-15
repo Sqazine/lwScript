@@ -539,47 +539,74 @@ namespace lws
 			}
 			case OP_GET_PROPERTY:
 			{
-				if (!IS_CLASS_VALUE(Peek(1)))
-					ASSERT(L"Invalid class call:not a valid class instance");
-				ClassObject *klass = TO_CLASS_VALUE(Peek(1));
-				auto propName = TO_STR_VALUE(Pop());
-
-				Value member;
-				if (klass->GetMember(propName, member))
+				auto peekValue = Peek(1);
+				if (IS_CLASS_VALUE(peekValue))
 				{
-					Pop(); //pop class object
-					if (IS_FUNCTION_VALUE(member))
+					ClassObject *klass = TO_CLASS_VALUE(peekValue);
+					auto propName = TO_STR_VALUE(Pop());
+
+					Value member;
+					if (klass->GetMember(propName, member))
 					{
-						ClassFunctionBindObject *binding = CreateObject<ClassFunctionBindObject>(klass, TO_FUNCTION_VALUE(member));
-						member = Value(binding);
+						Pop(); //pop class object
+						if (IS_FUNCTION_VALUE(member))
+						{
+							ClassFunctionBindObject *binding = CreateObject<ClassFunctionBindObject>(klass, TO_FUNCTION_VALUE(member));
+							member = Value(binding);
+						}
+						Push(member);
+						break;
 					}
-					Push(member);
-					break;
+					else
+						ASSERT(L"No member:" + propName + L" in class object" + klass->name);
+				}
+				else if (IS_ENUM_VALUE(peekValue))
+				{
+					EnumObject *enumObj = TO_ENUM_VALUE(peekValue);
+					auto propName = TO_STR_VALUE(Pop());
+
+					Value member;
+					if (enumObj->GetMember(propName, member))
+					{
+						Pop(); //pop enum object
+						Push(member);
+						break;
+					}
+					else
+						ASSERT(L"No member:" + propName + L" in enum object " + enumObj->name);
 				}
 				else
-					ASSERT(L"No member:" + propName + L" in class object" + klass->name);
+					ASSERT(L"Invalid call:not a valid class or enum instance.");
 
 				break;
 			}
 			case OP_SET_PROPERTY:
 			{
-				if (!IS_CLASS_VALUE(Peek(1)))
-					ASSERT(L"Invalid class call:not a valid class instance.");
-				auto propName = TO_STR_VALUE(Pop());
-				auto klass = TO_CLASS_VALUE(Pop());
-
-				Value member;
-				if (klass->GetMember(propName, member))
+				auto peekValue = Peek(1);
+				if (IS_CLASS_VALUE(peekValue))
 				{
-					if (member.desc == DESC_CONSTANT)
+					auto propName = TO_STR_VALUE(Pop());
+					auto klass = TO_CLASS_VALUE(Pop());
+
+					Value member;
+					if (klass->GetMember(propName, member))
 					{
-						ASSERT(L"Constant cannot be assigned twice:" + klass->name + L"'s member" + propName + L"is a constant value");
+						if (member.desc == DESC_CONSTANT)
+						{
+							ASSERT(L"Constant cannot be assigned twice:" + klass->name + L"'s member" + propName + L"is a constant value");
+						}
+						else
+							klass->members[propName] = Peek(0);
 					}
 					else
-						klass->members[propName] = Peek(0);
+						ASSERT(L"No member named:" + propName + L"in class:" + klass->name);
+				}
+				else if (IS_ENUM_VALUE(peekValue))
+				{
+					ASSERT(L"Invalid call:cannot assign value to a enum object member.");
 				}
 				else
-					ASSERT(L"No member named:" + propName + L"in class:" + klass->name);
+					ASSERT(L"Invalid class call:not a valid class instance.");
 				break;
 			}
 			case OP_GET_BASE:

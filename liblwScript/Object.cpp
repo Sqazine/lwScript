@@ -188,7 +188,7 @@ namespace lws
     {
         auto result = L"<fn " + name + L":0x" + PointerAddressToString((void *)this) + L">";
 #ifdef _DEBUG
-        result +=L"\n"+chunk.Stringify();
+        result += L"\n" + chunk.Stringify();
 #endif
         return result;
     }
@@ -290,14 +290,14 @@ namespace lws
     std::wstring ClassObject::Stringify() const
     {
         std::wstring result = L"class " + name;
-        if(!parents.empty())
+        if (!parents.empty())
         {
-            result+=L":";
-            for(const auto& [k,v]:parents)
-                result+=k+L",";
-            result=result.substr(0,result.size()-1);
+            result += L":";
+            for (const auto &[k, v] : parents)
+                result += k + L",";
+            result = result.substr(0, result.size() - 1);
         }
-        result+= L"\n{\n";
+        result += L"\n{\n";
         for (const auto &[k, v] : members)
             result += k + L":" + v.Stringify() + L"\n";
 
@@ -400,4 +400,57 @@ namespace lws
     {
         return true;
     }
+
+    EnumObject::EnumObject()
+    {
+    }
+    EnumObject::EnumObject(const std::wstring &name, const std::unordered_map<std::wstring, Value> &pairs)
+        : name(name), pairs(pairs)
+    {
+    }
+
+    EnumObject::~EnumObject()
+    {
+    }
+
+    std::wstring EnumObject::Stringify() const
+    {
+        std::wstring result = L"enum " + name + L"{";
+        if (!pairs.empty())
+        {
+            for (const auto &[k, v] : pairs)
+                result += k + L"=" + v.Stringify() + L",";
+            result = result.substr(0, result.size() - 1);
+        }
+        return result + L"}";
+    }
+    ObjectType EnumObject::Type() const
+    {
+        return OBJECT_ENUM;
+    }
+    void EnumObject::Mark()
+    {
+        marked = true;
+    }
+    void EnumObject::UnMark()
+    {
+        marked = false;
+    }
+
+    bool EnumObject::GetMember(const std::wstring &name, Value &retV)
+    {
+        auto iter = pairs.find(name);
+        if (iter != pairs.end())
+        {
+            retV = iter->second;
+            return true;
+        }
+        return false;
+    }
+
+    bool EnumObject::IsEqualTo(Object *other)
+    {
+        return true;
+    }
+
 }

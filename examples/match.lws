@@ -9,6 +9,6 @@ match(a)
     }
     2:
     {
-        io.println("{}",b);
+        io.println("{}",20);
     }
 }

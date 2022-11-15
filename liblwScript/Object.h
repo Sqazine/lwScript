@@ -15,6 +15,7 @@ namespace lws
 #define IS_REF_OBJ(obj) (obj->Type() == OBJECT_REF)
 #define IS_CLASS_OBJ(obj) (obj->Type() == OBJECT_CLASS)
 #define IS_CLASS_FUNCTION_BIND_OBJ(obj) (obj->Type() == OBJECT_CLASS_FUNCTION_BIND)
+#define IS_ENUM_OBJ(obj) (obj->Type() == OBJECT_ENUM)
 
 #define TO_STR_OBJ(obj) ((lws::StrObject *)obj)
 #define TO_ARRAY_OBJ(obj) ((lws::ArrayObject *)obj)
@@ -24,6 +25,7 @@ namespace lws
 #define TO_REF_OBJ(obj) ((lws::RefObject *)obj)
 #define TO_CLASS_OBJ(obj) ((lws::ClassObject *)obj)
 #define TO_CLASS_FUNCTION_BIND_OBJ(obj) ((lws::ClassFunctionBindObject *)obj)
+#define TO_ENUM_OBJ(obj) ((lws::EnumObject *)obj)
 
 #define IS_NULL_VALUE(v) (v.Type() == VALUE_NULL)
 #define IS_INT_VALUE(v) (v.Type() == VALUE_INT)
@@ -38,7 +40,7 @@ namespace lws
 #define IS_REF_VALUE(v) (IS_OBJECT_VALUE(v) && IS_REF_OBJ(v.object))
 #define IS_CLASS_VALUE(v) (IS_OBJECT_VALUE(v) && IS_CLASS_OBJ(v.object))
 #define IS_CLASS_FUNCTION_BIND_VALUE(v) (IS_OBJECT_VALUE(v) && IS_CLASS_FUNCTION_BIND_OBJ(v.object))
-#define IS_LAMBDA_VALUE(v) (IS_OBJECT_VALUE(v) && IS_LAMBDA_OBJ(v.object))
+#define IS_ENUM_VALUE(v) (IS_OBJECT_VALUE(v) && IS_ENUM_OBJ(v.object))
 
 #define TO_INT_VALUE(v) (v.integer)
 #define TO_REAL_VALUE(v) (v.realnum)
@@ -52,7 +54,7 @@ namespace lws
 #define TO_REF_VALUE(v) (TO_REF_OBJ(v.object))
 #define TO_CLASS_VALUE(v) (TO_CLASS_OBJ(v.object))
 #define TO_CLASS_FUNCTION_BIND_VALUE(v) (TO_CLASS_FUNCTION_BIND_OBJ(v.object))
-#define TO_LAMBDA_VALUE(v) (TO_LAMBDA_OBJ(v.object))
+#define TO_ENUM_VALUE(v) (TO_ENUM_OBJ(v.object))
 
     enum ObjectType
     {
@@ -63,7 +65,8 @@ namespace lws
         OBJECT_NATIVE_FUNCTION,
         OBJECT_REF,
         OBJECT_CLASS,
-        OBJECT_CLASS_FUNCTION_BIND
+        OBJECT_CLASS_FUNCTION_BIND,
+        OBJECT_ENUM
     };
 
     struct Object
@@ -197,27 +200,46 @@ namespace lws
         void UnMark() override;
         bool IsEqualTo(Object *other) override;
 
-        bool GetMember(const std::wstring &name,Value& retV);
-        bool GetParentMember(const std::wstring &name,Value& retV);
+        bool GetMember(const std::wstring &name, Value &retV);
+        bool GetParentMember(const std::wstring &name, Value &retV);
 
         std::wstring name;
         std::unordered_map<std::wstring, Value> members;
         std::map<std::wstring, ClassObject *> parents;
     };
 
-    struct ClassFunctionBindObject :public Object
+    struct ClassFunctionBindObject : public Object
     {
         ClassFunctionBindObject();
-        ClassFunctionBindObject(const Value& receiver,FunctionObject* fn);
-		~ClassFunctionBindObject();
+        ClassFunctionBindObject(const Value &receiver, FunctionObject *fn);
+        ~ClassFunctionBindObject();
 
-		std::wstring Stringify() const override;
-		ObjectType Type() const override;
-		void Mark() override;
-		void UnMark() override;
-		bool IsEqualTo(Object* other) override;
+        std::wstring Stringify() const override;
+        ObjectType Type() const override;
+        void Mark() override;
+        void UnMark() override;
+        bool IsEqualTo(Object *other) override;
 
-		Value receiver;
-		FunctionObject* function;
+        Value receiver;
+        FunctionObject *function;
     };
+
+    struct EnumObject : public Object
+    {
+        EnumObject();
+        EnumObject(const std::wstring& name, const std::unordered_map<std::wstring, Value> &pairs);
+        ~EnumObject();
+
+        std::wstring Stringify() const override;
+        ObjectType Type() const override;
+        void Mark() override;
+        void UnMark() override;
+        bool IsEqualTo(Object *other) override;
+
+        bool GetMember(const std::wstring &name, Value &retV);
+        
+        std::wstring name;
+        std::unordered_map<std::wstring, Value> pairs;
+    };
+
 }

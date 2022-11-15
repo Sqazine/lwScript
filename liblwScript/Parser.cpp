@@ -189,6 +189,8 @@ namespace lws
 			return ParseFunctionDeclaration();
 		else if (IsMatchCurToken(TOKEN_CLASS))
 			return ParseClassDeclaration();
+		else if (IsMatchCurToken(TOKEN_ENUM))
+			return ParseEnumDeclaration();
 		else
 			return ParseStmt();
 	}

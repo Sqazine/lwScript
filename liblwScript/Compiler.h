@@ -28,6 +28,7 @@ namespace lws
 		void CompileConstDeclaration(ConstStmt *stmt);
 		void CompileFunctionDeclaration(FunctionStmt *stmt);
 		void CompileClassDeclaration(ClassStmt *stmt);
+		void CompileEnumDeclaration(EnumStmt *stmt);
 
 		void CompileStmt(Stmt *stmt, int64_t &breakStmtAddress, int64_t &continueStmtAddress);
 		void CompileExprStmt(ExprStmt *stmt);
@@ -44,7 +45,7 @@ namespace lws
 		void CompileRealNumExpr(RealNumExpr *expr);
 		void CompileBoolExpr(BoolExpr *expr);
 		void CompilePrefixExpr(PrefixExpr *expr);
-		void CompilePostfixExpr(PostfixExpr *expr,const RWState &state = RWState::READ, bool isDelayCompile = true);
+		void CompilePostfixExpr(PostfixExpr *expr, const RWState &state = RWState::READ, bool isDelayCompile = true);
 		void CompileStrExpr(StrExpr *expr);
 		void CompileNullExpr(NullExpr *expr);
 		void CompileGroupExpr(GroupExpr *expr);
