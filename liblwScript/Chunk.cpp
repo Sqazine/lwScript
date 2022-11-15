@@ -206,10 +206,11 @@ namespace lws
 			}
 			case OP_CLASS:
 			{
-				auto memCount = opcodes[i + 1];
-				auto parentClassCount = opcodes[i + 2];
-				cout << std::setfill(L'0') << std::setw(8) << i << L"    " << L"OP_CLASS    " << memCount << L"    " << parentClassCount << std::endl;
-				i += 2;
+				auto varCount = opcodes[i + 1];
+				auto constCount = opcodes[i + 2];
+				auto parentClassCount = opcodes[i + 3];
+				cout << std::setfill(L'0') << std::setw(8) << i << L"    " << L"OP_CLASS    " << varCount<<L"    "<<constCount << L"    " << parentClassCount << std::endl;
+				i += 3;
 				break;
 			}
 			case OP_GET_PROPERTY:

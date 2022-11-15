@@ -2,25 +2,20 @@
 #include <string>
 #include <array>
 #include "Config.h"
+#include "Value.h"
 namespace lws
 {
-    enum class SymbolType
+    enum SymbolType
     {
-        GLOBAL,
-        LOCAL,
-    };
-
-    enum class SymbolDescType
-    {
-        VARIABLE,
-        CONSTANT,
+        SYMBOL_GLOBAL,
+        SYMBOL_LOCAL,
     };
 
     struct Symbol
     {
         std::wstring name;
-        SymbolType type = SymbolType::GLOBAL;
-        SymbolDescType descType = SymbolDescType::VARIABLE;
+        SymbolType type = SYMBOL_GLOBAL;
+        ValueDesc descType = DESC_VARIABLE;
         uint8_t location = 0;
         uint8_t index = 0;
         int8_t depth = -1;
@@ -31,7 +26,7 @@ namespace lws
         SymbolTable();
         SymbolTable(SymbolTable *enclosing);
 
-        Symbol Define(SymbolDescType descType, const std::wstring &name);
+        Symbol Define(ValueDesc descType, const std::wstring &name);
 
         Symbol Resolve(const std::wstring &name);
 

@@ -504,7 +504,8 @@ namespace lws
 			case OP_CLASS:
 			{
 				auto name = Pop();
-				auto memCount = READ_INS();
+				auto varCount = READ_INS();
+				auto constCount = READ_INS();
 				auto parentClassCount = READ_INS();
 
 				auto classObj = CreateObject<ClassObject>();
@@ -517,10 +518,19 @@ namespace lws
 					classObj->parents[TO_STR_VALUE(name)] = TO_CLASS_VALUE(parentClass);
 				}
 
-				for (int i = 0; i < memCount; ++i)
+				for (int i = 0; i < constCount; ++i)
 				{
 					name = Pop();
 					auto v = Pop();
+					v.desc = DESC_CONSTANT;
+					classObj->members[TO_STR_VALUE(name)] = v;
+				}
+
+				for (int i = 0; i < varCount; ++i)
+				{
+					name = Pop();
+					auto v = Pop();
+					v.desc = DESC_VARIABLE;
 					classObj->members[TO_STR_VALUE(name)] = v;
 				}
 
@@ -557,7 +567,19 @@ namespace lws
 					ASSERT(L"Invalid class call:not a valid class instance.");
 				auto propName = TO_STR_VALUE(Pop());
 				auto klass = TO_CLASS_VALUE(Pop());
-				klass->members[propName] = Peek(0);
+
+				Value member;
+				if (klass->GetMember(propName, member))
+				{
+					if (member.desc == DESC_CONSTANT)
+					{
+						ASSERT(L"Constant cannot be assigned twice:" + klass->name + L"'s member" + propName + L"is a constant value");
+					}
+					else
+						klass->members[propName] = Peek(0);
+				}
+				else
+					ASSERT(L"No member named:" + propName + L"in class:" + klass->name);
 				break;
 			}
 			case OP_GET_BASE:

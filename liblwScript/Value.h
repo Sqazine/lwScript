@@ -12,6 +12,12 @@ namespace lws
         VALUE_OBJECT,
     };
 
+    enum ValueDesc
+    {   
+        DESC_VARIABLE,
+        DESC_CONSTANT
+    };
+
     struct Value
     {
         Value();
@@ -27,7 +33,8 @@ namespace lws
         void UnMark() const;
 
         ValueType type;
-
+        ValueDesc desc;
+        
         union
         {
             int64_t integer;

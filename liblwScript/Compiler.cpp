@@ -40,15 +40,15 @@ namespace lws
 		mSymbolTable = new SymbolTable();
 
 		auto symbol = &mSymbolTable->mSymbols[mSymbolTable->mSymbolCount++];
-		symbol->type = SymbolType::LOCAL;
+		symbol->type = SYMBOL_LOCAL;
 		symbol->index = mSymbolTable->mLocalSymbolCount++;
 		symbol->location = 0;
-		symbol->descType = SymbolDescType::CONSTANT;
+		symbol->descType = DESC_CONSTANT;
 		symbol->depth = 0;
 		symbol->name = L"_main_start_up";
 
 		for (const auto &libName : gLibraryMap)
-			mSymbolTable->Define(SymbolDescType::CONSTANT, libName);
+			mSymbolTable->Define(DESC_CONSTANT, libName);
 	}
 
 	void Compiler::CompileDeclaration(Stmt *stmt)
@@ -86,8 +86,8 @@ namespace lws
 		for (const auto &[k, v] : stmt->variables)
 		{
 			CompileExpr(v.value);
-			auto symbol = mSymbolTable->Define(SymbolDescType::VARIABLE, k->literal);
-			if (symbol.type == SymbolType::GLOBAL)
+			auto symbol = mSymbolTable->Define(DESC_VARIABLE, k->literal);
+			if (symbol.type == SYMBOL_GLOBAL)
 			{
 				Emit(OP_SET_GLOBAL);
 				Emit(symbol.index);
@@ -98,7 +98,7 @@ namespace lws
 		if (!postfixExprs.empty())
 		{
 			for (const auto &postfixExpr : postfixExprs)
-				CompilePostfixExpr((PostfixExpr *)postfixExpr,RWState::READ, false);
+				CompilePostfixExpr((PostfixExpr *)postfixExpr, RWState::READ, false);
 		}
 	}
 
@@ -109,8 +109,8 @@ namespace lws
 		for (const auto &[k, v] : stmt->consts)
 		{
 			CompileExpr(v.value);
-			auto symbol = mSymbolTable->Define(SymbolDescType::CONSTANT, k->literal);
-			if (symbol.type == SymbolType::GLOBAL)
+			auto symbol = mSymbolTable->Define(DESC_CONSTANT, k->literal);
+			if (symbol.type == SYMBOL_GLOBAL)
 			{
 				Emit(OP_SET_GLOBAL);
 				Emit(symbol.index);
@@ -121,7 +121,7 @@ namespace lws
 		if (!postfixExprs.empty())
 		{
 			for (const auto &postfixExpr : postfixExprs)
-				CompilePostfixExpr((PostfixExpr *)postfixExpr,RWState::READ, false);
+				CompilePostfixExpr((PostfixExpr *)postfixExpr, RWState::READ, false);
 		}
 	}
 
@@ -129,12 +129,12 @@ namespace lws
 	{
 		auto symbol = CompileFunction(stmt);
 
-		if (symbol.type == SymbolType::GLOBAL)
+		if (symbol.type == SYMBOL_GLOBAL)
 		{
 			Emit(OP_SET_GLOBAL);
 			Emit(symbol.index);
 		}
-		else if (symbol.type == SymbolType::LOCAL)
+		else if (symbol.type == SYMBOL_LOCAL)
 		{
 			Emit(OP_SET_LOCAL);
 			Emit(symbol.index);
@@ -143,21 +143,22 @@ namespace lws
 	}
 	void Compiler::CompileClassDeclaration(ClassStmt *stmt)
 	{
-		auto symbol = mSymbolTable->Define(SymbolDescType::CONSTANT, stmt->name);
+		auto symbol = mSymbolTable->Define(DESC_CONSTANT, stmt->name);
 
 		mFunctionList.emplace_back(new FunctionObject(stmt->name));
 		mSymbolTable = new SymbolTable(mSymbolTable);
 
 		EnterScope();
 
-		int8_t memCount = 0;
+		int8_t varCount = 0;
+		int8_t constCount = 0;
 		for (const auto &letStmt : stmt->letStmts)
 		{
 			for (const auto &[k, v] : letStmt->variables)
 			{
 				CompileExpr(v.value);
 				EmitConstant(new StrObject(k->literal));
-				memCount++;
+				varCount++;
 			}
 		}
 
@@ -167,7 +168,7 @@ namespace lws
 			{
 				CompileExpr(v.value);
 				EmitConstant(new StrObject(k->literal));
-				memCount++;
+				constCount++;
 			}
 		}
 
@@ -175,7 +176,7 @@ namespace lws
 		{
 			CompileFunction(fnStmt);
 			EmitConstant(new StrObject(fnStmt->name->literal));
-			memCount++;
+			constCount++;
 		}
 
 		for (const auto &parentClass : stmt->parentClasses)
@@ -188,7 +189,8 @@ namespace lws
 
 		EmitConstant(new StrObject(stmt->name));
 		Emit(OP_CLASS);
-		Emit(memCount);
+		Emit(varCount);
+		Emit(constCount);
 		Emit(stmt->parentClasses.size());
 
 		EmitReturn(1);
@@ -201,12 +203,12 @@ namespace lws
 
 		EmitConstant(function);
 
-		if (symbol.type == SymbolType::GLOBAL)
+		if (symbol.type == SYMBOL_GLOBAL)
 		{
 			Emit(OP_SET_GLOBAL);
 			Emit(symbol.index);
 		}
-		else if (symbol.type == SymbolType::LOCAL)
+		else if (symbol.type == SYMBOL_LOCAL)
 		{
 			Emit(OP_SET_LOCAL);
 			Emit(symbol.index);
@@ -256,7 +258,7 @@ namespace lws
 		if (!postfixExprs.empty())
 		{
 			for (const auto &postfixExpr : postfixExprs)
-				CompilePostfixExpr((PostfixExpr *)postfixExpr,RWState::READ, false);
+				CompilePostfixExpr((PostfixExpr *)postfixExpr, RWState::READ, false);
 		}
 	}
 	void Compiler::CompileIfStmt(IfStmt *stmt, int64_t &breakStmtAddress, int64_t &continueStmtAddress)
@@ -268,7 +270,7 @@ namespace lws
 		if (!conditionPostfixExprs.empty())
 		{
 			for (const auto &postfixExpr : conditionPostfixExprs)
-				CompilePostfixExpr((PostfixExpr *)postfixExpr,RWState::READ, false);
+				CompilePostfixExpr((PostfixExpr *)postfixExpr, RWState::READ, false);
 		}
 
 		auto jmpIfFalseAddress = EmitJump(OP_JUMP_IF_FALSE);
@@ -304,7 +306,7 @@ namespace lws
 		if (!conditionPostfixExprs.empty())
 		{
 			for (const auto &postfixExpr : conditionPostfixExprs)
-				CompilePostfixExpr((PostfixExpr *)postfixExpr,RWState::READ, false);
+				CompilePostfixExpr((PostfixExpr *)postfixExpr, RWState::READ, false);
 		}
 
 		auto jmpIfFalseAddress = EmitJump(OP_JUMP_IF_FALSE);
@@ -345,7 +347,7 @@ namespace lws
 		if (!postfixExprs.empty())
 		{
 			for (const auto &postfixExpr : postfixExprs)
-				CompilePostfixExpr((PostfixExpr *)postfixExpr,RWState::READ, false);
+				CompilePostfixExpr((PostfixExpr *)postfixExpr, RWState::READ, false);
 		}
 	}
 
@@ -378,7 +380,7 @@ namespace lws
 			CompilePrefixExpr((PrefixExpr *)expr);
 			break;
 		case AST_POSTFIX:
-			CompilePostfixExpr((PostfixExpr *)expr,state);
+			CompilePostfixExpr((PostfixExpr *)expr, state);
 			break;
 		case AST_STR:
 			CompileStrExpr((StrExpr *)expr);
@@ -535,9 +537,9 @@ namespace lws
 		else
 			ASSERT(L"No prefix op:" + expr->op);
 	}
-	void Compiler::CompilePostfixExpr(PostfixExpr *expr,const RWState &state, bool isDelayCompile)
+	void Compiler::CompilePostfixExpr(PostfixExpr *expr, const RWState &state, bool isDelayCompile)
 	{
-		CompileExpr(expr->left,state);
+		CompileExpr(expr->left, state);
 		if (expr->op == L"!")
 			Emit(OP_FACTORIAL);
 		else if (!isDelayCompile)
@@ -620,12 +622,12 @@ namespace lws
 	{
 		OpCode getOp, setOp;
 		auto symbol = mSymbolTable->Resolve(expr->literal);
-		if (symbol.type == SymbolType::GLOBAL)
+		if (symbol.type == SYMBOL_GLOBAL)
 		{
 			getOp = OP_GET_GLOBAL;
 			setOp = OP_SET_GLOBAL;
 		}
-		else if (symbol.type == SymbolType::LOCAL)
+		else if (symbol.type == SYMBOL_LOCAL)
 		{
 			getOp = OP_GET_LOCAL;
 			setOp = OP_SET_LOCAL;
@@ -633,13 +635,13 @@ namespace lws
 
 		if (state == RWState::WRITE)
 		{
-			if (symbol.descType == SymbolDescType::VARIABLE)
+			if (symbol.descType == DESC_VARIABLE)
 			{
 				Emit(setOp);
 				Emit(symbol.index);
 			}
 			else
-				ASSERT("Constant cannot be assigned!");
+				ASSERT(expr->Stringify() + L"is a constant,which cannot be assigned!");
 		}
 		else
 		{
@@ -670,12 +672,12 @@ namespace lws
 	void Compiler::CompileRefExpr(RefExpr *expr)
 	{
 		auto symbol = mSymbolTable->Resolve(expr->refExpr->Stringify());
-		if (symbol.type == SymbolType::GLOBAL)
+		if (symbol.type == SYMBOL_GLOBAL)
 		{
 			Emit(OP_REF_GLOBAL);
 			Emit(symbol.index);
 		}
-		else if (symbol.type == SymbolType::LOCAL)
+		else if (symbol.type == SYMBOL_LOCAL)
 		{
 			Emit(OP_REF_LOCAL);
 			Emit(symbol.index);
@@ -684,7 +686,7 @@ namespace lws
 
 	Symbol Compiler::CompileFunction(FunctionStmt *stmt)
 	{
-		auto functionSymbol = mSymbolTable->Define(SymbolDescType::CONSTANT, stmt->name->literal);
+		auto functionSymbol = mSymbolTable->Define(DESC_CONSTANT, stmt->name->literal);
 
 		mFunctionList.emplace_back(new FunctionObject(stmt->name->literal));
 		mSymbolTable = new SymbolTable(mSymbolTable);
@@ -692,12 +694,12 @@ namespace lws
 		std::wstring symbolName = L"";
 		if (stmt->type == FunctionType::CLASS_FUNCTION || stmt->type == FunctionType::CLASS_INITIALIZER)
 			symbolName = L"this";
-		mSymbolTable->Define(SymbolDescType::CONSTANT, symbolName);
+		mSymbolTable->Define(DESC_CONSTANT, symbolName);
 
 		CurFunction()->arity = stmt->parameters.size();
 
 		for (const auto &param : stmt->parameters)
-			mSymbolTable->Define(SymbolDescType::VARIABLE, param->literal);
+			mSymbolTable->Define(DESC_VARIABLE, param->literal);
 
 		EnterScope();
 
@@ -780,11 +782,11 @@ namespace lws
 
 		for (int32_t i = 0; i < mSymbolTable->mSymbols.size(); ++i)
 		{
-			if (mSymbolTable->mSymbols[i].type == SymbolType::LOCAL &&
+			if (mSymbolTable->mSymbols[i].type == SYMBOL_LOCAL &&
 				mSymbolTable->mSymbols[i].depth > mSymbolTable->mScopeDepth)
 			{
 				Emit(OP_POP);
-				mSymbolTable->mSymbols[i].type = SymbolType::GLOBAL; // mark as global to avoid second pop
+				mSymbolTable->mSymbols[i].type = SYMBOL_GLOBAL; // mark as global to avoid second pop
 			}
 		}
 	}
