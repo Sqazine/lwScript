@@ -1,0 +1,15 @@
+fn fib(x,pre,cur)
+{
+    if(x==0)
+        return pre;
+    else if(x==1)
+        return cur;
+    else 
+        return fib(x-1,cur,pre+cur);
+}
+
+let start=time.clock();
+let a=fib(180,0,1);
+let end=time.clock();
+io.println("{}",a);//9227465
+io.println("{}",end-start);
