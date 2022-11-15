@@ -13,7 +13,7 @@ namespace lws
     };
 
     enum ValueDesc
-    {   
+    {
         DESC_VARIABLE,
         DESC_CONSTANT
     };
@@ -33,8 +33,8 @@ namespace lws
         void UnMark() const;
 
         ValueType type;
-        ValueDesc desc;
-        
+        ValueDesc desc = DESC_VARIABLE;
+
         union
         {
             int64_t integer;

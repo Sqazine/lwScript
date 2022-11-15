@@ -327,10 +327,11 @@ namespace lws
 
 		PatchJump(jmpIfFalseAddress);
 
+		Emit(OP_POP);
+		
 		if (breakStmtAddress != -1)
 			PatchJump(breakStmtAddress);
 
-		Emit(OP_POP);
 	}
 	void Compiler::CompileReturnStmt(ReturnStmt *stmt)
 	{
