@@ -290,7 +290,7 @@ namespace lws
 		funcStmt->column = GetCurToken().column;
 
 		if (mCurClassInfo)
-			funcStmt->type = FunctionType::CLASS_FUNCTION;
+			funcStmt->type = FunctionType::CLASS_CLOSURE;
 
 		Consume(TOKEN_FUNCTION, L"Expect 'function' keyword");
 

@@ -458,7 +458,7 @@ namespace lws
 	enum class FunctionType
 	{
 		CLASS_INITIALIZER,
-		CLASS_FUNCTION,
+		CLASS_CLOSURE,
 		NORMAL_FUNCTION,
 	};
 

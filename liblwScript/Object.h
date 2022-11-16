@@ -11,20 +11,22 @@ namespace lws
 #define IS_ARRAY_OBJ(obj) (obj->Type() == OBJECT_ARRAY)
 #define IS_TABLE_OBJ(obj) (obj->Type() == OBJECT_TABLE)
 #define IS_FUNCTION_OBJ(obj) (obj->Type() == OBJECT_FUNCTION)
+#define IS_CLOSURE_OBJ(obj) (obj->Type() == OBJECT_CLOSURE)
 #define IS_NATIVE_FUNCTION_OBJ(obj) (obj->Type() == OBJECT_NATIVE_FUNCTION)
 #define IS_REF_OBJ(obj) (obj->Type() == OBJECT_REF)
 #define IS_CLASS_OBJ(obj) (obj->Type() == OBJECT_CLASS)
-#define IS_CLASS_FUNCTION_BIND_OBJ(obj) (obj->Type() == OBJECT_CLASS_FUNCTION_BIND)
+#define IS_CLASS_CLOSURE_BIND_OBJ(obj) (obj->Type() == OBJECT_CLASS_CLOSURE_BIND)
 #define IS_ENUM_OBJ(obj) (obj->Type() == OBJECT_ENUM)
 
 #define TO_STR_OBJ(obj) ((lws::StrObject *)obj)
 #define TO_ARRAY_OBJ(obj) ((lws::ArrayObject *)obj)
 #define TO_TABLE_OBJ(obj) ((lws::TableObject *)obj)
 #define TO_FUNCTION_OBJ(obj) ((lws::FunctionObject *)obj)
+#define TO_CLOSURE_OBJ(obj) ((lws::ClosureObject *)obj)
 #define TO_NATIVE_FUNCTION_OBJ(obj) ((lws::NativeFunctionObject *)obj)
 #define TO_REF_OBJ(obj) ((lws::RefObject *)obj)
 #define TO_CLASS_OBJ(obj) ((lws::ClassObject *)obj)
-#define TO_CLASS_FUNCTION_BIND_OBJ(obj) ((lws::ClassFunctionBindObject *)obj)
+#define TO_CLASS_CLOSURE_BIND_OBJ(obj) ((lws::ClassClosureBindObject *)obj)
 #define TO_ENUM_OBJ(obj) ((lws::EnumObject *)obj)
 
 #define IS_NULL_VALUE(v) (v.Type() == VALUE_NULL)
@@ -36,10 +38,11 @@ namespace lws
 #define IS_ARRAY_VALUE(v) (IS_OBJECT_VALUE(v) && IS_ARRAY_OBJ(v.object))
 #define IS_TABLE_VALUE(v) (IS_OBJECT_VALUE(v) && IS_TABLE_OBJ(v.object))
 #define IS_FUNCTION_VALUE(v) (IS_OBJECT_VALUE(v) && IS_FUNCTION_OBJ(v.object))
+#define IS_CLOSURE_VALUE(v) (IS_OBJECT_VALUE(v) && IS_CLOSURE_OBJ(v.object))
 #define IS_NATIVE_FUNCTION_VALUE(v) (IS_OBJECT_VALUE(v) && IS_NATIVE_FUNCTION_OBJ(v.object))
 #define IS_REF_VALUE(v) (IS_OBJECT_VALUE(v) && IS_REF_OBJ(v.object))
 #define IS_CLASS_VALUE(v) (IS_OBJECT_VALUE(v) && IS_CLASS_OBJ(v.object))
-#define IS_CLASS_FUNCTION_BIND_VALUE(v) (IS_OBJECT_VALUE(v) && IS_CLASS_FUNCTION_BIND_OBJ(v.object))
+#define IS_CLASS_CLOSURE_BIND_VALUE(v) (IS_OBJECT_VALUE(v) && IS_CLASS_CLOSURE_BIND_OBJ(v.object))
 #define IS_ENUM_VALUE(v) (IS_OBJECT_VALUE(v) && IS_ENUM_OBJ(v.object))
 
 #define TO_INT_VALUE(v) (v.integer)
@@ -50,10 +53,11 @@ namespace lws
 #define TO_ARRAY_VALUE(v) (TO_ARRAY_OBJ(v.object))
 #define TO_TABLE_VALUE(v) (TO_TABLE_OBJ(v.object))
 #define TO_FUNCTION_VALUE(v) (TO_FUNCTION_OBJ(v.object))
+#define TO_CLOSURE_VALUE(v) (TO_CLOSURE_OBJ(v.object))
 #define TO_NATIVE_FUNCTION_VALUE(v) (TO_NATIVE_FUNCTION_OBJ(v.object))
 #define TO_REF_VALUE(v) (TO_REF_OBJ(v.object))
 #define TO_CLASS_VALUE(v) (TO_CLASS_OBJ(v.object))
-#define TO_CLASS_FUNCTION_BIND_VALUE(v) (TO_CLASS_FUNCTION_BIND_OBJ(v.object))
+#define TO_CLASS_CLOSURE_BIND_VALUE(v) (TO_CLASS_CLOSURE_BIND_OBJ(v.object))
 #define TO_ENUM_VALUE(v) (TO_ENUM_OBJ(v.object))
 
     enum ObjectType
@@ -62,10 +66,11 @@ namespace lws
         OBJECT_ARRAY,
         OBJECT_TABLE,
         OBJECT_FUNCTION,
+        OBJECT_CLOSURE,
         OBJECT_NATIVE_FUNCTION,
         OBJECT_REF,
         OBJECT_CLASS,
-        OBJECT_CLASS_FUNCTION_BIND,
+        OBJECT_CLASS_CLOSURE_BIND,
         OBJECT_ENUM
     };
 
@@ -156,6 +161,22 @@ namespace lws
         std::wstring name;
     };
 
+    struct ClosureObject:public Object
+    {
+        ClosureObject();
+        ClosureObject(FunctionObject* function);
+        ~ClosureObject();
+
+        std::wstring Stringify() const override;
+        ObjectType Type() const override;
+        void Mark() override;
+        void UnMark() override;
+
+        bool IsEqualTo(Object *other) override;
+
+        FunctionObject* function;
+    };
+
     using NativeFunction = std::function<Value(const std::vector<Value> &)>;
 
     struct NativeFunctionObject : public Object
@@ -208,11 +229,11 @@ namespace lws
         std::map<std::wstring, ClassObject *> parents;
     };
 
-    struct ClassFunctionBindObject : public Object
+    struct ClassClosureBindObject : public Object
     {
-        ClassFunctionBindObject();
-        ClassFunctionBindObject(const Value &receiver, FunctionObject *fn);
-        ~ClassFunctionBindObject();
+        ClassClosureBindObject();
+        ClassClosureBindObject(const Value &receiver, ClosureObject *cl);
+        ~ClassClosureBindObject();
 
         std::wstring Stringify() const override;
         ObjectType Type() const override;
@@ -221,7 +242,7 @@ namespace lws
         bool IsEqualTo(Object *other) override;
 
         Value receiver;
-        FunctionObject *function;
+        ClosureObject *closure;
     };
 
     struct EnumObject : public Object

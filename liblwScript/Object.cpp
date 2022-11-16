@@ -210,6 +210,40 @@ namespace lws
         return false;
     }
 
+    ClosureObject::ClosureObject()
+        : function(nullptr)
+    {
+    }
+    ClosureObject::ClosureObject(FunctionObject *function)
+        : function(function)
+    {
+    }
+    ClosureObject::~ClosureObject()
+    {
+    }
+
+    std::wstring ClosureObject::Stringify() const
+    {
+        return function->Stringify();
+    }
+    ObjectType ClosureObject::Type() const
+    {
+        return OBJECT_CLOSURE;
+    }
+    void ClosureObject::Mark()
+    {
+        marked = true;
+    }
+    void ClosureObject::UnMark()
+    {
+        marked = false;
+    }
+
+    bool ClosureObject::IsEqualTo(Object *other)
+    {
+        return true;
+    }
+
     NativeFunctionObject::NativeFunctionObject()
     {
     }
@@ -370,33 +404,33 @@ namespace lws
         return false;
     }
 
-    ClassFunctionBindObject::ClassFunctionBindObject()
+    ClassClosureBindObject::ClassClosureBindObject()
     {
     }
-    ClassFunctionBindObject::ClassFunctionBindObject(const Value &receiver, FunctionObject *fn)
-        : receiver(receiver), function(fn)
+    ClassClosureBindObject::ClassClosureBindObject(const Value &receiver, ClosureObject *cl)
+        : receiver(receiver), closure(cl)
     {
     }
-    ClassFunctionBindObject::~ClassFunctionBindObject()
+    ClassClosureBindObject::~ClassClosureBindObject()
     {
     }
-    std::wstring ClassFunctionBindObject::Stringify() const
+    std::wstring ClassClosureBindObject::Stringify() const
     {
-        return function->Stringify();
+        return closure->Stringify();
     }
-    ObjectType ClassFunctionBindObject::Type() const
+    ObjectType ClassClosureBindObject::Type() const
     {
-        return OBJECT_CLASS_FUNCTION_BIND;
+        return OBJECT_CLASS_CLOSURE_BIND;
     }
-    void ClassFunctionBindObject::Mark()
+    void ClassClosureBindObject::Mark()
     {
         marked = true;
     }
-    void ClassFunctionBindObject::UnMark()
+    void ClassClosureBindObject::UnMark()
     {
         marked = false;
     }
-    bool ClassFunctionBindObject::IsEqualTo(Object *other)
+    bool ClassClosureBindObject::IsEqualTo(Object *other)
     {
         return true;
     }

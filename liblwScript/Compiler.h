@@ -65,6 +65,7 @@ namespace lws
 
 		uint8_t Emit(uint8_t opcode);
 		uint8_t EmitConstant(const Value &value);
+		uint8_t EmitClosure(FunctionObject* function);
 		uint8_t EmitReturn(uint8_t retCount);
 		uint8_t EmitJump(uint8_t opcode);
 		void EmitLoop(uint16_t opcode);

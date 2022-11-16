@@ -7,7 +7,7 @@ namespace lws
 {
     struct CallFrame
     {
-        FunctionObject *function = nullptr;
+        ClosureObject *closure = nullptr;
         uint8_t *ip = nullptr;
         Value *slots = nullptr;
     };

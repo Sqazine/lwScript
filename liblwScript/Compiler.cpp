@@ -204,7 +204,7 @@ namespace lws
 		auto function = mFunctionList.back();
 		mFunctionList.pop_back();
 
-		EmitConstant(function);
+		EmitClosure(function);
 
 		if (symbol.type == SYMBOL_GLOBAL)
 		{
@@ -725,7 +725,7 @@ namespace lws
 		mSymbolTable = new SymbolTable(mSymbolTable);
 
 		std::wstring symbolName = L"";
-		if (stmt->type == FunctionType::CLASS_FUNCTION || stmt->type == FunctionType::CLASS_INITIALIZER)
+		if (stmt->type == FunctionType::CLASS_CLOSURE || stmt->type == FunctionType::CLASS_INITIALIZER)
 			symbolName = L"this";
 		mSymbolTable->Define(DESC_CONSTANT, symbolName);
 
@@ -749,7 +749,7 @@ namespace lws
 		auto function = mFunctionList.back();
 		mFunctionList.pop_back();
 
-		EmitConstant(function);
+		EmitClosure(function);
 
 		return functionSymbol;
 	}
@@ -764,6 +764,14 @@ namespace lws
 	{
 		Emit(OP_CONSTANT);
 		uint8_t pos = AddConstant(value);
+		Emit(pos);
+		return CurOpCodes().size() - 1;
+	}
+
+	uint8_t Compiler::EmitClosure(FunctionObject *function)
+	{
+		uint8_t pos = AddConstant(function);
+		Emit(OP_CLOSURE);
 		Emit(pos);
 		return CurOpCodes().size() - 1;
 	}

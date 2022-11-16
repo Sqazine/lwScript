@@ -47,6 +47,7 @@ namespace lws
         OP_SET_PROPERTY,
         OP_GET_PROPERTY,
         OP_GET_BASE,
+        OP_CLOSURE,
     };
 
     using OpCodes = std::vector<uint8_t>;

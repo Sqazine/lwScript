@@ -209,7 +209,7 @@ namespace lws
 				auto varCount = opcodes[i + 1];
 				auto constCount = opcodes[i + 2];
 				auto parentClassCount = opcodes[i + 3];
-				cout << std::setfill(L'0') << std::setw(8) << i << L"    " << L"OP_CLASS    " << varCount<<L"    "<<constCount << L"    " << parentClassCount << std::endl;
+				cout << std::setfill(L'0') << std::setw(8) << i << L"    " << L"OP_CLASS    " << varCount << L"    " << constCount << L"    " << parentClassCount << std::endl;
 				i += 3;
 				break;
 			}
@@ -226,6 +226,14 @@ namespace lws
 			case OP_GET_BASE:
 			{
 				cout << std::setfill(L'0') << std::setw(8) << i << L"    " << L"OP_GET_BASE" << std::endl;
+				break;
+			}
+			case OP_CLOSURE:
+			{
+				auto pos = opcodes[i + 1];
+				std::wstring funcStr = (L"<fn " + TO_FUNCTION_VALUE(constants[pos])->name + L":0x" + PointerAddressToString((void *)TO_FUNCTION_VALUE(constants[pos])) + L">");
+				cout << std::setfill(L'0') << std::setw(8) << i << L"    " << L"OP_CLOSURE    " << pos <<L"    "<<funcStr<< std::endl;
+				i++;
 				break;
 			}
 			default:
