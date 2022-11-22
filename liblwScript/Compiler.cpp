@@ -131,7 +131,6 @@ namespace lws
 	void Compiler::CompileFunctionDeclaration(FunctionStmt *stmt)
 	{
 		auto symbol = CompileFunction(stmt);
-
 		if (symbol.type == SYMBOL_GLOBAL)
 		{
 			Emit(OP_SET_GLOBAL);
@@ -684,6 +683,32 @@ namespace lws
 	}
 	void Compiler::CompileLambdaExpr(LambdaExpr *expr)
 	{
+		mFunctionList.emplace_back(new FunctionObject());
+		mSymbolTable = new SymbolTable(mSymbolTable);
+
+		mSymbolTable->Define(DESC_CONSTANT, L"");
+
+		CurFunction()->arity = expr->parameters.size();
+
+		for (const auto &param : expr->parameters)
+			mSymbolTable->Define(DESC_VARIABLE, param->literal);
+
+		EnterScope();
+
+		int64_t breakStmtAddress = -1;
+		int64_t continueStmtAddress = -1;
+		CompileScopeStmt(expr->body, breakStmtAddress, continueStmtAddress);
+
+		if (CurChunk().opCodes[CurChunk().opCodes.size() - 2] != OP_RETURN)
+			EmitReturn(OP_RETURN);
+
+		ExitScope();
+		mSymbolTable = mSymbolTable->enclosing;
+
+		auto function = mFunctionList.back();
+		mFunctionList.pop_back();
+
+		EmitClosure(function);
 	}
 	void Compiler::CompileCallExpr(CallExpr *expr)
 	{

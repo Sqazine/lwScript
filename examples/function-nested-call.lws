@@ -1,4 +1,4 @@
-fn set()
+fn Set()
 {
     let add=fn(x,y)
     {
@@ -6,5 +6,5 @@ fn set()
     };
     return add;
 } 
-let a=set()(10,30);
+let a=Set()(10,30);
 io.println("{}",a);//40

@@ -293,11 +293,11 @@ namespace lws
 		if (mCurClassInfo)
 			funcStmt->type = FunctionType::CLASS_CLOSURE;
 
-		Consume(TOKEN_FUNCTION, L"Expect 'function' keyword");
+		Consume(TOKEN_FUNCTION, L"Expect 'fn' keyword");
 
 		funcStmt->name = (IdentifierExpr *)ParseIdentifierExpr();
 
-		Consume(TOKEN_LPAREN, L"Expect '(' after 'function' keyword");
+		Consume(TOKEN_LPAREN, L"Expect '(' after 'fn' keyword");
 
 		if (!IsMatchCurToken(TOKEN_RPAREN)) // has parameter
 		{
