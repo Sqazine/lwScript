@@ -197,6 +197,20 @@ namespace lws
 				i++;
 				break;
 			}
+			case OP_REF_INDEX_GLOBAL:
+			{
+				auto pos = opcodes[i + 1];
+				cout << std::setfill(L'0') << std::setw(8) << i << L"    " << L"OP_REF_INDEX_GLOBAL    " << pos << std::endl;
+				i++;
+				break;
+			}
+			case OP_REF_INDEX_LOCAL:
+			{
+				auto pos = opcodes[i + 1];
+				cout << std::setfill(L'0') << std::setw(8) << i << L"    " << L"OP_REF_INDEX_LOCAL    " << pos << std::endl;
+				i++;
+				break;
+			}
 			case OP_CALL:
 			{
 				auto argCount = opcodes[i + 1];

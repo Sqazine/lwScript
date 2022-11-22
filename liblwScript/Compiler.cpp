@@ -704,16 +704,35 @@ namespace lws
 	}
 	void Compiler::CompileRefExpr(RefExpr *expr)
 	{
-		auto symbol = mSymbolTable->Resolve(expr->refExpr->Stringify());
-		if (symbol.type == SYMBOL_GLOBAL)
+		Symbol symbol;
+		if (expr->refExpr->Type() == AST_INDEX)
 		{
-			Emit(OP_REF_GLOBAL);
-			Emit(symbol.index);
+			CompileExpr(((IndexExpr *)expr->refExpr)->index);
+			symbol = mSymbolTable->Resolve(((IndexExpr *)expr->refExpr)->ds->Stringify());
+			if (symbol.type == SYMBOL_GLOBAL)
+			{
+				Emit(OP_REF_INDEX_GLOBAL);
+				Emit(symbol.index);
+			}
+			else if (symbol.type == SYMBOL_LOCAL)
+			{
+				Emit(OP_REF_INDEX_LOCAL);
+				Emit(symbol.index);
+			}
 		}
-		else if (symbol.type == SYMBOL_LOCAL)
+		else
 		{
-			Emit(OP_REF_LOCAL);
-			Emit(symbol.index);
+			symbol = mSymbolTable->Resolve(expr->refExpr->Stringify());
+			if (symbol.type == SYMBOL_GLOBAL)
+			{
+				Emit(OP_REF_GLOBAL);
+				Emit(symbol.index);
+			}
+			else if (symbol.type == SYMBOL_LOCAL)
+			{
+				Emit(OP_REF_LOCAL);
+				Emit(symbol.index);
+			}
 		}
 	}
 

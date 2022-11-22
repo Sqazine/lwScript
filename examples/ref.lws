@@ -29,12 +29,13 @@ fn resetVec(v2,x,y)
     v2.y=y;
 }
 
-let c=vec2;
+let c=new vec2;
 resetVec(&c,100,300);
 
 io.println("{}",c);
-//vec2
+//class vec2
 //{
-//    x
-//    y
+//    x:100
+//    y:300
+//    sqLength:<fn sqLength:0x00000196AD1F1260>
 //}
