@@ -1,4 +1,5 @@
 #include "Parser.h"
+#include "Library.h"
 namespace lws
 {
 	struct PrecedenceBinding
@@ -309,6 +310,8 @@ namespace lws
 			}
 		}
 		Consume(TOKEN_RPAREN, L"Expect ')' after function stmt's '('");
+
+		funcStmt->name->literal += L"_" + std::to_wstring(funcStmt->parameters.size());
 
 		funcStmt->body = (ScopeStmt *)ParseScopeStmt();
 
@@ -1107,7 +1110,7 @@ namespace lws
 		callExpr->column = GetCurToken().column;
 		callExpr->line = GetCurToken().line;
 
-		callExpr->callee = prefixExpr;
+		callExpr->callee = (IdentifierExpr *)prefixExpr;
 		Consume(TOKEN_LPAREN, L"Expect '('.");
 		if (!IsMatchCurToken(TOKEN_RPAREN)) // has arguments
 		{
@@ -1116,6 +1119,40 @@ namespace lws
 				callExpr->arguments.emplace_back(ParseExpr());
 		}
 		Consume(TOKEN_RPAREN, L"Expect ')'.");
+
+		if (prefixExpr->Type() == AST_IDENTIFIER)
+			((IdentifierExpr *)callExpr->callee)->literal += L"_" + std::to_wstring(callExpr->arguments.size());
+		else if (prefixExpr->Type() == AST_DOT)
+		{
+			auto dotExpr = ((DotExpr *)prefixExpr);
+
+			bool needTag = true;
+			if (dotExpr->callee->Type() == AST_IDENTIFIER)
+			{
+				for (const auto &gLibName : gLibraryMap)
+					if (((IdentifierExpr *)dotExpr->callee)->literal == gLibName)
+					{
+						needTag = false;
+						break;
+					}
+			}
+			else if (dotExpr->callee->Type() == AST_DOT)
+			{
+				auto ptr = ((DotExpr *)dotExpr->callee)->callee;
+				while (ptr->Type() == AST_DOT)
+					ptr = ((DotExpr *)ptr)->callee;
+
+				for (const auto &gLibName : gLibraryMap)
+					if (((IdentifierExpr *)ptr)->literal == gLibName)
+					{
+						needTag = false;
+						break;
+					}
+			}
+
+			if (needTag)
+				dotExpr->callMember->literal += L"_" + std::to_wstring(callExpr->arguments.size());
+		}
 
 		return callExpr;
 	}
