@@ -16,9 +16,9 @@ namespace lws
         std::wstring name;
         SymbolType type = SYMBOL_GLOBAL;
         ValueDesc descType = DESC_VARIABLE;
-        uint8_t location = 0;
         uint8_t index = 0;
         int8_t depth = -1;
+        int8_t paramCount = -1;
     };
     class SymbolTable
     {
@@ -26,9 +26,9 @@ namespace lws
         SymbolTable();
         SymbolTable(SymbolTable *enclosing);
 
-        Symbol Define(ValueDesc descType, const std::wstring &name);
+        Symbol Define(ValueDesc descType, const std::wstring &name,int8_t paramCount=-1);
 
-        Symbol Resolve(const std::wstring &name);
+        Symbol Resolve(const std::wstring &name,int8_t paramCount=-1);
 
         std::array<Symbol, UINT8_COUNT> mSymbols;
         uint8_t mSymbolCount;

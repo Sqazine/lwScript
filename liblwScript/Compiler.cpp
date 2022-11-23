@@ -42,7 +42,6 @@ namespace lws
 		auto symbol = &mSymbolTable->mSymbols[mSymbolTable->mSymbolCount++];
 		symbol->type = SYMBOL_LOCAL;
 		symbol->index = mSymbolTable->mLocalSymbolCount++;
-		symbol->location = 0;
 		symbol->descType = DESC_CONSTANT;
 		symbol->depth = 0;
 		symbol->name = L"_main_start_up";
@@ -392,7 +391,7 @@ namespace lws
 		stmtAddress = EmitJump(OP_JUMP);
 	}
 
-	void Compiler::CompileExpr(Expr *expr, const RWState &state)
+	void Compiler::CompileExpr(Expr *expr, const RWState &state,int8_t paramCount)
 	{
 		switch (expr->Type())
 		{
@@ -433,7 +432,7 @@ namespace lws
 			CompileIndexExpr((IndexExpr *)expr, state);
 			break;
 		case AST_IDENTIFIER:
-			CompileIdentifierExpr((IdentifierExpr *)expr, state);
+			CompileIdentifierExpr((IdentifierExpr *)expr, state,paramCount);
 			break;
 		case AST_LAMBDA:
 			CompileLambdaExpr((LambdaExpr *)expr);
@@ -650,10 +649,10 @@ namespace lws
 		Emit(OP_GET_BASE);
 	}
 
-	void Compiler::CompileIdentifierExpr(IdentifierExpr *expr, const RWState &state)
+	void Compiler::CompileIdentifierExpr(IdentifierExpr *expr, const RWState &state,int8_t paramCount)
 	{
 		OpCode getOp, setOp;
-		auto symbol = mSymbolTable->Resolve(expr->literal);
+		auto symbol = mSymbolTable->Resolve(expr->literal,paramCount);
 		if (symbol.type == SYMBOL_GLOBAL)
 		{
 			getOp = OP_GET_GLOBAL;
@@ -712,7 +711,7 @@ namespace lws
 	}
 	void Compiler::CompileCallExpr(CallExpr *expr)
 	{
-		CompileExpr(expr->callee);
+		CompileExpr(expr->callee,RWState::READ,expr->arguments.size());
 		for (const auto &arg : expr->arguments)
 			CompileExpr(arg);
 		Emit(OP_CALL);
@@ -763,7 +762,7 @@ namespace lws
 
 	Symbol Compiler::CompileFunction(FunctionStmt *stmt)
 	{
-		auto functionSymbol = mSymbolTable->Define(DESC_CONSTANT, stmt->name->literal);
+		auto functionSymbol = mSymbolTable->Define(DESC_CONSTANT, stmt->name->literal, stmt->parameters.size());
 
 		mFunctionList.emplace_back(new FunctionObject(stmt->name->literal));
 		mSymbolTable = new SymbolTable(mSymbolTable);

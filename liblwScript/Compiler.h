@@ -39,7 +39,7 @@ namespace lws
 		void CompileBreakStmt(int64_t &stmtAddress);
 		void CompileContinueStmt(int64_t &stmtAddress);
 
-		void CompileExpr(Expr *expr, const RWState &state = RWState::READ);
+		void CompileExpr(Expr *expr, const RWState &state = RWState::READ,int8_t paramCount=-1);
 		void CompileInfixExpr(InfixExpr *expr);
 		void CompileIntNumExpr(IntNumExpr *expr);
 		void CompileRealNumExpr(RealNumExpr *expr);
@@ -55,7 +55,7 @@ namespace lws
 		void CompileNewExpr(NewExpr *expr);
 		void CompileThisExpr(ThisExpr *expr);
 		void CompileBaseExpr(BaseExpr *expr);
-		void CompileIdentifierExpr(IdentifierExpr *expr, const RWState &state);
+		void CompileIdentifierExpr(IdentifierExpr *expr, const RWState &state,int8_t paramCount=-1);
 		void CompileLambdaExpr(LambdaExpr *expr);
 		void CompileCallExpr(CallExpr *expr);
 		void CompileDotExpr(DotExpr *expr, const RWState &state = RWState::READ);
