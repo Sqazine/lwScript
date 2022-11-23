@@ -47,7 +47,7 @@ namespace lws
     Symbol SymbolTable::Resolve(const std::wstring &name, int8_t paramCount)
     {
         for (int16_t i = mSymbolCount - 1; i >= 0; --i)
-            if (mSymbols[i].name == name && mSymbols[i].paramCount == paramCount && mSymbols[i].depth <= mScopeDepth)
+            if (mSymbols[i].name == name && (mSymbols[i].paramCount < 0 ? true : mSymbols[i].paramCount == paramCount) && mSymbols[i].depth <= mScopeDepth)
             {
                 if (mSymbols[i].depth == -1)
                     ASSERT("variable not defined yet!");
@@ -55,7 +55,7 @@ namespace lws
             }
 
         if (enclosing)
-            return enclosing->Resolve(name,paramCount);
+            return enclosing->Resolve(name, paramCount);
 
         ASSERT(L"No variable:" + name + L" in current scope.");
     }
