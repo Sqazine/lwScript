@@ -210,6 +210,39 @@ namespace lws
         return false;
     }
 
+    UpValueObject::UpValueObject()
+    {
+    }
+    UpValueObject::UpValueObject(Value *location)
+    :location(location)
+    {
+    }
+    UpValueObject::~UpValueObject()
+    {
+    }
+
+    std::wstring UpValueObject::Stringify() const
+    {
+        return location->Stringify();
+    }
+    ObjectType UpValueObject::Type() const
+    {
+        return OBJECT_UPVALUE;
+    }
+    void UpValueObject::Mark()
+    {
+        marked=true;
+    }
+    void UpValueObject::UnMark()
+    {
+        marked=false;
+    }
+
+    bool UpValueObject::IsEqualTo(Object *other)
+    {
+        return true;
+    }
+
     ClosureObject::ClosureObject()
         : function(nullptr)
     {
@@ -217,6 +250,7 @@ namespace lws
     ClosureObject::ClosureObject(FunctionObject *function)
         : function(function)
     {
+        upvalues.resize(function->upValueCount);
     }
     ClosureObject::~ClosureObject()
     {

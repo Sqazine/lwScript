@@ -183,6 +183,25 @@ namespace lws
 				i++;
 				break;
 			}
+			case OP_SET_UPVALUE:
+			{
+				auto pos = opcodes[i + 1];
+				cout << std::setfill(L'0') << std::setw(8) << i << L"    " << L"OP_SET_UPVALUE    " << pos << std::endl;
+				i++;
+				break;
+			}
+			case OP_GET_UPVALUE:
+			{
+				auto pos = opcodes[i + 1];
+				cout << std::setfill(L'0') << std::setw(8) << i << L"    " << L"OP_GET_UPVALUE    " << pos << std::endl;
+				i++;
+				break;
+			}
+			case OP_CLOSE_UPVALUE:
+			{
+				cout << std::setfill(L'0') << std::setw(8) << i << L"    " << L"OP_CLOSE_UPVALUE" << std::endl;
+				break;
+			}
 			case OP_REF_GLOBAL:
 			{
 				auto pos = opcodes[i + 1];
@@ -246,8 +265,21 @@ namespace lws
 			{
 				auto pos = opcodes[i + 1];
 				std::wstring funcStr = (L"<fn " + TO_FUNCTION_VALUE(constants[pos])->name + L":0x" + PointerAddressToString((void *)TO_FUNCTION_VALUE(constants[pos])) + L">");
-				cout << std::setfill(L'0') << std::setw(8) << i << L"    " << L"OP_CLOSURE    " << pos <<L"    "<<funcStr<< std::endl;
+				cout << std::setfill(L'0') << std::setw(8) << i << L"    " << L"OP_CLOSURE    " << pos << L"    " << funcStr << std::endl;
+
 				i++;
+
+				auto upvalueCount = TO_FUNCTION_VALUE(constants[pos])->upValueCount;
+				if (upvalueCount > 0)
+				{
+					cout << "        upvalues:" << std::endl;
+					for (auto j = 0; j < upvalueCount; ++j)
+					{
+						cout << "                 location  " << opcodes[++i];
+						cout << " | ";
+						cout << "depth  " << opcodes[++i] << std::endl;
+					}
+				}
 				break;
 			}
 			default:

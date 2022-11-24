@@ -43,7 +43,7 @@ namespace lws
 		symbol->type = SYMBOL_LOCAL;
 		symbol->index = mSymbolTable->mLocalSymbolCount++;
 		symbol->descType = DESC_CONSTANT;
-		symbol->depth = 0;
+		symbol->scopeDepth = 0;
 		symbol->name = L"_main_start_up";
 
 		for (const auto &libName : gLibraryMap)
@@ -391,7 +391,7 @@ namespace lws
 		stmtAddress = EmitJump(OP_JUMP);
 	}
 
-	void Compiler::CompileExpr(Expr *expr, const RWState &state,int8_t paramCount)
+	void Compiler::CompileExpr(Expr *expr, const RWState &state, int8_t paramCount)
 	{
 		switch (expr->Type())
 		{
@@ -432,7 +432,7 @@ namespace lws
 			CompileIndexExpr((IndexExpr *)expr, state);
 			break;
 		case AST_IDENTIFIER:
-			CompileIdentifierExpr((IdentifierExpr *)expr, state,paramCount);
+			CompileIdentifierExpr((IdentifierExpr *)expr, state, paramCount);
 			break;
 		case AST_LAMBDA:
 			CompileLambdaExpr((LambdaExpr *)expr);
@@ -649,10 +649,10 @@ namespace lws
 		Emit(OP_GET_BASE);
 	}
 
-	void Compiler::CompileIdentifierExpr(IdentifierExpr *expr, const RWState &state,int8_t paramCount)
+	void Compiler::CompileIdentifierExpr(IdentifierExpr *expr, const RWState &state, int8_t paramCount)
 	{
 		OpCode getOp, setOp;
-		auto symbol = mSymbolTable->Resolve(expr->literal,paramCount);
+		auto symbol = mSymbolTable->Resolve(expr->literal, paramCount);
 		if (symbol.type == SYMBOL_GLOBAL)
 		{
 			getOp = OP_GET_GLOBAL;
@@ -663,13 +663,21 @@ namespace lws
 			getOp = OP_GET_LOCAL;
 			setOp = OP_SET_LOCAL;
 		}
+		else if (symbol.type == SYMBOL_UPVALUE)
+		{
+			getOp = OP_GET_UPVALUE;
+			setOp = OP_SET_UPVALUE;
+		}
 
 		if (state == RWState::WRITE)
 		{
 			if (symbol.descType == DESC_VARIABLE)
 			{
 				Emit(setOp);
-				Emit(symbol.index);
+				if (symbol.type == SYMBOL_UPVALUE)
+					Emit(symbol.upvalue.index);
+				else
+					Emit(symbol.index);
 			}
 			else
 				ASSERT(expr->Stringify() + L"is a constant,which cannot be assigned!");
@@ -677,7 +685,10 @@ namespace lws
 		else
 		{
 			Emit(getOp);
-			Emit(symbol.index);
+			if (symbol.type == SYMBOL_UPVALUE)
+				Emit(symbol.upvalue.index);
+			else
+				Emit(symbol.index);
 		}
 	}
 	void Compiler::CompileLambdaExpr(LambdaExpr *expr)
@@ -701,7 +712,6 @@ namespace lws
 		if (CurChunk().opCodes[CurChunk().opCodes.size() - 2] != OP_RETURN)
 			EmitReturn(OP_RETURN);
 
-		ExitScope();
 		mSymbolTable = mSymbolTable->enclosing;
 
 		auto function = mFunctionList.back();
@@ -711,7 +721,7 @@ namespace lws
 	}
 	void Compiler::CompileCallExpr(CallExpr *expr)
 	{
-		CompileExpr(expr->callee,RWState::READ,expr->arguments.size());
+		CompileExpr(expr->callee, RWState::READ, expr->arguments.size());
 		for (const auto &arg : expr->arguments)
 			CompileExpr(arg);
 		Emit(OP_CALL);
@@ -786,13 +796,22 @@ namespace lws
 		if (CurChunk().opCodes[CurChunk().opCodes.size() - 2] != OP_RETURN)
 			EmitReturn(OP_RETURN);
 
-		ExitScope();
+		mFunctionList.back()->upValueCount = mSymbolTable->mUpValueCount;
+
+		auto upvalues = mSymbolTable->mUpValues;
+
 		mSymbolTable = mSymbolTable->enclosing;
 
 		auto function = mFunctionList.back();
 		mFunctionList.pop_back();
 
 		EmitClosure(function);
+
+		for (int32_t i = 0; i < function->upValueCount; ++i)
+		{
+			Emit(upvalues[i].location);
+			Emit(upvalues[i].depth);
+		}
 
 		return functionSymbol;
 	}
@@ -867,9 +886,12 @@ namespace lws
 		for (int32_t i = 0; i < mSymbolTable->mSymbols.size(); ++i)
 		{
 			if (mSymbolTable->mSymbols[i].type == SYMBOL_LOCAL &&
-				mSymbolTable->mSymbols[i].depth > mSymbolTable->mScopeDepth)
+				mSymbolTable->mSymbols[i].scopeDepth > mSymbolTable->mScopeDepth)
 			{
-				Emit(OP_POP);
+				if(mSymbolTable->mSymbols[i].isCaptured)
+					Emit(OP_CLOSE_UPVALUE);
+				else
+					Emit(OP_POP);
 				mSymbolTable->mSymbols[i].type = SYMBOL_GLOBAL; // mark as global to avoid second pop
 			}
 		}

@@ -11,6 +11,7 @@ namespace lws
 #define IS_ARRAY_OBJ(obj) (obj->Type() == OBJECT_ARRAY)
 #define IS_TABLE_OBJ(obj) (obj->Type() == OBJECT_TABLE)
 #define IS_FUNCTION_OBJ(obj) (obj->Type() == OBJECT_FUNCTION)
+#define IS_UPVALUE_OBJ(obj) (obj->Type() == OBJECT_UPVALUE)
 #define IS_CLOSURE_OBJ(obj) (obj->Type() == OBJECT_CLOSURE)
 #define IS_NATIVE_FUNCTION_OBJ(obj) (obj->Type() == OBJECT_NATIVE_FUNCTION)
 #define IS_REF_OBJ(obj) (obj->Type() == OBJECT_REF)
@@ -22,6 +23,7 @@ namespace lws
 #define TO_ARRAY_OBJ(obj) ((lws::ArrayObject *)obj)
 #define TO_TABLE_OBJ(obj) ((lws::TableObject *)obj)
 #define TO_FUNCTION_OBJ(obj) ((lws::FunctionObject *)obj)
+#define TO_UPVALUE_OBJ(obj) ((lws::UpValueObject *)obj)
 #define TO_CLOSURE_OBJ(obj) ((lws::ClosureObject *)obj)
 #define TO_NATIVE_FUNCTION_OBJ(obj) ((lws::NativeFunctionObject *)obj)
 #define TO_REF_OBJ(obj) ((lws::RefObject *)obj)
@@ -38,6 +40,7 @@ namespace lws
 #define IS_ARRAY_VALUE(v) (IS_OBJECT_VALUE(v) && IS_ARRAY_OBJ(v.object))
 #define IS_TABLE_VALUE(v) (IS_OBJECT_VALUE(v) && IS_TABLE_OBJ(v.object))
 #define IS_FUNCTION_VALUE(v) (IS_OBJECT_VALUE(v) && IS_FUNCTION_OBJ(v.object))
+#define IS_UPVALUE_VALUE(v) (IS_OBJECT_VALUE(v) && IS_UPVALUE_OBJ(v.object))
 #define IS_CLOSURE_VALUE(v) (IS_OBJECT_VALUE(v) && IS_CLOSURE_OBJ(v.object))
 #define IS_NATIVE_FUNCTION_VALUE(v) (IS_OBJECT_VALUE(v) && IS_NATIVE_FUNCTION_OBJ(v.object))
 #define IS_REF_VALUE(v) (IS_OBJECT_VALUE(v) && IS_REF_OBJ(v.object))
@@ -53,6 +56,7 @@ namespace lws
 #define TO_ARRAY_VALUE(v) (TO_ARRAY_OBJ(v.object))
 #define TO_TABLE_VALUE(v) (TO_TABLE_OBJ(v.object))
 #define TO_FUNCTION_VALUE(v) (TO_FUNCTION_OBJ(v.object))
+#define TO_UPVALUE_VALUE(v) (TO_UPVALUE_OBJ(v.object))
 #define TO_CLOSURE_VALUE(v) (TO_CLOSURE_OBJ(v.object))
 #define TO_NATIVE_FUNCTION_VALUE(v) (TO_NATIVE_FUNCTION_OBJ(v.object))
 #define TO_REF_VALUE(v) (TO_REF_OBJ(v.object))
@@ -66,6 +70,7 @@ namespace lws
         OBJECT_ARRAY,
         OBJECT_TABLE,
         OBJECT_FUNCTION,
+        OBJECT_UPVALUE,
         OBJECT_CLOSURE,
         OBJECT_NATIVE_FUNCTION,
         OBJECT_REF,
@@ -161,6 +166,24 @@ namespace lws
         std::wstring name;
     };
 
+    struct UpValueObject:public Object
+    {
+        UpValueObject();
+        UpValueObject(Value* location);
+        ~UpValueObject();
+
+        std::wstring Stringify() const override;
+        ObjectType Type() const override;
+        void Mark() override;
+        void UnMark() override;
+
+        bool IsEqualTo(Object *other) override;
+
+        Value *location;
+	    Value closed;
+	    UpValueObject *nextUpValue;
+    };
+
     struct ClosureObject:public Object
     {
         ClosureObject();
@@ -175,6 +198,7 @@ namespace lws
         bool IsEqualTo(Object *other) override;
 
         FunctionObject* function;
+        std::vector<UpValueObject*> upvalues;
     };
 
     using NativeFunction = std::function<Value(const std::vector<Value> &)>;

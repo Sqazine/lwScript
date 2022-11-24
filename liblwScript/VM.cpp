@@ -18,7 +18,8 @@ namespace lws
 	{
 		mFrameCount = 0;
 		mStackTop = mValueStack;
-		objectChain = nullptr;
+		mObjectChain = nullptr;
+		mOpenUpValues = nullptr;
 
 		for (int32_t i = 0; i < mLibraryManager.mLibraries.size(); ++i)
 			mGlobalVariables[i] = mLibraryManager.mLibraries[i];
@@ -142,6 +143,8 @@ namespace lws
 				Value *retValues;
 				retValues = mStackTop - retCount;
 
+				ClosedUpValues(frame->slots);
+
 				mFrameCount--;
 				if (mFrameCount == 0)
 					return;
@@ -208,6 +211,25 @@ namespace lws
 			{
 				auto pos = READ_INS();
 				Push(frame->slots[pos]); // now assume base ptr on the stack bottom
+				break;
+			}
+			case OP_SET_UPVALUE:
+			{
+				auto pos = READ_INS();
+				auto v = Peek(0);
+				*frame->closure->upvalues[pos]->location = Peek(0);
+				break;
+			}
+			case OP_GET_UPVALUE:
+			{
+				auto pos = READ_INS();
+				Push(*frame->closure->upvalues[pos]->location);
+				break;
+			}
+			case OP_CLOSE_UPVALUE:
+			{
+				ClosedUpValues(mStackTop - 1);
+				Pop();
 				break;
 			}
 			case OP_ADD:
@@ -485,7 +507,7 @@ namespace lws
 			{
 				auto index = READ_INS();
 				auto idxValue = Pop();
-				Value* v=frame->slots + index;
+				Value *v = frame->slots + index;
 				if (IS_TABLE_VALUE((*v)))
 				{
 					Push(CreateObject<RefObject>(&TO_TABLE_VALUE((*v))->elements[idxValue]));
@@ -539,7 +561,7 @@ namespace lws
 					Push(retV);
 				}
 				else
-					ASSERT(L"Invalid callee,Only function is available.");
+					ASSERT(L"Invalid callee,Only function is available:" + callee.Stringify());
 				break;
 			}
 			case OP_CLASS:
@@ -621,7 +643,7 @@ namespace lws
 						ASSERT(L"No member:" + propName + L" in enum object " + enumObj->name);
 				}
 				else
-					ASSERT(L"Invalid call:not a valid class or enum instance.");
+					ASSERT(L"Invalid call:not a valid class or enum instance:" + peekValue.Stringify());
 
 				break;
 			}
@@ -636,7 +658,7 @@ namespace lws
 				{
 					auto propName = TO_STR_VALUE(Pop());
 					auto klass = TO_CLASS_VALUE(peekValue);
-					Pop();//pop class value
+					Pop(); //pop class value
 
 					Value member;
 					if (klass->GetMember(propName, member))
@@ -677,6 +699,20 @@ namespace lws
 				auto pos = READ_INS();
 				auto func = TO_FUNCTION_VALUE(frame->closure->function->chunk.constants[pos]);
 				auto closure = CreateObject<ClosureObject>(func);
+
+				for (int32_t i = 0; i < closure->upvalues.size(); ++i)
+				{
+					auto index = READ_INS();
+					auto depth = READ_INS();
+					if (depth == mFrameCount - 1)
+					{
+						auto captured = CaptureUpValue(frame->slots + index);
+						closure->upvalues[i] = captured;
+					}
+					else
+						closure->upvalues[i] = frame->closure->upvalues[index];
+				}
+
 				Push(closure);
 				break;
 			}
@@ -703,5 +739,40 @@ namespace lws
 	Value VM::Peek(int32_t distance)
 	{
 		return *(mStackTop - distance - 1);
+	}
+
+	UpValueObject *VM::CaptureUpValue(Value *location)
+	{
+		UpValueObject *prevUpValue = nullptr;
+		UpValueObject *upValue = mOpenUpValues;
+
+		while (upValue != nullptr && upValue->location > location)
+		{
+			prevUpValue = upValue;
+			upValue = upValue->nextUpValue;
+		}
+
+		if (upValue != nullptr && upValue->location == location)
+			return upValue;
+
+		auto createdUpValue = CreateObject<UpValueObject>(location);
+		createdUpValue->nextUpValue = upValue;
+
+		if (prevUpValue == nullptr)
+			mOpenUpValues = createdUpValue;
+		else
+			prevUpValue->nextUpValue = createdUpValue;
+
+		return createdUpValue;
+	}
+	void VM::ClosedUpValues(Value *end)
+	{
+		while (mOpenUpValues != nullptr && mOpenUpValues->location >= end)
+		{
+			UpValueObject *upvalue = mOpenUpValues;
+			upvalue->closed = *upvalue->location;
+			upvalue->location = &upvalue->closed;
+			mOpenUpValues = upvalue->nextUpValue;
+		}
 	}
 }

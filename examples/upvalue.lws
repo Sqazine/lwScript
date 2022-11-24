@@ -1,0 +1,54 @@
+fn out()
+{
+    let x="out";
+
+    fn inn()
+    {
+        x="inn";
+        return x;
+    }
+
+    return inn;
+}
+
+let inn=out();
+io.println(inn());//"inn"
+
+let x = "global";
+fn outer() 
+{
+  let x = "outer";
+  fn inner() 
+  {
+    io.println(x);
+  }
+  inner();
+}
+outer();//"outer"
+
+
+
+fn ou() 
+{
+  let x = 1;    
+  x = 2;        
+  fn in() 
+  {
+    io.println(2);
+  }
+  in();
+}
+ou();//2
+
+fn o() {
+  let x = "outside";
+  fn in() 
+  {
+    io.println(x);
+  }
+
+  return in;
+}
+
+let closure = o();
+closure();

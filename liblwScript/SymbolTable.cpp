@@ -3,14 +3,15 @@
 namespace lws
 {
     SymbolTable::SymbolTable()
-        : mSymbolCount(0), mGlobalSymbolCount(0), mLocalSymbolCount(0), enclosing(nullptr), mScopeDepth(0)
+        : mSymbolCount(0), mGlobalSymbolCount(0), mLocalSymbolCount(0), mUpValueCount(0), enclosing(nullptr), mScopeDepth(0), mTableDepth(0)
     {
     }
 
     SymbolTable::SymbolTable(SymbolTable *enclosing)
-        : mSymbolCount(0), mGlobalSymbolCount(0), mLocalSymbolCount(0), enclosing(enclosing)
+        : mSymbolCount(0), mGlobalSymbolCount(0), mLocalSymbolCount(0), mUpValueCount(0), enclosing(enclosing)
     {
         mScopeDepth = enclosing->mScopeDepth + 1;
+        mTableDepth = enclosing->mTableDepth + 1;
     }
 
     Symbol SymbolTable::Define(ValueDesc descType, const std::wstring &name, int8_t paramCount)
@@ -22,7 +23,7 @@ namespace lws
             auto isSameParamCount = (mSymbols[i].paramCount < 0 || paramCount < 0) ? true : mSymbols[i].paramCount == paramCount;
             if (mSymbols[i].name == name && isSameParamCount)
                 ASSERT(L"Redefinition symbol:" + name);
-            if (mSymbols[i].depth == -1 && mSymbols[i].depth < mScopeDepth)
+            if (mSymbols[i].scopeDepth == -1 && mSymbols[i].scopeDepth < mScopeDepth)
                 break;
         }
 
@@ -41,26 +42,56 @@ namespace lws
             symbol->type = SYMBOL_LOCAL;
             symbol->index = mLocalSymbolCount++;
         }
-        symbol->depth = mScopeDepth;
+        symbol->scopeDepth = mScopeDepth;
         return *symbol;
     }
 
-    Symbol SymbolTable::Resolve(const std::wstring &name, int8_t paramCount)
+    Symbol SymbolTable::Resolve(const std::wstring &name, int8_t paramCount, int8_t d)
     {
         for (int16_t i = mSymbolCount - 1; i >= 0; --i)
         {
             auto isSameParamCount = (mSymbols[i].paramCount < 0 || paramCount < 0) ? true : mSymbols[i].paramCount == paramCount;
-            if (mSymbols[i].name == name && isSameParamCount && mSymbols[i].depth <= mScopeDepth)
+            if (mSymbols[i].name == name && isSameParamCount && mSymbols[i].scopeDepth <= mScopeDepth)
             {
-                if (mSymbols[i].depth == -1)
+                if (mSymbols[i].scopeDepth == -1)
                     ASSERT("symbol not defined yet!");
+
+                if(d==1)
+                    mSymbols[i].isCaptured=true;
+
                 return mSymbols[i];
             }
         }
 
         if (enclosing)
-            return enclosing->Resolve(name, paramCount);
+        {
+            Symbol result = enclosing->Resolve(name, paramCount, ++d);
+            if (d > 0 && result.type != SYMBOL_GLOBAL)
+            {
+                result.type = SYMBOL_UPVALUE;
+                result.upvalue = AddUpValue(result.index, enclosing->mTableDepth);
+            }
+            return result;
+        }
 
         ASSERT(L"No symbol:" + name + L" in current scope.");
+    }
+
+    UpValue SymbolTable::AddUpValue(uint8_t location, uint8_t depth)
+    {
+        for (int32_t i = 0; i < mUpValueCount; ++i)
+        {
+            UpValue *upvalue = &mUpValues[i];
+            if (upvalue->location == location && upvalue->depth == depth)
+                return *upvalue;
+        }
+
+        if (mUpValueCount == UINT8_COUNT)
+            ASSERT("Too many closure upvalues in function.");
+        mUpValues[mUpValueCount].location = location;
+        mUpValues[mUpValueCount].depth = depth;
+        mUpValues[mUpValueCount].index = mUpValueCount;
+        mUpValueCount++;
+        return mUpValues[mUpValueCount - 1];
     }
 }

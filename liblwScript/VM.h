@@ -37,6 +37,11 @@ namespace lws
         template <class T>
         void FreeObject(T *object);
 
+        UpValueObject *CaptureUpValue(Value *location);
+        void ClosedUpValues(Value *end);
+
+        UpValueObject *mOpenUpValues;
+
         LibraryManager mLibraryManager;
 
         static Value sNullValue;
@@ -49,20 +54,20 @@ namespace lws
         CallFrame mFrames[STACK_MAX];
         int32_t mFrameCount;
 
-        Object *objectChain;
+        Object *mObjectChain;
 
-        size_t bytesAllocated;
+        size_t mBytesAllocated;
     };
 
     template <class T, typename... Args>
     inline T *VM::CreateObject(Args &&...params)
     {
-        bytesAllocated += sizeof(T);
+        mBytesAllocated += sizeof(T);
 
         T *object = new T(std::forward<Args>(params)...);
-        object->next = objectChain;
+        object->next = mObjectChain;
         object->marked = false;
-        objectChain = object;
+        mObjectChain = object;
 
         return object;
     }
@@ -70,7 +75,7 @@ namespace lws
     template <class T>
     inline void VM::FreeObject(T *object)
     {
-        bytesAllocated -= sizeof(T);
+        mBytesAllocated -= sizeof(T);
         delete object;
     }
 }
