@@ -81,13 +81,13 @@ namespace lws
 
     struct Object
     {
-        Object() : marked(false), next(nullptr) {}
-        virtual ~Object() {}
+        Object();
+        virtual ~Object();
 
         virtual std::wstring Stringify() const = 0;
         virtual ObjectType Type() const = 0;
-        virtual void Mark() = 0;
-        virtual void UnMark() = 0;
+        virtual void Mark() ;
+        virtual void UnMark();
         virtual bool IsEqualTo(Object *other) = 0;
 
         bool marked;
@@ -101,8 +101,6 @@ namespace lws
 
         std::wstring Stringify() const override;
         ObjectType Type() const override;
-        void Mark() override;
-        void UnMark() override;
         bool IsEqualTo(Object *other) override;
 
         std::wstring value;
@@ -116,8 +114,6 @@ namespace lws
 
         std::wstring Stringify() const override;
         ObjectType Type() const override;
-        void Mark() override;
-        void UnMark() override;
 
         bool IsEqualTo(Object *other) override;
 
@@ -139,9 +135,6 @@ namespace lws
 
         std::wstring Stringify() const override;
         ObjectType Type() const override;
-        void Mark() override;
-        void UnMark() override;
-
         bool IsEqualTo(Object *other) override;
 
         ValueUnorderedMap elements;
@@ -155,9 +148,6 @@ namespace lws
 
         std::wstring Stringify() const override;
         ObjectType Type() const override;
-        void Mark() override;
-        void UnMark() override;
-
         bool IsEqualTo(Object *other) override;
 
         int32_t arity;
@@ -174,9 +164,6 @@ namespace lws
 
         std::wstring Stringify() const override;
         ObjectType Type() const override;
-        void Mark() override;
-        void UnMark() override;
-
         bool IsEqualTo(Object *other) override;
 
         Value *location;
@@ -192,9 +179,6 @@ namespace lws
 
         std::wstring Stringify() const override;
         ObjectType Type() const override;
-        void Mark() override;
-        void UnMark() override;
-
         bool IsEqualTo(Object *other) override;
 
         FunctionObject* function;
@@ -211,9 +195,6 @@ namespace lws
 
         std::wstring Stringify() const override;
         ObjectType Type() const override;
-        void Mark() override;
-        void UnMark() override;
-
         bool IsEqualTo(Object *other) override;
 
         NativeFunction fn;
@@ -226,8 +207,6 @@ namespace lws
 
         std::wstring Stringify() const override;
         ObjectType Type() const override;
-        void Mark() override;
-        void UnMark() override;
         bool IsEqualTo(Object *other) override;
 
         Value *pointer;
@@ -241,8 +220,6 @@ namespace lws
 
         std::wstring Stringify() const override;
         ObjectType Type() const override;
-        void Mark() override;
-        void UnMark() override;
         bool IsEqualTo(Object *other) override;
 
         bool GetMember(const std::wstring &name, Value &retV);
@@ -261,8 +238,6 @@ namespace lws
 
         std::wstring Stringify() const override;
         ObjectType Type() const override;
-        void Mark() override;
-        void UnMark() override;
         bool IsEqualTo(Object *other) override;
 
         Value receiver;
@@ -277,8 +252,6 @@ namespace lws
 
         std::wstring Stringify() const override;
         ObjectType Type() const override;
-        void Mark() override;
-        void UnMark() override;
         bool IsEqualTo(Object *other) override;
 
         bool GetMember(const std::wstring &name, Value &retV);

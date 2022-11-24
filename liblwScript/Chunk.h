@@ -73,4 +73,7 @@ namespace lws
     private:
         std::wstring OpCodeStringify(const OpCodes &opcodes) const;
     };
+
+    bool operator==(const Chunk& left,const Chunk& right);
+    bool operator!=(const Chunk& left,const Chunk& right);
 }

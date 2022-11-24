@@ -289,4 +289,21 @@ namespace lws
 
 		return cout.str();
 	}
+
+	bool operator==(const Chunk &left, const Chunk &right)
+	{
+		if (left.opCodes != right.opCodes)
+			return false;
+		if (left.constants.size() != right.constants.size())
+			return false;
+		for (int32_t i = 0; i < left.constants.size(); ++i)
+			if (left.constants[i] != right.constants[i])
+				return false;
+		return true;
+	}
+
+	bool operator!=(const Chunk &left, const Chunk &right)
+	{
+		return !(left == right);
+	}
 }

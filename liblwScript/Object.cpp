@@ -5,6 +5,29 @@
 namespace lws
 {
 
+    Object::Object()
+        : marked(false), next(nullptr)
+    {
+    }
+    Object::~Object()
+    {
+    }
+
+    void Object::Mark()
+    {
+        if (marked)
+            return;
+
+        marked = true;
+    }
+    void Object ::UnMark()
+    {
+        if (!marked)
+            return;
+
+        marked = false;
+    }
+
     StrObject::StrObject(std::wstring_view value)
         : value(value)
     {
@@ -19,14 +42,6 @@ namespace lws
     ObjectType StrObject::Type() const
     {
         return OBJECT_STR;
-    }
-    void StrObject::Mark()
-    {
-        marked = true;
-    }
-    void StrObject::UnMark()
-    {
-        marked = false;
     }
     bool StrObject::IsEqualTo(Object *other)
     {
@@ -61,24 +76,6 @@ namespace lws
     ObjectType ArrayObject::Type() const
     {
         return OBJECT_ARRAY;
-    }
-    void ArrayObject::Mark()
-    {
-        if (marked)
-            return;
-        marked = true;
-
-        for (const auto &e : elements)
-            e.Mark();
-    }
-    void ArrayObject::UnMark()
-    {
-        if (!marked)
-            return;
-        marked = false;
-
-        for (const auto &e : elements)
-            e.UnMark();
     }
 
     bool ArrayObject::IsEqualTo(Object *other)
@@ -121,30 +118,6 @@ namespace lws
     ObjectType TableObject::Type() const
     {
         return OBJECT_TABLE;
-    }
-    void TableObject::Mark()
-    {
-        if (marked)
-            return;
-        marked = true;
-
-        for (const auto &[k, v] : elements)
-        {
-            k.Mark();
-            v.Mark();
-        }
-    }
-    void TableObject::UnMark()
-    {
-        if (!marked)
-            return;
-        marked = true;
-
-        for (const auto &[k, v] : elements)
-        {
-            k.UnMark();
-            v.UnMark();
-        }
     }
 
     bool TableObject::IsEqualTo(Object *other)
@@ -196,25 +169,29 @@ namespace lws
     {
         return OBJECT_FUNCTION;
     }
-    void FunctionObject::Mark()
-    {
-        marked = true;
-    }
-    void FunctionObject::UnMark()
-    {
-        marked = false;
-    }
 
     bool FunctionObject::IsEqualTo(Object *other)
     {
-        return false;
+        if (!IS_FUNCTION_OBJ(other))
+            return false;
+
+        auto func = TO_FUNCTION_OBJ(other);
+        if (arity != func->arity)
+            return false;
+        if (upValueCount != func->upValueCount)
+            return false;
+        if (chunk != func->chunk)
+            return false;
+        if (name != func->name)
+            return false;
+        return true;
     }
 
     UpValueObject::UpValueObject()
     {
     }
     UpValueObject::UpValueObject(Value *location)
-    :location(location)
+        : location(location)
     {
     }
     UpValueObject::~UpValueObject()
@@ -229,17 +206,20 @@ namespace lws
     {
         return OBJECT_UPVALUE;
     }
-    void UpValueObject::Mark()
-    {
-        marked=true;
-    }
-    void UpValueObject::UnMark()
-    {
-        marked=false;
-    }
 
     bool UpValueObject::IsEqualTo(Object *other)
     {
+        if (!IS_UPVALUE_OBJ(other))
+            return false;
+
+        auto upvo = TO_UPVALUE_OBJ(other);
+
+        if (closed != upvo->closed)
+            return false;
+        if (*location != *upvo->location)
+            return false;
+        if (!nextUpValue->IsEqualTo(upvo->nextUpValue))
+            return false;
         return true;
     }
 
@@ -264,17 +244,20 @@ namespace lws
     {
         return OBJECT_CLOSURE;
     }
-    void ClosureObject::Mark()
-    {
-        marked = true;
-    }
-    void ClosureObject::UnMark()
-    {
-        marked = false;
-    }
 
     bool ClosureObject::IsEqualTo(Object *other)
     {
+        if (!IS_CLOSURE_OBJ(other))
+            return false;
+        auto closure = TO_CLOSURE_OBJ(other);
+
+        if (!function->IsEqualTo(closure->function))
+            return false;
+        if (upvalues.size() != closure->upvalues.size())
+            return false;
+        for (int32_t i = 0; i < upvalues.size(); ++i)
+            if (!upvalues[i]->IsEqualTo(closure->upvalues[i]))
+                return false;
         return true;
     }
 
@@ -297,17 +280,11 @@ namespace lws
     {
         return OBJECT_NATIVE_FUNCTION;
     }
-    void NativeFunctionObject::Mark()
-    {
-        marked = true;
-    }
-    void NativeFunctionObject::UnMark()
-    {
-        marked = false;
-    }
 
     bool NativeFunctionObject::IsEqualTo(Object *other)
     {
+        if (!IS_NATIVE_FUNCTION_OBJ(other))
+            return false;
         return true;
     }
 
@@ -326,14 +303,6 @@ namespace lws
     ObjectType RefObject::Type() const
     {
         return OBJECT_REF;
-    }
-    void RefObject::Mark()
-    {
-        marked = true;
-    }
-    void RefObject::UnMark()
-    {
-        marked = false;
     }
     bool RefObject::IsEqualTo(Object *other)
     {
@@ -375,16 +344,17 @@ namespace lws
     {
         return OBJECT_CLASS;
     }
-    void ClassObject::Mark()
-    {
-        marked = true;
-    }
-    void ClassObject::UnMark()
-    {
-        marked = false;
-    }
     bool ClassObject::IsEqualTo(Object *other)
     {
+        if (!IS_CLASS_OBJ(other))
+            return false;
+        auto klass = TO_CLASS_OBJ(other);
+        if (name != klass->name)
+            return false;
+        if (members != klass->members)
+            return false;
+        if (parents != klass->parents)
+            return false;
         return true;
     }
 
@@ -456,16 +426,15 @@ namespace lws
     {
         return OBJECT_CLASS_CLOSURE_BIND;
     }
-    void ClassClosureBindObject::Mark()
-    {
-        marked = true;
-    }
-    void ClassClosureBindObject::UnMark()
-    {
-        marked = false;
-    }
     bool ClassClosureBindObject::IsEqualTo(Object *other)
     {
+        if (!IS_CLASS_CLOSURE_BIND_OBJ(other))
+            return false;
+        auto ccb = TO_CLASS_CLOSURE_BIND_OBJ(other);
+        if (receiver != ccb->receiver)
+            return false;
+        if (!closure->IsEqualTo(ccb->closure))
+            return false;
         return true;
     }
 
@@ -496,15 +465,6 @@ namespace lws
     {
         return OBJECT_ENUM;
     }
-    void EnumObject::Mark()
-    {
-        marked = true;
-    }
-    void EnumObject::UnMark()
-    {
-        marked = false;
-    }
-
     bool EnumObject::GetMember(const std::wstring &name, Value &retV)
     {
         auto iter = pairs.find(name);
@@ -518,6 +478,13 @@ namespace lws
 
     bool EnumObject::IsEqualTo(Object *other)
     {
+        if (!IS_ENUM_OBJ(other))
+            return false;
+        auto eo = TO_ENUM_OBJ(other);
+        if (name != eo->name)
+            return false;
+        if (pairs != eo->pairs)
+            return false;
         return true;
     }
 

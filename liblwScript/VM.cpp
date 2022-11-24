@@ -17,6 +17,7 @@ namespace lws
 	void VM::ResetStatus()
 	{
 		mFrameCount = 0;
+		mBytesAllocated = 0;
 		mStackTop = mValueStack;
 		mObjectChain = nullptr;
 		mOpenUpValues = nullptr;
@@ -665,7 +666,7 @@ namespace lws
 					{
 						if (member.desc == DESC_CONSTANT)
 						{
-							ASSERT(L"Constant cannot be assigned twice:" + klass->name + L"'s member" + propName + L"is a constant value");
+							ASSERT(L"Constant cannot be assigned twice:" + klass->name + L"'s member:" + propName + L" is a constant value");
 						}
 						else
 							klass->members[propName] = Peek(0);
