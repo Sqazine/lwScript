@@ -16,12 +16,13 @@ namespace lws
     Symbol SymbolTable::Define(ValueDesc descType, const std::wstring &name, int8_t paramCount)
     {
         if (mSymbolCount >= mSymbols.size())
-            ASSERT(L"Too many variables in current scope.");
+            ASSERT(L"Too many symbols in current scope.");
         for (int16_t i = mSymbolCount - 1; i >= 0; --i)
         {
-            if (mSymbols[mSymbolCount].name == name)
-                ASSERT(L"Redefinition variable:" + name);
-            if (mSymbols[mSymbolCount].depth == -1 && mSymbols[mSymbolCount].depth < mScopeDepth)
+            auto isSameParamCount = (mSymbols[i].paramCount < 0 || paramCount < 0) ? true : mSymbols[i].paramCount == paramCount;
+            if (mSymbols[i].name == name && isSameParamCount)
+                ASSERT(L"Redefinition symbol:" + name);
+            if (mSymbols[i].depth == -1 && mSymbols[i].depth < mScopeDepth)
                 break;
         }
 
@@ -47,16 +48,19 @@ namespace lws
     Symbol SymbolTable::Resolve(const std::wstring &name, int8_t paramCount)
     {
         for (int16_t i = mSymbolCount - 1; i >= 0; --i)
-            if (mSymbols[i].name == name && (mSymbols[i].paramCount < 0 ? true : mSymbols[i].paramCount == paramCount) && mSymbols[i].depth <= mScopeDepth)
+        {
+            auto isSameParamCount = (mSymbols[i].paramCount < 0 || paramCount < 0) ? true : mSymbols[i].paramCount == paramCount;
+            if (mSymbols[i].name == name && isSameParamCount && mSymbols[i].depth <= mScopeDepth)
             {
                 if (mSymbols[i].depth == -1)
-                    ASSERT("variable not defined yet!");
+                    ASSERT("symbol not defined yet!");
                 return mSymbols[i];
             }
+        }
 
         if (enclosing)
             return enclosing->Resolve(name, paramCount);
 
-        ASSERT(L"No variable:" + name + L" in current scope.");
+        ASSERT(L"No symbol:" + name + L" in current scope.");
     }
 }
