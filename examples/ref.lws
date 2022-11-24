@@ -39,3 +39,37 @@ io.println("{}",c);
 //    y:300
 //    sqLength:<fn sqLength:0x00000196AD1F1260>
 //}
+
+
+fn out()
+{
+    let x="out";
+    fn inn()
+    {
+        let b=&x;
+        b=1000;
+        return x;
+    }
+
+    return inn;
+}
+
+let inn=out();
+io.println(inn());//1000
+
+
+fn outer()
+{
+    let x=[1,2,3,4];
+    fn inn()
+    {
+        let b=&x[2];
+        b=1000;
+        return x;
+    }
+
+    return inn;
+}
+
+let inner=outer();
+io.println(inner());//[1,2,1000,4]

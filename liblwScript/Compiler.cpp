@@ -753,6 +753,11 @@ namespace lws
 				Emit(OP_REF_INDEX_LOCAL);
 				Emit(symbol.index);
 			}
+			else if(symbol.type==SYMBOL_UPVALUE)
+			{
+				Emit(OP_REF_INDEX_UPVALUE);
+				Emit(symbol.upvalue.index);
+			}
 		}
 		else
 		{
@@ -766,6 +771,11 @@ namespace lws
 			{
 				Emit(OP_REF_LOCAL);
 				Emit(symbol.index);
+			}
+			else if(symbol.type==SYMBOL_UPVALUE)
+			{
+				Emit(OP_REF_UPVALUE);
+				Emit(symbol.upvalue.index);
 			}
 		}
 	}

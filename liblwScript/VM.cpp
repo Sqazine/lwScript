@@ -485,6 +485,12 @@ namespace lws
 				Push(CreateObject<RefObject>(frame->slots + index));
 				break;
 			}
+			case OP_REF_UPVALUE:
+			{
+				auto index = READ_INS();
+				Push(CreateObject<RefObject>(frame->closure->upvalues[index]->location));
+				break;
+			}
 			case OP_REF_INDEX_GLOBAL:
 			{
 				auto index = READ_INS();
@@ -502,6 +508,8 @@ namespace lws
 						ASSERT(L"Idx out of range.");
 					Push(CreateObject<RefObject>(&(TO_ARRAY_VALUE(mGlobalVariables[index])->elements[intIdx])));
 				}
+				else
+					ASSERT(L"Invalid indexed reference type:" + mGlobalVariables[index].Stringify() + L" not a table or array value.");
 				break;
 			}
 			case OP_REF_INDEX_LOCAL:
@@ -513,7 +521,7 @@ namespace lws
 				{
 					Push(CreateObject<RefObject>(&TO_TABLE_VALUE((*v))->elements[idxValue]));
 				}
-				else if (IS_ARRAY_VALUE(mGlobalVariables[index]))
+				else if (IS_ARRAY_VALUE((*v)))
 				{
 					if (!IS_INT_VALUE(idxValue))
 						ASSERT(L"Invalid idx for array,only integer is available.");
@@ -522,6 +530,30 @@ namespace lws
 						ASSERT(L"Idx out of range.");
 					Push(CreateObject<RefObject>(&(TO_ARRAY_VALUE((*v)))->elements[intIdx]));
 				}
+				else
+					ASSERT(L"Invalid indexed reference type:" + v->Stringify() + L" not a table or array value.");
+				break;
+			}
+			case OP_REF_INDEX_UPVALUE:
+			{
+				auto index = READ_INS();
+				auto idxValue = Pop();
+				Value *v = frame->closure->upvalues[index]->location;
+				if (IS_TABLE_VALUE((*v)))
+				{
+					Push(CreateObject<RefObject>(&TO_TABLE_VALUE((*v))->elements[idxValue]));
+				}
+				else if (IS_ARRAY_VALUE((*v)))
+				{
+					if (!IS_INT_VALUE(idxValue))
+						ASSERT(L"Invalid idx for array,only integer is available.");
+					auto intIdx = TO_INT_VALUE(idxValue);
+					if (intIdx < 0 || intIdx >= TO_ARRAY_VALUE((*v))->elements.size())
+						ASSERT(L"Idx out of range.");
+					Push(CreateObject<RefObject>(&(TO_ARRAY_VALUE((*v)))->elements[intIdx]));
+				}
+				else
+					ASSERT(L"Invalid indexed reference type:" + v->Stringify() + L" not a table or array value.");
 				break;
 			}
 			case OP_CALL:

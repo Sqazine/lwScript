@@ -47,6 +47,8 @@ namespace lws
         OP_REF_LOCAL,
         OP_REF_INDEX_GLOBAL,
         OP_REF_INDEX_LOCAL,
+        OP_REF_UPVALUE,
+        OP_REF_INDEX_UPVALUE,
         OP_CALL,
         OP_CLASS,
         OP_SET_PROPERTY,
