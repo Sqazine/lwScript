@@ -63,7 +63,7 @@ void RunFile(std::string_view path)
 
 	auto mainFunc = compiler.Compile(stmt);
 #ifdef _DEBUG
-	std::wcout << mainFunc->Stringify() << std::endl;
+	std::wcout << mainFunc->Stringify(true) << std::endl;
 #endif
 
 	vm.Run(mainFunc);
@@ -81,6 +81,8 @@ int main(int argc, const char *argv[])
 		Repl();
 	else
 		std::wcout << L"Usage: lwScript [filepath]" << std::endl;
+
+	// RunFile("C:\\Users\\Sqazi\\OneDrive\\.sc\\lwScript\\examples\\class-multi-inherit.lws");
 
 	return 0;
 }

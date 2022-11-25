@@ -1,9 +1,10 @@
 #include "Value.h"
 #include "Object.h"
+#include "VM.h"
 namespace lws
 {
     Value::Value()
-        : type(VALUE_NULL)
+        : type(VALUE_NULL), object(nullptr)
     {
     }
     Value::Value(double number)
@@ -33,7 +34,7 @@ namespace lws
     {
         return type;
     }
-    std::wstring Value::Stringify() const
+    std::wstring Value::Stringify(bool outputOpCodeIfExists) const
     {
         switch (type)
         {
@@ -46,16 +47,16 @@ namespace lws
         case VALUE_NULL:
             return L"null";
         case VALUE_OBJECT:
-            return object->Stringify();
+            return object->Stringify(outputOpCodeIfExists);
         default:
             return L"null";
         }
         return L"null";
     }
-    void Value::Mark() const
+    void Value::Mark(VM *vm) const
     {
         if (type == VALUE_OBJECT)
-            object->Mark();
+            object->Mark(vm);
     }
     void Value::UnMark() const
     {

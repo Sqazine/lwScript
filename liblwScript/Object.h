@@ -84,10 +84,11 @@ namespace lws
         Object();
         virtual ~Object();
 
-        virtual std::wstring Stringify() const = 0;
+        virtual std::wstring Stringify(bool outputOpCodeIfExists=false) const = 0;
         virtual ObjectType Type() const = 0;
-        virtual void Mark() ;
-        virtual void UnMark();
+        void Mark(class VM *vm);
+        void UnMark();
+        virtual void Blacken(class VM *vm);
         virtual bool IsEqualTo(Object *other) = 0;
 
         bool marked;
@@ -99,7 +100,7 @@ namespace lws
         StrObject(std::wstring_view value);
         ~StrObject();
 
-        std::wstring Stringify() const override;
+        std::wstring Stringify(bool outputOpCodeIfExists=false) const override;
         ObjectType Type() const override;
         bool IsEqualTo(Object *other) override;
 
@@ -112,9 +113,9 @@ namespace lws
         ArrayObject(const std::vector<struct Value> &elements);
         ~ArrayObject();
 
-        std::wstring Stringify() const override;
+        std::wstring Stringify(bool outputOpCodeIfExists=false) const override;
         ObjectType Type() const override;
-
+        void Blacken(class VM *vm) override;
         bool IsEqualTo(Object *other) override;
 
         std::vector<struct Value> elements;
@@ -133,8 +134,10 @@ namespace lws
         TableObject(const ValueUnorderedMap &elements);
         ~TableObject();
 
-        std::wstring Stringify() const override;
+        std::wstring Stringify(bool outputOpCodeIfExists=false) const override;
         ObjectType Type() const override;
+        void Blacken(class VM *vm) override;
+
         bool IsEqualTo(Object *other) override;
 
         ValueUnorderedMap elements;
@@ -146,8 +149,10 @@ namespace lws
         FunctionObject(std::wstring_view name);
         ~FunctionObject();
 
-        std::wstring Stringify() const override;
+        std::wstring Stringify(bool outputOpCodeIfExists=false) const override;
         ObjectType Type() const override;
+        void Blacken(class VM *vm) override;
+
         bool IsEqualTo(Object *other) override;
 
         int32_t arity;
@@ -156,33 +161,37 @@ namespace lws
         std::wstring name;
     };
 
-    struct UpValueObject:public Object
+    struct UpValueObject : public Object
     {
         UpValueObject();
-        UpValueObject(Value* location);
+        UpValueObject(Value *location);
         ~UpValueObject();
 
-        std::wstring Stringify() const override;
+        std::wstring Stringify(bool outputOpCodeIfExists=false) const override;
         ObjectType Type() const override;
+        void Blacken(class VM *vm) override;
+
         bool IsEqualTo(Object *other) override;
 
         Value *location;
-	    Value closed;
-	    UpValueObject *nextUpValue;
+        Value closed;
+        UpValueObject *nextUpValue;
     };
 
-    struct ClosureObject:public Object
+    struct ClosureObject : public Object
     {
         ClosureObject();
-        ClosureObject(FunctionObject* function);
+        ClosureObject(FunctionObject *function);
         ~ClosureObject();
 
-        std::wstring Stringify() const override;
+        std::wstring Stringify(bool outputOpCodeIfExists=false) const override;
         ObjectType Type() const override;
+        void Blacken(class VM *vm) override;
+
         bool IsEqualTo(Object *other) override;
 
-        FunctionObject* function;
-        std::vector<UpValueObject*> upvalues;
+        FunctionObject *function;
+        std::vector<UpValueObject *> upvalues;
     };
 
     using NativeFunction = std::function<Value(const std::vector<Value> &)>;
@@ -193,7 +202,7 @@ namespace lws
         NativeFunctionObject(NativeFunction f);
         ~NativeFunctionObject();
 
-        std::wstring Stringify() const override;
+        std::wstring Stringify(bool outputOpCodeIfExists=false) const override;
         ObjectType Type() const override;
         bool IsEqualTo(Object *other) override;
 
@@ -205,7 +214,7 @@ namespace lws
         RefObject(Value *pointer);
         ~RefObject();
 
-        std::wstring Stringify() const override;
+        std::wstring Stringify(bool outputOpCodeIfExists=false) const override;
         ObjectType Type() const override;
         bool IsEqualTo(Object *other) override;
 
@@ -218,8 +227,10 @@ namespace lws
         ClassObject(std::wstring_view name);
         ~ClassObject();
 
-        std::wstring Stringify() const override;
+        std::wstring Stringify(bool outputOpCodeIfExists=false) const override;
         ObjectType Type() const override;
+        void Blacken(class VM *vm) override;
+
         bool IsEqualTo(Object *other) override;
 
         bool GetMember(const std::wstring &name, Value &retV);
@@ -236,8 +247,10 @@ namespace lws
         ClassClosureBindObject(const Value &receiver, ClosureObject *cl);
         ~ClassClosureBindObject();
 
-        std::wstring Stringify() const override;
+        std::wstring Stringify(bool outputOpCodeIfExists=false) const override;
         ObjectType Type() const override;
+        void Blacken(class VM *vm) override;
+
         bool IsEqualTo(Object *other) override;
 
         Value receiver;
@@ -247,15 +260,17 @@ namespace lws
     struct EnumObject : public Object
     {
         EnumObject();
-        EnumObject(const std::wstring& name, const std::unordered_map<std::wstring, Value> &pairs);
+        EnumObject(const std::wstring &name, const std::unordered_map<std::wstring, Value> &pairs);
         ~EnumObject();
 
-        std::wstring Stringify() const override;
+        std::wstring Stringify(bool outputOpCodeIfExists=false) const override;
         ObjectType Type() const override;
+        void Blacken(class VM *vm) override;
+
         bool IsEqualTo(Object *other) override;
 
         bool GetMember(const std::wstring &name, Value &retV);
-        
+
         std::wstring name;
         std::unordered_map<std::wstring, Value> pairs;
     };

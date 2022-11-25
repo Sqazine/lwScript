@@ -17,14 +17,14 @@ namespace lws
 	{
 	}
 
-	std::wstring Chunk::Stringify() const
+	std::wstring Chunk::Stringify(bool outputOpCodeIfExists) const
 	{
 		std::wstring result;
 		result += OpCodeStringify(opCodes);
 		for (const auto &c : constants)
 		{
 			if (IS_FUNCTION_VALUE(c))
-				result += TO_FUNCTION_VALUE(c)->Stringify();
+				result += TO_FUNCTION_VALUE(c)->Stringify(outputOpCodeIfExists);
 		}
 		return result;
 	}

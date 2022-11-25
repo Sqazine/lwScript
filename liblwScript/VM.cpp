@@ -7,17 +7,23 @@ namespace lws
 	Value VM::sNullValue = Value();
 
 	VM::VM()
+		: mObjectChain(nullptr), mOpenUpValues(nullptr), mStackTop(nullptr)
 	{
 		ResetStatus();
 	}
 	VM::~VM()
 	{
+		FreeObjects();
 	}
 
 	void VM::ResetStatus()
 	{
+		if (!mObjectChain)
+			FreeObjects();
+
 		mFrameCount = 0;
 		mBytesAllocated = 0;
+		mNextGCByteSize = 256;
 		mStackTop = mValueStack;
 		mObjectChain = nullptr;
 		mOpenUpValues = nullptr;
@@ -29,6 +35,8 @@ namespace lws
 	std::vector<Value> VM::Run(FunctionObject *mainFunc)
 	{
 		ResetStatus();
+
+		RegisterToGCRecordChain(mainFunc);
 
 		auto closure = CreateObject<ClosureObject>(mainFunc);
 
@@ -171,7 +179,9 @@ namespace lws
 			case OP_CONSTANT:
 			{
 				auto pos = READ_INS();
-				Push(frame->closure->function->chunk.constants[pos]);
+				auto v = frame->closure->function->chunk.constants[pos];
+				RegisterToGCRecordChain(v);
+				Push(v);
 				break;
 			}
 			case OP_NULL:
@@ -599,13 +609,14 @@ namespace lws
 			}
 			case OP_CLASS:
 			{
-				auto name = Pop();
+				auto name = Peek(0);
 				auto varCount = READ_INS();
 				auto constCount = READ_INS();
 				auto parentClassCount = READ_INS();
 
 				auto classObj = CreateObject<ClassObject>();
 				classObj->name = TO_STR_VALUE(name);
+				Pop();//pop name strobject
 
 				for (int i = 0; i < parentClassCount; ++i)
 				{
@@ -806,6 +817,106 @@ namespace lws
 			upvalue->closed = *upvalue->location;
 			upvalue->location = &upvalue->closed;
 			mOpenUpValues = upvalue->nextUpValue;
+		}
+	}
+
+	void VM::FreeObjects()
+	{
+		auto bytes = mBytesAllocated;
+		Object *object = mObjectChain;
+		while (object != nullptr)
+		{
+			Object *next = object->next;
+			mBytesAllocated -= sizeof(object);
+			delete object;
+			object = next;
+		}
+
+#ifdef GC_DEBUG
+		std::wcout << "collected " << bytes - mBytesAllocated << " bytes (from " << bytes << " to " << mBytesAllocated << ") next gc bytes " << mNextGCByteSize << std::endl;
+#endif
+	}
+
+	void VM::RegisterToGCRecordChain(const Value &value)
+	{
+		if (IS_OBJECT_VALUE(value) && value.object->next == nullptr) //check is null to judge if is a unique object
+		{
+			size_t objBytes = sizeof(value.object);
+			mBytesAllocated += objBytes;
+#ifdef GC_STRESS
+			GC();
+#endif
+			if (mBytesAllocated > mNextGCByteSize)
+				GC();
+			value.object->UnMark();
+			value.object->next = mObjectChain;
+			mObjectChain = value.object;
+#ifdef GC_DEBUG
+			std::cout << (void *)value.object << " has been add to gc record chain " << objBytes << " for " << value.object->Type() << std::endl;
+#endif
+		}
+	}
+
+	void VM::GC()
+	{
+#ifdef GC_DEBUG
+		std::wcout << "begin gc" << std::endl;
+		size_t bytes = mBytesAllocated;
+#endif
+		MarkRootObjects();
+		MarkGrayObjects();
+		Sweep();
+		mNextGCByteSize = mBytesAllocated * GC_HEAP_GROW_FACTOR;
+#ifdef GC_DEBUG
+		std::wcout << "end gc" << std::endl;
+		std::wcout << "    collected " << bytes - mBytesAllocated << " bytes (from " << bytes << " to " << mBytesAllocated << ") next gc bytes " << mNextGCByteSize << std::endl;
+#endif
+	}
+	void VM::MarkRootObjects()
+	{
+		for (Value *slot = mValueStack; slot < mStackTop; ++slot)
+			slot->Mark(this);
+		for (int32_t i = 0; i < mFrameCount; ++i)
+			mFrames[i].closure->Mark(this);
+		for (UpValueObject *upvalue = mOpenUpValues; upvalue != nullptr; upvalue = upvalue->nextUpValue)
+			upvalue->Mark(this);
+
+		for (int32_t i = 0; i < GLOBAL_VARIABLE_MAX; ++i)
+			if (mGlobalVariables[i] != sNullValue)
+				mGlobalVariables[i].Mark(this);
+	}
+	void VM::MarkGrayObjects()
+	{
+		while (mGrayObjects.size() > 0)
+		{
+			auto object = mGrayObjects.back();
+			mGrayObjects.pop_back();
+			object->Blacken(this);
+		}
+	}
+	void VM::Sweep()
+	{
+		Object *previous = nullptr;
+		Object *object = mObjectChain;
+		while (object)
+		{
+			if (object->marked)
+			{
+				object->UnMark();
+				previous = object;
+				object = object->next;
+			}
+			else
+			{
+				Object *unreached = object;
+				object = object->next;
+				if (previous != nullptr)
+					previous->next = object;
+				else
+					mObjectChain = object;
+
+				FreeObject(unreached);
+			}
 		}
 	}
 }

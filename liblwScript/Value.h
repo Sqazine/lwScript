@@ -28,8 +28,8 @@ namespace lws
         ~Value();
 
         ValueType Type() const;
-        std::wstring Stringify() const;
-        void Mark() const;
+        std::wstring Stringify(bool outputOpCodeIfExists=false) const;
+        void Mark(class VM* vm) const;
         void UnMark() const;
 
         ValueType type;

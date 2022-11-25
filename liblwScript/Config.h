@@ -5,3 +5,10 @@
 #define GLOBAL_VARIABLE_MAX 512
 
 #define UINT8_COUNT (UINT8_MAX + 1)
+
+#define GC_HEAP_GROW_FACTOR 2
+
+#define GC_DEBUG
+#define GC_STRESS
+
+#define LOG_FUNCTION_OBJECT_OPCODE

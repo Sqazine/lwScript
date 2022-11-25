@@ -36,9 +36,16 @@ namespace lws
 
         template <class T>
         void FreeObject(T *object);
+        void FreeObjects();
 
         UpValueObject *CaptureUpValue(Value *location);
         void ClosedUpValues(Value *end);
+
+        void RegisterToGCRecordChain(const Value &value);
+        void GC();
+        void MarkRootObjects();
+        void MarkGrayObjects();
+        void Sweep();
 
         UpValueObject *mOpenUpValues;
 
@@ -54,20 +61,23 @@ namespace lws
         CallFrame mFrames[STACK_MAX];
         int32_t mFrameCount;
 
-        Object *mObjectChain;
+        friend class Object;
 
+        Object *mObjectChain;
+        std::vector<Object *> mGrayObjects;
         size_t mBytesAllocated;
+        size_t mNextGCByteSize;
     };
 
     template <class T, typename... Args>
     inline T *VM::CreateObject(Args &&...params)
     {
-        mBytesAllocated += sizeof(T);
-
         T *object = new T(std::forward<Args>(params)...);
         object->next = mObjectChain;
-        object->marked = false;
+        object->UnMark();
         mObjectChain = object;
+
+        mBytesAllocated += sizeof(object);
 
         return object;
     }
@@ -75,7 +85,8 @@ namespace lws
     template <class T>
     inline void VM::FreeObject(T *object)
     {
-        mBytesAllocated -= sizeof(T);
+        mBytesAllocated -= sizeof(object);
         delete object;
     }
+
 }

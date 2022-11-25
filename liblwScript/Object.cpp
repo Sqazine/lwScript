@@ -2,6 +2,7 @@
 #include "Value.h"
 #include "Chunk.h"
 #include "Utils.h"
+#include "VM.h"
 namespace lws
 {
 
@@ -13,19 +14,33 @@ namespace lws
     {
     }
 
-    void Object::Mark()
+    void Object::Mark(VM *vm)
     {
         if (marked)
             return;
-
+#ifdef GC_DEBUG
+        std::wcout <<L"0x"<< (void *)this << L" mark: " << Stringify() << std::endl;
+#endif
         marked = true;
+        vm->mGrayObjects.emplace_back(this);
     }
     void Object ::UnMark()
     {
         if (!marked)
             return;
 
+    #ifdef GC_DEBUG
+        std::wcout<<L"0x" << (void *)this << L" unMark: " << Stringify() << std::endl;
+#endif
+
         marked = false;
+    }
+
+    void Object::Blacken(VM *vm)
+    {
+#ifdef GC_DEBUG
+        std::wcout <<L"0x"<< (void *)this << L" blacken: " << Stringify() << std::endl;
+#endif
     }
 
     StrObject::StrObject(std::wstring_view value)
@@ -35,7 +50,7 @@ namespace lws
     StrObject::~StrObject()
     {
     }
-    std::wstring StrObject::Stringify() const
+    std::wstring StrObject::Stringify(bool outputOpCodeIfExists) const
     {
         return value;
     }
@@ -61,13 +76,13 @@ namespace lws
     {
     }
 
-    std::wstring ArrayObject::Stringify() const
+    std::wstring ArrayObject::Stringify(bool outputOpCodeIfExists) const
     {
         std::wstring result = L"[";
         if (!elements.empty())
         {
             for (const auto &e : elements)
-                result += e.Stringify() + L",";
+                result += e.Stringify(outputOpCodeIfExists) + L",";
             result = result.substr(0, result.size() - 1);
         }
         result += L"]";
@@ -76,6 +91,13 @@ namespace lws
     ObjectType ArrayObject::Type() const
     {
         return OBJECT_ARRAY;
+    }
+
+    void ArrayObject::Blacken(VM *vm)
+    {
+        Object::Blacken(vm);
+        for (auto &e : elements)
+            e.Mark(vm);
     }
 
     bool ArrayObject::IsEqualTo(Object *other)
@@ -106,11 +128,11 @@ namespace lws
     {
     }
 
-    std::wstring TableObject::Stringify() const
+    std::wstring TableObject::Stringify(bool outputOpCodeIfExists) const
     {
         std::wstring result = L"{";
         for (const auto &[k, v] : elements)
-            result += k.Stringify() + L":" + v.Stringify() + L",";
+            result += k.Stringify(outputOpCodeIfExists) + L":" + v.Stringify(outputOpCodeIfExists) + L",";
         result = result.substr(0, result.size() - 1);
         result += L"}";
         return result;
@@ -118,6 +140,16 @@ namespace lws
     ObjectType TableObject::Type() const
     {
         return OBJECT_TABLE;
+    }
+
+    void TableObject::Blacken(VM *vm)
+    {
+        Object::Blacken(vm);
+        for (auto &[k, v] : elements)
+        {
+            k.Mark(vm);
+            v.Mark(vm);
+        }
     }
 
     bool TableObject::IsEqualTo(Object *other)
@@ -157,17 +189,23 @@ namespace lws
     {
     }
 
-    std::wstring FunctionObject::Stringify() const
+    std::wstring FunctionObject::Stringify(bool outputOpCodeIfExists) const
     {
         auto result = L"<fn " + name + L":0x" + PointerAddressToString((void *)this) + L">";
-#ifdef _DEBUG
-        result += L"\n" + chunk.Stringify();
-#endif
+        if (outputOpCodeIfExists)
+            result += L"\n" + chunk.Stringify(outputOpCodeIfExists);
         return result;
     }
     ObjectType FunctionObject::Type() const
     {
         return OBJECT_FUNCTION;
+    }
+
+    void FunctionObject::Blacken(VM *vm)
+    {
+        Object::Blacken(vm);
+        for (auto &c : chunk.constants)
+            c.Mark(vm);
     }
 
     bool FunctionObject::IsEqualTo(Object *other)
@@ -198,13 +236,19 @@ namespace lws
     {
     }
 
-    std::wstring UpValueObject::Stringify() const
+    std::wstring UpValueObject::Stringify(bool outputOpCodeIfExists) const
     {
-        return location->Stringify();
+        return location->Stringify(outputOpCodeIfExists);
     }
     ObjectType UpValueObject::Type() const
     {
         return OBJECT_UPVALUE;
+    }
+
+    void UpValueObject::Blacken(VM *vm)
+    {
+        Object::Blacken(vm);
+        closed.Mark(vm);
     }
 
     bool UpValueObject::IsEqualTo(Object *other)
@@ -236,13 +280,22 @@ namespace lws
     {
     }
 
-    std::wstring ClosureObject::Stringify() const
+    std::wstring ClosureObject::Stringify(bool outputOpCodeIfExists) const
     {
-        return function->Stringify();
+        return function->Stringify(outputOpCodeIfExists);
     }
     ObjectType ClosureObject::Type() const
     {
         return OBJECT_CLOSURE;
+    }
+
+    void ClosureObject::Blacken(VM *vm)
+    {
+        Object::Blacken(vm);
+        function->Mark(vm);
+        for (int32_t i = 0; i < upvalues.size(); ++i)
+            if (upvalues[i])
+                upvalues[i]->Mark(vm);
     }
 
     bool ClosureObject::IsEqualTo(Object *other)
@@ -272,7 +325,7 @@ namespace lws
     {
     }
 
-    std::wstring NativeFunctionObject::Stringify() const
+    std::wstring NativeFunctionObject::Stringify(bool outputOpCodeIfExists) const
     {
         return L"<native function>";
     }
@@ -296,14 +349,15 @@ namespace lws
     {
     }
 
-    std::wstring RefObject::Stringify() const
+    std::wstring RefObject::Stringify(bool outputOpCodeIfExists) const
     {
-        return pointer->Stringify();
+        return pointer->Stringify(outputOpCodeIfExists);
     }
     ObjectType RefObject::Type() const
     {
         return OBJECT_REF;
     }
+
     bool RefObject::IsEqualTo(Object *other)
     {
         if (!IS_REF_OBJ(other))
@@ -324,7 +378,7 @@ namespace lws
     {
     }
 
-    std::wstring ClassObject::Stringify() const
+    std::wstring ClassObject::Stringify(bool outputOpCodeIfExists) const
     {
         std::wstring result = L"class " + name;
         if (!parents.empty())
@@ -336,7 +390,7 @@ namespace lws
         }
         result += L"\n{\n";
         for (const auto &[k, v] : members)
-            result += k + L":" + v.Stringify() + L"\n";
+            result +=L"  " +k + L":" + v.Stringify(outputOpCodeIfExists) + L"\n";
 
         return result + L"}\n";
     }
@@ -344,6 +398,16 @@ namespace lws
     {
         return OBJECT_CLASS;
     }
+
+    void ClassObject::Blacken(VM *vm)
+    {
+        Object::Blacken(vm);
+        for (auto &[k, v] : members)
+            v.Mark(vm);
+        for (auto &[k, v] : parents)
+            v->Mark(vm);
+    }
+
     bool ClassObject::IsEqualTo(Object *other)
     {
         if (!IS_CLASS_OBJ(other))
@@ -418,14 +482,22 @@ namespace lws
     ClassClosureBindObject::~ClassClosureBindObject()
     {
     }
-    std::wstring ClassClosureBindObject::Stringify() const
+    std::wstring ClassClosureBindObject::Stringify(bool outputOpCodeIfExists) const
     {
-        return closure->Stringify();
+        return closure->Stringify(outputOpCodeIfExists);
     }
     ObjectType ClassClosureBindObject::Type() const
     {
         return OBJECT_CLASS_CLOSURE_BIND;
     }
+
+    void ClassClosureBindObject::Blacken(VM *vm)
+    {
+        Object::Blacken(vm);
+        receiver.Mark(vm);
+        closure->Mark(vm);
+    }
+
     bool ClassClosureBindObject::IsEqualTo(Object *other)
     {
         if (!IS_CLASS_CLOSURE_BIND_OBJ(other))
@@ -450,21 +522,30 @@ namespace lws
     {
     }
 
-    std::wstring EnumObject::Stringify() const
+    std::wstring EnumObject::Stringify(bool outputOpCodeIfExists) const
     {
         std::wstring result = L"enum " + name + L"{";
         if (!pairs.empty())
         {
             for (const auto &[k, v] : pairs)
-                result += k + L"=" + v.Stringify() + L",";
+                result += k + L"=" + v.Stringify(outputOpCodeIfExists) + L",";
             result = result.substr(0, result.size() - 1);
         }
         return result + L"}";
     }
+
     ObjectType EnumObject::Type() const
     {
         return OBJECT_ENUM;
     }
+
+    void EnumObject::Blacken(VM *vm)
+    {
+        Object::Blacken(vm);
+        for (auto &[k, v] : pairs)
+            v.Mark(vm);
+    }
+
     bool EnumObject::GetMember(const std::wstring &name, Value &retV)
     {
         auto iter = pairs.find(name);

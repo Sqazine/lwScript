@@ -66,7 +66,7 @@ namespace lws
         Chunk(const OpCodes &opcodes, const std::vector<Value> &constants);
         ~Chunk();
 
-        std::wstring Stringify() const;
+        std::wstring Stringify(bool outputOpCodeIfExists=false) const;
         std::vector<uint8_t> Serialization() const;
 
         OpCodes opCodes;
