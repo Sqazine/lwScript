@@ -51,4 +51,4 @@ fn o() {
 }
 
 let closure = o();
-closure();
+closure();// outside

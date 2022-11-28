@@ -180,8 +180,9 @@ namespace lws
 			{
 				auto pos = READ_INS();
 				auto v = frame->closure->function->chunk.constants[pos];
-				RegisterToGCRecordChain(v);
-				Push(v);
+				auto vClone = v.Clone();
+				RegisterToGCRecordChain(vClone);
+				Push(vClone);
 				break;
 			}
 			case OP_NULL:
@@ -848,7 +849,7 @@ namespace lws
 #endif
 			if (mBytesAllocated > mNextGCByteSize)
 				GC();
-			value.object->UnMark();
+			value.object->marked=false;
 			value.object->next = mObjectChain;
 			mObjectChain = value.object;
 #ifdef GC_DEBUG

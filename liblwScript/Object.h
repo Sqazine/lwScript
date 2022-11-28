@@ -84,12 +84,13 @@ namespace lws
         Object();
         virtual ~Object();
 
-        virtual std::wstring Stringify(bool outputOpCodeIfExists=false) const = 0;
+        virtual std::wstring Stringify(bool outputOpCodeIfExists = false) const = 0;
         virtual ObjectType Type() const = 0;
         void Mark(class VM *vm);
         void UnMark();
         virtual void Blacken(class VM *vm);
         virtual bool IsEqualTo(Object *other) = 0;
+        virtual Object *Clone() const = 0;
 
         bool marked;
         Object *next;
@@ -100,9 +101,10 @@ namespace lws
         StrObject(std::wstring_view value);
         ~StrObject();
 
-        std::wstring Stringify(bool outputOpCodeIfExists=false) const override;
+        std::wstring Stringify(bool outputOpCodeIfExists = false) const override;
         ObjectType Type() const override;
         bool IsEqualTo(Object *other) override;
+        Object *Clone() const override;
 
         std::wstring value;
     };
@@ -113,10 +115,11 @@ namespace lws
         ArrayObject(const std::vector<struct Value> &elements);
         ~ArrayObject();
 
-        std::wstring Stringify(bool outputOpCodeIfExists=false) const override;
+        std::wstring Stringify(bool outputOpCodeIfExists = false) const override;
         ObjectType Type() const override;
         void Blacken(class VM *vm) override;
         bool IsEqualTo(Object *other) override;
+        Object *Clone() const override;
 
         std::vector<struct Value> elements;
     };
@@ -134,11 +137,11 @@ namespace lws
         TableObject(const ValueUnorderedMap &elements);
         ~TableObject();
 
-        std::wstring Stringify(bool outputOpCodeIfExists=false) const override;
+        std::wstring Stringify(bool outputOpCodeIfExists = false) const override;
         ObjectType Type() const override;
         void Blacken(class VM *vm) override;
-
         bool IsEqualTo(Object *other) override;
+        Object *Clone() const override;
 
         ValueUnorderedMap elements;
     };
@@ -149,11 +152,11 @@ namespace lws
         FunctionObject(std::wstring_view name);
         ~FunctionObject();
 
-        std::wstring Stringify(bool outputOpCodeIfExists=false) const override;
+        std::wstring Stringify(bool outputOpCodeIfExists = false) const override;
         ObjectType Type() const override;
         void Blacken(class VM *vm) override;
-
         bool IsEqualTo(Object *other) override;
+        Object *Clone() const override;
 
         int32_t arity;
         int32_t upValueCount;
@@ -167,11 +170,11 @@ namespace lws
         UpValueObject(Value *location);
         ~UpValueObject();
 
-        std::wstring Stringify(bool outputOpCodeIfExists=false) const override;
+        std::wstring Stringify(bool outputOpCodeIfExists = false) const override;
         ObjectType Type() const override;
         void Blacken(class VM *vm) override;
-
         bool IsEqualTo(Object *other) override;
+        Object *Clone() const override;
 
         Value *location;
         Value closed;
@@ -184,11 +187,11 @@ namespace lws
         ClosureObject(FunctionObject *function);
         ~ClosureObject();
 
-        std::wstring Stringify(bool outputOpCodeIfExists=false) const override;
+        std::wstring Stringify(bool outputOpCodeIfExists = false) const override;
         ObjectType Type() const override;
         void Blacken(class VM *vm) override;
-
         bool IsEqualTo(Object *other) override;
+        Object *Clone() const override;
 
         FunctionObject *function;
         std::vector<UpValueObject *> upvalues;
@@ -202,9 +205,10 @@ namespace lws
         NativeFunctionObject(NativeFunction f);
         ~NativeFunctionObject();
 
-        std::wstring Stringify(bool outputOpCodeIfExists=false) const override;
+        std::wstring Stringify(bool outputOpCodeIfExists = false) const override;
         ObjectType Type() const override;
         bool IsEqualTo(Object *other) override;
+        Object *Clone() const override;
 
         NativeFunction fn;
     };
@@ -214,9 +218,10 @@ namespace lws
         RefObject(Value *pointer);
         ~RefObject();
 
-        std::wstring Stringify(bool outputOpCodeIfExists=false) const override;
+        std::wstring Stringify(bool outputOpCodeIfExists = false) const override;
         ObjectType Type() const override;
         bool IsEqualTo(Object *other) override;
+        Object *Clone() const override;
 
         Value *pointer;
     };
@@ -227,11 +232,11 @@ namespace lws
         ClassObject(std::wstring_view name);
         ~ClassObject();
 
-        std::wstring Stringify(bool outputOpCodeIfExists=false) const override;
+        std::wstring Stringify(bool outputOpCodeIfExists = false) const override;
         ObjectType Type() const override;
         void Blacken(class VM *vm) override;
-
         bool IsEqualTo(Object *other) override;
+        Object *Clone() const override;
 
         bool GetMember(const std::wstring &name, Value &retV);
         bool GetParentMember(const std::wstring &name, Value &retV);
@@ -247,11 +252,11 @@ namespace lws
         ClassClosureBindObject(const Value &receiver, ClosureObject *cl);
         ~ClassClosureBindObject();
 
-        std::wstring Stringify(bool outputOpCodeIfExists=false) const override;
+        std::wstring Stringify(bool outputOpCodeIfExists = false) const override;
         ObjectType Type() const override;
         void Blacken(class VM *vm) override;
-
         bool IsEqualTo(Object *other) override;
+        Object *Clone() const override;
 
         Value receiver;
         ClosureObject *closure;
@@ -263,11 +268,11 @@ namespace lws
         EnumObject(const std::wstring &name, const std::unordered_map<std::wstring, Value> &pairs);
         ~EnumObject();
 
-        std::wstring Stringify(bool outputOpCodeIfExists=false) const override;
+        std::wstring Stringify(bool outputOpCodeIfExists = false) const override;
         ObjectType Type() const override;
         void Blacken(class VM *vm) override;
-
         bool IsEqualTo(Object *other) override;
+        Object *Clone() const override;
 
         bool GetMember(const std::wstring &name, Value &retV);
 

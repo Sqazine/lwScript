@@ -31,6 +31,7 @@ namespace lws
         std::wstring Stringify(bool outputOpCodeIfExists=false) const;
         void Mark(class VM* vm) const;
         void UnMark() const;
+        Value Clone() const;
 
         ValueType type;
         ValueDesc desc = DESC_VARIABLE;

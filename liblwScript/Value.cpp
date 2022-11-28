@@ -64,6 +64,32 @@ namespace lws
             object->UnMark();
     }
 
+    Value Value::Clone() const
+    {
+        Value result;
+        result.type = this->type;
+        switch (type)
+        {
+        case VALUE_INT:
+            result.integer = this->integer;
+            break;
+        case VALUE_REAL:
+            result.realnum = this->realnum;
+            break;
+        case VALUE_BOOL:
+            result.boolean = this->boolean;
+            break;
+        case VALUE_NULL:
+            break;
+        case VALUE_OBJECT:
+            result.object = this->object->Clone();
+            break;
+        default:
+            break;
+        }
+        return result;
+    }
+
     bool operator==(const Value &left, const Value &right)
     {
         switch (left.type)

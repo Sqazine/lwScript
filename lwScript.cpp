@@ -82,7 +82,5 @@ int main(int argc, const char *argv[])
 	else
 		std::wcout << L"Usage: lwScript [filepath]" << std::endl;
 
-	// RunFile("C:\\Users\\Sqazi\\OneDrive\\.sc\\lwScript\\examples\\class-multi-inherit.lws");
-
 	return 0;
 }

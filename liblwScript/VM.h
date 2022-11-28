@@ -1,4 +1,5 @@
 #pragma once
+#include <iostream>
 #include "Config.h"
 #include "Chunk.h"
 #include "Object.h"
@@ -74,7 +75,7 @@ namespace lws
     {
         T *object = new T(std::forward<Args>(params)...);
         object->next = mObjectChain;
-        object->UnMark();
+        object->marked = false;
         mObjectChain = object;
 
         mBytesAllocated += sizeof(object);
@@ -85,6 +86,9 @@ namespace lws
     template <class T>
     inline void VM::FreeObject(T *object)
     {
+#ifdef GC_DEBUG
+        std::wcout << L"delete object(0x" << (void *)object << L"):" << object->Stringify() << std::endl;
+#endif
         mBytesAllocated -= sizeof(object);
         delete object;
     }
