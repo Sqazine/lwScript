@@ -156,13 +156,13 @@ namespace lws
 	TableExpr::TableExpr()
 	{
 	}
-	TableExpr::TableExpr(std::unordered_map<Expr *, Expr *> elements)
+	TableExpr::TableExpr(const std::vector<std::pair<Expr*, Expr*>>& elements)
 		: elements(elements)
 	{
 	}
 	TableExpr::~TableExpr()
 	{
-		std::unordered_map<Expr *, Expr *>().swap(elements);
+		std::vector<std::pair<Expr*, Expr*>>().swap(elements);
 	}
 
 	std::wstring TableExpr::Stringify()

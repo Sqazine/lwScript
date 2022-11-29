@@ -10,5 +10,3 @@
 
 #define GC_DEBUG
 #define GC_STRESS
-
-#define LOG_FUNCTION_OBJECT_OPCODE

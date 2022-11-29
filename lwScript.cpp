@@ -12,6 +12,7 @@ void Repl()
 	std::wstring line;
 	lws::Lexer lexer;
 	lws::Parser parser;
+	lws::ConstantFolder constantFolder;
 	lws::Compiler compiler;
 	lws::VM vm;
 
@@ -30,6 +31,8 @@ void Repl()
 				std::wcout << token << std::endl;
 #endif
 			auto stmt = parser.Parse(tokens);
+
+			constantFolder.Fold(stmt);
 #ifdef _DEBUG
 			std::wcout << stmt->Stringify() << std::endl;
 #endif
@@ -48,6 +51,7 @@ void RunFile(std::string_view path)
 	std::wstring content = lws::ReadFile(path);
 	lws::Lexer lexer;
 	lws::Parser parser;
+	lws::ConstantFolder constantFolder;
 	lws::Compiler compiler;
 	lws::VM vm;
 
@@ -57,6 +61,8 @@ void RunFile(std::string_view path)
 		std::wcout << token << std::endl;
 #endif
 	auto stmt = parser.Parse(tokens);
+
+	constantFolder.Fold(stmt);
 #ifdef _DEBUG
 	std::wcout << stmt->Stringify() << std::endl;
 #endif

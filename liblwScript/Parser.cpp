@@ -1005,20 +1005,20 @@ namespace lws
 		tableExpr->line = GetCurToken().line;
 		Consume(TOKEN_LBRACE, L"Expect '{'.");
 
-		std::unordered_map<Expr *, Expr *> elements;
+		std::vector<std::pair<Expr *, Expr *>> elements;
 
 		if (!IsMatchCurToken(TOKEN_RBRACE))
 		{
 			Expr *key = ParseExpr();
 			Consume(TOKEN_COLON, L"Expect ':' after table key.");
 			Expr *value = ParseExpr();
-			elements[key] = value;
+			elements.emplace_back(std::make_pair(key,value));
 			while (IsMatchCurTokenAndStepOnce(TOKEN_COMMA))
 			{
 				Expr *key = ParseExpr();
 				Consume(TOKEN_COLON, L"Expect ':' after table key.");
 				Expr *value = ParseExpr();
-				elements[key] = value;
+				elements.emplace_back(std::make_pair(key,value));
 			}
 		}
 		Consume(TOKEN_RBRACE, L"Expect '}' after table.");

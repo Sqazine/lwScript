@@ -151,13 +151,13 @@ namespace lws
 	struct TableExpr : public Expr
 	{
 		TableExpr();
-		TableExpr(std::unordered_map<Expr *, Expr *> elements);
+		TableExpr(const std::vector<std::pair<Expr*, Expr*>>& elements);
 		~TableExpr();
 
 		std::wstring Stringify() override;
 		AstType Type() const override;
 
-		std::unordered_map<Expr *, Expr *> elements;
+		std::vector<std::pair<Expr *, Expr *>> elements;
 	};
 
 	struct GroupExpr : public Expr
