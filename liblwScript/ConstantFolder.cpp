@@ -331,6 +331,14 @@ namespace lws
 					newExpr = new IntNumExpr(((IntNumExpr *)infix->left)->value * ((IntNumExpr *)infix->right)->value);
 				else if (infix->op == L"/")
 					newExpr = new IntNumExpr(((IntNumExpr *)infix->left)->value / ((IntNumExpr *)infix->right)->value);
+				else if (infix->op == L"%")
+					newExpr = new IntNumExpr(((IntNumExpr *)infix->left)->value % ((IntNumExpr *)infix->right)->value);
+				else if (infix->op == L"&")
+					newExpr = new IntNumExpr(((IntNumExpr *)infix->left)->value & ((IntNumExpr *)infix->right)->value);
+				else if (infix->op == L"|")
+					newExpr = new IntNumExpr(((IntNumExpr *)infix->left)->value | ((IntNumExpr *)infix->right)->value);
+				else if (infix->op == L"^")
+					newExpr = new IntNumExpr(((IntNumExpr *)infix->left)->value ^ ((IntNumExpr *)infix->right)->value);
 				else if (infix->op == L"==")
 					newExpr = new BoolExpr(((IntNumExpr *)infix->left)->value == ((IntNumExpr *)infix->right)->value);
 				else if (infix->op == L"!=")
@@ -428,6 +436,13 @@ namespace lws
 				delete prefix;
 				prefix = nullptr;
 				return boolExpr;
+			}
+			else if (prefix->right->Type() == AST_INT && prefix->op == L"~")
+			{
+				auto newExpr = new IntNumExpr(~((IntNumExpr *)prefix->right)->value);
+				delete prefix;
+				prefix = nullptr;
+				return newExpr;
 			}
 		}
 		else if (expr->Type() == AST_POSTFIX)
