@@ -46,6 +46,7 @@ namespace lws
 		void CompileBoolExpr(BoolExpr *expr);
 		void CompilePrefixExpr(PrefixExpr *expr);
 		void CompilePostfixExpr(PostfixExpr *expr, const RWState &state = RWState::READ, bool isDelayCompile = true);
+		void CompileConditionExpr(ConditionExpr* expr);
 		void CompileStrExpr(StrExpr *expr);
 		void CompileNullExpr(NullExpr *expr);
 		void CompileGroupExpr(GroupExpr *expr);

@@ -413,6 +413,9 @@ namespace lws
 		case AST_POSTFIX:
 			CompilePostfixExpr((PostfixExpr *)expr, state);
 			break;
+		case AST_CONDITION:
+			CompileConditionExpr((ConditionExpr *)expr);
+			break;
 		case AST_STR:
 			CompileStrExpr((StrExpr *)expr);
 			break;
@@ -586,6 +589,28 @@ namespace lws
 			Emit(OP_POP);
 		}
 	}
+
+	void Compiler::CompileConditionExpr(ConditionExpr *expr)
+	{
+		CompileExpr(expr->condition);
+
+		auto jmpIfFalseAddress = EmitJump(OP_JUMP_IF_FALSE);
+
+		Emit(OP_POP);
+
+		CompileExpr(expr->trueBranch);
+
+		auto jmpAddress = EmitJump(OP_JUMP);
+
+		PatchJump(jmpIfFalseAddress);
+
+		Emit(OP_POP);
+
+		CompileExpr(expr->falseBranch);
+
+		PatchJump(jmpAddress);
+	}
+
 	void Compiler::CompileStrExpr(StrExpr *expr)
 	{
 		EmitConstant(new StrObject(expr->value));
@@ -753,7 +778,7 @@ namespace lws
 				Emit(OP_REF_INDEX_LOCAL);
 				Emit(symbol.index);
 			}
-			else if(symbol.type==SYMBOL_UPVALUE)
+			else if (symbol.type == SYMBOL_UPVALUE)
 			{
 				Emit(OP_REF_INDEX_UPVALUE);
 				Emit(symbol.upvalue.index);
@@ -772,7 +797,7 @@ namespace lws
 				Emit(OP_REF_LOCAL);
 				Emit(symbol.index);
 			}
-			else if(symbol.type==SYMBOL_UPVALUE)
+			else if (symbol.type == SYMBOL_UPVALUE)
 			{
 				Emit(OP_REF_UPVALUE);
 				Emit(symbol.upvalue.index);
@@ -898,7 +923,7 @@ namespace lws
 			if (mSymbolTable->mSymbols[i].type == SYMBOL_LOCAL &&
 				mSymbolTable->mSymbols[i].scopeDepth > mSymbolTable->mScopeDepth)
 			{
-				if(mSymbolTable->mSymbols[i].isCaptured)
+				if (mSymbolTable->mSymbols[i].isCaptured)
 					Emit(OP_CLOSE_UPVALUE);
 				else
 					Emit(OP_POP);

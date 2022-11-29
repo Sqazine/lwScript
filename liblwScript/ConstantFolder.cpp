@@ -152,8 +152,16 @@ namespace lws
 			return FoldPrefixExpr((PrefixExpr *)expr);
 		case AST_INFIX:
 			return FoldInfixExpr((InfixExpr *)expr);
+		case AST_POSTFIX:
+			return FoldPostfixExpr((PostfixExpr *)expr);
+		case AST_CONDITION:
+			return FoldConditionExpr((ConditionExpr *)expr);
 		case AST_REF:
 			return FoldRefExpr((RefExpr *)expr);
+		case AST_CALL:
+			return FoldCallExpr((CallExpr *)expr);
+		case AST_DOT:
+			return FoldDotExpr((DotExpr *)expr);
 		case AST_LAMBDA:
 			return FoldLambdaExpr((LambdaExpr *)expr);
 		default:
@@ -177,6 +185,16 @@ namespace lws
 		expr->condition = FoldExpr(expr->condition);
 		expr->trueBranch = FoldExpr(expr->trueBranch);
 		expr->falseBranch = FoldExpr(expr->falseBranch);
+
+		if (expr->condition->Type() == AST_BOOL)
+		{
+			auto boolExpr = (BoolExpr *)expr->condition;
+			if (boolExpr->value)
+				return expr->trueBranch;
+			else
+				return expr->falseBranch;
+		}
+
 		return expr;
 	}
 	Expr *ConstantFolder::FoldIntNumExpr(IntNumExpr *expr)
