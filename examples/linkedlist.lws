@@ -4,13 +4,13 @@ class Node
     let next=null;
 }
 
-let head= new Node;
+let head= new Node();
 
 let e=head;
 let i=1;
 while(i<10)
 {
-    let e2=new Node;
+    let e2=new Node();
     e2.v=i;
 
     e.next=e2;

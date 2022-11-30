@@ -62,40 +62,40 @@ namespace lws
 	void VM::Execute()
 	{
 		//  - * /
-#define COMMON_BINARY(op)                                                                  \
-	do                                                                                     \
-	{                                                                                      \
-		Value right = Pop();                                                               \
-		Value left = Pop();                                                                \
-		if (IS_REF_VALUE(left))                                                            \
-			left = *TO_REF_VALUE(left)->pointer;                                           \
-		if (IS_REF_VALUE(right))                                                           \
-			right = *TO_REF_VALUE(right)->pointer;                                         \
-		if (IS_INT_VALUE(left) && IS_INT_VALUE(right))                                     \
-			Push(TO_INT_VALUE(left) op TO_INT_VALUE(right));                               \
-		else if (IS_REAL_VALUE(left) && IS_REAL_VALUE(right))                              \
-			Push(TO_REAL_VALUE(left) op TO_REAL_VALUE(right));                             \
-		else if (IS_INT_VALUE(left) && IS_REAL_VALUE(right))                               \
-			Push(TO_INT_VALUE(left) op TO_REAL_VALUE(right));                              \
-		else if (IS_REAL_VALUE(left) && IS_INT_VALUE(right))                               \
-			Push(TO_REAL_VALUE(left) op TO_INT_VALUE(right));                              \
-		else                                                                               \
+#define COMMON_BINARY(op)                                                                 \
+	do                                                                                    \
+	{                                                                                     \
+		Value right = Pop();                                                              \
+		Value left = Pop();                                                               \
+		if (IS_REF_VALUE(left))                                                           \
+			left = *TO_REF_VALUE(left)->pointer;                                          \
+		if (IS_REF_VALUE(right))                                                          \
+			right = *TO_REF_VALUE(right)->pointer;                                        \
+		if (IS_INT_VALUE(left) && IS_INT_VALUE(right))                                    \
+			Push(TO_INT_VALUE(left) op TO_INT_VALUE(right));                              \
+		else if (IS_REAL_VALUE(left) && IS_REAL_VALUE(right))                             \
+			Push(TO_REAL_VALUE(left) op TO_REAL_VALUE(right));                            \
+		else if (IS_INT_VALUE(left) && IS_REAL_VALUE(right))                              \
+			Push(TO_INT_VALUE(left) op TO_REAL_VALUE(right));                             \
+		else if (IS_REAL_VALUE(left) && IS_INT_VALUE(right))                              \
+			Push(TO_REAL_VALUE(left) op TO_INT_VALUE(right));                             \
+		else                                                                              \
 			ASSERT(L"Invalid binary op:" + left.Stringify() + (L#op) + right.Stringify()) \
 	} while (0);
 
 // & | << >>
-#define INTEGER_BINARY(op)                                                                 \
-	do                                                                                     \
-	{                                                                                      \
-		Value right = Pop();                                                               \
-		Value left = Pop();                                                                \
-		if (IS_REF_VALUE(left))                                                            \
-			left = *TO_REF_VALUE(left)->pointer;                                           \
-		if (IS_REF_VALUE(right))                                                           \
-			right = *TO_REF_VALUE(right)->pointer;                                         \
-		if (IS_INT_VALUE(left) && IS_INT_VALUE(right))                                     \
-			Push(TO_INT_VALUE(left) op TO_INT_VALUE(right));                               \
-		else                                                                               \
+#define INTEGER_BINARY(op)                                                                \
+	do                                                                                    \
+	{                                                                                     \
+		Value right = Pop();                                                              \
+		Value left = Pop();                                                               \
+		if (IS_REF_VALUE(left))                                                           \
+			left = *TO_REF_VALUE(left)->pointer;                                          \
+		if (IS_REF_VALUE(right))                                                          \
+			right = *TO_REF_VALUE(right)->pointer;                                        \
+		if (IS_INT_VALUE(left) && IS_INT_VALUE(right))                                    \
+			Push(TO_INT_VALUE(left) op TO_INT_VALUE(right));                              \
+		else                                                                              \
 			ASSERT(L"Invalid binary op:" + left.Stringify() + (L#op) + right.Stringify()) \
 	} while (0);
 
@@ -134,7 +134,7 @@ namespace lws
 		if (IS_BOOL_VALUE(left) && IS_BOOL_VALUE(right))                                    \
 			Push(TO_BOOL_VALUE(left) op TO_BOOL_VALUE(right) ? Value(true) : Value(false)); \
 		else                                                                                \
-			ASSERT("Invalid op:" + left.Stringify() + (L#op) + right.Stringify())         \
+			ASSERT("Invalid op:" + left.Stringify() + (L#op) + right.Stringify())           \
 	} while (0);
 
 #define READ_INS() (*frame->ip++)
@@ -571,9 +571,8 @@ namespace lws
 			{
 				auto argCount = READ_INS();
 				auto callee = Peek(argCount);
-				if (IS_CLOSURE_VALUE(callee) || IS_CLASS_CLOSURE_BIND_VALUE(callee)) // normal function
+				if (IS_CLOSURE_VALUE(callee) || IS_CLASS_CLOSURE_BIND_VALUE(callee)) // normal function or class member function
 				{
-
 					if (IS_CLASS_CLOSURE_BIND_VALUE(callee))
 					{
 						auto binding = TO_CLASS_CLOSURE_BIND_VALUE(callee);
@@ -590,6 +589,30 @@ namespace lws
 					newframe->slots = mStackTop - argCount - 1;
 
 					frame = &mFrames[mFrameCount - 1];
+				}
+				else if (IS_CLASS_VALUE(callee)) // class constructor
+				{
+					auto klass = TO_CLASS_VALUE(callee);
+					//no user-defined constructor and calling none argument construction
+					//like: class A{} let a=new A();
+					//skip calling constructor(because class object has been instantiated)
+					if (argCount == 0 && klass->constructors.size() == 0)
+						break;
+					else
+					{
+						auto iter = klass->constructors.find(argCount);
+						if (iter == klass->constructors.end())
+							ASSERT(L"Not matching argument count of class:" + klass->name + L"'s constructors.");
+
+						auto ctor = iter->second;
+						// init a new frame
+						CallFrame *newframe = &mFrames[mFrameCount++];
+						newframe->closure = ctor;
+						newframe->ip = newframe->closure->function->chunk.opCodes.data();
+						newframe->slots = mStackTop - argCount - 1;
+
+						frame = &mFrames[mFrameCount - 1];
+					}
 				}
 				else if (IS_NATIVE_FUNCTION_VALUE(callee)) // native function
 				{
@@ -611,22 +634,29 @@ namespace lws
 			case OP_CLASS:
 			{
 				auto name = Peek(0);
+				auto ctorCount = READ_INS();
 				auto varCount = READ_INS();
 				auto constCount = READ_INS();
 				auto parentClassCount = READ_INS();
 
 				auto classObj = CreateObject<ClassObject>();
 				classObj->name = TO_STR_VALUE(name);
-				Pop();//pop name strobject
+				Pop(); //pop name strobject
 
-				for (int i = 0; i < parentClassCount; ++i)
+				for (int32_t i = 0; i < ctorCount; ++i)
+				{
+					auto v = TO_CLOSURE_VALUE(Pop());
+					classObj->constructors[v->function->arity] = v;
+				}
+
+				for (int32_t i = 0; i < parentClassCount; ++i)
 				{
 					name = Pop();
 					auto parentClass = Pop();
 					classObj->parents[TO_STR_VALUE(name)] = TO_CLASS_VALUE(parentClass);
 				}
 
-				for (int i = 0; i < constCount; ++i)
+				for (int32_t i = 0; i < constCount; ++i)
 				{
 					name = Pop();
 					auto v = Pop();
@@ -634,7 +664,7 @@ namespace lws
 					classObj->members[TO_STR_VALUE(name)] = v;
 				}
 
-				for (int i = 0; i < varCount; ++i)
+				for (int32_t i = 0; i < varCount; ++i)
 				{
 					name = Pop();
 					auto v = Pop();
@@ -845,7 +875,7 @@ namespace lws
 #endif
 			if (mBytesAllocated > mNextGCByteSize)
 				GC();
-			value.object->marked=false;
+			value.object->marked = false;
 			value.object->next = mObjectChain;
 			mObjectChain = value.object;
 #ifdef GC_DEBUG

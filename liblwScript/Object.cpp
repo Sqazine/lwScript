@@ -188,7 +188,7 @@ namespace lws
         return true;
     }
 
-    Object* TableObject::Clone() const
+    Object *TableObject::Clone() const
     {
         ValueUnorderedMap m;
         for (auto [k, v] : elements)
@@ -250,9 +250,9 @@ namespace lws
         return true;
     }
 
-    Object* FunctionObject::Clone() const
+    Object *FunctionObject::Clone() const
     {
-        FunctionObject* funcObj = new FunctionObject();
+        FunctionObject *funcObj = new FunctionObject();
         funcObj->name = this->name;
         funcObj->arity = this->arity;
         funcObj->upValueCount = this->upValueCount;
@@ -305,9 +305,9 @@ namespace lws
         return true;
     }
 
-    Object* UpValueObject::Clone() const
+    Object *UpValueObject::Clone() const
     {
-        UpValueObject* result=new UpValueObject();
+        UpValueObject *result = new UpValueObject();
         auto tmp = location->Clone();
         result->location = &tmp;
         result->closed = closed.Clone();
@@ -362,13 +362,13 @@ namespace lws
         return true;
     }
 
-    Object* ClosureObject::Clone() const
+    Object *ClosureObject::Clone() const
     {
-        ClosureObject* result = new ClosureObject();
-        result->function = (FunctionObject*)function->Clone();
+        ClosureObject *result = new ClosureObject();
+        result->function = (FunctionObject *)function->Clone();
         result->upvalues.resize(upvalues.size());
         for (int32_t i = 0; i < result->upvalues.size(); ++i)
-            result->upvalues[i] = (UpValueObject*)upvalues[i]->Clone();
+            result->upvalues[i] = (UpValueObject *)upvalues[i]->Clone();
         return result;
     }
 
@@ -399,7 +399,7 @@ namespace lws
         return true;
     }
 
-    Object* NativeFunctionObject::Clone() const
+    Object *NativeFunctionObject::Clone() const
     {
         return new NativeFunctionObject(fn);
     }
@@ -428,7 +428,7 @@ namespace lws
         return *pointer == *TO_REF_OBJ(other)->pointer;
     }
 
-    Object* RefObject::Clone() const
+    Object *RefObject::Clone() const
     {
         auto tmp = pointer->Clone();
         return new RefObject(&tmp);
@@ -475,6 +475,8 @@ namespace lws
             v.Mark(vm);
         for (auto &[k, v] : parents)
             v->Mark(vm);
+        for (auto &[k, v] : constructors)
+            v->Mark(vm);
     }
 
     bool ClassObject::IsEqualTo(Object *other)
@@ -491,14 +493,14 @@ namespace lws
         return true;
     }
 
-    Object* ClassObject::Clone() const
+    Object *ClassObject::Clone() const
     {
-        ClassObject* classObj = new ClassObject();
+        ClassObject *classObj = new ClassObject();
         classObj->name = this->name;
         for (auto [k, v] : members)
             classObj->members[k] = v.Clone();
-		for (auto [k, v] : parents)
-			classObj->parents[k] = (ClassObject*)v->Clone();
+        for (auto [k, v] : parents)
+            classObj->parents[k] = (ClassObject *)v->Clone();
         return classObj;
     }
 
@@ -590,9 +592,9 @@ namespace lws
         return true;
     }
 
-    Object* ClassClosureBindObject::Clone() const
+    Object *ClassClosureBindObject::Clone() const
     {
-        ClassClosureBindObject* result = new ClassClosureBindObject();
+        ClassClosureBindObject *result = new ClassClosureBindObject();
         result->receiver = receiver.Clone();
         result->closure = (ClosureObject *)this->closure->Clone();
         return result;
@@ -657,9 +659,9 @@ namespace lws
         return true;
     }
 
-    Object* EnumObject::Clone() const
+    Object *EnumObject::Clone() const
     {
-        EnumObject* enumObj = new EnumObject();
+        EnumObject *enumObj = new EnumObject();
         enumObj->name = name;
         for (auto [k, v] : pairs)
             enumObj->pairs[k] = v.Clone();

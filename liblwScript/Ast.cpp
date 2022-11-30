@@ -156,13 +156,13 @@ namespace lws
 	TableExpr::TableExpr()
 	{
 	}
-	TableExpr::TableExpr(const std::vector<std::pair<Expr*, Expr*>>& elements)
+	TableExpr::TableExpr(const std::vector<std::pair<Expr *, Expr *>> &elements)
 		: elements(elements)
 	{
 	}
 	TableExpr::~TableExpr()
 	{
-		std::vector<std::pair<Expr*, Expr*>>().swap(elements);
+		std::vector<std::pair<Expr *, Expr *>>().swap(elements);
 	}
 
 	std::wstring TableExpr::Stringify()
@@ -434,7 +434,7 @@ namespace lws
 	NewExpr::NewExpr()
 	{
 	}
-	NewExpr::NewExpr(IdentifierExpr *callee)
+	NewExpr::NewExpr(CallExpr *callee)
 		: callee(callee)
 	{
 	}
@@ -781,17 +781,20 @@ namespace lws
 						 std::vector<LetStmt *> letStmts,
 						 std::vector<ConstStmt *> constStmts,
 						 std::vector<FunctionStmt *> fnStmts,
+						 std::vector<FunctionStmt *> constructors,
 						 std::vector<IdentifierExpr *> parentClasses)
 		: name(name),
 		  letStmts(letStmts),
 		  constStmts(constStmts),
 		  fnStmts(fnStmts),
+		  constructors(constructors),
 		  parentClasses(parentClasses)
 	{
 	}
 	ClassStmt::~ClassStmt()
 	{
 		std::vector<IdentifierExpr *>().swap(parentClasses);
+		std::vector<FunctionStmt *>().swap(constructors);
 		std::vector<LetStmt *>().swap(letStmts);
 		std::vector<ConstStmt *>().swap(constStmts);
 		std::vector<FunctionStmt *>().swap(fnStmts);

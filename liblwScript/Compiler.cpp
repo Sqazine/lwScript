@@ -188,8 +188,12 @@ namespace lws
 			EmitConstant(new StrObject(parentClass->literal));
 		}
 
+		for (const auto &ctor : stmt->constructors)
+			CompileFunction(ctor);
+
 		EmitConstant(new StrObject(stmt->name));
 		Emit(OP_CLASS);
+		Emit(stmt->constructors.size());
 		Emit(varCount);
 		Emit(constCount);
 		Emit(stmt->parentClasses.size());
@@ -657,9 +661,14 @@ namespace lws
 
 	void Compiler::CompileNewExpr(NewExpr *expr)
 	{
-		CompileIdentifierExpr(expr->callee, RWState::READ);
+		auto callee = expr->callee;
+		CompileExpr(callee->callee, RWState::READ);
 		Emit(OP_CALL);
 		Emit(0);
+		for (const auto &arg : callee->arguments)
+			CompileExpr(arg);
+		Emit(OP_CALL);
+		Emit(callee->arguments.size());
 	}
 
 	void Compiler::CompileThisExpr(ThisExpr *expr)
@@ -735,7 +744,7 @@ namespace lws
 		CompileScopeStmt(expr->body, breakStmtAddress, continueStmtAddress);
 
 		if (CurChunk().opCodes[CurChunk().opCodes.size() - 2] != OP_RETURN)
-			EmitReturn(OP_RETURN);
+			EmitReturn(0);
 
 		mSymbolTable = mSymbolTable->enclosing;
 
@@ -813,7 +822,7 @@ namespace lws
 		mSymbolTable = new SymbolTable(mSymbolTable);
 
 		std::wstring symbolName = L"";
-		if (stmt->type == FunctionType::CLASS_CLOSURE || stmt->type == FunctionType::CLASS_INITIALIZER)
+		if (stmt->type == FunctionType::CLASS_CLOSURE || stmt->type == FunctionType::CLASS_CONSTRUCTOR)
 			symbolName = L"this";
 		mSymbolTable->Define(DESC_CONSTANT, symbolName);
 
@@ -828,8 +837,15 @@ namespace lws
 		int64_t continueStmtAddress = -1;
 		CompileScopeStmt(stmt->body, breakStmtAddress, continueStmtAddress);
 
+		if (stmt->type == FunctionType::CLASS_CONSTRUCTOR)
+		{
+			Emit(OP_GET_LOCAL);
+			Emit(0);
+			EmitReturn(1);
+		}
+
 		if (CurChunk().opCodes[CurChunk().opCodes.size() - 2] != OP_RETURN)
-			EmitReturn(OP_RETURN);
+			EmitReturn(0);
 
 		mFunctionList.back()->upValueCount = mSymbolTable->mUpValueCount;
 

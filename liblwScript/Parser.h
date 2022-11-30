@@ -38,6 +38,7 @@ namespace lws
 	{
 		ClassInfo *enclosing;
 		bool hasSuperClass;
+		std::wstring name;
 	};
 
 	class Parser;

@@ -29,7 +29,7 @@ fn resetVec(v2,x,y)
     v2.y=y;
 }
 
-let c=new vec2;
+let c=new vec2();
 resetVec(&c,100,300);
 
 io.println("{}",c);

@@ -242,6 +242,7 @@ namespace lws
         bool GetParentMember(const std::wstring &name, Value &retV);
 
         std::wstring name;
+        std::map<int32_t, ClosureObject *> constructors; //argument count as key
         std::unordered_map<std::wstring, Value> members;
         std::map<std::wstring, ClassObject *> parents;
     };

@@ -36,7 +36,7 @@ class vec5:vec4
     }
 }
 
-let a=new vec5;
+let a=new vec5();
 
 io.println(a.sqLength());// 4664
 

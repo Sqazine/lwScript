@@ -291,12 +291,16 @@ namespace lws
 		funcStmt->line = GetCurToken().line;
 		funcStmt->column = GetCurToken().column;
 
-		if (mCurClassInfo)
-			funcStmt->type = FunctionType::CLASS_CLOSURE;
-
 		Consume(TOKEN_FUNCTION, L"Expect 'fn' keyword");
 
 		funcStmt->name = (IdentifierExpr *)ParseIdentifierExpr();
+
+		if (mCurClassInfo)
+		{
+			funcStmt->type = FunctionType::CLASS_CLOSURE;
+			if (mCurClassInfo->name == funcStmt->name->literal)
+				funcStmt->type = FunctionType::CLASS_CONSTRUCTOR;
+		}
 
 		Consume(TOKEN_LPAREN, L"Expect '(' after 'fn' keyword");
 
@@ -316,11 +320,6 @@ namespace lws
 	}
 	Stmt *Parser::ParseClassDeclaration()
 	{
-		ClassInfo classInfo;
-		classInfo.hasSuperClass = false;
-		classInfo.enclosing = mCurClassInfo;
-		mCurClassInfo = &classInfo;
-
 		auto classStmt = new ClassStmt();
 		classStmt->line = GetCurToken().line;
 		classStmt->column = GetCurToken().column;
@@ -328,6 +327,12 @@ namespace lws
 		Consume(TOKEN_CLASS, L"Expect 'class' keyword");
 
 		classStmt->name = ((IdentifierExpr *)ParseIdentifierExpr())->literal;
+
+		ClassInfo classInfo;
+		classInfo.hasSuperClass = false;
+		classInfo.enclosing = mCurClassInfo;
+		classInfo.name = classStmt->name;
+		mCurClassInfo = &classInfo;
 
 		if (IsMatchCurTokenAndStepOnce(TOKEN_COLON))
 		{
@@ -348,7 +353,13 @@ namespace lws
 			else if (IsMatchCurToken(TOKEN_CONST))
 				classStmt->constStmts.emplace_back((ConstStmt *)ParseConstDeclaration());
 			else if (IsMatchCurToken(TOKEN_FUNCTION))
-				classStmt->fnStmts.emplace_back((FunctionStmt *)ParseFunctionDeclaration());
+			{
+				auto fn = (FunctionStmt *)ParseFunctionDeclaration();
+				if (fn->type == FunctionType::CLASS_CONSTRUCTOR)
+					classStmt->constructors.emplace_back(fn);
+				else
+					classStmt->fnStmts.emplace_back(fn);
+			}
 			else
 				Consume({TOKEN_LET, TOKEN_FUNCTION, TOKEN_CONST}, L"UnExpect identifier '" + GetCurToken().literal + L"'.");
 		}
@@ -849,7 +860,13 @@ namespace lws
 		newExpr->column = GetCurToken().column;
 
 		Consume(TOKEN_NEW, L"Expect 'new' keyword");
-		newExpr->callee = (IdentifierExpr *)ParseIdentifierExpr();
+
+		auto callee = ParseExpr();
+
+		if (callee->Type() != AST_CALL)
+			ASSERT(L"Not a valid new expr,call expr is is necessary followed 'new' keyword.");
+
+		newExpr->callee = (CallExpr *)callee;
 		return newExpr;
 	}
 

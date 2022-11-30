@@ -87,7 +87,7 @@ namespace lws
     inline void VM::FreeObject(T *object)
     {
 #ifdef GC_DEBUG
-        std::wcout << L"delete object(0x" << (void *)object << L"):" << object->Stringify() << std::endl;
+        std::wcout << L"delete object(0x" << (void *)object << L")" << std::endl;
 #endif
         mBytesAllocated -= sizeof(object);
         delete object;

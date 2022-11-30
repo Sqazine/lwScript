@@ -293,13 +293,13 @@ namespace lws
 	struct NewExpr : public Expr
 	{
 		NewExpr();
-		NewExpr(IdentifierExpr *callee);
+		NewExpr(CallExpr *callee);
 		~NewExpr();
 
 		std::wstring Stringify() override;
 		AstType Type() const override;
 
-		IdentifierExpr *callee;
+		CallExpr *callee;
 	};
 
 	struct ThisExpr : public Expr
@@ -457,7 +457,7 @@ namespace lws
 
 	enum class FunctionType
 	{
-		CLASS_INITIALIZER,
+		CLASS_CONSTRUCTOR,
 		CLASS_CLOSURE,
 		NORMAL_FUNCTION,
 	};
@@ -484,6 +484,7 @@ namespace lws
 				  std::vector<LetStmt *> letStmts,
 				  std::vector<ConstStmt *> constStmts,
 				  std::vector<FunctionStmt *> fnStmts,
+				  std::vector<FunctionStmt*> constructors={},
 				  std::vector<IdentifierExpr *> parentClasses = {});
 		~ClassStmt();
 
@@ -492,6 +493,7 @@ namespace lws
 
 		std::wstring name;
 		std::vector<IdentifierExpr *> parentClasses;
+		std::vector<FunctionStmt*> constructors;
 		std::vector<LetStmt *> letStmts;
 		std::vector<ConstStmt *> constStmts;
 		std::vector<FunctionStmt *> fnStmts;

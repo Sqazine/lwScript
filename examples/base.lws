@@ -12,7 +12,7 @@ class vec3:vec2
     }
 } 
 
-let a=new vec3;
+let a=new vec3();
 io.println(a.Get());// 100
 io.println(a.y);// 100
 io.println(a.z);// 1000

@@ -38,7 +38,7 @@ void Repl()
 #endif
 			auto mainFunc = compiler.Compile(stmt);
 #ifdef _DEBUG
-			std::wcout << mainFunc->Stringify() << std::endl;
+			std::wcout << mainFunc->Stringify(true) << std::endl;
 #endif
 			vm.Run(mainFunc);
 		}
