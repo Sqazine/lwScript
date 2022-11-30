@@ -656,7 +656,22 @@ namespace lws
 		ScopeStmt *defaultScopeStmt = nullptr;
 		while (!IsMatchCurToken(TOKEN_RBRACE))
 		{
-			if (IsMatchCurTokenAndStepOnce(TOKEN_CASE))
+			if (IsMatchCurTokenAndStepOnce(TOKEN_DEFAULT))
+			{
+				Consume(TOKEN_COLON, L"Expect ':' after case's condition expr.");
+				defaultScopeStmt = new ScopeStmt();
+				defaultScopeStmt->line = GetCurToken().line;
+				defaultScopeStmt->column = GetCurToken().column;
+				if (IsMatchCurTokenAndStepOnce(TOKEN_LBRACE))
+				{
+					while (!IsMatchCurToken(TOKEN_RBRACE))
+						defaultScopeStmt->stmts.emplace_back(ParseStmt());
+					Consume(TOKEN_RBRACE, L"Expect '}' at the end of default block while has multiple statement");
+				}
+				else
+					defaultScopeStmt->stmts.emplace_back(ParseStmt());
+			}
+			else
 			{
 				CaseItem item;
 
@@ -681,22 +696,6 @@ namespace lws
 					item.caseExecuteOpCodeScope->stmts.emplace_back(ParseStmt());
 
 				caseItems.emplace_back(item);
-			}
-
-			if (IsMatchCurTokenAndStepOnce(TOKEN_DEFAULT))
-			{
-				Consume(TOKEN_COLON, L"Expect ':' after case's condition expr.");
-				defaultScopeStmt = new ScopeStmt();
-				defaultScopeStmt->line = GetCurToken().line;
-				defaultScopeStmt->column = GetCurToken().column;
-				if (IsMatchCurTokenAndStepOnce(TOKEN_LBRACE))
-				{
-					while (!IsMatchCurToken(TOKEN_RBRACE))
-						defaultScopeStmt->stmts.emplace_back(ParseStmt());
-					Consume(TOKEN_RBRACE, L"Expect '}' at the end of default block while has multiple statement");
-				}
-				else
-					defaultScopeStmt->stmts.emplace_back(ParseStmt());
 			}
 		}
 

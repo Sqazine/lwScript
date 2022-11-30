@@ -3,11 +3,11 @@ switch(a)
 {
     default:
         io.println("{}",0);//0
-    case 1:
+    1:
     {
         io.println("{}",a);
     }
-    case 2:
+    2:
         io.println("{}",2);
 }
 

@@ -32,7 +32,6 @@ namespace lws
 		{L"catch", TOKEN_CATCH},
 		{L"finally", TOKEN_FINALLY},
 		{L"switch", TOKEN_SWITCH},
-		{L"case", TOKEN_CASE},
 		{L"default", TOKEN_DEFAULT},
 		{L"match", TOKEN_MATCH},
 		{L"enum", TOKEN_ENUM},
