@@ -167,9 +167,7 @@ namespace lws
 	void Parser::ResetStatus()
 	{
 		mCurPos = 0;
-
 		loopDepth = 0;
-
 		mCurClassInfo = nullptr;
 
 		if (mStmts != nullptr)
@@ -182,18 +180,21 @@ namespace lws
 
 	Stmt *Parser::ParseDeclaration()
 	{
-		if (IsMatchCurToken(TOKEN_LET))
+		switch (GetCurToken().type)
+		{
+		case TOKEN_LET:
 			return ParseLetDeclaration();
-		else if (IsMatchCurToken(TOKEN_CONST))
+		case TOKEN_CONST:
 			return ParseConstDeclaration();
-		else if (IsMatchCurToken(TOKEN_FUNCTION))
+		case TOKEN_FUNCTION:
 			return ParseFunctionDeclaration();
-		else if (IsMatchCurToken(TOKEN_CLASS))
+		case TOKEN_CLASS:
 			return ParseClassDeclaration();
-		else if (IsMatchCurToken(TOKEN_ENUM))
+		case TOKEN_ENUM:
 			return ParseEnumDeclaration();
-		else
+		default:
 			return ParseStmt();
+		}
 	}
 	Stmt *Parser::ParseLetDeclaration()
 	{
@@ -301,13 +302,11 @@ namespace lws
 
 		if (!IsMatchCurToken(TOKEN_RPAREN)) // has parameter
 		{
-			IdentifierExpr *idenExpr = (IdentifierExpr *)ParseIdentifierExpr();
-			funcStmt->parameters.emplace_back(idenExpr);
-			while (IsMatchCurTokenAndStepOnce(TOKEN_COMMA))
+			do
 			{
-				idenExpr = (IdentifierExpr *)ParseIdentifierExpr();
+				IdentifierExpr *idenExpr = (IdentifierExpr *)ParseIdentifierExpr();
 				funcStmt->parameters.emplace_back(idenExpr);
-			}
+			} while (IsMatchCurTokenAndStepOnce(TOKEN_COMMA));
 		}
 		Consume(TOKEN_RPAREN, L"Expect ')' after function stmt's '('");
 
@@ -332,9 +331,10 @@ namespace lws
 
 		if (IsMatchCurTokenAndStepOnce(TOKEN_COLON))
 		{
-			classStmt->parentClasses.emplace_back((IdentifierExpr *)ParseIdentifierExpr());
-			while (IsMatchCurTokenAndStepOnce(TOKEN_COMMA))
+			do
+			{
 				classStmt->parentClasses.emplace_back((IdentifierExpr *)ParseIdentifierExpr());
+			} while (IsMatchCurTokenAndStepOnce(TOKEN_COMMA));
 
 			mCurClassInfo->hasSuperClass = true;
 		}
@@ -396,26 +396,29 @@ namespace lws
 
 	Stmt *Parser::ParseStmt()
 	{
-		if (IsMatchCurToken(TOKEN_RETURN))
+		switch (GetCurToken().type)
+		{
+		case TOKEN_RETURN:
 			return ParseReturnStmt();
-		else if (IsMatchCurToken(TOKEN_IF))
+		case TOKEN_IF:
 			return ParseIfStmt();
-		else if (IsMatchCurToken(TOKEN_LBRACE))
+		case TOKEN_LBRACE:
 			return ParseScopeStmt();
-		else if (IsMatchCurToken(TOKEN_WHILE))
+		case TOKEN_WHILE:
 			return ParseWhileStmt();
-		else if (IsMatchCurToken(TOKEN_FOR))
+		case TOKEN_FOR:
 			return ParseForStmt();
-		else if (IsMatchCurToken(TOKEN_BREAK))
+		case TOKEN_BREAK:
 			return ParseBreakStmt();
-		else if (IsMatchCurToken(TOKEN_CONTINUE))
+		case TOKEN_CONTINUE:
 			return ParseContinueStmt();
-		else if (IsMatchCurToken(TOKEN_SWITCH))
+		case TOKEN_SWITCH:
 			return ParseSwitchStmt();
-		else if (IsMatchCurToken(TOKEN_MATCH))
+		case TOKEN_MATCH:
 			return ParseMatchStmt();
-		else
+		default:
 			return ParseExprStmt();
+		}
 	}
 
 	Stmt *Parser::ParseExprStmt()
@@ -548,9 +551,10 @@ namespace lws
 		{
 			if (!IsMatchCurToken(TOKEN_SEMICOLON))
 			{
-				scopeStmt->stmts.emplace_back(new ExprStmt(ParseExpr()));
-				while (IsMatchCurTokenAndStepOnce(TOKEN_COMMA))
+				do
+				{
 					scopeStmt->stmts.emplace_back(new ExprStmt(ParseExpr()));
+				} while (IsMatchCurTokenAndStepOnce(TOKEN_COMMA));
 			}
 			Consume(TOKEN_SEMICOLON, L"Expect ';' after for stmt's initializer stmt");
 		}
@@ -563,9 +567,10 @@ namespace lws
 		std::vector<Expr *> increment;
 		if (!IsMatchCurToken(TOKEN_RPAREN))
 		{
-			increment.emplace_back(ParseExpr());
-			while (IsMatchCurTokenAndStepOnce(TOKEN_COMMA))
+			do
+			{
 				increment.emplace_back(ParseExpr());
+			} while (IsMatchCurTokenAndStepOnce(TOKEN_COMMA));
 		}
 		Consume(TOKEN_RPAREN, L"Expect ')' after for stmt's increment expr(s)");
 
@@ -598,7 +603,7 @@ namespace lws
 	Stmt *Parser::ParseBreakStmt()
 	{
 		if (loopDepth == 0)
-			ASSERT(L"Cannot use 'break' stmt outside of 'for' or 'while' loop.");
+			ASSERT(L"Cannot use 'break' stmt outside of 'for' or 'while' loop.")
 
 		auto breakStmt = new BreakStmt();
 		breakStmt->line = GetCurToken().line;
@@ -611,7 +616,7 @@ namespace lws
 	Stmt *Parser::ParseContinueStmt()
 	{
 		if (loopDepth == 0)
-			ASSERT(L"Cannot use 'break' stmt outside of 'for' or 'while' loop.");
+			ASSERT(L"Cannot use 'break' stmt outside of 'for' or 'while' loop.")
 
 		auto continueStmt = new ContinueStmt();
 		continueStmt->line = GetCurToken().line;
@@ -651,7 +656,7 @@ namespace lws
 		ScopeStmt *defaultScopeStmt = nullptr;
 		while (!IsMatchCurToken(TOKEN_RBRACE))
 		{
-			if (IsMatchCurTokenAndStepOnce(TOKEN_CASE)) // the first case
+			if (IsMatchCurTokenAndStepOnce(TOKEN_CASE))
 			{
 				CaseItem item;
 
@@ -825,13 +830,11 @@ namespace lws
 
 		if (!IsMatchCurToken(TOKEN_RPAREN)) // has parameter
 		{
-			IdentifierExpr *idenExpr = (IdentifierExpr *)ParseIdentifierExpr();
-			lambdaExpr->parameters.emplace_back(idenExpr);
-			while (IsMatchCurTokenAndStepOnce(TOKEN_COMMA))
+			do
 			{
-				idenExpr = (IdentifierExpr *)ParseIdentifierExpr();
+				IdentifierExpr *idenExpr = (IdentifierExpr *)ParseIdentifierExpr();
 				lambdaExpr->parameters.emplace_back(idenExpr);
-			}
+			} while (IsMatchCurTokenAndStepOnce(TOKEN_COMMA));
 		}
 		Consume(TOKEN_RPAREN, L"Expect ')' after lambda expr's '('");
 
@@ -855,7 +858,7 @@ namespace lws
 	{
 		Consume(TOKEN_THIS, L"Expect 'this' keyword");
 		if (!mCurClassInfo)
-			ASSERT(L"Invalid 'this' keyword:Cannot use 'this' outside class.");
+			ASSERT(L"Invalid 'this' keyword:Cannot use 'this' outside class.")
 		return new ThisExpr();
 	}
 
@@ -863,7 +866,7 @@ namespace lws
 	{
 		Consume(TOKEN_BASE, L"Expect 'base' keyword");
 		if (!mCurClassInfo)
-			ASSERT(L"Invalid 'base' keyword:Cannot use 'base' outside class.");
+			ASSERT(L"Invalid 'base' keyword:Cannot use 'base' outside class.")
 
 		Consume(TOKEN_DOT, L"Expect '.' after 'base' keyword");
 
@@ -987,10 +990,10 @@ namespace lws
 
 		if (!IsMatchCurToken(TOKEN_RBRACKET))
 		{
-			// first element
-			arrayExpr->elements.emplace_back(ParseExpr());
-			while (IsMatchCurTokenAndStepOnce(TOKEN_COMMA))
+			do
+			{
 				arrayExpr->elements.emplace_back(ParseExpr());
+			} while (IsMatchCurTokenAndStepOnce(TOKEN_COMMA));
 		}
 
 		Consume(TOKEN_RBRACKET, L"Expect ']'.");
@@ -1009,17 +1012,13 @@ namespace lws
 
 		if (!IsMatchCurToken(TOKEN_RBRACE))
 		{
-			Expr *key = ParseExpr();
-			Consume(TOKEN_COLON, L"Expect ':' after table key.");
-			Expr *value = ParseExpr();
-			elements.emplace_back(std::make_pair(key,value));
-			while (IsMatchCurTokenAndStepOnce(TOKEN_COMMA))
+			do
 			{
 				Expr *key = ParseExpr();
 				Consume(TOKEN_COLON, L"Expect ':' after table key.");
 				Expr *value = ParseExpr();
-				elements.emplace_back(std::make_pair(key,value));
-			}
+				elements.emplace_back(std::make_pair(key, value));
+			} while (IsMatchCurTokenAndStepOnce(TOKEN_COMMA));
 		}
 		Consume(TOKEN_RBRACE, L"Expect '}' after table.");
 		tableExpr->elements = elements;
@@ -1112,9 +1111,10 @@ namespace lws
 		Consume(TOKEN_LPAREN, L"Expect '('.");
 		if (!IsMatchCurToken(TOKEN_RPAREN)) // has arguments
 		{
-			callExpr->arguments.emplace_back(ParseExpr());
-			while (IsMatchCurTokenAndStepOnce(TOKEN_COMMA))
+			do
+			{
 				callExpr->arguments.emplace_back(ParseExpr());
+			} while (IsMatchCurTokenAndStepOnce(TOKEN_COMMA));
 		}
 		Consume(TOKEN_RPAREN, L"Expect ')'.");
 

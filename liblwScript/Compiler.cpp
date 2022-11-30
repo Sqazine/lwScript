@@ -232,7 +232,7 @@ namespace lws
 			else if (v->Type() == AST_STR)
 				enumValue = new StrObject(((StrExpr *)v)->value);
 			else
-				ASSERT(L"Enum value only integer num,floating point num,boolean or string is available");
+				ASSERT(L"Enum value only integer num,floating point num,boolean or string is available")
 
 			pairs[k->literal] = enumValue;
 		}
@@ -569,7 +569,7 @@ namespace lws
 			CompileExpr(expr->right, RWState::WRITE);
 		}
 		else
-			ASSERT(L"No prefix op:" + expr->op);
+			ASSERT(L"No prefix op:" + expr->op)
 	}
 	void Compiler::CompilePostfixExpr(PostfixExpr *expr, const RWState &state, bool isDelayCompile)
 	{
@@ -584,7 +584,7 @@ namespace lws
 			else if (expr->op == L"--")
 				Emit(OP_SUB);
 			else
-				ASSERT(L"No postfix op:" + expr->op);
+				ASSERT(L"No postfix op:" + expr->op)
 			CompileExpr(expr->left, RWState::WRITE);
 			Emit(OP_POP);
 		}
@@ -705,7 +705,7 @@ namespace lws
 					Emit(symbol.index);
 			}
 			else
-				ASSERT(expr->Stringify() + L"is a constant,which cannot be assigned!");
+				ASSERT(expr->Stringify() + L"is a constant,which cannot be assigned!")
 		}
 		else
 		{

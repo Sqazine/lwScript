@@ -80,7 +80,7 @@ namespace lws
 		else if (IS_REAL_VALUE(left) && IS_INT_VALUE(right))                               \
 			Push(TO_REAL_VALUE(left) op TO_INT_VALUE(right));                              \
 		else                                                                               \
-			ASSERT(L"Invalid binary op:" + left.Stringify() + (L#op) + right.Stringify()); \
+			ASSERT(L"Invalid binary op:" + left.Stringify() + (L#op) + right.Stringify()) \
 	} while (0);
 
 // & | << >>
@@ -96,7 +96,7 @@ namespace lws
 		if (IS_INT_VALUE(left) && IS_INT_VALUE(right))                                     \
 			Push(TO_INT_VALUE(left) op TO_INT_VALUE(right));                               \
 		else                                                                               \
-			ASSERT(L"Invalid binary op:" + left.Stringify() + (L#op) + right.Stringify()); \
+			ASSERT(L"Invalid binary op:" + left.Stringify() + (L#op) + right.Stringify()) \
 	} while (0);
 
 // > <
@@ -134,7 +134,7 @@ namespace lws
 		if (IS_BOOL_VALUE(left) && IS_BOOL_VALUE(right))                                    \
 			Push(TO_BOOL_VALUE(left) op TO_BOOL_VALUE(right) ? Value(true) : Value(false)); \
 		else                                                                                \
-			ASSERT("Invalid op:" + left.Stringify() + (L#op) + right.Stringify());          \
+			ASSERT("Invalid op:" + left.Stringify() + (L#op) + right.Stringify())         \
 	} while (0);
 
 #define READ_INS() (*frame->ip++)
@@ -263,7 +263,7 @@ namespace lws
 				else if (IS_STR_VALUE(left) && IS_STR_VALUE(right))
 					Push(CreateObject<StrObject>(TO_STR_VALUE(left) + TO_STR_VALUE(right)));
 				else
-					ASSERT(L"Invalid binary op:" + left.Stringify() + L" + " + right.Stringify());
+					ASSERT(L"Invalid binary op:" + left.Stringify() + L" + " + right.Stringify())
 				break;
 			}
 			case OP_SUB:
@@ -322,7 +322,7 @@ namespace lws
 				if (IS_REF_VALUE(value))
 					value = *TO_REF_VALUE(value)->pointer;
 				if (!IS_BOOL_VALUE(value))
-					ASSERT(L"Invalid op:! " + value.Stringify() + L", only !(bool expr) is available.");
+					ASSERT(L"Invalid op:! " + value.Stringify() + L", only !(bool expr) is available.")
 				Push(!TO_BOOL_VALUE(value));
 				break;
 			}
@@ -347,7 +347,7 @@ namespace lws
 				else if (IS_REAL_VALUE(value))
 					Push(-TO_REAL_VALUE(value));
 				else
-					ASSERT(L"Invalid op:-" + value.Stringify() + L", only -(int||real expr) is available.");
+					ASSERT(L"Invalid op:-" + value.Stringify() + L", only -(int||real expr) is available.")
 				break;
 			}
 			case OP_FACTORIAL:
@@ -358,7 +358,7 @@ namespace lws
 				if (IS_INT_VALUE(value))
 					Push(Factorial(TO_INT_VALUE(value)));
 				else
-					ASSERT(L"Invalid op:" + value.Stringify() + L"!, only (int expr)! is available.");
+					ASSERT(L"Invalid op:" + value.Stringify() + L"!, only (int expr)! is available.")
 				break;
 			}
 			case OP_ARRAY:
@@ -395,20 +395,20 @@ namespace lws
 				{
 					auto array = TO_ARRAY_VALUE(dsValue);
 					if (!IS_INT_VALUE(idxValue))
-						ASSERT("Invalid idx for array,only integer is available.");
+						ASSERT("Invalid idx for array,only integer is available.")
 					auto intIdx = TO_INT_VALUE(idxValue);
 					if (intIdx < 0 || intIdx >= (int64_t)array->elements.size())
-						ASSERT("Idx out of range.");
+						ASSERT("Idx out of range.")
 					Push(array->elements[intIdx]);
 				}
 				else if (IS_STR_VALUE(dsValue))
 				{
 					auto str = TO_STR_VALUE(dsValue);
 					if (!IS_INT_VALUE(idxValue))
-						ASSERT("Invalid idx for array,only integer is available.");
+						ASSERT("Invalid idx for array,only integer is available.")
 					auto intIdx = TO_INT_VALUE(idxValue);
 					if (intIdx < 0 || intIdx >= (int64_t)str.size())
-						ASSERT("Idx out of range.");
+						ASSERT("Idx out of range.")
 					Push(CreateObject<StrObject>(str.substr(intIdx, 1)));
 				}
 				else if (IS_TABLE_VALUE(dsValue))
@@ -420,7 +420,7 @@ namespace lws
 					if (iter != table->elements.end())
 						Push(iter->second);
 					else
-						ASSERT("No key in table.");
+						ASSERT("No key in table.")
 				}
 				break;
 			}
@@ -433,23 +433,23 @@ namespace lws
 				{
 					auto array = TO_ARRAY_VALUE(dsValue);
 					if (!IS_INT_VALUE(idxValue))
-						ASSERT(L"Invalid idx for array,only integer is available.");
+						ASSERT(L"Invalid idx for array,only integer is available.")
 					auto intIdx = TO_INT_VALUE(idxValue);
 					if (intIdx < 0 || intIdx >= (int64_t)array->elements.size())
-						ASSERT(L"Idx out of range.");
+						ASSERT(L"Idx out of range.")
 					array->elements[intIdx] = newValue;
 				}
 				else if (IS_STR_VALUE(dsValue))
 				{
 					auto str = TO_STR_VALUE(dsValue);
 					if (!IS_INT_VALUE(idxValue))
-						ASSERT(L"Invalid idx for array,only integer is available.");
+						ASSERT(L"Invalid idx for array,only integer is available.")
 					auto intIdx = TO_INT_VALUE(idxValue);
 					if (intIdx < 0 || intIdx >= (int64_t)str.size())
-						ASSERT("Idx out of range.");
+						ASSERT("Idx out of range.")
 
 					if (!IS_STR_VALUE(newValue))
-						ASSERT(L"Cannot insert a non string clip:" + newValue.Stringify() + L" to string:" + str);
+						ASSERT(L"Cannot insert a non string clip:" + newValue.Stringify() + L" to string:" + str)
 
 					str.append(TO_STR_VALUE(newValue), intIdx, TO_STR_VALUE(newValue).size());
 				}
@@ -513,14 +513,14 @@ namespace lws
 				else if (IS_ARRAY_VALUE(mGlobalVariables[index]))
 				{
 					if (!IS_INT_VALUE(idxValue))
-						ASSERT(L"Invalid idx for array,only integer is available.");
+						ASSERT(L"Invalid idx for array,only integer is available.")
 					auto intIdx = TO_INT_VALUE(idxValue);
 					if (intIdx < 0 || intIdx >= TO_ARRAY_VALUE(mGlobalVariables[index])->elements.size())
-						ASSERT(L"Idx out of range.");
+						ASSERT(L"Idx out of range.")
 					Push(CreateObject<RefObject>(&(TO_ARRAY_VALUE(mGlobalVariables[index])->elements[intIdx])));
 				}
 				else
-					ASSERT(L"Invalid indexed reference type:" + mGlobalVariables[index].Stringify() + L" not a table or array value.");
+					ASSERT(L"Invalid indexed reference type:" + mGlobalVariables[index].Stringify() + L" not a table or array value.")
 				break;
 			}
 			case OP_REF_INDEX_LOCAL:
@@ -535,14 +535,14 @@ namespace lws
 				else if (IS_ARRAY_VALUE((*v)))
 				{
 					if (!IS_INT_VALUE(idxValue))
-						ASSERT(L"Invalid idx for array,only integer is available.");
+						ASSERT(L"Invalid idx for array,only integer is available.")
 					auto intIdx = TO_INT_VALUE(idxValue);
 					if (intIdx < 0 || intIdx >= TO_ARRAY_VALUE((*v))->elements.size())
-						ASSERT(L"Idx out of range.");
+						ASSERT(L"Idx out of range.")
 					Push(CreateObject<RefObject>(&(TO_ARRAY_VALUE((*v)))->elements[intIdx]));
 				}
 				else
-					ASSERT(L"Invalid indexed reference type:" + v->Stringify() + L" not a table or array value.");
+					ASSERT(L"Invalid indexed reference type:" + v->Stringify() + L" not a table or array value.")
 				break;
 			}
 			case OP_REF_INDEX_UPVALUE:
@@ -557,14 +557,14 @@ namespace lws
 				else if (IS_ARRAY_VALUE((*v)))
 				{
 					if (!IS_INT_VALUE(idxValue))
-						ASSERT(L"Invalid idx for array,only integer is available.");
+						ASSERT(L"Invalid idx for array,only integer is available.")
 					auto intIdx = TO_INT_VALUE(idxValue);
 					if (intIdx < 0 || intIdx >= TO_ARRAY_VALUE((*v))->elements.size())
-						ASSERT(L"Idx out of range.");
+						ASSERT(L"Idx out of range.")
 					Push(CreateObject<RefObject>(&(TO_ARRAY_VALUE((*v)))->elements[intIdx]));
 				}
 				else
-					ASSERT(L"Invalid indexed reference type:" + v->Stringify() + L" not a table or array value.");
+					ASSERT(L"Invalid indexed reference type:" + v->Stringify() + L" not a table or array value.")
 				break;
 			}
 			case OP_CALL:
@@ -582,7 +582,7 @@ namespace lws
 					}
 
 					if (argCount != TO_CLOSURE_VALUE(callee)->function->arity)
-						ASSERT(L"No matching argument count.");
+						ASSERT(L"No matching argument count.")
 					// init a new frame
 					CallFrame *newframe = &mFrames[mFrameCount++];
 					newframe->closure = TO_CLOSURE_VALUE(callee);
@@ -605,7 +605,7 @@ namespace lws
 					Push(retV);
 				}
 				else
-					ASSERT(L"Invalid callee,Only function is available:" + callee.Stringify());
+					ASSERT(L"Invalid callee,Only function is available:" + callee.Stringify())
 				break;
 			}
 			case OP_CLASS:
@@ -670,7 +670,7 @@ namespace lws
 						break;
 					}
 					else
-						ASSERT(L"No member:" + propName + L" in class object" + klass->name);
+						ASSERT(L"No member:" + propName + L" in class object" + klass->name)
 				}
 				else if (IS_ENUM_VALUE(peekValue))
 				{
@@ -685,10 +685,10 @@ namespace lws
 						break;
 					}
 					else
-						ASSERT(L"No member:" + propName + L" in enum object " + enumObj->name);
+						ASSERT(L"No member:" + propName + L" in enum object " + enumObj->name)
 				}
 				else
-					ASSERT(L"Invalid call:not a valid class or enum instance:" + peekValue.Stringify());
+					ASSERT(L"Invalid call:not a valid class or enum instance:" + peekValue.Stringify())
 
 				break;
 			}
@@ -709,33 +709,29 @@ namespace lws
 					if (klass->GetMember(propName, member))
 					{
 						if (member.desc == DESC_CONSTANT)
-						{
-							ASSERT(L"Constant cannot be assigned twice:" + klass->name + L"'s member:" + propName + L" is a constant value");
-						}
+							ASSERT(L"Constant cannot be assigned twice:" + klass->name + L"'s member:" + propName + L" is a constant value")
 						else
 							klass->members[propName] = Peek(0);
 					}
 					else
-						ASSERT(L"No member named:" + propName + L"in class:" + klass->name);
+						ASSERT(L"No member named:" + propName + L"in class:" + klass->name)
 				}
 				else if (IS_ENUM_VALUE(peekValue))
-				{
-					ASSERT(L"Invalid call:cannot assign value to a enum object member.");
-				}
+					ASSERT(L"Invalid call:cannot assign value to a enum object member.")
 				else
-					ASSERT(L"Invalid class call:not a valid class instance.");
+					ASSERT(L"Invalid class call:not a valid class instance.")
 				break;
 			}
 			case OP_GET_BASE:
 			{
 				if (!IS_CLASS_VALUE(Peek(1)))
-					ASSERT(L"Invalid class call:not a valid class instance.");
+					ASSERT(L"Invalid class call:not a valid class instance.")
 				auto propName = TO_STR_VALUE(Pop());
 				auto klass = TO_CLASS_VALUE(Pop());
 				Value member;
 				bool hasValue = klass->GetParentMember(propName, member);
 				if (!hasValue)
-					ASSERT(L"No member:" + propName + L"in class:" + klass->name + L" 's parent class(es).");
+					ASSERT(L"No member:" + propName + L"in class:" + klass->name + L" 's parent class(es).")
 				Push(member);
 				break;
 			}

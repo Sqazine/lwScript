@@ -17,12 +17,12 @@ namespace lws
     Symbol SymbolTable::Define(ValueDesc descType, const std::wstring &name, int8_t paramCount)
     {
         if (mSymbolCount >= mSymbols.size())
-            ASSERT(L"Too many symbols in current scope.");
+            ASSERT(L"Too many symbols in current scope.")
         for (int16_t i = mSymbolCount - 1; i >= 0; --i)
         {
             auto isSameParamCount = (mSymbols[i].paramCount < 0 || paramCount < 0) ? true : mSymbols[i].paramCount == paramCount;
             if (mSymbols[i].name == name && isSameParamCount)
-                ASSERT(L"Redefinition symbol:" + name);
+                ASSERT(L"Redefinition symbol:" + name)
             if (mSymbols[i].scopeDepth == -1 && mSymbols[i].scopeDepth < mScopeDepth)
                 break;
         }
@@ -54,7 +54,7 @@ namespace lws
             if (mSymbols[i].name == name && isSameParamCount && mSymbols[i].scopeDepth <= mScopeDepth)
             {
                 if (mSymbols[i].scopeDepth == -1)
-                    ASSERT("symbol not defined yet!");
+                    ASSERT("symbol not defined yet!")
 
                 if(d==1)
                     mSymbols[i].isCaptured=true;
@@ -74,7 +74,7 @@ namespace lws
             return result;
         }
 
-        ASSERT(L"No symbol:" + name + L" in current scope.");
+        ASSERT(L"No symbol:" + name + L" in current scope.")
     }
 
     UpValue SymbolTable::AddUpValue(uint8_t location, uint8_t depth)
@@ -87,7 +87,7 @@ namespace lws
         }
 
         if (mUpValueCount == UINT8_COUNT)
-            ASSERT("Too many closure upvalues in function.");
+            ASSERT("Too many closure upvalues in function.")
         mUpValues[mUpValueCount].location = location;
         mUpValues[mUpValueCount].depth = depth;
         mUpValues[mUpValueCount].index = mUpValueCount;

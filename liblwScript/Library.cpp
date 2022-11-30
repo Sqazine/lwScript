@@ -201,18 +201,18 @@ namespace lws
         dsClass->members[L"erase"] = new NativeFunctionObject([](const std::vector<Value> &args) -> Value
                                                                {
               if (args.empty() || args.size() != 2)
-                ASSERT(L"[Native function 'erase']:Expect 2 arguments,the arg0 must be array,table or string object.The arg1 is the corresponding index object.");
+                ASSERT(L"[Native function 'erase']:Expect 2 arguments,the arg0 must be array,table or string object.The arg1 is the corresponding index object.")
 
             if (IS_ARRAY_VALUE(args[0]))
             {
                 ArrayObject *array = TO_ARRAY_VALUE(args[0]);
                 if (!IS_INT_VALUE(args[1]))
-                    ASSERT(L"[Native function 'erase']:Arg1 must be integer type while insert to a array");
+                    ASSERT(L"[Native function 'erase']:Arg1 must be integer type while insert to a array")
 
                 int64_t iIndex = TO_INT_VALUE(args[1]);
 
                 if (iIndex < 0 || iIndex >= (int64_t)array->elements.size())
-                    ASSERT(L"[Native function 'erase']:Index out of array's range");
+                    ASSERT(L"[Native function 'erase']:Index out of array's range")
 
                 array->elements.erase(array->elements.begin() + iIndex);
             }
@@ -231,13 +231,13 @@ namespace lws
                     }
 
                 if (!hasValue)
-                    ASSERT(L"[Native function 'erase']:No corresponding index in table.");
+                    ASSERT(L"[Native function 'erase']:No corresponding index in table.")
             }
             else if (IS_STR_VALUE(args[0]))
             {
                 auto &string = TO_STR_VALUE(args[0]);
                 if (!IS_INT_VALUE(args[1]))
-                    ASSERT(L"[Native function 'erase']:Arg1 must be integer type while insert to a array");
+                    ASSERT(L"[Native function 'erase']:Arg1 must be integer type while insert to a array")
 
                 int64_t iIndex = TO_INT_VALUE(args[1]);
 
@@ -247,7 +247,7 @@ namespace lws
                 string.erase(string.begin() + iIndex);
             }
             else
-                ASSERT(L"[Native function 'erase']:Expect a array,table ot string argument.");
+                ASSERT(L"[Native function 'erase']:Expect a array,table ot string argument.")
             return args[0]; });
 
         memClass->members[L"addressof"] = new NativeFunctionObject([](const std::vector<Value> &args) -> Value
