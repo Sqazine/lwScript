@@ -184,12 +184,12 @@ namespace lws
             {
                 auto &string = TO_STR_VALUE(args[0]);
                 if (!IS_INT_VALUE(args[1]))
-                    ASSERT(L"[Native function 'insert']:Arg1 must be integer type while insert to a array");
+                    ASSERT(L"[Native function 'insert']:Arg1 must be integer type while insert to a array")
 
                 int64_t iIndex = TO_INT_VALUE(args[1]);
 
                 if (iIndex < 0 || iIndex >= (int64_t)string.size())
-                    ASSERT(L"[Native function 'insert']:Index out of array's range");
+                    ASSERT(L"[Native function 'insert']:Index out of array's range")
 
                 string.insert(iIndex, args[2].Stringify());
             }
