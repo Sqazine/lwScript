@@ -5,22 +5,23 @@
 #include "Object.h"
 namespace lws
 {
-    static std::vector<std::wstring> gLibraryMap =
-        {
-            L"io",
-            L"ds",
-            L"mem",
-            L"time"};
-    class LibraryManager
+    class StdLibraries
     {
     public:
-        LibraryManager();
-        ~LibraryManager();
+        static StdLibraries &Instance() noexcept;
 
-        void AddLibrary(ClassObject *libClass);
+        StdLibraries(const StdLibraries &) = delete;
+        StdLibraries(StdLibraries &&) = delete;
+        StdLibraries &operator=(const StdLibraries &) = delete;
+        StdLibraries &operator=(StdLibraries &&) = delete;
 
-    protected:
+    private:
+        StdLibraries();
+        ~StdLibraries();
+
         friend class VM;
+        friend class Compiler;
+        std::vector<std::wstring> mLibraryMap;
         std::vector<ClassObject *> mLibraries;
     };
 }

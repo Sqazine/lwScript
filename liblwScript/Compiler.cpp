@@ -46,7 +46,7 @@ namespace lws
 		symbol->scopeDepth = 0;
 		symbol->name = L"_main_start_up";
 
-		for (const auto &libName : gLibraryMap)
+		for (const auto &libName : StdLibraries::Instance().mLibraryMap)
 			mSymbolTable->Define(DESC_CONSTANT, libName);
 	}
 

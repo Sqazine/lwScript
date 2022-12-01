@@ -50,8 +50,6 @@ namespace lws
 
         UpValueObject *mOpenUpValues;
 
-        LibraryManager mLibraryManager;
-
         static Value sNullValue;
 
         Value mGlobalVariables[GLOBAL_VARIABLE_MAX];
@@ -62,7 +60,7 @@ namespace lws
         CallFrame mFrames[STACK_MAX];
         int32_t mFrameCount;
 
-        friend class Object;
+        friend struct Object;
 
         Object *mObjectChain;
         std::vector<Object *> mGrayObjects;
