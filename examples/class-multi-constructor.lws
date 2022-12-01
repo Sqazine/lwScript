@@ -1,0 +1,64 @@
+class Vec4
+{
+    fn Vec4(x,y,z,w)
+    {
+        this.x=x;
+        this.y=y;
+        this.z=z;
+        this.w=w;
+    }
+
+    fn Vec4(x,y,z)
+    {
+        this.x=x;
+        this.y=y;
+        this.z=z;
+        this.w=1;
+    }
+
+     fn Vec4(value)
+    {
+        this.x=value;
+        this.y=value;
+        this.z=value;
+        this.w=value;
+    }
+
+    let x,y,z,w;
+}
+
+let v1=new Vec4(10,20,30,40);
+let v2=new Vec4(10,20,30);
+let v3=new Vec4(100);
+
+io.println(v1);
+
+//class Vec4
+//{
+//  w:40
+//  z:30
+//  y:20
+//  x:10
+//}
+
+
+io.println(v2);
+
+//class Vec4
+//{
+//  w:1
+//  z:30
+//  y:20
+//  x:10
+//}
+
+io.println(v3);
+
+
+//class Vec4
+//{
+//  w:100
+//  z:100
+//  y:100
+//  x:100
+//}
