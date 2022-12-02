@@ -1,14 +1,9 @@
 let a=3;
-match(a)
+let b=match(a)
 {
-    1:
-    io.println("{}",1);
-    default:
-    {
-        io.println("{}",a);
-    }
-    2:
-    {
-        io.println("{}",20);
-    }
-}
+    1:10,
+    default:100,
+    2:1000
+};
+
+io.println(b);//100

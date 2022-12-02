@@ -92,6 +92,7 @@ namespace lws
 			{TOKEN_NEW, &Parser::ParseNewExpr},
 			{TOKEN_THIS, &Parser::ParseThisExpr},
 			{TOKEN_BASE, &Parser::ParseBaseExpr},
+			{TOKEN_MATCH, &Parser::ParseMatchExpr},
 	};
 
 	std::unordered_map<TokenType, InfixFn> Parser::mInfixFunctions =
@@ -425,8 +426,6 @@ namespace lws
 			return ParseContinueStmt();
 		case TOKEN_SWITCH:
 			return ParseSwitchStmt();
-		case TOKEN_MATCH:
-			return ParseMatchStmt();
 		default:
 			return ParseExprStmt();
 		}
@@ -734,101 +733,6 @@ namespace lws
 		return ifStmt;
 	}
 
-	Stmt *Parser::ParseMatchStmt()
-	{
-		auto ifStmt = new IfStmt();
-		ifStmt->line = GetCurToken().line;
-		ifStmt->column = GetCurToken().column;
-
-		Consume(TOKEN_MATCH, L"Expect 'match' keyword.");
-		Consume(TOKEN_LPAREN, L"Expect '(' after 'match' keyword.");
-		auto matchExpr = ParseIdentifierExpr();
-		matchExpr->column = GetCurToken().column;
-		matchExpr->line = GetCurToken().line;
-		Consume(TOKEN_RPAREN, L"Expect ')' after match's expression.");
-		Consume(TOKEN_LBRACE, L"Expect '{' after 'match' keyword.");
-
-		struct MatchItem
-		{
-			Expr *conditionExpr = nullptr;
-			ScopeStmt *executeScope = nullptr;
-
-			bool IsValid()
-			{
-				return conditionExpr && executeScope;
-			}
-		};
-		std::vector<MatchItem> matchItems;
-		ScopeStmt *defaultScopeStmt = nullptr;
-		while (!IsMatchCurToken(TOKEN_RBRACE))
-		{
-			if (IsMatchCurTokenAndStepOnce(TOKEN_DEFAULT))
-			{
-				Consume(TOKEN_COLON, L"Expect ':' after default's condition expr.");
-				defaultScopeStmt = new ScopeStmt();
-				defaultScopeStmt->line = GetCurToken().line;
-				defaultScopeStmt->column = GetCurToken().column;
-				if (IsMatchCurTokenAndStepOnce(TOKEN_LBRACE))
-				{
-					while (!IsMatchCurToken(TOKEN_RBRACE))
-						defaultScopeStmt->stmts.emplace_back(ParseStmt());
-					Consume(TOKEN_RBRACE, L"Expect '}' at the end of default block while has multiple statement");
-				}
-				else
-					defaultScopeStmt->stmts.emplace_back(ParseStmt());
-			}
-			else
-			{
-				MatchItem item;
-
-				auto valueCompareExpr = ParseExpr();
-				Consume(TOKEN_COLON, L"Expect ':' after match item's condition expr.");
-
-				item.conditionExpr = new InfixExpr(L"==", matchExpr, valueCompareExpr);
-				item.conditionExpr->line = GetCurToken().line;
-				item.conditionExpr->column = GetCurToken().column;
-
-				item.executeScope = new ScopeStmt();
-				item.executeScope->line = GetCurToken().line;
-				item.executeScope->column = GetCurToken().column;
-
-				if (IsMatchCurTokenAndStepOnce(TOKEN_LBRACE))
-				{
-					while (!IsMatchCurToken(TOKEN_RBRACE))
-						item.executeScope->stmts.emplace_back(ParseStmt());
-					Consume(TOKEN_RBRACE, L"Expect '}' at the end of case block while has multiple statements.");
-				}
-				else
-					item.executeScope->stmts.emplace_back(ParseStmt());
-
-				matchItems.emplace_back(item);
-			}
-		}
-
-		Consume(TOKEN_RBRACE, L"Expect '}' after match stmt");
-
-		if (matchItems.empty() && defaultScopeStmt != nullptr)
-			return defaultScopeStmt;
-		else
-		{
-			auto loopIfStmt = ifStmt;
-			for (size_t i = 0; i < matchItems.size(); ++i)
-			{
-				loopIfStmt->condition = matchItems[i].conditionExpr;
-				loopIfStmt->thenBranch = matchItems[i].executeScope;
-				if (i + 1 < matchItems.size())
-				{
-					loopIfStmt->elseBranch = new IfStmt();
-					loopIfStmt = (IfStmt *)loopIfStmt->elseBranch;
-				}
-			}
-
-			if (defaultScopeStmt)
-				loopIfStmt->elseBranch = defaultScopeStmt;
-		}
-		return ifStmt;
-	}
-
 	Expr *Parser::ParseLambdaExpr()
 	{
 		auto lambdaExpr = new LambdaExpr();
@@ -887,6 +791,74 @@ namespace lws
 		Consume(TOKEN_DOT, L"Expect '.' after 'base' keyword");
 
 		return new BaseExpr((IdentifierExpr *)ParseIdentifierExpr());
+	}
+
+	Expr *Parser::ParseMatchExpr()
+	{
+		std::vector<std::pair<Expr *, Expr *>> items;
+		Expr *defaultBranch = nullptr;
+
+		Consume(TOKEN_MATCH, L"Expect 'match' keyword.");
+		Consume(TOKEN_LPAREN, L"Expect '(' after 'match' keyword.");
+		auto condition = ParseExpr();
+		condition->column = GetCurToken().column;
+		condition->line = GetCurToken().line;
+		Consume(TOKEN_RPAREN, L"Expect ')' after match's expression.");
+		Consume(TOKEN_LBRACE, L"Expect '{' after 'match' keyword.");
+
+		bool hasDefaultBranch = false;
+		if (!IsMatchCurToken(TOKEN_RBRACE))
+		{
+			do
+			{
+				if (IsMatchCurTokenAndStepOnce(TOKEN_DEFAULT))
+				{
+					if (hasDefaultBranch)
+						ASSERT(L"Already exists a default branch.only a default branch is available in a match expr.");
+					Consume(TOKEN_COLON, L"Expect ':' after default's condition expr.");
+					defaultBranch = ParseExpr();
+					defaultBranch->line = GetCurToken().line;
+					defaultBranch->column = GetCurToken().column;
+					hasDefaultBranch = true;
+				}
+				else
+				{
+					std::pair<Expr *, Expr *> item;
+
+					auto valueCompareExpr = ParseExpr();
+					Consume(TOKEN_COLON, L"Expect ':' after match item's condition expr.");
+
+					item.first = new InfixExpr(L"==", condition, valueCompareExpr);
+					item.first->line = GetCurToken().line;
+					item.first->column = GetCurToken().column;
+					item.second = ParseExpr();
+					item.second->line = GetCurToken().line;
+					item.second->column = GetCurToken().column;
+
+					items.emplace_back(item);
+				}
+			} while (IsMatchCurTokenAndStepOnce(TOKEN_COMMA));
+		}
+
+		Consume(TOKEN_RBRACE, L"Expect '}' after match expr");
+
+		auto conditionExpr = new ConditionExpr();
+		auto loopConditionExpr = conditionExpr;
+		for (int32_t i = 0; i < items.size(); ++i)
+		{
+			loopConditionExpr->condition = items[i].first;
+			loopConditionExpr->trueBranch = items[i].second;
+			if (i + 1 < items.size())
+			{
+				loopConditionExpr->falseBranch = new ConditionExpr();
+				loopConditionExpr = (ConditionExpr *)loopConditionExpr->falseBranch;
+			}
+		}
+
+		if (defaultBranch)
+			loopConditionExpr->falseBranch = defaultBranch;
+
+		return conditionExpr;
 	}
 
 	Expr *Parser::ParseExpr(Precedence precedence)

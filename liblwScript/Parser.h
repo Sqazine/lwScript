@@ -75,7 +75,6 @@ namespace lws
 		Stmt *ParseBreakStmt();
 		Stmt *ParseContinueStmt();
 		Stmt *ParseSwitchStmt();
-		Stmt *ParseMatchStmt();
 
 		Expr *ParseExpr(Precedence precedence = Precedence::LOWEST);
 		Expr *ParseIdentifierExpr();
@@ -93,6 +92,7 @@ namespace lws
 		Expr *ParseNewExpr();
 		Expr *ParseThisExpr();
 		Expr *ParseBaseExpr();
+		Expr *ParseMatchExpr();
 		Expr *ParseInfixExpr(Expr *prefixExpr);
 		Expr *ParsePostfixExpr(Expr *prefixExpr);
 		Expr *ParseConditionExpr(Expr *prefixExpr);
