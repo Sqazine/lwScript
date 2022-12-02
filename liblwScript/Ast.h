@@ -151,7 +151,7 @@ namespace lws
 	struct TableExpr : public Expr
 	{
 		TableExpr();
-		TableExpr(const std::vector<std::pair<Expr*, Expr*>>& elements);
+		TableExpr(const std::vector<std::pair<Expr *, Expr *>> &elements);
 		~TableExpr();
 
 		std::wstring Stringify() override;
@@ -484,7 +484,7 @@ namespace lws
 				  std::vector<LetStmt *> letStmts,
 				  std::vector<ConstStmt *> constStmts,
 				  std::vector<FunctionStmt *> fnStmts,
-				  std::vector<FunctionStmt*> constructors={},
+				  std::vector<FunctionStmt *> constructors = {},
 				  std::vector<IdentifierExpr *> parentClasses = {});
 		~ClassStmt();
 
@@ -493,7 +493,7 @@ namespace lws
 
 		std::wstring name;
 		std::vector<IdentifierExpr *> parentClasses;
-		std::vector<FunctionStmt*> constructors;
+		std::vector<FunctionStmt *> constructors;
 		std::vector<LetStmt *> letStmts;
 		std::vector<ConstStmt *> constStmts;
 		std::vector<FunctionStmt *> fnStmts;

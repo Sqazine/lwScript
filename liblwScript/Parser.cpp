@@ -583,7 +583,6 @@ namespace lws
 			} while (IsMatchCurTokenAndStepOnce(TOKEN_COMMA));
 		}
 		Consume(TOKEN_RPAREN, L"Expect ')' after for stmt's increment expr(s)");
-
 		std::vector<Stmt *> whileBodyStmts;
 		if (IsMatchCurToken(TOKEN_LBRACE)) // scope stmt for 'for' stmt:like for(a=0;a<10;a=a+1){println("{}",a);}
 			whileBodyStmts.emplace_back(ParseScopeStmt());
@@ -593,20 +592,16 @@ namespace lws
 			scopeStmt->stmts.emplace_back(ParseStmt());
 			whileBodyStmts.emplace_back(scopeStmt);
 		}
-
+		
 		auto whileStmt = new WhileStmt();
 		whileStmt->condition = condition;
 		whileStmt->body = new ScopeStmt(whileBodyStmts);
-
 		std::vector<Stmt *> incrementStmts;
 		for (const auto expr : increment)
 			incrementStmts.emplace_back(new ExprStmt(expr));
 		whileStmt->increment = new ScopeStmt(incrementStmts);
-
 		scopeStmt->stmts.emplace_back(whileStmt);
-
 		loopDepth--;
-
 		return scopeStmt;
 	}
 
@@ -627,14 +622,11 @@ namespace lws
 	{
 		if (loopDepth == 0)
 			ASSERT(L"Cannot use 'break' stmt outside of 'for' or 'while' loop.")
-
 		auto continueStmt = new ContinueStmt();
 		continueStmt->line = GetCurToken().line;
 		continueStmt->column = GetCurToken().column;
-
 		Consume(TOKEN_CONTINUE, L"Expect 'continue' keyword");
 		Consume(TOKEN_SEMICOLON, L"Expect ';' after 'continue' keyword.");
-
 		return continueStmt;
 	}
 
@@ -652,23 +644,13 @@ namespace lws
 		Consume(TOKEN_RPAREN, L"Expect ')' after switch's expression.");
 		Consume(TOKEN_LBRACE, L"Expect '{' after 'switch' keyword.");
 
-		struct CaseItem
-		{
-			Expr *conditionExpr = nullptr;
-			ScopeStmt *caseExecuteOpCodeScope = nullptr;
-
-			bool IsValid()
-			{
-				return conditionExpr && caseExecuteOpCodeScope;
-			}
-		};
-		std::vector<CaseItem> caseItems;
+		std::vector<std::pair<Expr *, ScopeStmt *>> items;
 		ScopeStmt *defaultScopeStmt = nullptr;
 		while (!IsMatchCurToken(TOKEN_RBRACE))
 		{
 			if (IsMatchCurTokenAndStepOnce(TOKEN_DEFAULT))
 			{
-				Consume(TOKEN_COLON, L"Expect ':' after case's condition expr.");
+				Consume(TOKEN_COLON, L"Expect ':' after condition expr.");
 				defaultScopeStmt = new ScopeStmt();
 				defaultScopeStmt->line = GetCurToken().line;
 				defaultScopeStmt->column = GetCurToken().column;
@@ -683,44 +665,44 @@ namespace lws
 			}
 			else
 			{
-				CaseItem item;
+				std::pair<Expr *, ScopeStmt *> item;
 
 				auto valueCompareExpr = ParseExpr();
-				Consume(TOKEN_COLON, L"Expect ':' after case's condition expr.");
+				Consume(TOKEN_COLON, L"Expect ':' after condition expr.");
 
-				item.conditionExpr = new InfixExpr(L"==", switchExpr, valueCompareExpr);
-				item.conditionExpr->line = GetCurToken().line;
-				item.conditionExpr->column = GetCurToken().column;
+				item.first = new InfixExpr(L"==", switchExpr, valueCompareExpr);
+				item.first->line = GetCurToken().line;
+				item.first->column = GetCurToken().column;
 
-				item.caseExecuteOpCodeScope = new ScopeStmt();
-				item.caseExecuteOpCodeScope->line = GetCurToken().line;
-				item.caseExecuteOpCodeScope->column = GetCurToken().column;
+				item.second = new ScopeStmt();
+				item.second->line = GetCurToken().line;
+				item.second->column = GetCurToken().column;
 
 				if (IsMatchCurTokenAndStepOnce(TOKEN_LBRACE))
 				{
 					while (!IsMatchCurToken(TOKEN_RBRACE))
-						item.caseExecuteOpCodeScope->stmts.emplace_back(ParseStmt());
-					Consume(TOKEN_RBRACE, L"Expect '}' at the end of case block while has multiple statements.");
+						item.second->stmts.emplace_back(ParseStmt());
+					Consume(TOKEN_RBRACE, L"Expect '}' at the end of block while has multiple statements.");
 				}
 				else
-					item.caseExecuteOpCodeScope->stmts.emplace_back(ParseStmt());
+					item.second->stmts.emplace_back(ParseStmt());
 
-				caseItems.emplace_back(item);
+				items.emplace_back(item);
 			}
 		}
 
 		Consume(TOKEN_RBRACE, L"Expect '}' after switch stmt");
 
-		if (caseItems.empty() && defaultScopeStmt != nullptr)
+		if (items.empty() && defaultScopeStmt != nullptr)
 			return defaultScopeStmt;
 		else
 		{
 			auto loopIfStmt = ifStmt;
-			for (size_t i = 0; i < caseItems.size(); ++i)
+			for (size_t i = 0; i < items.size(); ++i)
 			{
-				loopIfStmt->condition = caseItems[i].conditionExpr;
-				loopIfStmt->thenBranch = caseItems[i].caseExecuteOpCodeScope;
-				if (i + 1 < caseItems.size())
+				loopIfStmt->condition = items[i].first;
+				loopIfStmt->thenBranch = items[i].second;
+				if (i + 1 < items.size())
 				{
 					loopIfStmt->elseBranch = new IfStmt();
 					loopIfStmt = (IfStmt *)loopIfStmt->elseBranch;
@@ -1038,11 +1020,8 @@ namespace lws
 		auto infixExpr = new InfixExpr();
 		infixExpr->column = GetCurToken().column;
 		infixExpr->line = GetCurToken().line;
-
 		infixExpr->left = prefixExpr;
-
 		Precedence opPrece = GetCurTokenPrecedence();
-
 		infixExpr->op = GetCurTokenAndStepOnce().literal;
 		infixExpr->right = ParseExpr(opPrece);
 		return infixExpr;
@@ -1061,18 +1040,13 @@ namespace lws
 	Expr *Parser::ParseConditionExpr(Expr *prefixExpr)
 	{
 		ConditionExpr *conditionExpr = new ConditionExpr();
-
 		conditionExpr->column = GetCurToken().column;
 		conditionExpr->line = GetCurToken().line;
-
 		conditionExpr->condition = prefixExpr;
-
 		Consume(TOKEN_QUESTION, L"Expect '?'.");
-
 		conditionExpr->trueBranch = ParseExpr(Precedence::CONDITION);
 		Consume(TOKEN_COLON, L"Expect ':' in condition expr");
 		conditionExpr->falseBranch = ParseExpr(Precedence::CONDITION);
-
 		return conditionExpr;
 	}
 

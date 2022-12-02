@@ -37,7 +37,7 @@ namespace lws
 		bool IsAtEnd();
 
 		bool IsNumber(wchar_t c);
-		bool IsLetter(wchar_t c,bool isAscii);
+		bool IsLetter(wchar_t c, bool isAscii);
 		bool IsLetterOrNumber(wchar_t c, bool isAscii);
 
 		void Number();

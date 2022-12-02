@@ -7,7 +7,7 @@ namespace lws
 {
     StdLibraries &StdLibraries::Instance() noexcept
     {
-         static StdLibraries instance;
+        static StdLibraries instance;
         return instance;
     }
 

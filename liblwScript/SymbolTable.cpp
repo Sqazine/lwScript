@@ -56,8 +56,8 @@ namespace lws
                 if (mSymbols[i].scopeDepth == -1)
                     ASSERT("symbol not defined yet!")
 
-                if(d==1)
-                    mSymbols[i].isCaptured=true;
+                if (d == 1)
+                    mSymbols[i].isCaptured = true;
 
                 return mSymbols[i];
             }

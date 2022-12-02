@@ -39,14 +39,14 @@ namespace lws
 		void CompileBreakStmt(int64_t &stmtAddress);
 		void CompileContinueStmt(int64_t &stmtAddress);
 
-		void CompileExpr(Expr *expr, const RWState &state = RWState::READ,int8_t paramCount=-1);
+		void CompileExpr(Expr *expr, const RWState &state = RWState::READ, int8_t paramCount = -1);
 		void CompileInfixExpr(InfixExpr *expr);
 		void CompileIntNumExpr(IntNumExpr *expr);
 		void CompileRealNumExpr(RealNumExpr *expr);
 		void CompileBoolExpr(BoolExpr *expr);
 		void CompilePrefixExpr(PrefixExpr *expr);
 		void CompilePostfixExpr(PostfixExpr *expr, const RWState &state = RWState::READ, bool isDelayCompile = true);
-		void CompileConditionExpr(ConditionExpr* expr);
+		void CompileConditionExpr(ConditionExpr *expr);
 		void CompileStrExpr(StrExpr *expr);
 		void CompileNullExpr(NullExpr *expr);
 		void CompileGroupExpr(GroupExpr *expr);
@@ -56,7 +56,7 @@ namespace lws
 		void CompileNewExpr(NewExpr *expr);
 		void CompileThisExpr(ThisExpr *expr);
 		void CompileBaseExpr(BaseExpr *expr);
-		void CompileIdentifierExpr(IdentifierExpr *expr, const RWState &state,int8_t paramCount=-1);
+		void CompileIdentifierExpr(IdentifierExpr *expr, const RWState &state, int8_t paramCount = -1);
 		void CompileLambdaExpr(LambdaExpr *expr);
 		void CompileCallExpr(CallExpr *expr);
 		void CompileDotExpr(DotExpr *expr, const RWState &state = RWState::READ);
@@ -66,7 +66,7 @@ namespace lws
 
 		uint8_t Emit(uint8_t opcode);
 		uint8_t EmitConstant(const Value &value);
-		uint8_t EmitClosure(FunctionObject* function);
+		uint8_t EmitClosure(FunctionObject *function);
 		uint8_t EmitReturn(uint8_t retCount);
 		uint8_t EmitJump(uint8_t opcode);
 		void EmitLoop(uint16_t opcode);

@@ -15,7 +15,7 @@ namespace lws
     struct UpValue
     {
         uint8_t index = 0;
-        uint8_t location=0;
+        uint8_t location = 0;
         uint8_t depth = -1;
     };
 
@@ -27,8 +27,8 @@ namespace lws
         uint8_t index = 0;
         int8_t scopeDepth = -1;
         int8_t paramCount = -1;
-        UpValue upvalue;//available only while type is SYMBOL_UPVALUE
-        bool isCaptured=false;  
+        UpValue upvalue; //available only while type is SYMBOL_UPVALUE
+        bool isCaptured = false;
     };
     class SymbolTable
     {

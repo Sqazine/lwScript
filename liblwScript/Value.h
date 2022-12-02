@@ -28,8 +28,8 @@ namespace lws
         ~Value();
 
         ValueType Type() const;
-        std::wstring Stringify(bool outputOpCodeIfExists=false) const;
-        void Mark(class VM* vm) const;
+        std::wstring Stringify(bool outputOpCodeIfExists = false) const;
+        void Mark(class VM *vm) const;
         void UnMark() const;
         Value Clone() const;
 

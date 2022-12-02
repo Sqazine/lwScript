@@ -11,7 +11,7 @@ namespace lws
         ConstantFolder();
         ~ConstantFolder();
 
-        Stmt* Fold(Stmt *stmt);
+        Stmt *Fold(Stmt *stmt);
 
     private:
         Stmt *FoldStmt(Stmt *stmt);

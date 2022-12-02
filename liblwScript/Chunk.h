@@ -41,7 +41,7 @@ namespace lws
         OP_SET_LOCAL,
         OP_GET_LOCAL,
         OP_GET_UPVALUE,
-	    OP_SET_UPVALUE,
+        OP_SET_UPVALUE,
         OP_CLOSE_UPVALUE,
         OP_REF_GLOBAL,
         OP_REF_LOCAL,
@@ -66,7 +66,7 @@ namespace lws
         Chunk(const OpCodes &opcodes, const std::vector<Value> &constants);
         ~Chunk();
 
-        std::wstring Stringify(bool outputOpCodeIfExists=false) const;
+        std::wstring Stringify(bool outputOpCodeIfExists = false) const;
         std::vector<uint8_t> Serialization() const;
 
         OpCodes opCodes;
@@ -76,6 +76,6 @@ namespace lws
         std::wstring OpCodeStringify(const OpCodes &opcodes) const;
     };
 
-    bool operator==(const Chunk& left,const Chunk& right);
-    bool operator!=(const Chunk& left,const Chunk& right);
+    bool operator==(const Chunk &left, const Chunk &right);
+    bool operator!=(const Chunk &left, const Chunk &right);
 }
