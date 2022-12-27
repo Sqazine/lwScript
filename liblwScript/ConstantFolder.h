@@ -4,7 +4,6 @@
 
 namespace lws
 {
-
     class ConstantFolder
     {
     public:

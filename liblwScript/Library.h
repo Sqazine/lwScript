@@ -10,14 +10,14 @@ namespace lws
     public:
         static StdLibraries &Instance() noexcept;
 
+    private:
+        StdLibraries();
+        ~StdLibraries();
+
         StdLibraries(const StdLibraries &) = delete;
         StdLibraries(StdLibraries &&) = delete;
         StdLibraries &operator=(const StdLibraries &) = delete;
         StdLibraries &operator=(StdLibraries &&) = delete;
-
-    private:
-        StdLibraries();
-        ~StdLibraries();
 
         friend class VM;
         friend class Compiler;

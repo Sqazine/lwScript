@@ -26,7 +26,6 @@ namespace lws
 		{L"break", TOKEN_BREAK},
 		{L"continue", TOKEN_CONTINUE},
 		{L"import", TOKEN_IMPORT},
-		{L"export", TOKEN_EXPORT},
 		{L"module", TOKEN_MODULE},
 		{L"try", TOKEN_TRY},
 		{L"catch", TOKEN_CATCH},

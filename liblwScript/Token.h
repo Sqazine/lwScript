@@ -72,7 +72,6 @@ namespace lws
 		TOKEN_BREAK,				 // break
 		TOKEN_CONTINUE,				 // continue
 		TOKEN_IMPORT,				 // import
-		TOKEN_EXPORT,				 // export
 		TOKEN_MODULE,				 // module
 		TOKEN_TRY,					 // try
 		TOKEN_CATCH,				 // catch
