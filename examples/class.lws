@@ -1,6 +1,6 @@
 class Vec2
 {
-    fn Vec2(x,y)
+    Vec2(x,y)
     {
         this.x=x;
         this.y=y;
@@ -11,7 +11,7 @@ class Vec2
 
 class Vec3
 {
-    fn Vec3(x,y,z)
+    Vec3(x,y,z)
     {
         this.vec2=new Vec2(x,y);
         this.z=z;
@@ -23,7 +23,7 @@ class Vec3
 
 class Vec4
 {
-    fn Vec4(x,y,z,w)
+    Vec4(x,y,z,w)
     {
         this.vec3=new Vec3(x,y,z);
         this.w=w;

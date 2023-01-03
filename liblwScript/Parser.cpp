@@ -188,6 +188,7 @@ namespace lws
 		case TOKEN_CONST:
 			return ParseConstDeclaration();
 		case TOKEN_FUNCTION:
+			GetCurTokenAndStepOnce();
 			return ParseFunctionDeclaration();
 		case TOKEN_CLASS:
 			return ParseClassDeclaration();
@@ -294,15 +295,13 @@ namespace lws
 		funcStmt->line = GetCurToken().line;
 		funcStmt->column = GetCurToken().column;
 
-		Consume(TOKEN_FUNCTION, L"Expect 'fn' keyword");
-
 		funcStmt->name = (IdentifierExpr *)ParseIdentifierExpr();
 
 		if (mCurClassInfo)
 		{
 			funcStmt->type = FunctionType::CLASS_CLOSURE;
 			if (mCurClassInfo->name == funcStmt->name->literal)
-				funcStmt->type = FunctionType::CLASS_CONSTRUCTOR;
+				funcStmt->type=FunctionType::CLASS_CONSTRUCTOR;
 		}
 
 		Consume(TOKEN_LPAREN, L"Expect '(' after 'fn' keyword");
@@ -355,13 +354,17 @@ namespace lws
 				classStmt->letStmts.emplace_back((LetStmt *)ParseLetDeclaration());
 			else if (IsMatchCurToken(TOKEN_CONST))
 				classStmt->constStmts.emplace_back((ConstStmt *)ParseConstDeclaration());
-			else if (IsMatchCurToken(TOKEN_FUNCTION))
+			else if (IsMatchCurTokenAndStepOnce(TOKEN_FUNCTION))
 			{
 				auto fn = (FunctionStmt *)ParseFunctionDeclaration();
-				if (fn->type == FunctionType::CLASS_CONSTRUCTOR)
-					classStmt->constructors.emplace_back(fn);
-				else
-					classStmt->fnStmts.emplace_back(fn);
+				if(fn->name->literal==classStmt->name)
+					ASSERT(L"The class name conflicts with the class member function name");
+				classStmt->fnStmts.emplace_back(fn);
+			}
+			else if (GetCurToken().literal == classStmt->name) //constructor
+			{
+				auto fn = (FunctionStmt *)ParseFunctionDeclaration();
+				classStmt->constructors.emplace_back(fn);
 			}
 			else
 				Consume({TOKEN_LET, TOKEN_FUNCTION, TOKEN_CONST}, L"UnExpect identifier '" + GetCurToken().literal + L"'.");
@@ -412,18 +415,18 @@ namespace lws
 	{
 		Consume(TOKEN_MODULE, L"Expect 'module' keyword.");
 
-		auto moduleDecl=new ModuleStmt();
+		auto moduleDecl = new ModuleStmt();
 
-		moduleDecl->modName=(IdentifierExpr*)ParseIdentifierExpr();
+		moduleDecl->modName = (IdentifierExpr *)ParseIdentifierExpr();
 
-		Consume(TOKEN_LBRACE,L"Expect '{' after module name.");
+		Consume(TOKEN_LBRACE, L"Expect '{' after module name.");
 
 		do
 		{
 			moduleDecl->modItems.emplace_back(ParseDeclaration());
 		} while (!IsMatchCurToken(TOKEN_RBRACE));
-		
-		Consume(TOKEN_RBRACE,L"Expect '}'.");
+
+		Consume(TOKEN_RBRACE, L"Expect '}'.");
 
 		return moduleDecl;
 	}

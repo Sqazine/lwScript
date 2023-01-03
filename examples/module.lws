@@ -2,7 +2,7 @@ module A
 {
     class Vec2
     {
-        fn Vec2(x,y)
+        Vec2(x,y)
         {
             this.x=x;
             this.y=y;

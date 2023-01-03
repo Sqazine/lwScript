@@ -1,6 +1,6 @@
 class Vec4
 {
-    fn Vec4(x,y,z,w)
+    Vec4(x,y,z,w)
     {
         this.x=x;
         this.y=y;
@@ -8,7 +8,7 @@ class Vec4
         this.w=w;
     }
 
-    fn Vec4(x,y,z)
+    Vec4(x,y,z)
     {
         this.x=x;
         this.y=y;
@@ -16,7 +16,7 @@ class Vec4
         this.w=1;
     }
 
-     fn Vec4(value)
+    Vec4(value)
     {
         this.x=value;
         this.y=value;
