@@ -64,6 +64,7 @@ namespace lws
 		Stmt *ParseFunctionDeclaration();
 		Stmt *ParseClassDeclaration();
 		Stmt *ParseEnumDeclaration();
+		Stmt* ParseModuleDeclaration();
 
 		Stmt *ParseStmt();
 		Stmt *ParseExprStmt();

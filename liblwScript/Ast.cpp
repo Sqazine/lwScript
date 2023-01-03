@@ -740,6 +740,29 @@ namespace lws
 		return AST_ENUM;
 	}
 
+	ModuleStmt::ModuleStmt()
+	{
+	}
+	ModuleStmt::ModuleStmt(IdentifierExpr *modName, const std::vector<Stmt *> &modItems)
+		: modName(modName), modItems(modItems)
+	{
+	}
+	ModuleStmt::~ModuleStmt()
+	{
+	}
+
+	std::wstring ModuleStmt::Stringify()
+	{
+		std::wstring result = L"module " + modName->Stringify() + L"\n{\n";
+		for (const auto &item : modItems)
+			result += item->Stringify() + L"\n";
+		return result + L"}\n";
+	}
+	AstType ModuleStmt::Type() const
+	{
+		return AST_MODULE;
+	}
+
 	FunctionStmt::FunctionStmt()
 		: name(nullptr), body(nullptr)
 	{

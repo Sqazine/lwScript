@@ -1,0 +1,17 @@
+module A
+{
+    class Vec2
+    {
+        fn Vec2(x,y)
+        {
+            this.x=x;
+            this.y=y;
+        }
+        let x=0;
+        let y=0;
+    }
+
+    let vec2=new Vec2();
+}
+
+io.println(A.vec2);

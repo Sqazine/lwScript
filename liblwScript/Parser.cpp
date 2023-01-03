@@ -193,6 +193,8 @@ namespace lws
 			return ParseClassDeclaration();
 		case TOKEN_ENUM:
 			return ParseEnumDeclaration();
+		case TOKEN_MODULE:
+			return ParseModuleDeclaration();
 		default:
 			return ParseStmt();
 		}
@@ -406,6 +408,26 @@ namespace lws
 		return enumStmt;
 	}
 
+	Stmt *Parser::ParseModuleDeclaration()
+	{
+		Consume(TOKEN_MODULE, L"Expect 'module' keyword.");
+
+		auto moduleDecl=new ModuleStmt();
+
+		moduleDecl->modName=(IdentifierExpr*)ParseIdentifierExpr();
+
+		Consume(TOKEN_LBRACE,L"Expect '{' after module name.");
+
+		do
+		{
+			moduleDecl->modItems.emplace_back(ParseDeclaration());
+		} while (!IsMatchCurToken(TOKEN_RBRACE));
+		
+		Consume(TOKEN_RBRACE,L"Expect '}'.");
+
+		return moduleDecl;
+	}
+
 	Stmt *Parser::ParseStmt()
 	{
 		switch (GetCurToken().type)
@@ -592,7 +614,7 @@ namespace lws
 			scopeStmt->stmts.emplace_back(ParseStmt());
 			whileBodyStmts.emplace_back(scopeStmt);
 		}
-		
+
 		auto whileStmt = new WhileStmt();
 		whileStmt->condition = condition;
 		whileStmt->body = new ScopeStmt(whileBodyStmts);

@@ -41,6 +41,7 @@ namespace lws
 		AST_BREAK,
 		AST_CONTINUE,
 		AST_ENUM,
+		AST_MODULE,
 		AST_FUNCTION,
 		AST_CLASS,
 		AST_ASTSTMTS,
@@ -454,6 +455,20 @@ namespace lws
 		IdentifierExpr *enumName;
 		std::unordered_map<IdentifierExpr *, Expr *> enumItems;
 	};
+
+	struct ModuleStmt : public Stmt
+	{
+		ModuleStmt();
+		ModuleStmt(IdentifierExpr *modName, const std::vector<Stmt*>& modItems);
+		~ModuleStmt();
+
+		std::wstring Stringify() override;
+		AstType Type() const override;
+
+		IdentifierExpr *modName;
+		std::vector<Stmt*> modItems;
+	};
+
 
 	enum class FunctionType
 	{
