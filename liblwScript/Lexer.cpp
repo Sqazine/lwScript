@@ -27,9 +27,6 @@ namespace lws
 		{L"continue", TOKEN_CONTINUE},
 		{L"import", TOKEN_IMPORT},
 		{L"module", TOKEN_MODULE},
-		{L"try", TOKEN_TRY},
-		{L"catch", TOKEN_CATCH},
-		{L"finally", TOKEN_FINALLY},
 		{L"switch", TOKEN_SWITCH},
 		{L"default", TOKEN_DEFAULT},
 		{L"match", TOKEN_MATCH},
@@ -45,8 +42,6 @@ namespace lws
 		{L"bool", TOKEN_BOOL},
 		{L"char", TOKEN_CHAR},
 		{L"void", TOKEN_VOID},
-		{L"get", TOKEN_GET},
-		{L"set", TOKEN_SET},
 		{L"as", TOKEN_AS},
 		{L"new", TOKEN_NEW},
 	};

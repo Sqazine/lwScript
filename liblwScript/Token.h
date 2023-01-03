@@ -73,9 +73,6 @@ namespace lws
 		TOKEN_CONTINUE,				 // continue
 		TOKEN_IMPORT,				 // import
 		TOKEN_MODULE,				 // module
-		TOKEN_TRY,					 // try
-		TOKEN_CATCH,				 // catch
-		TOKEN_FINALLY,				 // finally
 		TOKEN_SWITCH,				 // switch
 		TOKEN_DEFAULT,				 // default
 		TOKEN_MATCH,				 // match
@@ -94,8 +91,6 @@ namespace lws
 		TOKEN_CHAR,					 // char
 		TOKEN_ANY,					 // any
 		TOKEN_VOID,					 // void
-		TOKEN_GET,					 // get
-		TOKEN_SET,					 // set
 		TOKEN_AS,					 // as
 		TOKEN_NEW,					 // new
 		TOKEN_EOF,
