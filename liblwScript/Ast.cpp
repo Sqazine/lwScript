@@ -5,11 +5,11 @@ namespace lws
 	//----------------------Expressions-----------------------------
 
 	IntNumExpr::IntNumExpr()
-		: value(0)
+		: Expr(AST_INT), value(0)
 	{
 	}
 	IntNumExpr::IntNumExpr(int64_t value)
-		: value(value)
+		: Expr(AST_INT), value(value)
 	{
 	}
 	IntNumExpr::~IntNumExpr()
@@ -20,17 +20,13 @@ namespace lws
 	{
 		return std::to_wstring(value);
 	}
-	AstType IntNumExpr::Type() const
-	{
-		return AST_INT;
-	}
 
 	RealNumExpr::RealNumExpr()
-		: value(0.0)
+		: Expr(AST_REAL), value(0.0)
 	{
 	}
 	RealNumExpr::RealNumExpr(double value)
-		: value(value)
+		: Expr(AST_REAL), value(value)
 	{
 	}
 	RealNumExpr::~RealNumExpr()
@@ -40,16 +36,13 @@ namespace lws
 	{
 		return std::to_wstring(value);
 	}
-	AstType RealNumExpr::Type() const
-	{
-		return AST_REAL;
-	}
 
 	StrExpr::StrExpr()
+		: Expr(AST_STR)
 	{
 	}
 	StrExpr::StrExpr(std::wstring_view str)
-		: value(str)
+		: Expr(AST_STR), value(str)
 	{
 	}
 
@@ -62,12 +55,8 @@ namespace lws
 		return L"\"" + value + L"\"";
 	}
 
-	AstType StrExpr::Type() const
-	{
-		return AST_STR;
-	}
-
 	NullExpr::NullExpr()
+		: Expr(AST_NULL)
 	{
 	}
 	NullExpr::~NullExpr()
@@ -78,17 +67,13 @@ namespace lws
 	{
 		return L"null";
 	}
-	AstType NullExpr::Type() const
-	{
-		return AST_NULL;
-	}
 
 	BoolExpr::BoolExpr()
-		: value(false)
+		: Expr(AST_BOOL), value(false)
 	{
 	}
 	BoolExpr::BoolExpr(bool value)
-		: value(value)
+		: Expr(AST_BOOL), value(value)
 	{
 	}
 	BoolExpr::~BoolExpr()
@@ -99,16 +84,13 @@ namespace lws
 	{
 		return value ? L"true" : L"false";
 	}
-	AstType BoolExpr::Type() const
-	{
-		return AST_BOOL;
-	}
 
 	IdentifierExpr::IdentifierExpr()
+		: Expr(AST_IDENTIFIER)
 	{
 	}
 	IdentifierExpr::IdentifierExpr(std::wstring_view literal)
-		: literal(literal)
+		: Expr(AST_IDENTIFIER), literal(literal)
 	{
 	}
 	IdentifierExpr::~IdentifierExpr()
@@ -119,15 +101,12 @@ namespace lws
 	{
 		return literal;
 	}
-	AstType IdentifierExpr::Type() const
-	{
-		return AST_IDENTIFIER;
-	}
 
 	ArrayExpr::ArrayExpr()
+		: Expr(AST_ARRAY)
 	{
 	}
-	ArrayExpr::ArrayExpr(std::vector<Expr *> elements) : elements(elements)
+	ArrayExpr::ArrayExpr(std::vector<Expr *> elements) : Expr(AST_ARRAY), elements(elements)
 	{
 	}
 	ArrayExpr::~ArrayExpr()
@@ -148,16 +127,13 @@ namespace lws
 		result += L"]";
 		return result;
 	}
-	AstType ArrayExpr::Type() const
-	{
-		return AST_ARRAY;
-	}
 
 	TableExpr::TableExpr()
+		: Expr(AST_TABLE)
 	{
 	}
 	TableExpr::TableExpr(const std::vector<std::pair<Expr *, Expr *>> &elements)
-		: elements(elements)
+		: Expr(AST_TABLE), elements(elements)
 	{
 	}
 	TableExpr::~TableExpr()
@@ -178,17 +154,13 @@ namespace lws
 		result += L"}";
 		return result;
 	}
-	AstType TableExpr::Type() const
-	{
-		return AST_TABLE;
-	}
 
 	GroupExpr::GroupExpr()
-		: expr(nullptr)
+		: Expr(AST_GROUP), expr(nullptr)
 	{
 	}
 	GroupExpr::GroupExpr(Expr *expr)
-		: expr(expr)
+		: Expr(AST_GROUP), expr(expr)
 	{
 	}
 	GroupExpr::~GroupExpr()
@@ -198,17 +170,13 @@ namespace lws
 	{
 		return L"(" + expr->Stringify() + L")";
 	}
-	AstType GroupExpr::Type() const
-	{
-		return AST_GROUP;
-	}
 
 	PrefixExpr::PrefixExpr()
-		: right(nullptr)
+		: Expr(AST_PREFIX), right(nullptr)
 	{
 	}
 	PrefixExpr::PrefixExpr(std::wstring_view op, Expr *right)
-		: op(op), right(right)
+		: Expr(AST_PREFIX), op(op), right(right)
 	{
 	}
 	PrefixExpr::~PrefixExpr()
@@ -221,17 +189,13 @@ namespace lws
 	{
 		return op + right->Stringify();
 	}
-	AstType PrefixExpr::Type() const
-	{
-		return AST_PREFIX;
-	}
 
 	InfixExpr::InfixExpr()
-		: left(nullptr), right(nullptr)
+		: Expr(AST_INFIX), left(nullptr), right(nullptr)
 	{
 	}
 	InfixExpr::InfixExpr(std::wstring_view op, Expr *left, Expr *right)
-		: op(op), left(left), right(right)
+		: Expr(AST_INFIX), op(op), left(left), right(right)
 	{
 	}
 	InfixExpr::~InfixExpr()
@@ -247,17 +211,13 @@ namespace lws
 	{
 		return left->Stringify() + op + right->Stringify();
 	}
-	AstType InfixExpr::Type() const
-	{
-		return AST_INFIX;
-	}
 
 	PostfixExpr::PostfixExpr()
-		: left(nullptr)
+		: Expr(AST_POSTFIX), left(nullptr)
 	{
 	}
 	PostfixExpr::PostfixExpr(Expr *left, std::wstring_view op)
-		: left(left), op(op)
+		: Expr(AST_POSTFIX), left(left), op(op)
 	{
 	}
 	PostfixExpr::~PostfixExpr()
@@ -269,17 +229,13 @@ namespace lws
 	{
 		return left->Stringify() + op;
 	}
-	AstType PostfixExpr::Type() const
-	{
-		return AST_POSTFIX;
-	}
 
 	ConditionExpr::ConditionExpr()
-		: condition(nullptr), trueBranch(nullptr), falseBranch(nullptr)
+		: Expr(AST_CONDITION), condition(nullptr), trueBranch(nullptr), falseBranch(nullptr)
 	{
 	}
 	ConditionExpr::ConditionExpr(Expr *condition, Expr *trueBranch, Expr *falseBranch)
-		: condition(condition), trueBranch(trueBranch), falseBranch(falseBranch)
+		: Expr(AST_CONDITION), condition(condition), trueBranch(trueBranch), falseBranch(falseBranch)
 	{
 	}
 	ConditionExpr::~ConditionExpr()
@@ -298,17 +254,13 @@ namespace lws
 	{
 		return condition->Stringify() + L"?" + trueBranch->Stringify() + L":" + falseBranch->Stringify();
 	}
-	AstType ConditionExpr::Type() const
-	{
-		return AST_CONDITION;
-	}
 
 	IndexExpr::IndexExpr()
-		: ds(nullptr), index(nullptr)
+		: Expr(AST_INDEX), ds(nullptr), index(nullptr)
 	{
 	}
 	IndexExpr::IndexExpr(Expr *ds, Expr *index)
-		: ds(ds), index(index)
+		: Expr(AST_INDEX), ds(ds), index(index)
 	{
 	}
 	IndexExpr::~IndexExpr()
@@ -323,17 +275,14 @@ namespace lws
 		return ds->Stringify() + L"[" + index->Stringify() + L"]";
 	}
 
-	AstType IndexExpr::Type() const
-	{
-		return AST_INDEX;
-	}
-
 	RefExpr::RefExpr()
-		: refExpr(nullptr)
+		: Expr(AST_REF), refExpr(nullptr)
 	{
 	}
 	RefExpr::RefExpr(Expr *refExpr)
-		: refExpr(refExpr) {}
+		: Expr(AST_REF), refExpr(refExpr)
+	{
+	}
 	RefExpr::~RefExpr()
 	{
 	}
@@ -343,17 +292,12 @@ namespace lws
 		return L"&" + refExpr->Stringify();
 	}
 
-	AstType RefExpr::Type() const
-	{
-		return AST_REF;
-	}
-
 	LambdaExpr::LambdaExpr()
-		: body(nullptr)
+		: Expr(AST_LAMBDA), body(nullptr)
 	{
 	}
 	LambdaExpr::LambdaExpr(std::vector<IdentifierExpr *> parameters, ScopeStmt *body)
-		: parameters(parameters), body(body)
+		: Expr(AST_LAMBDA), parameters(parameters), body(body)
 	{
 	}
 	LambdaExpr::~LambdaExpr()
@@ -377,16 +321,13 @@ namespace lws
 		result += body->Stringify();
 		return result;
 	}
-	AstType LambdaExpr::Type() const
-	{
-		return AST_LAMBDA;
-	}
 
 	CallExpr::CallExpr()
+		: Expr(AST_CALL)
 	{
 	}
 	CallExpr::CallExpr(Expr *callee, std::vector<Expr *> arguments)
-		: callee(callee), arguments(arguments)
+		: Expr(AST_CALL), callee(callee), arguments(arguments)
 	{
 	}
 	CallExpr::~CallExpr()
@@ -405,17 +346,13 @@ namespace lws
 		result += L")";
 		return result;
 	}
-	AstType CallExpr::Type() const
-	{
-		return AST_CALL;
-	}
 
 	DotExpr::DotExpr()
-		: callee(nullptr), callMember(nullptr)
+		: Expr(AST_DOT), callee(nullptr), callMember(nullptr)
 	{
 	}
 	DotExpr::DotExpr(Expr *callee, IdentifierExpr *callMember)
-		: callee(callee), callMember(callMember)
+		: Expr(AST_DOT), callee(callee), callMember(callMember)
 	{
 	}
 	DotExpr::~DotExpr()
@@ -426,16 +363,13 @@ namespace lws
 	{
 		return callee->Stringify() + L"." + callMember->Stringify();
 	}
-	AstType DotExpr::Type() const
-	{
-		return AST_DOT;
-	}
 
 	NewExpr::NewExpr()
+		: Expr(AST_NEW)
 	{
 	}
 	NewExpr::NewExpr(CallExpr *callee)
-		: callee(callee)
+		: Expr(AST_NEW), callee(callee)
 	{
 	}
 	NewExpr::~NewExpr()
@@ -446,12 +380,9 @@ namespace lws
 	{
 		return L"new " + callee->Stringify();
 	}
-	AstType NewExpr::Type() const
-	{
-		return AST_NEW;
-	}
 
 	ThisExpr::ThisExpr()
+		: Expr(AST_THIS)
 	{
 	}
 
@@ -463,13 +394,9 @@ namespace lws
 	{
 		return L"this";
 	}
-	AstType ThisExpr::Type() const
-	{
-		return AST_THIS;
-	}
 
 	BaseExpr::BaseExpr(IdentifierExpr *callMember)
-		: callMember(callMember)
+		: Expr(AST_BASE), callMember(callMember)
 	{
 	}
 	BaseExpr::~BaseExpr()
@@ -480,19 +407,15 @@ namespace lws
 	{
 		return L"base." + callMember->Stringify();
 	}
-	AstType BaseExpr::Type() const
-	{
-		return AST_BASE;
-	}
 
 	//----------------------Statements-----------------------------
 
 	ExprStmt::ExprStmt()
-		: expr(nullptr)
+		: Stmt(AST_EXPR), expr(nullptr)
 	{
 	}
 	ExprStmt::ExprStmt(Expr *expr)
-		: expr(expr)
+		: Stmt(AST_EXPR), expr(expr)
 	{
 	}
 	ExprStmt::~ExprStmt()
@@ -505,16 +428,13 @@ namespace lws
 	{
 		return expr->Stringify() + L";";
 	}
-	AstType ExprStmt::Type() const
-	{
-		return AST_EXPR;
-	}
 
 	LetStmt::LetStmt()
+		: Stmt(AST_LET)
 	{
 	}
 	LetStmt::LetStmt(const std::unordered_map<IdentifierExpr *, VarDesc> &variables)
-		: variables(variables)
+		: Stmt(AST_LET), variables(variables)
 	{
 	}
 	LetStmt::~LetStmt()
@@ -534,16 +454,12 @@ namespace lws
 		return result + L";";
 	}
 
-	AstType LetStmt::Type() const
-	{
-		return AST_LET;
-	}
-
 	ConstStmt::ConstStmt()
+		: Stmt(AST_CONST)
 	{
 	}
 	ConstStmt::ConstStmt(const std::unordered_map<IdentifierExpr *, VarDesc> &consts)
-		: consts(consts)
+		: Stmt(AST_CONST), consts(consts)
 	{
 	}
 	ConstStmt::~ConstStmt()
@@ -563,17 +479,12 @@ namespace lws
 		return result + L";";
 	}
 
-	AstType ConstStmt::Type() const
-	{
-		return AST_CONST;
-	}
-
 	ReturnStmt::ReturnStmt()
-		: expr(nullptr)
+		: Stmt(AST_RETURN), expr(nullptr)
 	{
 	}
 	ReturnStmt::ReturnStmt(Expr *expr)
-		: expr(expr)
+		: Stmt(AST_RETURN), expr(expr)
 	{
 	}
 	ReturnStmt::~ReturnStmt()
@@ -589,17 +500,14 @@ namespace lws
 		else
 			return L"return;";
 	}
-	AstType ReturnStmt::Type() const
-	{
-		return AST_RETURN;
-	}
 
 	IfStmt::IfStmt()
-		: condition(nullptr), thenBranch(nullptr), elseBranch(nullptr)
+		: Stmt(AST_IF), condition(nullptr), thenBranch(nullptr), elseBranch(nullptr)
 	{
 	}
 	IfStmt::IfStmt(Expr *condition, Stmt *thenBranch, Stmt *elseBranch)
-		: condition(condition),
+		: Stmt(AST_IF),
+		  condition(condition),
 		  thenBranch(thenBranch),
 		  elseBranch(elseBranch)
 	{
@@ -622,16 +530,15 @@ namespace lws
 			result += L"else " + elseBranch->Stringify();
 		return result;
 	}
-	AstType IfStmt::Type() const
-	{
-		return AST_IF;
-	}
 
 	ScopeStmt::ScopeStmt()
+		: Stmt(AST_SCOPE)
 	{
 	}
 	ScopeStmt::ScopeStmt(std::vector<Stmt *> stmts)
-		: stmts(stmts) {}
+		: Stmt(AST_SCOPE), stmts(stmts)
+	{
+	}
 	ScopeStmt::~ScopeStmt()
 	{
 		std::vector<Stmt *>().swap(stmts);
@@ -646,17 +553,12 @@ namespace lws
 		return result;
 	}
 
-	AstType ScopeStmt::Type() const
-	{
-		return AST_SCOPE;
-	}
-
 	WhileStmt::WhileStmt()
-		: condition(nullptr), body(nullptr), increment(nullptr)
+		: Stmt(AST_WHILE), condition(nullptr), body(nullptr), increment(nullptr)
 	{
 	}
 	WhileStmt::WhileStmt(Expr *condition, ScopeStmt *body, ScopeStmt *increment)
-		: condition(condition), body(body), increment(increment)
+		: Stmt(AST_WHILE), condition(condition), body(body), increment(increment)
 	{
 	}
 	WhileStmt::~WhileStmt()
@@ -676,12 +578,9 @@ namespace lws
 			result += increment->Stringify();
 		return result += L"}";
 	}
-	AstType WhileStmt::Type() const
-	{
-		return AST_WHILE;
-	}
 
 	BreakStmt::BreakStmt()
+		: Stmt(AST_BREAK)
 	{
 	}
 	BreakStmt::~BreakStmt()
@@ -692,12 +591,9 @@ namespace lws
 	{
 		return L"break;";
 	}
-	AstType BreakStmt::Type() const
-	{
-		return AST_BREAK;
-	}
 
 	ContinueStmt::ContinueStmt()
+		: Stmt(AST_CONTINUE)
 	{
 	}
 	ContinueStmt::~ContinueStmt()
@@ -708,16 +604,13 @@ namespace lws
 	{
 		return L"continue;";
 	}
-	AstType ContinueStmt::Type() const
-	{
-		return AST_CONTINUE;
-	}
 
 	EnumStmt::EnumStmt()
+		: Stmt(AST_ENUM)
 	{
 	}
 	EnumStmt::EnumStmt(IdentifierExpr *enumName, const std::unordered_map<IdentifierExpr *, Expr *> &enumItems)
-		: enumName(enumName), enumItems(enumItems)
+		: Stmt(AST_ENUM), enumName(enumName), enumItems(enumItems)
 	{
 	}
 	EnumStmt::~EnumStmt()
@@ -735,16 +628,13 @@ namespace lws
 		}
 		return result + L"}";
 	}
-	AstType EnumStmt::Type() const
-	{
-		return AST_ENUM;
-	}
 
 	ModuleStmt::ModuleStmt()
+		: Stmt(AST_MODULE)
 	{
 	}
 	ModuleStmt::ModuleStmt(IdentifierExpr *modName, const std::vector<Stmt *> &modItems)
-		: modName(modName), modItems(modItems)
+		: Stmt(AST_MODULE), modName(modName), modItems(modItems)
 	{
 	}
 	ModuleStmt::~ModuleStmt()
@@ -758,17 +648,13 @@ namespace lws
 			result += item->Stringify() + L"\n";
 		return result + L"}\n";
 	}
-	AstType ModuleStmt::Type() const
-	{
-		return AST_MODULE;
-	}
 
 	FunctionStmt::FunctionStmt()
-		: name(nullptr), body(nullptr)
+		: Stmt(AST_FUNCTION), name(nullptr), body(nullptr)
 	{
 	}
 	FunctionStmt::FunctionStmt(FunctionType type, IdentifierExpr *name, std::vector<IdentifierExpr *> parameters, ScopeStmt *body)
-		: type(type), name(name), parameters(parameters), body(body)
+		: Stmt(AST_FUNCTION), type(type), name(name), parameters(parameters), body(body)
 	{
 	}
 	FunctionStmt::~FunctionStmt()
@@ -792,12 +678,9 @@ namespace lws
 		result += body->Stringify();
 		return result;
 	}
-	AstType FunctionStmt::Type() const
-	{
-		return AST_FUNCTION;
-	}
 
 	ClassStmt::ClassStmt()
+		: Stmt(AST_CLASS)
 	{
 	}
 	ClassStmt::ClassStmt(std::wstring name,
@@ -806,7 +689,8 @@ namespace lws
 						 std::vector<FunctionStmt *> fnStmts,
 						 std::vector<FunctionStmt *> constructors,
 						 std::vector<IdentifierExpr *> parentClasses)
-		: name(name),
+		: Stmt(AST_CLASS),
+		  name(name),
 		  letStmts(letStmts),
 		  constStmts(constStmts),
 		  fnStmts(fnStmts),
@@ -842,16 +726,15 @@ namespace lws
 			result += fnStmt->Stringify();
 		return result + L"}";
 	}
-	AstType ClassStmt::Type() const
-	{
-		return AST_CLASS;
-	}
 
 	AstStmts::AstStmts()
+		: Stmt(AST_ASTSTMTS)
 	{
 	}
 	AstStmts::AstStmts(std::vector<Stmt *> stmts)
-		: stmts(stmts) {}
+		: Stmt(AST_ASTSTMTS), stmts(stmts)
+	{
+	}
 	AstStmts::~AstStmts()
 	{
 		std::vector<Stmt *>().swap(stmts);
@@ -863,9 +746,5 @@ namespace lws
 		for (const auto &stmt : stmts)
 			result += stmt->Stringify();
 		return result;
-	}
-	AstType AstStmts::Type() const
-	{
-		return AST_ASTSTMTS;
 	}
 }

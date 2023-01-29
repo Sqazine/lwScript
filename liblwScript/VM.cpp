@@ -593,9 +593,9 @@ namespace lws
 				else if (IS_CLASS_VALUE(callee)) // class constructor
 				{
 					auto klass = TO_CLASS_VALUE(callee);
-					//no user-defined constructor and calling none argument construction
-					//like: class A{} let a=new A();
-					//skip calling constructor(because class object has been instantiated)
+					// no user-defined constructor and calling none argument construction
+					// like: class A{} let a=new A();
+					// skip calling constructor(because class object has been instantiated)
 					if (argCount == 0 && klass->constructors.size() == 0)
 						break;
 					else
@@ -641,7 +641,7 @@ namespace lws
 
 				auto classObj = CreateObject<ClassObject>();
 				classObj->name = TO_STR_VALUE(name);
-				Pop(); //pop name strobject
+				Pop(); // pop name strobject
 
 				for (int32_t i = 0; i < ctorCount; ++i)
 				{
@@ -690,7 +690,7 @@ namespace lws
 					Value member;
 					if (klass->GetMember(propName, member))
 					{
-						Pop(); //pop class object
+						Pop(); // pop class object
 						if (IS_CLOSURE_VALUE(member))
 						{
 							ClassClosureBindObject *binding = CreateObject<ClassClosureBindObject>(klass, TO_CLOSURE_VALUE(member));
@@ -710,7 +710,7 @@ namespace lws
 					Value member;
 					if (enumObj->GetMember(propName, member))
 					{
-						Pop(); //pop enum object
+						Pop(); // pop enum object
 						Push(member);
 						break;
 					}
@@ -733,7 +733,7 @@ namespace lws
 				{
 					auto propName = TO_STR_VALUE(Pop());
 					auto klass = TO_CLASS_VALUE(peekValue);
-					Pop(); //pop class value
+					Pop(); // pop class value
 
 					Value member;
 					if (klass->GetMember(propName, member))
@@ -866,7 +866,7 @@ namespace lws
 
 	void VM::RegisterToGCRecordChain(const Value &value)
 	{
-		if (IS_OBJECT_VALUE(value) && value.object->next == nullptr) //check is null to judge if is a unique object
+		if (IS_OBJECT_VALUE(value) && value.object->next == nullptr) // check is null to judge if is a unique object
 		{
 			size_t objBytes = sizeof(value.object);
 			mBytesAllocated += objBytes;

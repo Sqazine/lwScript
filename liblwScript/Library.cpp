@@ -77,8 +77,7 @@ namespace lws
                                                                   }
 
                                                                   std::wcout << content;
-                                                                  return Value();
-                                                              });
+                                                                  return Value(); });
 
         ioClass->members[L"println"] = new NativeFunctionObject([](const std::vector<Value> &args) -> Value
                                                                 {
@@ -139,8 +138,7 @@ namespace lws
                                                                     }
 
                                                                     std::wcout << content << std::endl;
-                                                                    return Value();
-                                                                });
+                                                                    return Value(); });
 
         dsClass->members[L"sizeof"] = new NativeFunctionObject([](const std::vector<Value> &args) -> Value
                                                                {
@@ -156,8 +154,7 @@ namespace lws
                                                                    else
                                                                        ASSERT(L"[Native function 'sizeof']:Expect a array,table ot string argument.")
 
-                                                                   return Value();
-                                                               });
+                                                                   return Value(); });
 
         dsClass->members[L"insert"] = new NativeFunctionObject([](const std::vector<Value> &args) -> Value
                                                                {
@@ -203,8 +200,7 @@ namespace lws
                                                                    else
                                                                        ASSERT(L"[Native function 'insert']:Expect a array,table ot string argument.")
 
-                                                                   return args[0];
-                                                               });
+                                                                   return args[0]; });
 
         dsClass->members[L"erase"] = new NativeFunctionObject([](const std::vector<Value> &args) -> Value
                                                               {
@@ -256,8 +252,7 @@ namespace lws
                                                                   }
                                                                   else
                                                                       ASSERT(L"[Native function 'erase']:Expect a array,table ot string argument.")
-                                                                  return args[0];
-                                                              });
+                                                                  return args[0]; });
 
         memClass->members[L"addressof"] = new NativeFunctionObject([](const std::vector<Value> &args) -> Value
                                                                    {
@@ -267,8 +262,7 @@ namespace lws
                                                                        if (!IS_OBJECT_VALUE(args[0]))
                                                                            ASSERT(L"[Native function 'addressof']:The arg0 is a value,only object has address.")
 
-                                                                       return new StrObject(PointerAddressToString(args[0].object));
-                                                                   });
+                                                                       return new StrObject(PointerAddressToString(args[0].object)); });
 
         timeClass->members[L"clock"] = new NativeFunctionObject([](const std::vector<Value> &args) -> Value
                                                                 { return Value((double)clock() / CLOCKS_PER_SEC); });

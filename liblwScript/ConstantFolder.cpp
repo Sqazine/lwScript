@@ -16,7 +16,7 @@ namespace lws
 
 	Stmt *ConstantFolder::FoldStmt(Stmt *stmt)
 	{
-		switch (stmt->Type())
+		switch (stmt->type)
 		{
 		case AST_ASTSTMTS:
 			return FoldAstStmts((AstStmts *)stmt);
@@ -58,7 +58,7 @@ namespace lws
 		if (stmt->elseBranch)
 			stmt->elseBranch = FoldStmt(stmt->elseBranch);
 
-		if (stmt->condition->Type() == AST_BOOL)
+		if (stmt->condition->type == AST_BOOL)
 		{
 			if (((BoolExpr *)stmt->condition)->value == true)
 				return stmt->thenBranch;
@@ -128,7 +128,7 @@ namespace lws
 
 	Expr *ConstantFolder::FoldExpr(Expr *expr)
 	{
-		switch (expr->Type())
+		switch (expr->type)
 		{
 		case AST_INT:
 			return FoldIntNumExpr((IntNumExpr *)expr);
@@ -186,7 +186,7 @@ namespace lws
 		expr->trueBranch = FoldExpr(expr->trueBranch);
 		expr->falseBranch = FoldExpr(expr->falseBranch);
 
-		if (expr->condition->Type() == AST_BOOL)
+		if (expr->condition->type == AST_BOOL)
 		{
 			auto boolExpr = (BoolExpr *)expr->condition;
 			if (boolExpr->value)
@@ -289,10 +289,10 @@ namespace lws
 
 	Expr *ConstantFolder::ConstantFold(Expr *expr)
 	{
-		if (expr->Type() == AST_INFIX)
+		if (expr->type == AST_INFIX)
 		{
 			auto infix = (InfixExpr *)expr;
-			if (infix->left->Type() == AST_REAL && infix->right->Type() == AST_REAL)
+			if (infix->left->type == AST_REAL && infix->right->type == AST_REAL)
 			{
 				Expr *newExpr = nullptr;
 				if (infix->op == L"+")
@@ -320,7 +320,7 @@ namespace lws
 				infix = nullptr;
 				return newExpr;
 			}
-			else if (infix->left->Type() == AST_INT && infix->right->Type() == AST_INT)
+			else if (infix->left->type == AST_INT && infix->right->type == AST_INT)
 			{
 				Expr *newExpr = nullptr;
 				if (infix->op == L"+")
@@ -356,7 +356,7 @@ namespace lws
 				infix = nullptr;
 				return newExpr;
 			}
-			else if (infix->left->Type() == AST_INT && infix->right->Type() == AST_REAL)
+			else if (infix->left->type == AST_INT && infix->right->type == AST_REAL)
 			{
 				Expr *newExpr = nullptr;
 				if (infix->op == L"+")
@@ -384,7 +384,7 @@ namespace lws
 				infix = nullptr;
 				return newExpr;
 			}
-			else if (infix->left->Type() == AST_REAL && infix->right->Type() == AST_INT)
+			else if (infix->left->type == AST_REAL && infix->right->type == AST_INT)
 			{
 				Expr *newExpr = nullptr;
 				if (infix->op == L"+")
@@ -412,7 +412,7 @@ namespace lws
 				infix = nullptr;
 				return newExpr;
 			}
-			else if (infix->left->Type() == AST_STR && infix->right->Type() == AST_STR)
+			else if (infix->left->type == AST_STR && infix->right->type == AST_STR)
 			{
 				auto strExpr = new StrExpr(((StrExpr *)infix->left)->value + ((StrExpr *)infix->right)->value);
 				delete infix;
@@ -420,24 +420,24 @@ namespace lws
 				return strExpr;
 			}
 		}
-		else if (expr->Type() == AST_PREFIX)
+		else if (expr->type == AST_PREFIX)
 		{
 			auto prefix = (PrefixExpr *)expr;
-			if (prefix->right->Type() == AST_REAL && prefix->op == L"-")
+			if (prefix->right->type == AST_REAL && prefix->op == L"-")
 			{
 				auto numExpr = new RealNumExpr(-((RealNumExpr *)prefix->right)->value);
 				delete prefix;
 				prefix = nullptr;
 				return numExpr;
 			}
-			else if (prefix->right->Type() == AST_BOOL && prefix->op == L"!")
+			else if (prefix->right->type == AST_BOOL && prefix->op == L"!")
 			{
 				auto boolExpr = new BoolExpr(!((BoolExpr *)prefix->right)->value);
 				delete prefix;
 				prefix = nullptr;
 				return boolExpr;
 			}
-			else if (prefix->right->Type() == AST_INT && prefix->op == L"~")
+			else if (prefix->right->type == AST_INT && prefix->op == L"~")
 			{
 				auto newExpr = new IntNumExpr(~((IntNumExpr *)prefix->right)->value);
 				delete prefix;
@@ -445,10 +445,10 @@ namespace lws
 				return newExpr;
 			}
 		}
-		else if (expr->Type() == AST_POSTFIX)
+		else if (expr->type == AST_POSTFIX)
 		{
 			auto postfix = (PostfixExpr *)expr;
-			if (postfix->left->Type() == AST_INT && postfix->op == L"!")
+			if (postfix->left->type == AST_INT && postfix->op == L"!")
 			{
 				auto numExpr = new IntNumExpr(Factorial(((IntNumExpr *)postfix->left)->value));
 				delete postfix;

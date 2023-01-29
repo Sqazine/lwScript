@@ -16,7 +16,7 @@ namespace lws
 
 	FunctionObject *Compiler::Compile(Stmt *stmt)
 	{
-		if (stmt->Type() == AST_ASTSTMTS)
+		if (stmt->type == AST_ASTSTMTS)
 		{
 			auto stmts = ((AstStmts *)stmt)->stmts;
 			for (const auto &s : stmts)
@@ -52,14 +52,14 @@ namespace lws
 
 	void Compiler::CompileDeclaration(Stmt *stmt)
 	{
-		int64_t breakStmtAddress = -1;	  //useless
-		int64_t contineuStmtAddress = -1; //useless
+		int64_t breakStmtAddress = -1;	  // useless
+		int64_t contineuStmtAddress = -1; // useless
 		CompileDeclaration(stmt, breakStmtAddress, contineuStmtAddress);
 	}
 
 	void Compiler::CompileDeclaration(Stmt *stmt, int64_t &breakStmtAddress, int64_t &continueStmtAddress)
 	{
-		switch (stmt->Type())
+		switch (stmt->type)
 		{
 		case AST_LET:
 			CompileLetDeclaration((LetStmt *)stmt);
@@ -227,13 +227,13 @@ namespace lws
 		for (const auto &[k, v] : stmt->enumItems)
 		{
 			Value enumValue;
-			if (v->Type() == AST_INT)
+			if (v->type == AST_INT)
 				enumValue = ((IntNumExpr *)v)->value;
-			else if (v->Type() == AST_REAL)
+			else if (v->type == AST_REAL)
 				enumValue = ((RealNumExpr *)v)->value;
-			else if (v->Type() == AST_BOOL)
+			else if (v->type == AST_BOOL)
 				enumValue = ((BoolExpr *)v)->value;
-			else if (v->Type() == AST_STR)
+			else if (v->type == AST_STR)
 				enumValue = new StrObject(((StrExpr *)v)->value);
 			else
 				ASSERT(L"Enum value only integer num,floating point num,boolean or string is available")
@@ -253,7 +253,7 @@ namespace lws
 
 	void Compiler::CompileStmt(Stmt *stmt, int64_t &breakStmtAddress, int64_t &continueStmtAddress)
 	{
-		switch (stmt->Type())
+		switch (stmt->type)
 		{
 		case AST_IF:
 			CompileIfStmt((IfStmt *)stmt, breakStmtAddress, continueStmtAddress);
@@ -397,7 +397,7 @@ namespace lws
 
 	void Compiler::CompileExpr(Expr *expr, const RWState &state, int8_t paramCount)
 	{
-		switch (expr->Type())
+		switch (expr->type)
 		{
 		case AST_INFIX:
 			CompileInfixExpr((InfixExpr *)expr);
@@ -558,7 +558,7 @@ namespace lws
 			Emit(OP_MINUS);
 		else if (expr->op == L"++")
 		{
-			while (expr->right->Type() == AST_PREFIX && ((PrefixExpr *)expr->right)->op == L"++" || ((PrefixExpr *)expr->right)->op == L"--")
+			while (expr->right->type == AST_PREFIX && ((PrefixExpr *)expr->right)->op == L"++" || ((PrefixExpr *)expr->right)->op == L"--")
 				expr = (PrefixExpr *)expr->right;
 			EmitConstant((int64_t)1);
 			Emit(OP_ADD);
@@ -566,7 +566,7 @@ namespace lws
 		}
 		else if (expr->op == L"--")
 		{
-			while (expr->right->Type() == AST_PREFIX && ((PrefixExpr *)expr->right)->op == L"++" || ((PrefixExpr *)expr->right)->op == L"--")
+			while (expr->right->type == AST_PREFIX && ((PrefixExpr *)expr->right)->op == L"++" || ((PrefixExpr *)expr->right)->op == L"--")
 				expr = (PrefixExpr *)expr->right;
 			EmitConstant((int64_t)1);
 			Emit(OP_SUB);
@@ -773,7 +773,7 @@ namespace lws
 	void Compiler::CompileRefExpr(RefExpr *expr)
 	{
 		Symbol symbol;
-		if (expr->refExpr->Type() == AST_INDEX)
+		if (expr->refExpr->type == AST_INDEX)
 		{
 			CompileExpr(((IndexExpr *)expr->refExpr)->index);
 			symbol = mSymbolTable->Resolve(((IndexExpr *)expr->refExpr)->ds->Stringify());
@@ -968,7 +968,7 @@ namespace lws
 		if (!astNode) // check astnode is nullptr
 			return {};
 
-		switch (astNode->Type())
+		switch (astNode->type)
 		{
 		case AST_BREAK:
 		case AST_CONTINUE:

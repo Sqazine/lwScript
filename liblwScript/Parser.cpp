@@ -301,7 +301,7 @@ namespace lws
 		{
 			funcStmt->type = FunctionType::CLASS_CLOSURE;
 			if (mCurClassInfo->name == funcStmt->name->literal)
-				funcStmt->type=FunctionType::CLASS_CONSTRUCTOR;
+				funcStmt->type = FunctionType::CLASS_CONSTRUCTOR;
 		}
 
 		Consume(TOKEN_LPAREN, L"Expect '(' after 'fn' keyword");
@@ -357,11 +357,11 @@ namespace lws
 			else if (IsMatchCurTokenAndStepOnce(TOKEN_FUNCTION))
 			{
 				auto fn = (FunctionStmt *)ParseFunctionDeclaration();
-				if(fn->name->literal==classStmt->name)
+				if (fn->name->literal == classStmt->name)
 					ASSERT(L"The class name conflicts with the class member function name");
 				classStmt->fnStmts.emplace_back(fn);
 			}
-			else if (GetCurToken().literal == classStmt->name) //constructor
+			else if (GetCurToken().literal == classStmt->name) // constructor
 			{
 				auto fn = (FunctionStmt *)ParseFunctionDeclaration();
 				classStmt->constructors.emplace_back(fn);
@@ -774,7 +774,7 @@ namespace lws
 
 		auto callee = ParseExpr();
 
-		if (callee->Type() != AST_CALL)
+		if (callee->type != AST_CALL)
 			ASSERT(L"Not a valid new expr,call expr is is necessary followed 'new' keyword.");
 
 		newExpr->callee = (CallExpr *)callee;

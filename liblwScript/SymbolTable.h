@@ -27,7 +27,7 @@ namespace lws
         uint8_t index = 0;
         int8_t scopeDepth = -1;
         int8_t paramCount = -1;
-        UpValue upvalue; //available only while type is SYMBOL_UPVALUE
+        UpValue upvalue; // available only while type is SYMBOL_UPVALUE
         bool isCaptured = false;
     };
     class SymbolTable
@@ -46,8 +46,8 @@ namespace lws
         uint8_t mLocalSymbolCount;
         std::array<UpValue, UINT8_COUNT> mUpValues;
         int32_t mUpValueCount;
-        uint8_t mScopeDepth; //Depth of scope nesting(related to code {} scope)
-        uint8_t mTableDepth; //Depth of symbol table nesting(related to symboltable's enclosing)
+        uint8_t mScopeDepth; // Depth of scope nesting(related to code {} scope)
+        uint8_t mTableDepth; // Depth of symbol table nesting(related to symboltable's enclosing)
         SymbolTable *enclosing;
 
     private:
