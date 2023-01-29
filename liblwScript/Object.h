@@ -7,17 +7,17 @@
 #include "Chunk.h"
 namespace lws
 {
-#define IS_STR_OBJ(obj) (obj->Type() == OBJECT_STR)
-#define IS_ARRAY_OBJ(obj) (obj->Type() == OBJECT_ARRAY)
-#define IS_TABLE_OBJ(obj) (obj->Type() == OBJECT_TABLE)
-#define IS_FUNCTION_OBJ(obj) (obj->Type() == OBJECT_FUNCTION)
-#define IS_UPVALUE_OBJ(obj) (obj->Type() == OBJECT_UPVALUE)
-#define IS_CLOSURE_OBJ(obj) (obj->Type() == OBJECT_CLOSURE)
-#define IS_NATIVE_FUNCTION_OBJ(obj) (obj->Type() == OBJECT_NATIVE_FUNCTION)
-#define IS_REF_OBJ(obj) (obj->Type() == OBJECT_REF)
-#define IS_CLASS_OBJ(obj) (obj->Type() == OBJECT_CLASS)
-#define IS_CLASS_CLOSURE_BIND_OBJ(obj) (obj->Type() == OBJECT_CLASS_CLOSURE_BIND)
-#define IS_ENUM_OBJ(obj) (obj->Type() == OBJECT_ENUM)
+#define IS_STR_OBJ(obj) (obj->type == OBJECT_STR)
+#define IS_ARRAY_OBJ(obj) (obj->type == OBJECT_ARRAY)
+#define IS_TABLE_OBJ(obj) (obj->type == OBJECT_TABLE)
+#define IS_FUNCTION_OBJ(obj) (obj->type == OBJECT_FUNCTION)
+#define IS_UPVALUE_OBJ(obj) (obj->type == OBJECT_UPVALUE)
+#define IS_CLOSURE_OBJ(obj) (obj->type == OBJECT_CLOSURE)
+#define IS_NATIVE_FUNCTION_OBJ(obj) (obj->type == OBJECT_NATIVE_FUNCTION)
+#define IS_REF_OBJ(obj) (obj->type == OBJECT_REF)
+#define IS_CLASS_OBJ(obj) (obj->type == OBJECT_CLASS)
+#define IS_CLASS_CLOSURE_BIND_OBJ(obj) (obj->type == OBJECT_CLASS_CLOSURE_BIND)
+#define IS_ENUM_OBJ(obj) (obj->type == OBJECT_ENUM)
 
 #define TO_STR_OBJ(obj) ((lws::StrObject *)obj)
 #define TO_ARRAY_OBJ(obj) ((lws::ArrayObject *)obj)
@@ -31,11 +31,11 @@ namespace lws
 #define TO_CLASS_CLOSURE_BIND_OBJ(obj) ((lws::ClassClosureBindObject *)obj)
 #define TO_ENUM_OBJ(obj) ((lws::EnumObject *)obj)
 
-#define IS_NULL_VALUE(v) (v.Type() == VALUE_NULL)
-#define IS_INT_VALUE(v) (v.Type() == VALUE_INT)
-#define IS_REAL_VALUE(v) (v.Type() == VALUE_REAL)
-#define IS_BOOL_VALUE(v) (v.Type() == VALUE_BOOL)
-#define IS_OBJECT_VALUE(v) (v.Type() == VALUE_OBJECT)
+#define IS_NULL_VALUE(v) (v.type == VALUE_NULL)
+#define IS_INT_VALUE(v) (v.type == VALUE_INT)
+#define IS_REAL_VALUE(v) (v.type == VALUE_REAL)
+#define IS_BOOL_VALUE(v) (v.type == VALUE_BOOL)
+#define IS_OBJECT_VALUE(v) (v.type == VALUE_OBJECT)
 #define IS_STR_VALUE(v) (IS_OBJECT_VALUE(v) && IS_STR_OBJ(v.object))
 #define IS_ARRAY_VALUE(v) (IS_OBJECT_VALUE(v) && IS_ARRAY_OBJ(v.object))
 #define IS_TABLE_VALUE(v) (IS_OBJECT_VALUE(v) && IS_TABLE_OBJ(v.object))
@@ -81,17 +81,17 @@ namespace lws
 
     struct Object
     {
-        Object();
+        Object(ObjectType type);
         virtual ~Object();
 
         virtual std::wstring Stringify(bool outputOpCodeIfExists = false) const = 0;
-        virtual ObjectType Type() const = 0;
         void Mark(class VM *vm);
         void UnMark();
         virtual void Blacken(class VM *vm);
         virtual bool IsEqualTo(Object *other) = 0;
         virtual Object *Clone() const = 0;
 
+        const ObjectType type;
         bool marked;
         Object *next;
     };
@@ -102,7 +102,6 @@ namespace lws
         ~StrObject();
 
         std::wstring Stringify(bool outputOpCodeIfExists = false) const override;
-        ObjectType Type() const override;
         bool IsEqualTo(Object *other) override;
         Object *Clone() const override;
 
@@ -116,7 +115,6 @@ namespace lws
         ~ArrayObject();
 
         std::wstring Stringify(bool outputOpCodeIfExists = false) const override;
-        ObjectType Type() const override;
         void Blacken(class VM *vm) override;
         bool IsEqualTo(Object *other) override;
         Object *Clone() const override;
@@ -130,7 +128,6 @@ namespace lws
     };
 
     typedef std::unordered_map<Value, Value, ValueHash> ValueUnorderedMap;
-
     struct TableObject : public Object
     {
         TableObject();
@@ -138,7 +135,7 @@ namespace lws
         ~TableObject();
 
         std::wstring Stringify(bool outputOpCodeIfExists = false) const override;
-        ObjectType Type() const override;
+       
         void Blacken(class VM *vm) override;
         bool IsEqualTo(Object *other) override;
         Object *Clone() const override;
@@ -153,7 +150,7 @@ namespace lws
         ~FunctionObject();
 
         std::wstring Stringify(bool outputOpCodeIfExists = false) const override;
-        ObjectType Type() const override;
+       
         void Blacken(class VM *vm) override;
         bool IsEqualTo(Object *other) override;
         Object *Clone() const override;
@@ -171,7 +168,7 @@ namespace lws
         ~UpValueObject();
 
         std::wstring Stringify(bool outputOpCodeIfExists = false) const override;
-        ObjectType Type() const override;
+       
         void Blacken(class VM *vm) override;
         bool IsEqualTo(Object *other) override;
         Object *Clone() const override;
@@ -188,7 +185,7 @@ namespace lws
         ~ClosureObject();
 
         std::wstring Stringify(bool outputOpCodeIfExists = false) const override;
-        ObjectType Type() const override;
+       
         void Blacken(class VM *vm) override;
         bool IsEqualTo(Object *other) override;
         Object *Clone() const override;
@@ -206,7 +203,7 @@ namespace lws
         ~NativeFunctionObject();
 
         std::wstring Stringify(bool outputOpCodeIfExists = false) const override;
-        ObjectType Type() const override;
+       
         bool IsEqualTo(Object *other) override;
         Object *Clone() const override;
 
@@ -219,7 +216,7 @@ namespace lws
         ~RefObject();
 
         std::wstring Stringify(bool outputOpCodeIfExists = false) const override;
-        ObjectType Type() const override;
+       
         bool IsEqualTo(Object *other) override;
         Object *Clone() const override;
 
@@ -233,7 +230,7 @@ namespace lws
         ~ClassObject();
 
         std::wstring Stringify(bool outputOpCodeIfExists = false) const override;
-        ObjectType Type() const override;
+       
         void Blacken(class VM *vm) override;
         bool IsEqualTo(Object *other) override;
         Object *Clone() const override;
@@ -254,7 +251,7 @@ namespace lws
         ~ClassClosureBindObject();
 
         std::wstring Stringify(bool outputOpCodeIfExists = false) const override;
-        ObjectType Type() const override;
+       
         void Blacken(class VM *vm) override;
         bool IsEqualTo(Object *other) override;
         Object *Clone() const override;
@@ -270,7 +267,7 @@ namespace lws
         ~EnumObject();
 
         std::wstring Stringify(bool outputOpCodeIfExists = false) const override;
-        ObjectType Type() const override;
+       
         void Blacken(class VM *vm) override;
         bool IsEqualTo(Object *other) override;
         Object *Clone() const override;

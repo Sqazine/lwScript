@@ -879,7 +879,7 @@ namespace lws
 			value.object->next = mObjectChain;
 			mObjectChain = value.object;
 #ifdef GC_DEBUG
-			std::cout << (void *)value.object << " has been add to gc record chain " << objBytes << " for " << value.object->Type() << std::endl;
+			std::cout << (void *)value.object << " has been add to gc record chain " << objBytes << " for " << value.object->type << std::endl;
 #endif
 		}
 	}

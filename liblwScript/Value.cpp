@@ -30,10 +30,6 @@ namespace lws
     {
     }
 
-    ValueType Value::Type() const
-    {
-        return type;
-    }
     std::wstring Value::Stringify(bool outputOpCodeIfExists) const
     {
         switch (type)
