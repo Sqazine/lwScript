@@ -397,6 +397,10 @@ namespace lws
 					if (!IS_INT_VALUE(idxValue))
 						ASSERT("Invalid idx for array,only integer is available.")
 					auto intIdx = TO_INT_VALUE(idxValue);
+
+					if (intIdx < 0)
+						intIdx = (int64_t)array->elements.size() + intIdx;
+
 					if (intIdx < 0 || intIdx >= (int64_t)array->elements.size())
 						ASSERT("Idx out of range.")
 					Push(array->elements[intIdx]);
@@ -406,7 +410,12 @@ namespace lws
 					auto str = TO_STR_VALUE(dsValue);
 					if (!IS_INT_VALUE(idxValue))
 						ASSERT("Invalid idx for array,only integer is available.")
+
 					auto intIdx = TO_INT_VALUE(idxValue);
+
+					if (intIdx < 0)
+						intIdx = (int64_t)str.size() + intIdx;
+
 					if (intIdx < 0 || intIdx >= (int64_t)str.size())
 						ASSERT("Idx out of range.")
 					Push(CreateObject<StrObject>(str.substr(intIdx, 1)));
@@ -435,6 +444,10 @@ namespace lws
 					if (!IS_INT_VALUE(idxValue))
 						ASSERT(L"Invalid idx for array,only integer is available.")
 					auto intIdx = TO_INT_VALUE(idxValue);
+
+						if (intIdx < 0 || intIdx >= (int64_t)array->elements.size())
+						ASSERT("Idx out of range.")
+
 					if (intIdx < 0 || intIdx >= (int64_t)array->elements.size())
 						ASSERT(L"Idx out of range.")
 					array->elements[intIdx] = newValue;
@@ -444,6 +457,7 @@ namespace lws
 					auto str = TO_STR_VALUE(dsValue);
 					if (!IS_INT_VALUE(idxValue))
 						ASSERT(L"Invalid idx for array,only integer is available.")
+						
 					auto intIdx = TO_INT_VALUE(idxValue);
 					if (intIdx < 0 || intIdx >= (int64_t)str.size())
 						ASSERT("Idx out of range.")
@@ -512,12 +526,18 @@ namespace lws
 				}
 				else if (IS_ARRAY_VALUE(mGlobalVariables[index]))
 				{
+					auto array = TO_ARRAY_VALUE(mGlobalVariables[index]);
+
 					if (!IS_INT_VALUE(idxValue))
 						ASSERT(L"Invalid idx for array,only integer is available.")
 					auto intIdx = TO_INT_VALUE(idxValue);
-					if (intIdx < 0 || intIdx >= TO_ARRAY_VALUE(mGlobalVariables[index])->elements.size())
+
+					if (intIdx < 0)
+						intIdx = (int64_t)array->elements.size() + intIdx;
+
+					if (intIdx < 0 || intIdx >= array->elements.size())
 						ASSERT(L"Idx out of range.")
-					Push(CreateObject<RefObject>(&(TO_ARRAY_VALUE(mGlobalVariables[index])->elements[intIdx])));
+					Push(CreateObject<RefObject>(&(array->elements[intIdx])));
 				}
 				else
 					ASSERT(L"Invalid indexed reference type:" + mGlobalVariables[index].Stringify() + L" not a table or array value.")
@@ -534,12 +554,18 @@ namespace lws
 				}
 				else if (IS_ARRAY_VALUE((*v)))
 				{
+					auto array = TO_ARRAY_VALUE((*v));
+
 					if (!IS_INT_VALUE(idxValue))
 						ASSERT(L"Invalid idx for array,only integer is available.")
 					auto intIdx = TO_INT_VALUE(idxValue);
-					if (intIdx < 0 || intIdx >= TO_ARRAY_VALUE((*v))->elements.size())
+
+					if (intIdx < 0)
+						intIdx = (int64_t)array->elements.size() + intIdx;
+
+					if (intIdx < 0 || intIdx >= array->elements.size())
 						ASSERT(L"Idx out of range.")
-					Push(CreateObject<RefObject>(&(TO_ARRAY_VALUE((*v)))->elements[intIdx]));
+					Push(CreateObject<RefObject>(&array->elements[intIdx]));
 				}
 				else
 					ASSERT(L"Invalid indexed reference type:" + v->Stringify() + L" not a table or array value.")
@@ -556,12 +582,17 @@ namespace lws
 				}
 				else if (IS_ARRAY_VALUE((*v)))
 				{
+					auto array = TO_ARRAY_VALUE((*v));
 					if (!IS_INT_VALUE(idxValue))
 						ASSERT(L"Invalid idx for array,only integer is available.")
 					auto intIdx = TO_INT_VALUE(idxValue);
-					if (intIdx < 0 || intIdx >= TO_ARRAY_VALUE((*v))->elements.size())
+
+					if (intIdx < 0)
+						intIdx = (int64_t)array->elements.size() + intIdx;
+
+					if (intIdx < 0 || intIdx >= array->elements.size())
 						ASSERT(L"Idx out of range.")
-					Push(CreateObject<RefObject>(&(TO_ARRAY_VALUE((*v)))->elements[intIdx]));
+					Push(CreateObject<RefObject>(&array->elements[intIdx]));
 				}
 				else
 					ASSERT(L"Invalid indexed reference type:" + v->Stringify() + L" not a table or array value.")
