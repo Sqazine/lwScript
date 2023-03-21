@@ -16,3 +16,13 @@ switch(a)
     default:
         io.println("{}",10);//10
 }
+
+let b=10;
+
+switch(b)
+{
+    10,11:
+        io.println("{}",b);
+    default:
+        io.println(0);
+}

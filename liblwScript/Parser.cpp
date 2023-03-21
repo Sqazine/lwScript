@@ -669,7 +669,9 @@ namespace lws
 		Consume(TOKEN_RPAREN, L"Expect ')' after switch's expression.");
 		Consume(TOKEN_LBRACE, L"Expect '{' after 'switch' keyword.");
 
-		std::vector<std::pair<Expr *, ScopeStmt *>> items;
+		using Item = std::pair<std::vector<Expr *>, ScopeStmt *>;
+
+		std::vector<Item> items;
 		ScopeStmt *defaultScopeStmt = nullptr;
 		while (!IsMatchCurToken(TOKEN_RBRACE))
 		{
@@ -690,15 +692,20 @@ namespace lws
 			}
 			else
 			{
-				std::pair<Expr *, ScopeStmt *> item;
+				Item item;
 
-				auto valueCompareExpr = ParseExpr();
+				std::vector<Expr *> conditions;
+				do
+				{
+					auto valueCompareExpr = ParseExpr();
+					auto caseCondition = new InfixExpr(L"==", switchExpr, valueCompareExpr);
+					caseCondition->line = GetCurToken().line;
+					caseCondition->column = GetCurToken().column;
+					conditions.emplace_back(caseCondition);
+				} while (IsMatchCurTokenAndStepOnce(TOKEN_COMMA));
 				Consume(TOKEN_COLON, L"Expect ':' after condition expr.");
 
-				item.first = new InfixExpr(L"==", switchExpr, valueCompareExpr);
-				item.first->line = GetCurToken().line;
-				item.first->column = GetCurToken().column;
-
+				item.first = conditions;
 				item.second = new ScopeStmt();
 				item.second->line = GetCurToken().line;
 				item.second->column = GetCurToken().column;
@@ -725,7 +732,15 @@ namespace lws
 			auto loopIfStmt = ifStmt;
 			for (size_t i = 0; i < items.size(); ++i)
 			{
-				loopIfStmt->condition = items[i].first;
+				if (items[i].first.size() == 1)
+					loopIfStmt->condition = items[i].first[0];
+				else
+				{
+					Expr *condition = items[i].first[0];
+					for (size_t j = 1; j < items[i].first.size(); ++j)
+						condition = new InfixExpr(L"||", condition, items[i].first[j]);
+					loopIfStmt->condition = condition;
+				}
 				loopIfStmt->thenBranch = items[i].second;
 				if (i + 1 < items.size())
 				{
@@ -802,17 +817,19 @@ namespace lws
 
 	Expr *Parser::ParseMatchExpr()
 	{
-		std::vector<std::pair<Expr *, Expr *>> items;
 		Expr *defaultBranch = nullptr;
 
 		Consume(TOKEN_MATCH, L"Expect 'match' keyword.");
 		Consume(TOKEN_LPAREN, L"Expect '(' after 'match' keyword.");
-		auto condition = ParseExpr();
-		condition->column = GetCurToken().column;
-		condition->line = GetCurToken().line;
+		auto judgeExpr = ParseExpr();
+		judgeExpr->column = GetCurToken().column;
+		judgeExpr->line = GetCurToken().line;
 		Consume(TOKEN_RPAREN, L"Expect ')' after match's expression.");
 		Consume(TOKEN_LBRACE, L"Expect '{' after 'match' keyword.");
 
+		using Item = std::pair<std::vector<Expr *>, Expr *>;
+
+		std::vector<Item> items;
 		bool hasDefaultBranch = false;
 		if (!IsMatchCurToken(TOKEN_RBRACE))
 		{
@@ -830,14 +847,21 @@ namespace lws
 				}
 				else
 				{
-					std::pair<Expr *, Expr *> item;
+					Item item;
 
-					auto valueCompareExpr = ParseExpr();
+					std::vector<Expr *> conditions;
+
+					do
+					{
+						auto valueCompareExpr = ParseExpr();
+						auto caseCondition = new InfixExpr(L"==", judgeExpr, valueCompareExpr);
+						caseCondition->line = GetCurToken().line;
+						caseCondition->column = GetCurToken().column;
+						conditions.emplace_back(caseCondition);
+					} while (IsMatchCurTokenAndStepOnce(TOKEN_COMMA));
 					Consume(TOKEN_COLON, L"Expect ':' after match item's condition expr.");
 
-					item.first = new InfixExpr(L"==", condition, valueCompareExpr);
-					item.first->line = GetCurToken().line;
-					item.first->column = GetCurToken().column;
+					item.first = conditions;
 					item.second = ParseExpr();
 					item.second->line = GetCurToken().line;
 					item.second->column = GetCurToken().column;
@@ -853,7 +877,16 @@ namespace lws
 		auto loopConditionExpr = conditionExpr;
 		for (int32_t i = 0; i < items.size(); ++i)
 		{
-			loopConditionExpr->condition = items[i].first;
+			if (items[i].first.size() == 1)
+				loopConditionExpr->condition = items[i].first[0];
+			else
+			{
+				Expr *fullCondition = items[i].first[0];
+				for (size_t j = 1; j < items[i].first.size(); ++j)
+					fullCondition = new InfixExpr(L"||", fullCondition, items[i].first[j]);
+				loopConditionExpr->condition = fullCondition;
+			}
+
 			loopConditionExpr->trueBranch = items[i].second;
 			if (i + 1 < items.size())
 			{

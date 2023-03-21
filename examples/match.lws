@@ -7,3 +7,13 @@ let b=match(a)
 };
 
 io.println(b);//100
+
+let c=match(a)
+{
+    3,10:
+        100,
+    default:
+        0
+};
+
+io.println(c);
