@@ -94,6 +94,7 @@ namespace lws
 		Expr *ParseThisExpr();
 		Expr *ParseBaseExpr();
 		Expr *ParseMatchExpr();
+		Expr *ParseBlockExpr();
 		Expr *ParseInfixExpr(Expr *prefixExpr);
 		Expr *ParsePostfixExpr(Expr *prefixExpr);
 		Expr *ParseConditionExpr(Expr *prefixExpr);
@@ -122,11 +123,13 @@ namespace lws
 
 		ClassInfo *mCurClassInfo;
 
-		uint32_t loopDepth; //record cur stmt or expr is in 'for' or 'while' loop
+		uint32_t mLoopDepth; //record cur stmt or expr is in 'for' or 'while' loop
+		std::vector<TokenType> mSkippingConsumeTokenTypeStack;//skip token while call consume function
 
 		int64_t mCurPos;
 		AstStmts *mStmts;
 		std::vector<Token> mTokens;
+
 
 		static std::unordered_map<TokenType, PrefixFn> mPrefixFunctions;
 		static std::unordered_map<TokenType, InfixFn> mInfixFunctions;

@@ -408,6 +408,28 @@ namespace lws
 		return L"base." + callMember->Stringify();
 	}
 
+	BlockExpr::BlockExpr()
+		: Expr(AST_BLOCK)
+	{
+	}
+	BlockExpr::BlockExpr(const std::vector<Stmt *> &stmts, Expr *endExpr)
+		: Expr(AST_BLOCK), stmts(stmts), endExpr(endExpr)
+	{
+	}
+	BlockExpr::~BlockExpr()
+	{
+	}
+
+	std::wstring BlockExpr::Stringify()
+	{
+		std::wstring result = L"({";
+		for (const auto &stmt : stmts)
+			result += stmt->Stringify();
+		result += endExpr->Stringify();
+		result += L"})";
+		return result;
+	}
+
 	//----------------------Statements-----------------------------
 
 	ExprStmt::ExprStmt()

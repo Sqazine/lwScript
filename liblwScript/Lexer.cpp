@@ -91,7 +91,12 @@ namespace lws
 		}
 
 		if (c == L"(")
-			AddToken(TOKEN_LPAREN);
+		{
+			if (IsMatchCurCharAndStepOnce(L'{'))
+				AddToken(TOKEN_LPAREN_LBRACE);
+			else
+				AddToken(TOKEN_LPAREN);
+		}
 		else if (c == L")")
 			AddToken(TOKEN_RPAREN);
 		else if (c == L"[")
@@ -101,7 +106,12 @@ namespace lws
 		else if (c == L"{")
 			AddToken(TOKEN_LBRACE);
 		else if (c == L"}")
-			AddToken(TOKEN_RBRACE);
+		{
+			if (IsMatchCurCharAndStepOnce(L')'))
+				AddToken(TOKEN_RBRACE_RPAREN);
+			else
+				AddToken(TOKEN_RBRACE);
+		}
 		else if (c == L".")
 			AddToken(TOKEN_DOT);
 		else if (c == L",")

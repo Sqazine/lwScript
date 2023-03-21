@@ -34,6 +34,8 @@ namespace lws
 		TOKEN_TILDE,				 // ~
 		TOKEN_QUESTION,				 // ?
 		TOKEN_BANG,					 // !
+		TOKEN_LPAREN_LBRACE,		 // ({
+		TOKEN_RBRACE_RPAREN,		 // })
 		TOKEN_LESS_LESS,			 // <<
 		TOKEN_GREATER_GREATER,		 // >>
 		TOKEN_PLUS_PLUS,			 // ++

@@ -1,12 +1,18 @@
-let a=3;
+let a=2;
 let b=match(a)
 {
-    1:10,
-    default:100,
-    2:1000
+    1:({
+        10
+    }),
+    default:
+        100,
+    2:({
+        a++;
+        a
+    })
 };
 
-io.println(b);//100
+io.println(b);//3
 
 let c=match(a)
 {
@@ -16,4 +22,4 @@ let c=match(a)
         0
 };
 
-io.println(c);
+io.println(c);//100

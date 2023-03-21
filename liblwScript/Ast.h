@@ -30,6 +30,7 @@ namespace lws
 		AST_NEW,
 		AST_THIS,
 		AST_BASE,
+		AST_BLOCK,
 		// stmt
 		AST_LET,
 		AST_CONST,
@@ -300,6 +301,18 @@ namespace lws
 		std::wstring Stringify() override;
 
 		IdentifierExpr *callMember;
+	};
+
+	struct BlockExpr:public Expr
+	{
+		BlockExpr();
+		BlockExpr(const std::vector<struct Stmt*>& stmts,Expr* endExpr);
+		~BlockExpr();
+
+		std::wstring Stringify() override;
+
+		std::vector<struct Stmt*> stmts;
+		Expr* endExpr;
 	};
 
 	struct Stmt : public AstNode

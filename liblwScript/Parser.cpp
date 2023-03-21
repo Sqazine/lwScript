@@ -93,6 +93,7 @@ namespace lws
 			{TOKEN_THIS, &Parser::ParseThisExpr},
 			{TOKEN_BASE, &Parser::ParseBaseExpr},
 			{TOKEN_MATCH, &Parser::ParseMatchExpr},
+			{TOKEN_LPAREN_LBRACE, &Parser::ParseBlockExpr},
 	};
 
 	std::unordered_map<TokenType, InfixFn> Parser::mInfixFunctions =
@@ -168,7 +169,7 @@ namespace lws
 	void Parser::ResetStatus()
 	{
 		mCurPos = 0;
-		loopDepth = 0;
+		mLoopDepth = 0;
 		mCurClassInfo = nullptr;
 
 		if (mStmts != nullptr)
@@ -240,7 +241,7 @@ namespace lws
 			variables[name] = {.type = type, .value = value};
 		}
 
-		Consume(TOKEN_SEMICOLON, L"Expect ';' after let stmt.");
+		Consume(TOKEN_SEMICOLON, L"Expect ';' after let declaration.");
 
 		letStmt->variables = variables;
 
@@ -283,7 +284,7 @@ namespace lws
 			consts[name] = {.type = type, .value = value};
 		}
 
-		Consume(TOKEN_SEMICOLON, L"Expect ';' after const stmt.");
+		Consume(TOKEN_SEMICOLON, L"Expect ';' after const declaration.");
 
 		constStmt->consts = consts;
 
@@ -518,7 +519,7 @@ namespace lws
 
 	Stmt *Parser::ParseWhileStmt()
 	{
-		loopDepth++;
+		mLoopDepth++;
 
 		auto whileStmt = new WhileStmt();
 		whileStmt->line = GetCurToken().line;
@@ -539,7 +540,7 @@ namespace lws
 			whileStmt->body = scopeStmt;
 		}
 
-		loopDepth--;
+		mLoopDepth--;
 
 		return whileStmt;
 	}
@@ -568,7 +569,7 @@ namespace lws
 		//		}
 		// }
 
-		loopDepth++;
+		mLoopDepth++;
 
 		auto scopeStmt = new ScopeStmt();
 		scopeStmt->line = GetCurToken().line;
@@ -626,13 +627,13 @@ namespace lws
 			incrementStmts.emplace_back(new ExprStmt(expr));
 		whileStmt->increment = new ScopeStmt(incrementStmts);
 		scopeStmt->stmts.emplace_back(whileStmt);
-		loopDepth--;
+		mLoopDepth--;
 		return scopeStmt;
 	}
 
 	Stmt *Parser::ParseBreakStmt()
 	{
-		if (loopDepth == 0)
+		if (mLoopDepth == 0)
 			ASSERT(L"Cannot use 'break' stmt outside of 'for' or 'while' loop.")
 
 		auto breakStmt = new BreakStmt();
@@ -645,7 +646,7 @@ namespace lws
 
 	Stmt *Parser::ParseContinueStmt()
 	{
-		if (loopDepth == 0)
+		if (mLoopDepth == 0)
 			ASSERT(L"Cannot use 'break' stmt outside of 'for' or 'while' loop.")
 		auto continueStmt = new ContinueStmt();
 		continueStmt->line = GetCurToken().line;
@@ -899,6 +900,38 @@ namespace lws
 			loopConditionExpr->falseBranch = defaultBranch;
 
 		return conditionExpr;
+	}
+
+	Expr *Parser::ParseBlockExpr()
+	{
+		Consume(TOKEN_LPAREN_LBRACE, L"Expect '({'.");
+
+		mSkippingConsumeTokenTypeStack.emplace_back(TOKEN_SEMICOLON);
+
+		auto blockExpr = new BlockExpr();
+
+		std::vector<struct Stmt *> stmts;
+		do
+		{
+			if(IsMatchCurToken(TOKEN_RBRACE_RPAREN))
+				ASSERT("Expr required at the end of block expression.");
+			stmts.emplace_back(ParseDeclaration());
+		} while (IsMatchCurTokenAndStepOnce(TOKEN_SEMICOLON));
+
+		mSkippingConsumeTokenTypeStack.pop_back();
+
+		if(stmts.back()->type!=AST_EXPR)
+			ASSERT("Expr required at the end of block expression.");
+
+		auto expr=((ExprStmt*)stmts.back())->expr;
+		stmts.pop_back();
+
+		blockExpr->stmts=stmts;
+		blockExpr->endExpr=expr;
+
+		Consume(TOKEN_RBRACE_RPAREN, L"Expect '})'.");
+
+		return blockExpr;
 	}
 
 	Expr *Parser::ParseExpr(Precedence precedence)
@@ -1234,21 +1267,30 @@ namespace lws
 
 	Token Parser::Consume(TokenType type, std::wstring_view errMsg)
 	{
-		if (IsMatchCurToken(type))
-			return GetCurTokenAndStepOnce();
-		Token token = GetCurToken();
-		ASSERT(L"[line:" + std::to_wstring(token.line) + L",column:" + std::to_wstring(token.column) + L"]:" + std::wstring(errMsg))
+		if (mSkippingConsumeTokenTypeStack.empty()||type != mSkippingConsumeTokenTypeStack.back())
+		{
+			if (IsMatchCurToken(type))
+				return GetCurTokenAndStepOnce();
+			Token token = GetCurToken();
+			ASSERT(L"[line:" + std::to_wstring(token.line) + L",column:" + std::to_wstring(token.column) + L"]:" + std::wstring(errMsg))
+		}
 		// avoid C++ compiler warning
 		return Token(TOKEN_EOF, L"", -1, -1);
 	}
 
 	Token Parser::Consume(const std::vector<TokenType> &types, std::wstring_view errMsg)
 	{
+		if(!mSkippingConsumeTokenTypeStack.empty())
+			for (const auto &type : types)
+				if (type == mSkippingConsumeTokenTypeStack.back())
+					return Token(TOKEN_EOF, L"", -1, -1);
+
 		for (const auto &type : types)
 			if (IsMatchCurToken(type))
 				return GetCurTokenAndStepOnce();
 		Token token = GetCurToken();
 		ASSERT(L"[" + std::to_wstring(token.line) + L"," + std::to_wstring(token.column) + L"]:" + std::wstring(errMsg))
+
 		// avoid C++ compiler warning
 		return Token(TOKEN_EOF, L"", -1, -1);
 	}

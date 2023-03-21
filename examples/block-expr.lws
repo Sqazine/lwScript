@@ -1,0 +1,7 @@
+let a=({
+    let b=100;
+     b=b+10;
+     b
+});
+
+io.println(a);

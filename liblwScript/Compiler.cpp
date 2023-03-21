@@ -444,6 +444,9 @@ namespace lws
 		case AST_LAMBDA:
 			CompileLambdaExpr((LambdaExpr *)expr);
 			break;
+		case AST_BLOCK:
+			CompileBlockExpr((BlockExpr*)expr);
+			break;
 		case AST_CALL:
 			CompileCallExpr((CallExpr *)expr);
 			break;
@@ -753,6 +756,14 @@ namespace lws
 
 		EmitClosure(function);
 	}
+
+	void Compiler::CompileBlockExpr(BlockExpr *expr)
+	{
+		for (const auto &s : expr->stmts)
+			CompileDeclaration(s);
+		CompileExpr(expr->endExpr);
+	}
+
 	void Compiler::CompileCallExpr(CallExpr *expr)
 	{
 		CompileExpr(expr->callee, RWState::READ, expr->arguments.size());
