@@ -538,6 +538,51 @@ namespace lws
 				Emit(OP_EQUAL);
 				Emit(OP_NOT);
 			}
+			else if (expr->op == L"+=")
+			{
+				Emit(OP_ADD);
+				CompileExpr(expr->left, RWState::WRITE);
+			}
+			else if (expr->op == L"-=")
+			{
+				Emit(OP_SUB);
+				CompileExpr(expr->left, RWState::WRITE);
+			}
+			else if (expr->op == L"*=")
+			{
+				Emit(OP_SUB);
+				CompileExpr(expr->left, RWState::WRITE);
+			}
+			else if (expr->op == L"/=")
+			{
+				Emit(OP_SUB);
+				CompileExpr(expr->left, RWState::WRITE);
+			}
+			else if (expr->op == L"%=")
+			{
+				Emit(OP_MOD);
+				CompileExpr(expr->left, RWState::WRITE);
+			}
+			else if (expr->op == L"&=")
+			{
+				Emit(OP_BIT_AND);
+				CompileExpr(expr->left, RWState::WRITE);
+			}
+			else if (expr->op == L"|=")
+			{
+				Emit(OP_BIT_OR);
+				CompileExpr(expr->left, RWState::WRITE);
+			}
+			else if (expr->op == L"<<=")
+			{
+				Emit(OP_BIT_LEFT_SHIFT);
+				CompileExpr(expr->left, RWState::WRITE);
+			}
+			else if (expr->op == L">>=")
+			{
+				Emit(OP_BIT_RIGHT_SHIFT);
+				CompileExpr(expr->left, RWState::WRITE);
+			}
 		}
 	}
 	void Compiler::CompileIntNumExpr(IntNumExpr *expr)
