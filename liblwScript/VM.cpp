@@ -28,8 +28,8 @@ namespace lws
 		mObjectChain = nullptr;
 		mOpenUpValues = nullptr;
 
-		for (int32_t i = 0; i < StdLibraries::Instance().mLibraries.size(); ++i)
-			mGlobalVariables[i] = StdLibraries::Instance().mLibraries[i]->Clone();
+		for (int32_t i = 0; i < LibraryManager::Instance().mStdLibraries.size(); ++i)
+			mGlobalVariables[i] = LibraryManager::Instance().mStdLibraries[i]->Clone();
 	}
 
 	std::vector<Value> VM::Run(FunctionObject *mainFunc)

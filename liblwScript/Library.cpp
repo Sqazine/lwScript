@@ -5,13 +5,13 @@
 #include <iostream>
 namespace lws
 {
-    StdLibraries &StdLibraries::Instance() noexcept
+    LibraryManager &LibraryManager::Instance() noexcept
     {
-        static StdLibraries instance;
+        static LibraryManager instance;
         return instance;
     }
 
-    StdLibraries::StdLibraries()
+    LibraryManager::LibraryManager()
     {
         auto ioClass = new ClassObject(L"io");
         auto dsClass = new ClassObject(L"ds");
@@ -267,19 +267,19 @@ namespace lws
         timeClass->members[L"clock"] = new NativeFunctionObject([](const std::vector<Value> &args) -> Value
                                                                 { return Value((double)clock() / CLOCKS_PER_SEC); });
 
-        mLibraries.emplace_back(ioClass);
-        mLibraries.emplace_back(dsClass);
-        mLibraries.emplace_back(memClass);
-        mLibraries.emplace_back(timeClass);
+        mStdLibraries.emplace_back(ioClass);
+        mStdLibraries.emplace_back(dsClass);
+        mStdLibraries.emplace_back(memClass);
+        mStdLibraries.emplace_back(timeClass);
 
-        mLibraryMap =
+        mStdLibraryMap =
             {
                 L"io",
                 L"ds",
                 L"mem",
                 L"time"};
     }
-    StdLibraries::~StdLibraries()
+    LibraryManager::~LibraryManager()
     {
     }
 }
