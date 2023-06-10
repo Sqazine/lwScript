@@ -378,7 +378,7 @@ namespace lws
 			{
 				auto eCount = READ_INS();
 				auto isAnonymousObj=READ_INS();
-				ValueUnorderedMap elements;
+				DictObject::ValueUnorderedMap elements;
 				for (int64_t i = 0; i < (int64_t)eCount; ++i)
 				{
 					auto key = Pop();

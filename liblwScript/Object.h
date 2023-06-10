@@ -127,14 +127,14 @@ namespace lws
         std::vector<struct Value> elements;
     };
 
-    struct ValueHash
-    {
-        size_t operator()(const Value &v) const;
-    };
-
-    typedef std::unordered_map<Value, Value, ValueHash> ValueUnorderedMap;
     struct DictObject : public Object
     {
+        struct ValueHash
+        {
+            size_t operator()(const Value &v) const;
+        };
+    
+        typedef std::unordered_map<Value, Value, ValueHash> ValueUnorderedMap;
         DictObject();
         DictObject(const ValueUnorderedMap &elements,bool isRepresentAsAnonymousObject=false);
         ~DictObject();

@@ -13,11 +13,9 @@ An OOP Script
 [![Apache-2.0 License][license-shield]][license-url]
 
 ## License
-
 This project is licensed under the Apache-2.0 License,see the details [LICENSE](https://github.com/Sqazine/lwScript/blob/main/LICENSE)
 
 <!-- links -->
-[your-project-path]:Sqazine/lwScript
 [contributors-shield]: https://img.shields.io/github/contributors/Sqazine/lwScript.svg?style=flat-square
 [contributors-url]: https://github.com/Sqazine/lwScript/graphs/contributors
 [forks-shield]: https://img.shields.io/github/forks/Sqazine/lwScript.svg?style=flat-square
