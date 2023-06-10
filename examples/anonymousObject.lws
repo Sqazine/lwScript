@@ -1,0 +1,20 @@
+fn ret()
+{
+    return {
+        name:"test",
+        value:100,
+    };
+}
+
+let r=ret();
+io.println("{},{}",r.name,r.value);
+
+
+let johnScore={
+        name:"John",
+        score:100,
+    };
+
+johnScore.score=60;
+
+io.println("{},{}",johnScore.name,johnScore.score);

@@ -913,21 +913,21 @@ namespace lws
 		std::vector<struct Stmt *> stmts;
 		do
 		{
-			if(IsMatchCurToken(TOKEN_RBRACE_RPAREN))
+			if (IsMatchCurToken(TOKEN_RBRACE_RPAREN))
 				ASSERT("Expr required at the end of block expression.");
 			stmts.emplace_back(ParseDeclaration());
 		} while (IsMatchCurTokenAndStepOnce(TOKEN_SEMICOLON));
 
 		mSkippingConsumeTokenTypeStack.pop_back();
 
-		if(stmts.back()->type!=AST_EXPR)
+		if (stmts.back()->type != AST_EXPR)
 			ASSERT("Expr required at the end of block expression.");
 
-		auto expr=((ExprStmt*)stmts.back())->expr;
+		auto expr = ((ExprStmt *)stmts.back())->expr;
 		stmts.pop_back();
 
-		blockExpr->stmts=stmts;
-		blockExpr->endExpr=expr;
+		blockExpr->stmts = stmts;
+		blockExpr->endExpr = expr;
 
 		Consume(TOKEN_RBRACE_RPAREN, L"Expect '})'.");
 
@@ -1053,6 +1053,9 @@ namespace lws
 		{
 			do
 			{
+				if (IsMatchCurToken(TOKEN_RBRACKET))
+					break;
+
 				arrayExpr->elements.emplace_back(ParseExpr());
 			} while (IsMatchCurTokenAndStepOnce(TOKEN_COMMA));
 		}
@@ -1070,19 +1073,46 @@ namespace lws
 		Consume(TOKEN_LBRACE, L"Expect '{'.");
 
 		std::vector<std::pair<Expr *, Expr *>> elements;
-
 		if (!IsMatchCurToken(TOKEN_RBRACE))
 		{
-			do
+			if (IsMatchCurToken(TOKEN_IDENTIFIER)) //represent as an object
 			{
-				Expr *key = ParseExpr();
-				Consume(TOKEN_COLON, L"Expect ':' after table key.");
-				Expr *value = ParseExpr();
-				elements.emplace_back(std::make_pair(key, value));
-			} while (IsMatchCurTokenAndStepOnce(TOKEN_COMMA));
+				do
+				{
+					if (IsMatchCurToken(TOKEN_RBRACE))
+						break;
+
+					std::wstring identifier = Consume(TOKEN_IDENTIFIER, L"Expect identifier name in object").literal;
+					Expr *key = new StrExpr(identifier);
+					Consume(TOKEN_COLON, L"Expect ':' after object's name.");
+					Expr *value = ParseExpr();
+					elements.emplace_back(std::make_pair(key, value));
+				} while (IsMatchCurTokenAndStepOnce(TOKEN_COMMA));
+				tableExpr->elements = elements;
+				tableExpr->isRepresentAsAnonymousObject = true;
+			}
+			else
+			{
+				std::vector<std::pair<Expr *, Expr *>> elements;
+				do
+				{
+					if (IsMatchCurToken(TOKEN_RBRACE))
+						break;
+
+					Expr *key = ParseExpr();
+
+					if (key->type == AST_IDENTIFIER)
+						ASSERT(L"Table's key cannot use identifier.");
+
+					Consume(TOKEN_COLON, L"Expect ':' after table key.");
+					Expr *value = ParseExpr();
+					elements.emplace_back(std::make_pair(key, value));
+				} while (IsMatchCurTokenAndStepOnce(TOKEN_COMMA));
+				tableExpr->elements = elements;
+				tableExpr->isRepresentAsAnonymousObject = false;
+			}
 		}
 		Consume(TOKEN_RBRACE, L"Expect '}' after table.");
-		tableExpr->elements = elements;
 		return tableExpr;
 	}
 
@@ -1267,7 +1297,7 @@ namespace lws
 
 	Token Parser::Consume(TokenType type, std::wstring_view errMsg)
 	{
-		if (mSkippingConsumeTokenTypeStack.empty()||type != mSkippingConsumeTokenTypeStack.back())
+		if (mSkippingConsumeTokenTypeStack.empty() || type != mSkippingConsumeTokenTypeStack.back())
 		{
 			if (IsMatchCurToken(type))
 				return GetCurTokenAndStepOnce();
@@ -1280,7 +1310,7 @@ namespace lws
 
 	Token Parser::Consume(const std::vector<TokenType> &types, std::wstring_view errMsg)
 	{
-		if(!mSkippingConsumeTokenTypeStack.empty())
+		if (!mSkippingConsumeTokenTypeStack.empty())
 			for (const auto &type : types)
 				if (type == mSkippingConsumeTokenTypeStack.back())
 					return Token(TOKEN_EOF, L"", -1, -1);

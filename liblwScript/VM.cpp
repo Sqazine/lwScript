@@ -377,6 +377,7 @@ namespace lws
 			case OP_TABLE:
 			{
 				auto eCount = READ_INS();
+				auto isAnonymousObj=READ_INS();
 				ValueUnorderedMap elements;
 				for (int64_t i = 0; i < (int64_t)eCount; ++i)
 				{
@@ -384,7 +385,7 @@ namespace lws
 					auto value = Pop();
 					elements[key] = value;
 				}
-				Push(CreateObject<TableObject>(elements));
+				Push(CreateObject<TableObject>(elements,isAnonymousObj));
 				break;
 			}
 			case OP_GET_INDEX:
@@ -445,7 +446,7 @@ namespace lws
 						ASSERT(L"Invalid idx for array,only integer is available.")
 					auto intIdx = TO_INT_VALUE(idxValue);
 
-						if (intIdx < 0 || intIdx >= (int64_t)array->elements.size())
+					if (intIdx < 0 || intIdx >= (int64_t)array->elements.size())
 						ASSERT("Idx out of range.")
 
 					if (intIdx < 0 || intIdx >= (int64_t)array->elements.size())
@@ -457,7 +458,7 @@ namespace lws
 					auto str = TO_STR_VALUE(dsValue);
 					if (!IS_INT_VALUE(idxValue))
 						ASSERT(L"Invalid idx for array,only integer is available.")
-						
+
 					auto intIdx = TO_INT_VALUE(idxValue);
 					if (intIdx < 0 || intIdx >= (int64_t)str.size())
 						ASSERT("Idx out of range.")
@@ -713,10 +714,10 @@ namespace lws
 				if (IS_REF_VALUE(peekValue))
 					peekValue = *(TO_REF_VALUE(peekValue)->pointer);
 
+				auto propName = TO_STR_VALUE(Pop());
 				if (IS_CLASS_VALUE(peekValue))
 				{
 					ClassObject *klass = TO_CLASS_VALUE(peekValue);
-					auto propName = TO_STR_VALUE(Pop());
 
 					Value member;
 					if (klass->GetMember(propName, member))
@@ -736,7 +737,6 @@ namespace lws
 				else if (IS_ENUM_VALUE(peekValue))
 				{
 					EnumObject *enumObj = TO_ENUM_VALUE(peekValue);
-					auto propName = TO_STR_VALUE(Pop());
 
 					Value member;
 					if (enumObj->GetMember(propName, member))
@@ -748,8 +748,36 @@ namespace lws
 					else
 						ASSERT(L"No member:" + propName + L" in enum object " + enumObj->name)
 				}
+				else if (IS_TABLE_VALUE(peekValue))
+				{
+					TableObject *tableObj = TO_TABLE_VALUE(peekValue);
+
+					if(!tableObj->isRepresentAsAnonymousObject)
+						ASSERT(L"Not a anonymous object.");
+
+					Value member;
+					bool isFound = false;
+					for (const auto &[k, v] : tableObj->elements)
+					{
+						if (IS_STR_VALUE(k))
+						{
+							if (TO_STR_VALUE(k) == propName)
+							{
+								member = v;
+								isFound = true;
+								break;
+							}
+						}
+					}
+
+					if (!isFound)
+						ASSERT(L"No member:'" + propName + L"' in anonymous object.");
+
+					Pop(); // pop table object
+					Push(member);
+				}
 				else
-					ASSERT(L"Invalid call:not a valid class or enum instance:" + peekValue.Stringify())
+					ASSERT(L"Invalid call:not a valid class,enum or anonymous object instance:" + peekValue.Stringify())
 
 				break;
 			}
@@ -776,6 +804,27 @@ namespace lws
 					}
 					else
 						ASSERT(L"No member named:" + propName + L"in class:" + klass->name)
+				}
+				else if (IS_TABLE_VALUE(peekValue))
+				{
+					auto propName = TO_STR_VALUE(Pop());
+					TableObject *tableObj = TO_TABLE_VALUE(peekValue);
+					Pop(); // pop table object
+
+					if(!tableObj->isRepresentAsAnonymousObject)
+						ASSERT(L"Not a anonymous object.");
+
+					for (auto &[k, v] : tableObj->elements)
+					{
+						if (IS_STR_VALUE(k))
+						{
+							if (TO_STR_VALUE(k) == propName)
+							{
+								v=Peek(0);
+								break;
+							}
+						}
+					}	
 				}
 				else if (IS_ENUM_VALUE(peekValue))
 					ASSERT(L"Invalid call:cannot assign value to a enum object member.")

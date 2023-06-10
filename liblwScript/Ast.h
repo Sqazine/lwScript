@@ -152,6 +152,7 @@ namespace lws
 		std::wstring Stringify() override;
 
 		std::vector<std::pair<Expr *, Expr *>> elements;
+		bool isRepresentAsAnonymousObject=false;
 	};
 
 	struct GroupExpr : public Expr

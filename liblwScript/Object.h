@@ -10,6 +10,7 @@ namespace lws
 #define IS_STR_OBJ(obj) (obj->type == OBJECT_STR)
 #define IS_ARRAY_OBJ(obj) (obj->type == OBJECT_ARRAY)
 #define IS_TABLE_OBJ(obj) (obj->type == OBJECT_TABLE)
+#define IS_ANONYMOUS_OBJ(obj) (obj->type == OBJECT_ANONYMOUS)
 #define IS_FUNCTION_OBJ(obj) (obj->type == OBJECT_FUNCTION)
 #define IS_UPVALUE_OBJ(obj) (obj->type == OBJECT_UPVALUE)
 #define IS_CLOSURE_OBJ(obj) (obj->type == OBJECT_CLOSURE)
@@ -22,6 +23,7 @@ namespace lws
 #define TO_STR_OBJ(obj) ((lws::StrObject *)obj)
 #define TO_ARRAY_OBJ(obj) ((lws::ArrayObject *)obj)
 #define TO_TABLE_OBJ(obj) ((lws::TableObject *)obj)
+#define TO_ANONYMOUS_OBJ(obj) ((lws::AnonymousObject *)obj)
 #define TO_FUNCTION_OBJ(obj) ((lws::FunctionObject *)obj)
 #define TO_UPVALUE_OBJ(obj) ((lws::UpValueObject *)obj)
 #define TO_CLOSURE_OBJ(obj) ((lws::ClosureObject *)obj)
@@ -39,6 +41,7 @@ namespace lws
 #define IS_STR_VALUE(v) (IS_OBJECT_VALUE(v) && IS_STR_OBJ(v.object))
 #define IS_ARRAY_VALUE(v) (IS_OBJECT_VALUE(v) && IS_ARRAY_OBJ(v.object))
 #define IS_TABLE_VALUE(v) (IS_OBJECT_VALUE(v) && IS_TABLE_OBJ(v.object))
+#define IS_ANONYMOUS_VALUE(v) (IS_OBJECT_VALUE(v) && IS_ANONYMOUS_OBJ(v.object))
 #define IS_FUNCTION_VALUE(v) (IS_OBJECT_VALUE(v) && IS_FUNCTION_OBJ(v.object))
 #define IS_UPVALUE_VALUE(v) (IS_OBJECT_VALUE(v) && IS_UPVALUE_OBJ(v.object))
 #define IS_CLOSURE_VALUE(v) (IS_OBJECT_VALUE(v) && IS_CLOSURE_OBJ(v.object))
@@ -55,6 +58,7 @@ namespace lws
 #define TO_STR_VALUE(v) (TO_STR_OBJ(v.object)->value)
 #define TO_ARRAY_VALUE(v) (TO_ARRAY_OBJ(v.object))
 #define TO_TABLE_VALUE(v) (TO_TABLE_OBJ(v.object))
+#define TO_ANONYMOUS_VALUE(v) (TO_ANONYMOUS_OBJ(v.object))
 #define TO_FUNCTION_VALUE(v) (TO_FUNCTION_OBJ(v.object))
 #define TO_UPVALUE_VALUE(v) (TO_UPVALUE_OBJ(v.object))
 #define TO_CLOSURE_VALUE(v) (TO_CLOSURE_OBJ(v.object))
@@ -69,6 +73,7 @@ namespace lws
         OBJECT_STR,
         OBJECT_ARRAY,
         OBJECT_TABLE,
+        OBJECT_ANONYMOUS,
         OBJECT_FUNCTION,
         OBJECT_UPVALUE,
         OBJECT_CLOSURE,
@@ -131,16 +136,32 @@ namespace lws
     struct TableObject : public Object
     {
         TableObject();
-        TableObject(const ValueUnorderedMap &elements);
+        TableObject(const ValueUnorderedMap &elements,bool isRepresentAsAnonymousObject=false);
         ~TableObject();
 
         std::wstring Stringify(bool outputOpCodeIfExists = false) const override;
-       
+
         void Blacken(class VM *vm) override;
         bool IsEqualTo(Object *other) override;
         Object *Clone() const override;
 
+        bool isRepresentAsAnonymousObject;
         ValueUnorderedMap elements;
+    };
+
+    struct AnonymousObject : public Object
+    {
+        AnonymousObject();
+        AnonymousObject(const std::vector<std::pair<std::wstring, Value>> &elements);
+        ~AnonymousObject();
+
+        std::wstring Stringify(bool outputOpCodeIfExists = false) const override;
+
+        void Blacken(class VM *vm) override;
+        bool IsEqualTo(Object *other) override;
+        Object *Clone() const override;
+
+        std::vector<std::pair<std::wstring, Value>> elements;
     };
 
     struct FunctionObject : public Object
@@ -150,7 +171,7 @@ namespace lws
         ~FunctionObject();
 
         std::wstring Stringify(bool outputOpCodeIfExists = false) const override;
-       
+
         void Blacken(class VM *vm) override;
         bool IsEqualTo(Object *other) override;
         Object *Clone() const override;
@@ -168,7 +189,7 @@ namespace lws
         ~UpValueObject();
 
         std::wstring Stringify(bool outputOpCodeIfExists = false) const override;
-       
+
         void Blacken(class VM *vm) override;
         bool IsEqualTo(Object *other) override;
         Object *Clone() const override;
@@ -185,7 +206,7 @@ namespace lws
         ~ClosureObject();
 
         std::wstring Stringify(bool outputOpCodeIfExists = false) const override;
-       
+
         void Blacken(class VM *vm) override;
         bool IsEqualTo(Object *other) override;
         Object *Clone() const override;
@@ -203,7 +224,7 @@ namespace lws
         ~NativeFunctionObject();
 
         std::wstring Stringify(bool outputOpCodeIfExists = false) const override;
-       
+
         bool IsEqualTo(Object *other) override;
         Object *Clone() const override;
 
@@ -216,7 +237,7 @@ namespace lws
         ~RefObject();
 
         std::wstring Stringify(bool outputOpCodeIfExists = false) const override;
-       
+
         bool IsEqualTo(Object *other) override;
         Object *Clone() const override;
 
@@ -230,7 +251,7 @@ namespace lws
         ~ClassObject();
 
         std::wstring Stringify(bool outputOpCodeIfExists = false) const override;
-       
+
         void Blacken(class VM *vm) override;
         bool IsEqualTo(Object *other) override;
         Object *Clone() const override;
@@ -251,7 +272,7 @@ namespace lws
         ~ClassClosureBindObject();
 
         std::wstring Stringify(bool outputOpCodeIfExists = false) const override;
-       
+
         void Blacken(class VM *vm) override;
         bool IsEqualTo(Object *other) override;
         Object *Clone() const override;
@@ -267,7 +288,7 @@ namespace lws
         ~EnumObject();
 
         std::wstring Stringify(bool outputOpCodeIfExists = false) const override;
-       
+
         void Blacken(class VM *vm) override;
         bool IsEqualTo(Object *other) override;
         Object *Clone() const override;

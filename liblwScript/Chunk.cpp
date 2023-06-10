@@ -115,8 +115,9 @@ namespace lws
 			case OP_TABLE:
 			{
 				auto pos = opcodes[i + 1];
-				cout << std::setfill(L'0') << std::setw(8) << i << L"    " << L"OP_TABLE    " << pos << std::endl;
-				i++;
+				auto isAnonymousObj = opcodes[i + 2];
+				cout << std::setfill(L'0') << std::setw(8) << i << L"    " << L"OP_TABLE    " << pos <<"    "<<isAnonymousObj<< std::endl;
+				i+=2;
 				break;
 			}
 			case OP_GET_INDEX:

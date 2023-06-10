@@ -695,6 +695,7 @@ namespace lws
 		Emit(OP_TABLE);
 		uint8_t pos = expr->elements.size();
 		Emit(pos);
+		Emit(expr->isRepresentAsAnonymousObject);
 	}
 
 	void Compiler::CompileIndexExpr(IndexExpr *expr, const RWState &state)

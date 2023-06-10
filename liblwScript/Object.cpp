@@ -123,11 +123,11 @@ namespace lws
     }
 
     TableObject::TableObject()
-        : Object(OBJECT_TABLE)
+        : Object(OBJECT_TABLE),isRepresentAsAnonymousObject(false)
     {
     }
-    TableObject::TableObject(const ValueUnorderedMap &elements)
-        : Object(OBJECT_TABLE), elements(elements)
+    TableObject::TableObject(const ValueUnorderedMap &elements,bool isRepresentAsAnonymousObject)
+        : Object(OBJECT_TABLE), elements(elements),isRepresentAsAnonymousObject(isRepresentAsAnonymousObject)
     {
     }
     TableObject::~TableObject()
@@ -191,6 +191,75 @@ namespace lws
         }
 
         return new TableObject(m);
+    }
+
+    AnonymousObject::AnonymousObject()
+        : Object(OBJECT_TABLE)
+    {
+    }
+    AnonymousObject::AnonymousObject(const std::vector<std::pair<std::wstring, Value>> &elements)
+        : Object(OBJECT_TABLE), elements(elements)
+    {
+    }
+    AnonymousObject::~AnonymousObject()
+    {
+    }
+
+    std::wstring AnonymousObject::Stringify(bool outputOpCodeIfExists) const
+    {
+        std::wstring result = L"{";
+        for (const auto &[k, v] : elements)
+            result += k + L":" + v.Stringify(outputOpCodeIfExists) + L",";
+        result = result.substr(0, result.size() - 1);
+        result += L"}";
+        return result;
+    }
+
+    void AnonymousObject::Blacken(VM *vm)
+    {
+        Object::Blacken(vm);
+        for (auto &[k, v] : elements)
+        {
+            v.Mark(vm);
+        }
+    }
+    bool AnonymousObject::IsEqualTo(Object *other)
+    {
+        if (!IS_ANONYMOUS_OBJ(other))
+            return false;
+
+        AnonymousObject *anonymousOther = TO_ANONYMOUS_OBJ(other);
+
+        if (anonymousOther->elements.size() != elements.size())
+            return false;
+
+        for (const auto &[k1, v1] : elements)
+        {
+            bool isFound = false;
+            for (const auto &[k2, v2] : anonymousOther->elements)
+            {
+                if (k1 == k2 && v1 == v2)
+                    isFound = true;
+            }
+            if (!isFound)
+                return false;
+        }
+
+        return true;
+    }
+    Object *AnonymousObject::Clone() const
+    {
+        std::vector<std::pair<std::wstring, Value>> m;
+        for (auto [k, v] : elements)
+        {
+            auto kCopy = k;
+            auto vCopy = v.Clone();
+
+
+            m.emplace_back(kCopy,vCopy);
+        }
+
+        return new AnonymousObject(m);
     }
 
     FunctionObject::FunctionObject()
