@@ -232,7 +232,7 @@ namespace lws
 			e = FoldExpr(e);
 		return expr;
 	}
-	Expr *ConstantFolder::FoldTableExpr(TableExpr *expr)
+	Expr *ConstantFolder::FoldDictExpr(DictExpr *expr)
 	{
 		for (auto &[k, v] : expr->elements)
 		{

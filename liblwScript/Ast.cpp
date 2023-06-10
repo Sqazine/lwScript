@@ -128,20 +128,20 @@ namespace lws
 		return result;
 	}
 
-	TableExpr::TableExpr()
+	DictExpr::DictExpr()
 		: Expr(AST_TABLE)
 	{
 	}
-	TableExpr::TableExpr(const std::vector<std::pair<Expr *, Expr *>> &elements)
+	DictExpr::DictExpr(const std::vector<std::pair<Expr *, Expr *>> &elements)
 		: Expr(AST_TABLE), elements(elements)
 	{
 	}
-	TableExpr::~TableExpr()
+	DictExpr::~DictExpr()
 	{
 		std::vector<std::pair<Expr *, Expr *>>().swap(elements);
 	}
 
-	std::wstring TableExpr::Stringify()
+	std::wstring DictExpr::Stringify()
 	{
 		std::wstring result = L"{";
 

@@ -143,11 +143,11 @@ namespace lws
 		std::vector<Expr *> elements;
 	};
 
-	struct TableExpr : public Expr
+	struct DictExpr : public Expr
 	{
-		TableExpr();
-		TableExpr(const std::vector<std::pair<Expr *, Expr *>> &elements);
-		~TableExpr();
+		DictExpr();
+		DictExpr(const std::vector<std::pair<Expr *, Expr *>> &elements);
+		~DictExpr();
 
 		std::wstring Stringify() override;
 

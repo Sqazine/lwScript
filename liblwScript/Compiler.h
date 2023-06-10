@@ -51,7 +51,7 @@ namespace lws
 		void CompileNullExpr(NullExpr *expr);
 		void CompileGroupExpr(GroupExpr *expr);
 		void CompileArrayExpr(ArrayExpr *expr);
-		void CompileTableExpr(TableExpr *expr);
+		void CompileDictExpr(DictExpr *expr);
 		void CompileIndexExpr(IndexExpr *expr, const RWState &state = RWState::READ);
 		void CompileNewExpr(NewExpr *expr);
 		void CompileThisExpr(ThisExpr *expr);

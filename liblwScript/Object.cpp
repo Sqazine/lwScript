@@ -122,19 +122,19 @@ namespace lws
         return new ArrayObject(eles);
     }
 
-    TableObject::TableObject()
+    DictObject::DictObject()
         : Object(OBJECT_TABLE),isRepresentAsAnonymousObject(false)
     {
     }
-    TableObject::TableObject(const ValueUnorderedMap &elements,bool isRepresentAsAnonymousObject)
+    DictObject::DictObject(const ValueUnorderedMap &elements,bool isRepresentAsAnonymousObject)
         : Object(OBJECT_TABLE), elements(elements),isRepresentAsAnonymousObject(isRepresentAsAnonymousObject)
     {
     }
-    TableObject::~TableObject()
+    DictObject::~DictObject()
     {
     }
 
-    std::wstring TableObject::Stringify(bool outputOpCodeIfExists) const
+    std::wstring DictObject::Stringify(bool outputOpCodeIfExists) const
     {
         std::wstring result = L"{";
         for (const auto &[k, v] : elements)
@@ -144,7 +144,7 @@ namespace lws
         return result;
     }
 
-    void TableObject::Blacken(VM *vm)
+    void DictObject::Blacken(VM *vm)
     {
         Object::Blacken(vm);
         for (auto &[k, v] : elements)
@@ -154,20 +154,20 @@ namespace lws
         }
     }
 
-    bool TableObject::IsEqualTo(Object *other)
+    bool DictObject::IsEqualTo(Object *other)
     {
         if (!IS_TABLE_OBJ(other))
             return false;
 
-        TableObject *tableOther = TO_TABLE_OBJ(other);
+        DictObject *dictOther = TO_TABLE_OBJ(other);
 
-        if (tableOther->elements.size() != elements.size())
+        if (dictOther->elements.size() != elements.size())
             return false;
 
         for (const auto &[k1, v1] : elements)
         {
             bool isFound = false;
-            for (const auto &[k2, v2] : tableOther->elements)
+            for (const auto &[k2, v2] : dictOther->elements)
             {
                 if (k1 == k2 && v1 == v2)
                     isFound = true;
@@ -179,7 +179,7 @@ namespace lws
         return true;
     }
 
-    Object *TableObject::Clone() const
+    Object *DictObject::Clone() const
     {
         ValueUnorderedMap m;
         for (auto [k, v] : elements)
@@ -190,7 +190,7 @@ namespace lws
             m[kCopy] = vCopy;
         }
 
-        return new TableObject(m);
+        return new DictObject(m);
     }
 
     AnonymousObject::AnonymousObject()

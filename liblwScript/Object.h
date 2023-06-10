@@ -22,7 +22,7 @@ namespace lws
 
 #define TO_STR_OBJ(obj) ((lws::StrObject *)obj)
 #define TO_ARRAY_OBJ(obj) ((lws::ArrayObject *)obj)
-#define TO_TABLE_OBJ(obj) ((lws::TableObject *)obj)
+#define TO_TABLE_OBJ(obj) ((lws::DictObject *)obj)
 #define TO_ANONYMOUS_OBJ(obj) ((lws::AnonymousObject *)obj)
 #define TO_FUNCTION_OBJ(obj) ((lws::FunctionObject *)obj)
 #define TO_UPVALUE_OBJ(obj) ((lws::UpValueObject *)obj)
@@ -40,7 +40,7 @@ namespace lws
 #define IS_OBJECT_VALUE(v) (v.type == VALUE_OBJECT)
 #define IS_STR_VALUE(v) (IS_OBJECT_VALUE(v) && IS_STR_OBJ(v.object))
 #define IS_ARRAY_VALUE(v) (IS_OBJECT_VALUE(v) && IS_ARRAY_OBJ(v.object))
-#define IS_TABLE_VALUE(v) (IS_OBJECT_VALUE(v) && IS_TABLE_OBJ(v.object))
+#define IS_DICT_VALUE(v) (IS_OBJECT_VALUE(v) && IS_TABLE_OBJ(v.object))
 #define IS_ANONYMOUS_VALUE(v) (IS_OBJECT_VALUE(v) && IS_ANONYMOUS_OBJ(v.object))
 #define IS_FUNCTION_VALUE(v) (IS_OBJECT_VALUE(v) && IS_FUNCTION_OBJ(v.object))
 #define IS_UPVALUE_VALUE(v) (IS_OBJECT_VALUE(v) && IS_UPVALUE_OBJ(v.object))
@@ -57,7 +57,7 @@ namespace lws
 #define TO_OBJECT_VALUE(v) (v.object)
 #define TO_STR_VALUE(v) (TO_STR_OBJ(v.object)->value)
 #define TO_ARRAY_VALUE(v) (TO_ARRAY_OBJ(v.object))
-#define TO_TABLE_VALUE(v) (TO_TABLE_OBJ(v.object))
+#define TO_DICT_VALUE(v) (TO_TABLE_OBJ(v.object))
 #define TO_ANONYMOUS_VALUE(v) (TO_ANONYMOUS_OBJ(v.object))
 #define TO_FUNCTION_VALUE(v) (TO_FUNCTION_OBJ(v.object))
 #define TO_UPVALUE_VALUE(v) (TO_UPVALUE_OBJ(v.object))
@@ -133,11 +133,11 @@ namespace lws
     };
 
     typedef std::unordered_map<Value, Value, ValueHash> ValueUnorderedMap;
-    struct TableObject : public Object
+    struct DictObject : public Object
     {
-        TableObject();
-        TableObject(const ValueUnorderedMap &elements,bool isRepresentAsAnonymousObject=false);
-        ~TableObject();
+        DictObject();
+        DictObject(const ValueUnorderedMap &elements,bool isRepresentAsAnonymousObject=false);
+        ~DictObject();
 
         std::wstring Stringify(bool outputOpCodeIfExists = false) const override;
 

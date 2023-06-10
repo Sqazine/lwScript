@@ -8,7 +8,7 @@ namespace lws
 		Precedence precedence;
 	};
 
-	constexpr PrecedenceBinding precedenceTable[] = {
+	constexpr PrecedenceBinding precedenceDict[] = {
 		{TOKEN_EQUAL, Precedence::ASSIGN},
 		{TOKEN_PLUS_EQUAL, Precedence::ASSIGN},
 		{TOKEN_MINUS_EQUAL, Precedence::ASSIGN},
@@ -52,7 +52,7 @@ namespace lws
 		Associativity associativity;
 	};
 
-	constexpr AssociativityBinding associativityTable[] =
+	constexpr AssociativityBinding associativityDict[] =
 		{
 			{Precedence::LOWEST, Associativity::L2R},
 			{Precedence::ASSIGN, Associativity::R2L},
@@ -84,7 +84,7 @@ namespace lws
 			{TOKEN_BANG, &Parser::ParsePrefixExpr},
 			{TOKEN_LPAREN, &Parser::ParseGroupExpr},
 			{TOKEN_LBRACKET, &Parser::ParseArrayExpr},
-			{TOKEN_LBRACE, &Parser::ParseTableExpr},
+			{TOKEN_LBRACE, &Parser::ParseDictExpr},
 			{TOKEN_AMPERSAND, &Parser::ParseRefExpr},
 			{TOKEN_FUNCTION, &Parser::ParseLambdaExpr},
 			{TOKEN_PLUS_PLUS, &Parser::ParsePrefixExpr},
@@ -1065,11 +1065,11 @@ namespace lws
 		return arrayExpr;
 	}
 
-	Expr *Parser::ParseTableExpr()
+	Expr *Parser::ParseDictExpr()
 	{
-		auto tableExpr = new TableExpr();
-		tableExpr->column = GetCurToken().column;
-		tableExpr->line = GetCurToken().line;
+		auto dictExpr = new DictExpr();
+		dictExpr->column = GetCurToken().column;
+		dictExpr->line = GetCurToken().line;
 		Consume(TOKEN_LBRACE, L"Expect '{'.");
 
 		std::vector<std::pair<Expr *, Expr *>> elements;
@@ -1088,8 +1088,8 @@ namespace lws
 					Expr *value = ParseExpr();
 					elements.emplace_back(std::make_pair(key, value));
 				} while (IsMatchCurTokenAndStepOnce(TOKEN_COMMA));
-				tableExpr->elements = elements;
-				tableExpr->isRepresentAsAnonymousObject = true;
+				dictExpr->elements = elements;
+				dictExpr->isRepresentAsAnonymousObject = true;
 			}
 			else
 			{
@@ -1102,18 +1102,18 @@ namespace lws
 					Expr *key = ParseExpr();
 
 					if (key->type == AST_IDENTIFIER)
-						ASSERT(L"Table's key cannot use identifier.");
+						ASSERT(L"Dict's key cannot use identifier.");
 
-					Consume(TOKEN_COLON, L"Expect ':' after table key.");
+					Consume(TOKEN_COLON, L"Expect ':' after dict key.");
 					Expr *value = ParseExpr();
 					elements.emplace_back(std::make_pair(key, value));
 				} while (IsMatchCurTokenAndStepOnce(TOKEN_COMMA));
-				tableExpr->elements = elements;
-				tableExpr->isRepresentAsAnonymousObject = false;
+				dictExpr->elements = elements;
+				dictExpr->isRepresentAsAnonymousObject = false;
 			}
 		}
-		Consume(TOKEN_RBRACE, L"Expect '}' after table.");
-		return tableExpr;
+		Consume(TOKEN_RBRACE, L"Expect '}' after dict.");
+		return dictExpr;
 	}
 
 	Expr *Parser::ParsePrefixExpr()
@@ -1230,7 +1230,7 @@ namespace lws
 
 	Precedence Parser::GetCurTokenPrecedence()
 	{
-		for (const auto &precedenceBinding : precedenceTable)
+		for (const auto &precedenceBinding : precedenceDict)
 			if (precedenceBinding.type == GetCurToken().type)
 				return precedenceBinding.precedence;
 		return Precedence::LOWEST;
@@ -1238,7 +1238,7 @@ namespace lws
 
 	Associativity Parser::GetCurTokenAssociativity()
 	{
-		for (const auto &associativityBinding : associativityTable)
+		for (const auto &associativityBinding : associativityDict)
 			if (associativityBinding.precedence == GetCurTokenPrecedence())
 				return associativityBinding.associativity;
 		return Associativity::L2R;
@@ -1259,7 +1259,7 @@ namespace lws
 
 	Precedence Parser::GetNextTokenPrecedence()
 	{
-		for (const auto &precedenceBinding : precedenceTable)
+		for (const auto &precedenceBinding : precedenceDict)
 			if (precedenceBinding.type == GetNextToken().type)
 				return precedenceBinding.precedence;
 		return Precedence::LOWEST;

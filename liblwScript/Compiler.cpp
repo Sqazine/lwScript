@@ -433,7 +433,7 @@ namespace lws
 			CompileArrayExpr((ArrayExpr *)expr);
 			break;
 		case AST_TABLE:
-			CompileTableExpr((TableExpr *)expr);
+			CompileDictExpr((DictExpr *)expr);
 			break;
 		case AST_INDEX:
 			CompileIndexExpr((IndexExpr *)expr, state);
@@ -685,7 +685,7 @@ namespace lws
 		Emit(pos);
 	}
 
-	void Compiler::CompileTableExpr(TableExpr *expr)
+	void Compiler::CompileDictExpr(DictExpr *expr)
 	{
 		for (const auto &[k, v] : expr->elements)
 		{
@@ -1162,7 +1162,7 @@ namespace lws
 		case AST_TABLE:
 		{
 			std::vector<Expr *> result;
-			for (const auto &[k, v] : ((TableExpr *)astNode)->elements)
+			for (const auto &[k, v] : ((DictExpr *)astNode)->elements)
 			{
 				auto kResult = StatsPostfixExprs(k);
 				auto vResult = StatsPostfixExprs(v);

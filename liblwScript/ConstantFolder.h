@@ -35,7 +35,7 @@ namespace lws
         Expr *FoldIdentifierExpr(IdentifierExpr *expr);
         Expr *FoldGroupExpr(GroupExpr *expr);
         Expr *FoldArrayExpr(ArrayExpr *expr);
-        Expr *FoldTableExpr(TableExpr *expr);
+        Expr *FoldDictExpr(DictExpr *expr);
         Expr *FoldPrefixExpr(PrefixExpr *expr);
         Expr *FoldInfixExpr(InfixExpr *expr);
         Expr *FoldPostfixExpr(PostfixExpr *expr);

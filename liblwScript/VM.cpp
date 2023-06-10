@@ -385,7 +385,7 @@ namespace lws
 					auto value = Pop();
 					elements[key] = value;
 				}
-				Push(CreateObject<TableObject>(elements,isAnonymousObj));
+				Push(CreateObject<DictObject>(elements,isAnonymousObj));
 				break;
 			}
 			case OP_GET_INDEX:
@@ -421,16 +421,16 @@ namespace lws
 						ASSERT("Idx out of range.")
 					Push(CreateObject<StrObject>(str.substr(intIdx, 1)));
 				}
-				else if (IS_TABLE_VALUE(dsValue))
+				else if (IS_DICT_VALUE(dsValue))
 				{
-					auto table = TO_TABLE_VALUE(dsValue);
+					auto dict = TO_DICT_VALUE(dsValue);
 
-					auto iter = table->elements.find(idxValue);
+					auto iter = dict->elements.find(idxValue);
 
-					if (iter != table->elements.end())
+					if (iter != dict->elements.end())
 						Push(iter->second);
 					else
-						ASSERT("No key in table.")
+						ASSERT("No key in dict.")
 				}
 				break;
 			}
@@ -468,10 +468,10 @@ namespace lws
 
 					str.append(TO_STR_VALUE(newValue), intIdx, TO_STR_VALUE(newValue).size());
 				}
-				else if (IS_TABLE_VALUE(dsValue))
+				else if (IS_DICT_VALUE(dsValue))
 				{
-					auto table = TO_TABLE_VALUE(dsValue);
-					table->elements[idxValue] = newValue;
+					auto dict = TO_DICT_VALUE(dsValue);
+					dict->elements[idxValue] = newValue;
 				}
 				break;
 			}
@@ -521,9 +521,9 @@ namespace lws
 			{
 				auto index = READ_INS();
 				auto idxValue = Pop();
-				if (IS_TABLE_VALUE(mGlobalVariables[index]))
+				if (IS_DICT_VALUE(mGlobalVariables[index]))
 				{
-					Push(CreateObject<RefObject>(&TO_TABLE_VALUE(mGlobalVariables[index])->elements[idxValue]));
+					Push(CreateObject<RefObject>(&TO_DICT_VALUE(mGlobalVariables[index])->elements[idxValue]));
 				}
 				else if (IS_ARRAY_VALUE(mGlobalVariables[index]))
 				{
@@ -541,7 +541,7 @@ namespace lws
 					Push(CreateObject<RefObject>(&(array->elements[intIdx])));
 				}
 				else
-					ASSERT(L"Invalid indexed reference type:" + mGlobalVariables[index].Stringify() + L" not a table or array value.")
+					ASSERT(L"Invalid indexed reference type:" + mGlobalVariables[index].Stringify() + L" not a dict or array value.")
 				break;
 			}
 			case OP_REF_INDEX_LOCAL:
@@ -549,9 +549,9 @@ namespace lws
 				auto index = READ_INS();
 				auto idxValue = Pop();
 				Value *v = frame->slots + index;
-				if (IS_TABLE_VALUE((*v)))
+				if (IS_DICT_VALUE((*v)))
 				{
-					Push(CreateObject<RefObject>(&TO_TABLE_VALUE((*v))->elements[idxValue]));
+					Push(CreateObject<RefObject>(&TO_DICT_VALUE((*v))->elements[idxValue]));
 				}
 				else if (IS_ARRAY_VALUE((*v)))
 				{
@@ -569,7 +569,7 @@ namespace lws
 					Push(CreateObject<RefObject>(&array->elements[intIdx]));
 				}
 				else
-					ASSERT(L"Invalid indexed reference type:" + v->Stringify() + L" not a table or array value.")
+					ASSERT(L"Invalid indexed reference type:" + v->Stringify() + L" not a dict or array value.")
 				break;
 			}
 			case OP_REF_INDEX_UPVALUE:
@@ -577,9 +577,9 @@ namespace lws
 				auto index = READ_INS();
 				auto idxValue = Pop();
 				Value *v = frame->closure->upvalues[index]->location;
-				if (IS_TABLE_VALUE((*v)))
+				if (IS_DICT_VALUE((*v)))
 				{
-					Push(CreateObject<RefObject>(&TO_TABLE_VALUE((*v))->elements[idxValue]));
+					Push(CreateObject<RefObject>(&TO_DICT_VALUE((*v))->elements[idxValue]));
 				}
 				else if (IS_ARRAY_VALUE((*v)))
 				{
@@ -596,7 +596,7 @@ namespace lws
 					Push(CreateObject<RefObject>(&array->elements[intIdx]));
 				}
 				else
-					ASSERT(L"Invalid indexed reference type:" + v->Stringify() + L" not a table or array value.")
+					ASSERT(L"Invalid indexed reference type:" + v->Stringify() + L" not a dict or array value.")
 				break;
 			}
 			case OP_CALL:
@@ -748,16 +748,16 @@ namespace lws
 					else
 						ASSERT(L"No member:" + propName + L" in enum object " + enumObj->name)
 				}
-				else if (IS_TABLE_VALUE(peekValue))
+				else if (IS_DICT_VALUE(peekValue))
 				{
-					TableObject *tableObj = TO_TABLE_VALUE(peekValue);
+					DictObject *dictObj = TO_DICT_VALUE(peekValue);
 
-					if(!tableObj->isRepresentAsAnonymousObject)
+					if(!dictObj->isRepresentAsAnonymousObject)
 						ASSERT(L"Not a anonymous object.");
 
 					Value member;
 					bool isFound = false;
-					for (const auto &[k, v] : tableObj->elements)
+					for (const auto &[k, v] : dictObj->elements)
 					{
 						if (IS_STR_VALUE(k))
 						{
@@ -773,7 +773,7 @@ namespace lws
 					if (!isFound)
 						ASSERT(L"No member:'" + propName + L"' in anonymous object.");
 
-					Pop(); // pop table object
+					Pop(); // pop dict object
 					Push(member);
 				}
 				else
@@ -805,16 +805,16 @@ namespace lws
 					else
 						ASSERT(L"No member named:" + propName + L"in class:" + klass->name)
 				}
-				else if (IS_TABLE_VALUE(peekValue))
+				else if (IS_DICT_VALUE(peekValue))
 				{
 					auto propName = TO_STR_VALUE(Pop());
-					TableObject *tableObj = TO_TABLE_VALUE(peekValue);
-					Pop(); // pop table object
+					DictObject *dictObj = TO_DICT_VALUE(peekValue);
+					Pop(); // pop dict object
 
-					if(!tableObj->isRepresentAsAnonymousObject)
+					if(!dictObj->isRepresentAsAnonymousObject)
 						ASSERT(L"Not a anonymous object.");
 
-					for (auto &[k, v] : tableObj->elements)
+					for (auto &[k, v] : dictObj->elements)
 					{
 						if (IS_STR_VALUE(k))
 						{

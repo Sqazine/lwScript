@@ -147,19 +147,19 @@ namespace lws
 
                                                                    if (IS_ARRAY_VALUE(args[0]))
                                                                        return Value((int64_t)TO_ARRAY_VALUE(args[0])->elements.size());
-                                                                   else if (IS_TABLE_VALUE(args[0]))
-                                                                       return Value((int64_t)TO_TABLE_VALUE(args[0])->elements.size());
+                                                                   else if (IS_DICT_VALUE(args[0]))
+                                                                       return Value((int64_t)TO_DICT_VALUE(args[0])->elements.size());
                                                                    else if (IS_STR_VALUE(args[0]))
                                                                        return Value((int64_t)TO_STR_VALUE(args[0]).size());
                                                                    else
-                                                                       ASSERT(L"[Native function 'sizeof']:Expect a array,table ot string argument.")
+                                                                       ASSERT(L"[Native function 'sizeof']:Expect a array,dict ot string argument.")
 
                                                                    return Value(); });
 
         dsClass->members[L"insert"] = new NativeFunctionObject([](const std::vector<Value> &args) -> Value
                                                                {
                                                                    if (args.empty() || args.size() != 3)
-                                                                       ASSERT(L"[Native function 'insert']:Expect 3 arguments,the arg0 must be array,table or string object.The arg1 is the index object.The arg2 is the value object.")
+                                                                       ASSERT(L"[Native function 'insert']:Expect 3 arguments,the arg0 must be array,dict or string object.The arg1 is the index object.The arg2 is the value object.")
 
                                                                    if (IS_ARRAY_VALUE(args[0]))
                                                                    {
@@ -174,15 +174,15 @@ namespace lws
 
                                                                        array->elements.insert(array->elements.begin() + iIndex, 1, args[2]);
                                                                    }
-                                                                   else if (IS_TABLE_VALUE(args[0]))
+                                                                   else if (IS_DICT_VALUE(args[0]))
                                                                    {
-                                                                       TableObject *table = TO_TABLE_VALUE(args[0]);
+                                                                       DictObject *dict = TO_DICT_VALUE(args[0]);
 
-                                                                       for (auto [key, value] : table->elements)
+                                                                       for (auto [key, value] : dict->elements)
                                                                            if (key == args[1])
-                                                                               ASSERT(L"[Native function 'insert']:Already exist value in the table object of arg1" + args[1].Stringify())
+                                                                               ASSERT(L"[Native function 'insert']:Already exist value in the dict object of arg1" + args[1].Stringify())
 
-                                                                       table->elements[args[1]] = args[2];
+                                                                       dict->elements[args[1]] = args[2];
                                                                    }
                                                                    else if (IS_STR_VALUE(args[0]))
                                                                    {
@@ -198,14 +198,14 @@ namespace lws
                                                                        string.insert(iIndex, args[2].Stringify());
                                                                    }
                                                                    else
-                                                                       ASSERT(L"[Native function 'insert']:Expect a array,table ot string argument.")
+                                                                       ASSERT(L"[Native function 'insert']:Expect a array,dict ot string argument.")
 
                                                                    return args[0]; });
 
         dsClass->members[L"erase"] = new NativeFunctionObject([](const std::vector<Value> &args) -> Value
                                                               {
                                                                   if (args.empty() || args.size() != 2)
-                                                                      ASSERT(L"[Native function 'erase']:Expect 2 arguments,the arg0 must be array,table or string object.The arg1 is the corresponding index object.")
+                                                                      ASSERT(L"[Native function 'erase']:Expect 2 arguments,the arg0 must be array,dict or string object.The arg1 is the corresponding index object.")
 
                                                                   if (IS_ARRAY_VALUE(args[0]))
                                                                   {
@@ -220,22 +220,22 @@ namespace lws
 
                                                                       array->elements.erase(array->elements.begin() + iIndex);
                                                                   }
-                                                                  else if (IS_TABLE_VALUE(args[0]))
+                                                                  else if (IS_DICT_VALUE(args[0]))
                                                                   {
-                                                                      TableObject *table = TO_TABLE_VALUE(args[0]);
+                                                                      DictObject *dict = TO_DICT_VALUE(args[0]);
 
                                                                       bool hasValue = false;
 
-                                                                      for (auto it = table->elements.begin(); it != table->elements.end(); ++it)
+                                                                      for (auto it = dict->elements.begin(); it != dict->elements.end(); ++it)
                                                                           if (it->first == args[1])
                                                                           {
-                                                                              table->elements.erase(it);
+                                                                              dict->elements.erase(it);
                                                                               hasValue = true;
                                                                               break;
                                                                           }
 
                                                                       if (!hasValue)
-                                                                          ASSERT(L"[Native function 'erase']:No corresponding index in table.")
+                                                                          ASSERT(L"[Native function 'erase']:No corresponding index in dict.")
                                                                   }
                                                                   else if (IS_STR_VALUE(args[0]))
                                                                   {
@@ -251,7 +251,7 @@ namespace lws
                                                                       string.erase(string.begin() + iIndex);
                                                                   }
                                                                   else
-                                                                      ASSERT(L"[Native function 'erase']:Expect a array,table ot string argument.")
+                                                                      ASSERT(L"[Native function 'erase']:Expect a array,dict ot string argument.")
                                                                   return args[0]; });
 
         memClass->members[L"addressof"] = new NativeFunctionObject([](const std::vector<Value> &args) -> Value
