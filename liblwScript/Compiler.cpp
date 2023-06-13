@@ -692,10 +692,9 @@ namespace lws
 			CompileExpr(v);
 			CompileExpr(k);
 		}
-		Emit(OP_TABLE);
+		Emit(OP_DICT);
 		uint8_t pos = expr->elements.size();
 		Emit(pos);
-		Emit(expr->isRepresentAsAnonymousObject);
 	}
 
 	void Compiler::CompileIndexExpr(IndexExpr *expr, const RWState &state)
@@ -710,14 +709,20 @@ namespace lws
 
 	void Compiler::CompileNewExpr(NewExpr *expr)
 	{
-		auto callee = expr->callee;
-		CompileExpr(callee->callee, RWState::READ);
-		Emit(OP_CALL);
-		Emit(0);
-		for (const auto &arg : callee->arguments)
-			CompileExpr(arg);
-		Emit(OP_CALL);
-		Emit(callee->arguments.size());
+		if (expr->callee->type == AST_CALL)
+		{
+
+			auto callee = expr->callee;
+			CompileExpr(callee->callee, RWState::READ);
+			Emit(OP_CALL);
+			Emit(0);
+			for (const auto &arg : callee->arguments)
+				CompileExpr(arg);
+			Emit(OP_CALL);
+			Emit(callee->arguments.size());
+		}
+		else if (expr->callee->type == AST_ANONY_OBJ)
+			CompileAnonymousObjExpr((AnonyObjExpr*)(expr->callee));
 	}
 
 	void Compiler::CompileThisExpr(ThisExpr *expr)
@@ -871,6 +876,18 @@ namespace lws
 				Emit(symbol.upvalue.index);
 			}
 		}
+	}
+
+	void Compiler::CompileAnonymousObjExpr(AnonyObjExpr *expr)
+	{
+		for (auto [k, v] : expr->elements)
+		{
+			CompileExpr(v);
+			EmitConstant(new StrObject(k));
+		}
+		Emit(OP_ANONYMOUS_OBJ);
+		uint8_t pos = expr->elements.size();
+		Emit(pos);
 	}
 
 	Symbol Compiler::CompileFunction(FunctionStmt *stmt)

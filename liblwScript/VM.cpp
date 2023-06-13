@@ -374,10 +374,9 @@ namespace lws
 				Push(arrayObject);
 				break;
 			}
-			case OP_TABLE:
+			case OP_DICT:
 			{
 				auto eCount = READ_INS();
-				auto isAnonymousObj=READ_INS();
 				DictObject::ValueUnorderedMap elements;
 				for (int64_t i = 0; i < (int64_t)eCount; ++i)
 				{
@@ -385,7 +384,7 @@ namespace lws
 					auto value = Pop();
 					elements[key] = value;
 				}
-				Push(CreateObject<DictObject>(elements,isAnonymousObj));
+				Push(CreateObject<DictObject>(elements));
 				break;
 			}
 			case OP_GET_INDEX:
@@ -707,6 +706,19 @@ namespace lws
 				Push(classObj);
 				break;
 			}
+			case OP_ANONYMOUS_OBJ:
+			{
+				auto eCount = READ_INS();
+				std::unordered_map<std::wstring, Value> elements;
+				for (int64_t i = 0; i < (int64_t)eCount; ++i)
+				{
+					auto key = TO_STR_VALUE(Pop());
+					auto value = Pop();
+					elements[key] = value;
+				}
+				Push(CreateObject<AnonymousObject>(elements));
+				break;
+			}
 			case OP_GET_PROPERTY:
 			{
 				auto peekValue = Peek(1);
@@ -748,33 +760,15 @@ namespace lws
 					else
 						ASSERT(L"No member:" + propName + L" in enum object " + enumObj->name)
 				}
-				else if (IS_DICT_VALUE(peekValue))
+				else if (IS_ANONYMOUS_VALUE(peekValue))
 				{
-					DictObject *dictObj = TO_DICT_VALUE(peekValue);
-
-					if(!dictObj->isRepresentAsAnonymousObject)
-						ASSERT(L"Not a anonymous object.");
-
-					Value member;
-					bool isFound = false;
-					for (const auto &[k, v] : dictObj->elements)
-					{
-						if (IS_STR_VALUE(k))
-						{
-							if (TO_STR_VALUE(k) == propName)
-							{
-								member = v;
-								isFound = true;
-								break;
-							}
-						}
-					}
-
-					if (!isFound)
-						ASSERT(L"No member:'" + propName + L"' in anonymous object.");
-
-					Pop(); // pop dict object
-					Push(member);
+					auto anonymousObj = TO_ANONYMOUS_VALUE(peekValue);
+					auto iter = anonymousObj->elements.find(propName);
+					if (iter == anonymousObj->elements.end())
+						ASSERT(L"No property:" + propName + L" in anonymous object.");
+					Pop(); //pop anonymouse object
+					Push(iter->second);
+					break;
 				}
 				else
 					ASSERT(L"Invalid call:not a valid class,enum or anonymous object instance:" + peekValue.Stringify())
@@ -788,9 +782,9 @@ namespace lws
 				if (IS_REF_VALUE(peekValue))
 					peekValue = *(TO_REF_VALUE(peekValue)->pointer);
 
+				auto propName = TO_STR_VALUE(Pop());
 				if (IS_CLASS_VALUE(peekValue))
 				{
-					auto propName = TO_STR_VALUE(Pop());
 					auto klass = TO_CLASS_VALUE(peekValue);
 					Pop(); // pop class value
 
@@ -805,31 +799,20 @@ namespace lws
 					else
 						ASSERT(L"No member named:" + propName + L"in class:" + klass->name)
 				}
-				else if (IS_DICT_VALUE(peekValue))
+				else if (IS_ANONYMOUS_VALUE(peekValue))
 				{
-					auto propName = TO_STR_VALUE(Pop());
-					DictObject *dictObj = TO_DICT_VALUE(peekValue);
-					Pop(); // pop dict object
-
-					if(!dictObj->isRepresentAsAnonymousObject)
-						ASSERT(L"Not a anonymous object.");
-
-					for (auto &[k, v] : dictObj->elements)
-					{
-						if (IS_STR_VALUE(k))
-						{
-							if (TO_STR_VALUE(k) == propName)
-							{
-								v=Peek(0);
-								break;
-							}
-						}
-					}	
+					auto anonymousObj = TO_ANONYMOUS_VALUE(peekValue);
+					auto iter = anonymousObj->elements.find(propName);
+					if (iter == anonymousObj->elements.end())
+						ASSERT(L"No property:" + propName + L"in anonymous object.");
+					Pop(); //pop anonymouse object
+					anonymousObj->elements[iter->first] = Peek(0);
+					break;
 				}
 				else if (IS_ENUM_VALUE(peekValue))
 					ASSERT(L"Invalid call:cannot assign value to a enum object member.")
 				else
-					ASSERT(L"Invalid class call:not a valid class instance.")
+					ASSERT(L"Invalid call:not a valid class or anonymous object instance.")
 				break;
 			}
 			case OP_GET_BASE:

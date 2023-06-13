@@ -112,12 +112,11 @@ namespace lws
 				i++;
 				break;
 			}
-			case OP_TABLE:
+			case OP_DICT:
 			{
 				auto pos = opcodes[i + 1];
-				auto isAnonymousObj = opcodes[i + 2];
-				cout << std::setfill(L'0') << std::setw(8) << i << L"    " << L"OP_TABLE    " << pos <<"    "<<isAnonymousObj<< std::endl;
-				i+=2;
+				cout << std::setfill(L'0') << std::setw(8) << i << L"    " << L"OP_DICT    " << pos << std::endl;
+				i++;
 				break;
 			}
 			case OP_GET_INDEX:
@@ -260,6 +259,13 @@ namespace lws
 				auto parentClassCount = opcodes[i + 4];
 				cout << std::setfill(L'0') << std::setw(8) << i << L"    " << L"OP_CLASS    " << ctorCount << "    " << varCount << L"    " << constCount << L"    " << parentClassCount << std::endl;
 				i += 4;
+				break;
+			}
+			case OP_ANONYMOUS_OBJ:
+			{
+				auto count = opcodes[i + 1];
+				cout << std::setfill(L'0') << std::setw(8) << i << L"    " << L"OP_ANONYMOUS_OBJ    " << count << std::endl;
+				i++;
 				break;
 			}
 			case OP_GET_PROPERTY:

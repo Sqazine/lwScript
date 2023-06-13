@@ -31,6 +31,7 @@ namespace lws
 		AST_THIS,
 		AST_BASE,
 		AST_BLOCK,
+		AST_ANONY_OBJ,
 		// stmt
 		AST_LET,
 		AST_CONST,
@@ -152,7 +153,6 @@ namespace lws
 		std::wstring Stringify() override;
 
 		std::vector<std::pair<Expr *, Expr *>> elements;
-		bool isRepresentAsAnonymousObject=false;
 	};
 
 	struct GroupExpr : public Expr
@@ -314,6 +314,17 @@ namespace lws
 
 		std::vector<struct Stmt*> stmts;
 		Expr* endExpr;
+	};
+
+	struct AnonyObjExpr:public Expr
+	{
+		AnonyObjExpr();
+		AnonyObjExpr(const std::vector<std::pair<std::wstring, Expr *>> &elements);
+		~AnonyObjExpr();
+
+		std::wstring Stringify() override;
+
+		std::vector<std::pair<std::wstring, Expr *>> elements;	
 	};
 
 	struct Stmt : public AstNode

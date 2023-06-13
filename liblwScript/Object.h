@@ -9,7 +9,7 @@ namespace lws
 {
 #define IS_STR_OBJ(obj) (obj->type == OBJECT_STR)
 #define IS_ARRAY_OBJ(obj) (obj->type == OBJECT_ARRAY)
-#define IS_TABLE_OBJ(obj) (obj->type == OBJECT_TABLE)
+#define IS_TABLE_OBJ(obj) (obj->type == OBJECT_DICT)
 #define IS_ANONYMOUS_OBJ(obj) (obj->type == OBJECT_ANONYMOUS)
 #define IS_FUNCTION_OBJ(obj) (obj->type == OBJECT_FUNCTION)
 #define IS_UPVALUE_OBJ(obj) (obj->type == OBJECT_UPVALUE)
@@ -72,7 +72,7 @@ namespace lws
     {
         OBJECT_STR,
         OBJECT_ARRAY,
-        OBJECT_TABLE,
+        OBJECT_DICT,
         OBJECT_ANONYMOUS,
         OBJECT_FUNCTION,
         OBJECT_UPVALUE,
@@ -133,10 +133,10 @@ namespace lws
         {
             size_t operator()(const Value &v) const;
         };
-    
+
         typedef std::unordered_map<Value, Value, ValueHash> ValueUnorderedMap;
         DictObject();
-        DictObject(const ValueUnorderedMap &elements,bool isRepresentAsAnonymousObject=false);
+        DictObject(const ValueUnorderedMap &elements);
         ~DictObject();
 
         std::wstring Stringify(bool outputOpCodeIfExists = false) const override;
@@ -145,14 +145,13 @@ namespace lws
         bool IsEqualTo(Object *other) override;
         Object *Clone() const override;
 
-        bool isRepresentAsAnonymousObject;
         ValueUnorderedMap elements;
     };
 
     struct AnonymousObject : public Object
     {
         AnonymousObject();
-        AnonymousObject(const std::vector<std::pair<std::wstring, Value>> &elements);
+        AnonymousObject(const  std::unordered_map<std::wstring, Value> &elements);
         ~AnonymousObject();
 
         std::wstring Stringify(bool outputOpCodeIfExists = false) const override;
@@ -161,7 +160,7 @@ namespace lws
         bool IsEqualTo(Object *other) override;
         Object *Clone() const override;
 
-        std::vector<std::pair<std::wstring, Value>> elements;
+        std::unordered_map<std::wstring, Value> elements;
     };
 
     struct FunctionObject : public Object

@@ -87,6 +87,7 @@ namespace lws
 		Expr *ParseGroupExpr();
 		Expr *ParseArrayExpr();
 		Expr *ParseDictExpr();
+		Expr* ParseAnonyObjExpr();
 		Expr *ParsePrefixExpr();
 		Expr *ParseRefExpr();
 		Expr *ParseLambdaExpr();

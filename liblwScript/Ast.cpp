@@ -430,6 +430,32 @@ namespace lws
 		return result;
 	}
 
+	AnonyObjExpr::AnonyObjExpr()
+		: Expr(AST_ANONY_OBJ)
+	{
+	}
+	AnonyObjExpr::AnonyObjExpr(const std::vector<std::pair<std::wstring, Expr *>> &elements)
+		: Expr(AST_ANONY_OBJ), elements(elements)
+	{
+	}
+	AnonyObjExpr::~AnonyObjExpr()
+	{
+		std::vector<std::pair<std::wstring, Expr *>>().swap(elements);
+	}
+
+	std::wstring AnonyObjExpr::Stringify()
+	{
+		std::wstring result = L"{";
+		if (!elements.empty())
+		{
+			for (auto [key, value] : elements)
+				result += key+ L":" + value->Stringify() + L",";
+			result = result.substr(0, result.size() - 1);
+		}
+		result += L"}";
+		return result;
+	}
+
 	//----------------------Statements-----------------------------
 
 	ExprStmt::ExprStmt()

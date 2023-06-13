@@ -122,7 +122,7 @@ namespace lws
         return new ArrayObject(eles);
     }
 
-      size_t DictObject::ValueHash::operator()(const Value &v) const
+    size_t DictObject::ValueHash::operator()(const Value &v) const
     {
         switch (v.type)
         {
@@ -142,11 +142,11 @@ namespace lws
     }
 
     DictObject::DictObject()
-        : Object(OBJECT_TABLE),isRepresentAsAnonymousObject(false)
+        : Object(OBJECT_DICT)
     {
     }
-    DictObject::DictObject(const ValueUnorderedMap &elements,bool isRepresentAsAnonymousObject)
-        : Object(OBJECT_TABLE), elements(elements),isRepresentAsAnonymousObject(isRepresentAsAnonymousObject)
+    DictObject::DictObject(const ValueUnorderedMap &elements)
+        : Object(OBJECT_DICT), elements(elements)
     {
     }
     DictObject::~DictObject()
@@ -213,11 +213,11 @@ namespace lws
     }
 
     AnonymousObject::AnonymousObject()
-        : Object(OBJECT_TABLE)
+        : Object(OBJECT_ANONYMOUS)
     {
     }
-    AnonymousObject::AnonymousObject(const std::vector<std::pair<std::wstring, Value>> &elements)
-        : Object(OBJECT_TABLE), elements(elements)
+    AnonymousObject::AnonymousObject(const  std::unordered_map<std::wstring, Value> &elements)
+        : Object(OBJECT_ANONYMOUS), elements(elements)
     {
     }
     AnonymousObject::~AnonymousObject()
@@ -268,14 +268,13 @@ namespace lws
     }
     Object *AnonymousObject::Clone() const
     {
-        std::vector<std::pair<std::wstring, Value>> m;
+        std::unordered_map<std::wstring, Value> m;
         for (auto [k, v] : elements)
         {
             auto kCopy = k;
             auto vCopy = v.Clone();
 
-
-            m.emplace_back(kCopy,vCopy);
+            m[kCopy]=vCopy;
         }
 
         return new AnonymousObject(m);

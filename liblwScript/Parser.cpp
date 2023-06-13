@@ -788,10 +788,14 @@ namespace lws
 
 		Consume(TOKEN_NEW, L"Expect 'new' keyword");
 
-		auto callee = ParseExpr();
+		Expr *callee;
+		if (IsMatchCurToken(TOKEN_LBRACE))
+			callee = ParseAnonyObjExpr();
+		else
+			callee = ParseExpr();
 
-		if (callee->type != AST_CALL)
-			ASSERT(L"Not a valid new expr,call expr is is necessary followed 'new' keyword.");
+		if (callee->type != AST_CALL && callee->type != AST_ANONY_OBJ)
+			ASSERT(L"Not a valid new expr,call expr or anonymous object expr is necessary followed 'new' keyword.");
 
 		newExpr->callee = (CallExpr *)callee;
 		return newExpr;
@@ -1072,48 +1076,55 @@ namespace lws
 		dictExpr->line = GetCurToken().line;
 		Consume(TOKEN_LBRACE, L"Expect '{'.");
 
-		std::vector<std::pair<Expr *, Expr *>> elements;
 		if (!IsMatchCurToken(TOKEN_RBRACE))
 		{
-			if (IsMatchCurToken(TOKEN_IDENTIFIER)) //represent as an object
+			std::vector<std::pair<Expr *, Expr *>> elements;
+			do
 			{
-				do
-				{
-					if (IsMatchCurToken(TOKEN_RBRACE))
-						break;
+				if (IsMatchCurToken(TOKEN_RBRACE))
+					break;
 
-					std::wstring identifier = Consume(TOKEN_IDENTIFIER, L"Expect identifier name in object").literal;
-					Expr *key = new StrExpr(identifier);
-					Consume(TOKEN_COLON, L"Expect ':' after object's name.");
-					Expr *value = ParseExpr();
-					elements.emplace_back(std::make_pair(key, value));
-				} while (IsMatchCurTokenAndStepOnce(TOKEN_COMMA));
-				dictExpr->elements = elements;
-				dictExpr->isRepresentAsAnonymousObject = true;
-			}
-			else
-			{
-				std::vector<std::pair<Expr *, Expr *>> elements;
-				do
-				{
-					if (IsMatchCurToken(TOKEN_RBRACE))
-						break;
+				Expr *key = ParseExpr();
+				Consume(TOKEN_COLON, L"Expect ':' after dict key.");
+				Expr *value = ParseExpr();
+				elements.emplace_back(std::make_pair(key, value));
+			} while (IsMatchCurTokenAndStepOnce(TOKEN_COMMA));
 
-					Expr *key = ParseExpr();
-
-					if (key->type == AST_IDENTIFIER)
-						ASSERT(L"Dict's key cannot use identifier.");
-
-					Consume(TOKEN_COLON, L"Expect ':' after dict key.");
-					Expr *value = ParseExpr();
-					elements.emplace_back(std::make_pair(key, value));
-				} while (IsMatchCurTokenAndStepOnce(TOKEN_COMMA));
-				dictExpr->elements = elements;
-				dictExpr->isRepresentAsAnonymousObject = false;
-			}
+			dictExpr->elements = elements;
 		}
 		Consume(TOKEN_RBRACE, L"Expect '}' after dict.");
 		return dictExpr;
+	}
+
+	Expr *Parser::ParseAnonyObjExpr()
+	{
+		auto anonyObjExpr = new AnonyObjExpr();
+		anonyObjExpr->column = GetCurToken().column;
+		anonyObjExpr->line = GetCurToken().line;
+		Consume(TOKEN_LBRACE, L"Expect '{'.");
+
+		if (!IsMatchCurToken(TOKEN_RBRACE))
+		{
+			std::vector<std::pair<std::wstring, Expr *>> elements;
+			do
+			{
+				if (IsMatchCurToken(TOKEN_RBRACE))
+					break;
+
+				Expr *key = ParseExpr();
+
+				if (key->type != AST_IDENTIFIER)
+					ASSERT(L"Anonymous object require key must be a valid identifier.");
+
+				Consume(TOKEN_COLON, L"Expect ':' after anony object key.");
+				Expr *value = ParseExpr();
+				elements.emplace_back(((IdentifierExpr*)key)->literal, value);
+			} while (IsMatchCurTokenAndStepOnce(TOKEN_COMMA));
+
+			anonyObjExpr->elements = elements;
+		}
+		Consume(TOKEN_RBRACE, L"Expect '}' after anony object.");
+		return anonyObjExpr;
 	}
 
 	Expr *Parser::ParsePrefixExpr()

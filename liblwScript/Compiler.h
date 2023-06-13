@@ -62,6 +62,7 @@ namespace lws
 		void CompileCallExpr(CallExpr *expr);
 		void CompileDotExpr(DotExpr *expr, const RWState &state = RWState::READ);
 		void CompileRefExpr(RefExpr *expr);
+		void CompileAnonymousObjExpr(AnonyObjExpr* expr);
 
 		Symbol CompileFunction(FunctionStmt *stmt);
 

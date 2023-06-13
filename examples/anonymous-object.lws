@@ -1,6 +1,6 @@
 fn ret()
 {
-    return {
+    return new {
         name:"test",
         value:100,
     };
@@ -9,8 +9,7 @@ fn ret()
 let r=ret();
 io.println("{},{}",r.name,r.value);
 
-
-let johnScore={
+let johnScore=new {
         name:"John",
         score:100,
     };
@@ -18,3 +17,4 @@ let johnScore={
 johnScore.score=60;
 
 io.println("{},{}",johnScore.name,johnScore.score);
+io.println("{},{}",johnScore.name,johnScore.value);//error:no property name 'value'
