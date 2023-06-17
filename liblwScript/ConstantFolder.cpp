@@ -88,8 +88,11 @@ namespace lws
 	}
 	Stmt *ConstantFolder::FoldReturnStmt(ReturnStmt *stmt)
 	{
-		if (stmt->expr)
-			stmt->expr = FoldExpr(stmt->expr);
+		if (!stmt->exprs.empty())
+		{
+			for (auto &expr : stmt->exprs)
+				expr = FoldExpr(expr);
+		}
 		return stmt;
 	}
 	Stmt *ConstantFolder::FoldLetStmt(LetStmt *stmt)

@@ -449,7 +449,7 @@ namespace lws
 		if (!elements.empty())
 		{
 			for (auto [key, value] : elements)
-				result += key+ L":" + value->Stringify() + L",";
+				result += key + L":" + value->Stringify() + L",";
 			result = result.substr(0, result.size() - 1);
 		}
 		result += L"}";
@@ -528,25 +528,30 @@ namespace lws
 	}
 
 	ReturnStmt::ReturnStmt()
-		: Stmt(AST_RETURN), expr(nullptr)
+		: Stmt(AST_RETURN)
 	{
 	}
-	ReturnStmt::ReturnStmt(Expr *expr)
-		: Stmt(AST_RETURN), expr(expr)
+	ReturnStmt::ReturnStmt(const std::vector<Expr *> &exprs)
+		: Stmt(AST_RETURN), exprs(exprs)
 	{
 	}
 	ReturnStmt::~ReturnStmt()
 	{
-		delete expr;
-		expr = nullptr;
+		std::vector<Expr *>().swap(exprs);
 	}
 
 	std::wstring ReturnStmt::Stringify()
 	{
-		if (expr)
-			return L"return " + expr->Stringify() + L";";
-		else
+		if (exprs.empty())
 			return L"return;";
+		else
+		{
+			std::wstring result = L"return ";
+			for (const auto &expr : exprs)
+				result += expr->Stringify() + L",";
+			result = result.substr(0, result.size() - 1);
+			return result;
+		}
 	}
 
 	IfStmt::IfStmt()

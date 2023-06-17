@@ -376,12 +376,12 @@ namespace lws
 	struct ReturnStmt : public Stmt
 	{
 		ReturnStmt();
-		ReturnStmt(Expr *expr);
+		ReturnStmt(const std::vector<Expr *>& exprs);
 		~ReturnStmt();
 
 		std::wstring Stringify() override;
 
-		Expr *expr;
+		std::vector<Expr *> exprs;
 	};
 
 	struct IfStmt : public Stmt

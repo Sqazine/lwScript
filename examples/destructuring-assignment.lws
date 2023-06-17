@@ -1,0 +1,4 @@
+fn multiReturn(a,b,c)
+{
+    return a+10,b+20,c+30;
+}

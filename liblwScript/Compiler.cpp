@@ -369,12 +369,13 @@ namespace lws
 	}
 	void Compiler::CompileReturnStmt(ReturnStmt *stmt)
 	{
-		auto postfixExprs = StatsPostfixExprs(stmt->expr);
+		auto postfixExprs = StatsPostfixExprs(stmt);
 
-		if (stmt->expr)
+		if (!stmt->exprs.empty())
 		{
-			CompileExpr(stmt->expr);
-			EmitReturn(1);
+			for (const auto &expr : stmt->exprs)
+				CompileExpr(expr);
+			EmitReturn(stmt->exprs.size());
 		}
 		else
 			EmitReturn(0);
@@ -722,7 +723,7 @@ namespace lws
 			Emit(callee->arguments.size());
 		}
 		else if (expr->callee->type == AST_ANONY_OBJ)
-			CompileAnonymousObjExpr((AnonyObjExpr*)(expr->callee));
+			CompileAnonymousObjExpr((AnonyObjExpr *)(expr->callee));
 	}
 
 	void Compiler::CompileThisExpr(ThisExpr *expr)
@@ -1066,7 +1067,15 @@ namespace lws
 			return result;
 		}
 		case AST_RETURN:
-			return StatsPostfixExprs(((ReturnStmt *)astNode)->expr);
+		{
+			std::vector<Expr *> result;
+			for (const auto &expr : ((ReturnStmt *)astNode)->exprs)
+			{
+				auto stmtResult = StatsPostfixExprs(expr);
+				result.insert(result.end(), stmtResult.begin(), stmtResult.end());
+			}
+			return result;
+		}
 		case AST_EXPR:
 			return StatsPostfixExprs(((ExprStmt *)astNode)->expr);
 		case AST_LET:

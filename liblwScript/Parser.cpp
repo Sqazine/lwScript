@@ -477,7 +477,19 @@ namespace lws
 		Consume(TOKEN_RETURN, L"Expect 'return' key word.");
 
 		if (!IsMatchCurToken(TOKEN_SEMICOLON))
-			returnStmt->expr = ParseExpr();
+		{
+			std::vector<Expr* > returnExprs;
+			do
+			{
+				if(IsMatchCurToken(TOKEN_SEMICOLON))
+					break;
+
+				returnExprs.emplace_back(ParseExpr());
+
+			} while (IsMatchCurTokenAndStepOnce(TOKEN_COMMA));
+			
+			returnStmt->exprs = returnExprs;
+		}
 
 		Consume(TOKEN_SEMICOLON, L"Expect ';' after return stmt");
 		return returnStmt;
