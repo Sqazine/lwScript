@@ -209,41 +209,23 @@ namespace lws
 
 		Consume(TOKEN_LET, L"Expect 'let' key word");
 
-		std::unordered_map<IdentifierExpr *, VarDesc> variables;
-
-		// variable name
-		auto name = (IdentifierExpr *)ParseIdentifierExpr();
-
-		// variable type
-		std::wstring type = L"any";
-		if (IsMatchCurToken(TOKEN_COLON))
-			type = GetCurTokenAndStepOnce().literal;
-
-		// variable value
-		Expr *value = new NullExpr();
-		if (IsMatchCurTokenAndStepOnce(TOKEN_EQUAL))
-			value = ParseExpr();
-		variables[name] = {.type = type, .value = value};
-
-		while (IsMatchCurTokenAndStepOnce(TOKEN_COMMA))
-		{
+		do{
 			// variable name
 			auto name = (IdentifierExpr *)ParseIdentifierExpr();
 
 			// variable type
-			type = L"any";
+			std::wstring type = L"any";
 			if (IsMatchCurToken(TOKEN_COLON))
 				type = GetCurTokenAndStepOnce().literal;
 
 			Expr *value = new NullExpr();
 			if (IsMatchCurTokenAndStepOnce(TOKEN_EQUAL))
 				value = ParseExpr();
-			variables[name] = {.type = type, .value = value};
+			letStmt->variables.emplace_back(VarDesc{.type = type,.name=name}, value);
 		}
+		while (IsMatchCurTokenAndStepOnce(TOKEN_COMMA));
 
 		Consume(TOKEN_SEMICOLON, L"Expect ';' after let declaration.");
-
-		letStmt->variables = variables;
 
 		return letStmt;
 	}
@@ -255,38 +237,23 @@ namespace lws
 
 		Consume(TOKEN_CONST, L"Expect 'const' key word");
 
-		std::unordered_map<IdentifierExpr *, VarDesc> consts;
-
-		auto name = (IdentifierExpr *)ParseIdentifierExpr();
-
-		// variable type
-		std::wstring type = L"any";
-		if (IsMatchCurToken(TOKEN_COLON))
-			type = GetCurTokenAndStepOnce().literal;
-
-		Expr *value = new NullExpr();
-		if (IsMatchCurTokenAndStepOnce(TOKEN_EQUAL))
-			value = ParseExpr();
-		consts[name] = {.type = type, .value = value};
-
-		while (IsMatchCurTokenAndStepOnce(TOKEN_COMMA))
-		{
+		do{
+			// variable name
 			auto name = (IdentifierExpr *)ParseIdentifierExpr();
 
 			// variable type
-			type = L"any";
+			std::wstring type = L"any";
 			if (IsMatchCurToken(TOKEN_COLON))
 				type = GetCurTokenAndStepOnce().literal;
 
 			Expr *value = new NullExpr();
 			if (IsMatchCurTokenAndStepOnce(TOKEN_EQUAL))
 				value = ParseExpr();
-			consts[name] = {.type = type, .value = value};
+			constStmt->consts.emplace_back(VarDesc{.type = type,.name=name}, value);
 		}
+		while (IsMatchCurTokenAndStepOnce(TOKEN_COMMA));
 
 		Consume(TOKEN_SEMICOLON, L"Expect ';' after const declaration.");
-
-		constStmt->consts = consts;
 
 		return constStmt;
 	}

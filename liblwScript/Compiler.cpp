@@ -87,8 +87,8 @@ namespace lws
 
 		for (const auto &[k, v] : stmt->variables)
 		{
-			CompileExpr(v.value);
-			auto symbol = mSymbolTable->Define(DESC_VARIABLE, k->literal);
+			CompileExpr(v);
+			auto symbol = mSymbolTable->Define(DESC_VARIABLE, k.name->literal);
 			if (symbol.type == SYMBOL_GLOBAL)
 			{
 				Emit(OP_SET_GLOBAL);
@@ -110,8 +110,8 @@ namespace lws
 
 		for (const auto &[k, v] : stmt->consts)
 		{
-			CompileExpr(v.value);
-			auto symbol = mSymbolTable->Define(DESC_CONSTANT, k->literal);
+			CompileExpr(v);
+			auto symbol = mSymbolTable->Define(DESC_CONSTANT, k.name->literal);
 			if (symbol.type == SYMBOL_GLOBAL)
 			{
 				Emit(OP_SET_GLOBAL);
@@ -157,8 +157,8 @@ namespace lws
 		{
 			for (const auto &[k, v] : letStmt->variables)
 			{
-				CompileExpr(v.value);
-				EmitConstant(new StrObject(k->literal));
+				CompileExpr(v);
+				EmitConstant(new StrObject(k.name->literal));
 				varCount++;
 			}
 		}
@@ -167,8 +167,8 @@ namespace lws
 		{
 			for (const auto &[k, v] : constStmt->consts)
 			{
-				CompileExpr(v.value);
-				EmitConstant(new StrObject(k->literal));
+				CompileExpr(v);
+				EmitConstant(new StrObject(k.name->literal));
 				constCount++;
 			}
 		}
@@ -1083,7 +1083,7 @@ namespace lws
 			std::vector<Expr *> result;
 			for (const auto &[k, v] : ((LetStmt *)astNode)->variables)
 			{
-				auto varResult = StatsPostfixExprs(v.value);
+				auto varResult = StatsPostfixExprs(v);
 				result.insert(result.end(), varResult.begin(), varResult.end());
 			}
 			return result;
@@ -1093,7 +1093,7 @@ namespace lws
 			std::vector<Expr *> result;
 			for (const auto &[k, v] : ((ConstStmt *)astNode)->consts)
 			{
-				auto varResult = StatsPostfixExprs(v.value);
+				auto varResult = StatsPostfixExprs(v);
 				result.insert(result.end(), varResult.begin(), varResult.end());
 			}
 			return result;

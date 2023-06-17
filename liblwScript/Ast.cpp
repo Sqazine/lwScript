@@ -481,13 +481,13 @@ namespace lws
 		: Stmt(AST_LET)
 	{
 	}
-	LetStmt::LetStmt(const std::unordered_map<IdentifierExpr *, VarDesc> &variables)
+	LetStmt::LetStmt(const std::vector<std::pair<VarDesc,Expr*>> &variables)
 		: Stmt(AST_LET), variables(variables)
 	{
 	}
 	LetStmt::~LetStmt()
 	{
-		std::unordered_map<IdentifierExpr *, VarDesc>().swap(variables);
+		std::vector<std::pair<VarDesc,Expr*>>().swap(variables);
 	}
 
 	std::wstring LetStmt::Stringify()
@@ -496,7 +496,7 @@ namespace lws
 		if (!variables.empty())
 		{
 			for (auto [key, value] : variables)
-				result += key->Stringify() + L":" + value.type + L"=" + value.value->Stringify() + L",";
+				result += key.name->Stringify() + L":" + key.type + L"=" + value->Stringify() + L",";
 			result = result.substr(0, result.size() - 1);
 		}
 		return result + L";";
@@ -506,13 +506,13 @@ namespace lws
 		: Stmt(AST_CONST)
 	{
 	}
-	ConstStmt::ConstStmt(const std::unordered_map<IdentifierExpr *, VarDesc> &consts)
+	ConstStmt::ConstStmt(const std::vector<std::pair<VarDesc,Expr*>> &consts)
 		: Stmt(AST_CONST), consts(consts)
 	{
 	}
 	ConstStmt::~ConstStmt()
 	{
-		std::unordered_map<IdentifierExpr *, VarDesc>().swap(consts);
+		std::vector<std::pair<VarDesc,Expr*>>().swap(consts);
 	}
 
 	std::wstring ConstStmt::Stringify()
@@ -521,7 +521,7 @@ namespace lws
 		if (!consts.empty())
 		{
 			for (auto [key, value] : consts)
-				result += key->Stringify() + L":" + value.type + L"=" + value.value->Stringify() + L",";
+				result += key.name->Stringify() + L":" + key.type + L"=" + value->Stringify() + L",";
 			result = result.substr(0, result.size() - 1);
 		}
 		return result + L";";

@@ -348,29 +348,29 @@ namespace lws
 	struct VarDesc
 	{
 		std::wstring type;
-		Expr *value;
+		IdentifierExpr* name;
 	};
 
 	struct LetStmt : public Stmt
 	{
 		LetStmt();
-		LetStmt(const std::unordered_map<IdentifierExpr *, VarDesc> &variables);
+		LetStmt(const std::vector<std::pair<VarDesc,Expr*>> &variables);
 		~LetStmt();
 
 		std::wstring Stringify() override;
 
-		std::unordered_map<IdentifierExpr *, VarDesc> variables;
+		std::vector<std::pair<VarDesc,Expr*>> variables;
 	};
 
 	struct ConstStmt : public Stmt
 	{
 		ConstStmt();
-		ConstStmt(const std::unordered_map<IdentifierExpr *, VarDesc> &consts);
+		ConstStmt(const std::vector<std::pair<VarDesc,Expr*>> &consts);
 		~ConstStmt();
 
 		std::wstring Stringify() override;
 
-		std::unordered_map<IdentifierExpr *, VarDesc> consts;
+		std::vector<std::pair<VarDesc,Expr*>> consts;
 	};
 
 	struct ReturnStmt : public Stmt

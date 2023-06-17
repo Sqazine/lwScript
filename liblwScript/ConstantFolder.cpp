@@ -98,13 +98,13 @@ namespace lws
 	Stmt *ConstantFolder::FoldLetStmt(LetStmt *stmt)
 	{
 		for (auto &[k, v] : stmt->variables)
-			v.value = FoldExpr(v.value);
+			v = FoldExpr(v);
 		return stmt;
 	}
 	Stmt *ConstantFolder::FoldConstStmt(ConstStmt *stmt)
 	{
 		for (auto &[k, v] : stmt->consts)
-			v.value = FoldExpr(v.value);
+			v = FoldExpr(v);
 		return stmt;
 	}
 	Stmt *ConstantFolder::FoldFunctionStmt(FunctionStmt *stmt)
