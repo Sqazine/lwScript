@@ -140,10 +140,13 @@ namespace lws
 			{TOKEN_BANG, &Parser::ParsePostfixExpr},
 	};
 
+	NullExpr *Parser::mNullExpr = new NullExpr();
+
 	Parser::Parser()
 		: mStmts(nullptr)
 	{
 	}
+
 	Parser::~Parser()
 	{
 		if (mStmts != nullptr)
@@ -201,6 +204,7 @@ namespace lws
 			return ParseStmt();
 		}
 	}
+
 	Stmt *Parser::ParseLetDeclaration()
 	{
 		auto letStmt = new LetStmt();
@@ -209,26 +213,76 @@ namespace lws
 
 		Consume(TOKEN_LET, L"Expect 'let' key word");
 
-		do{
-			// variable name
-			auto name = (IdentifierExpr *)ParseIdentifierExpr();
+		do
+		{
+			if (IsMatchCurTokenAndStepOnce(TOKEN_LBRACKET))
+			{
+				auto arrayExpr = new ArrayExpr();
+				do
+				{
+					if (IsMatchCurToken(TOKEN_RBRACKET))
+						break;
 
-			// variable type
-			std::wstring type = L"any";
-			if (IsMatchCurToken(TOKEN_COLON))
-				type = GetCurTokenAndStepOnce().literal;
+					auto varDescExpr = ParseVarDescExpr();
 
-			Expr *value = new NullExpr();
-			if (IsMatchCurTokenAndStepOnce(TOKEN_EQUAL))
-				value = ParseExpr();
-			letStmt->variables.emplace_back(VarDesc{.type = type,.name=name}, value);
-		}
-		while (IsMatchCurTokenAndStepOnce(TOKEN_COMMA));
+					arrayExpr->elements.emplace_back(varDescExpr);
+
+				} while (IsMatchCurTokenAndStepOnce(TOKEN_COMMA));
+
+				Consume(TOKEN_RBRACKET, L"Expect ']' destructuring assignment expr.");
+
+				ArrayExpr *initializeList = new ArrayExpr();
+
+				if (IsMatchCurTokenAndStepOnce(TOKEN_EQUAL))
+				{
+					Expr *value = mNullExpr;
+					value = ParseExpr();
+					if (value->type == AST_ARRAY)
+					{
+						int32_t grad = arrayExpr->elements.size() > ((ArrayExpr *)value)->elements.size();
+						if (grad == 0)
+							letStmt->variables.emplace_back(arrayExpr, value);
+						else if (grad > 0)
+						{
+							initializeList->elements = ((ArrayExpr *)value)->elements;
+							for (int32_t i = 0; i < grad; ++i)
+								initializeList->elements.emplace_back(mNullExpr);
+							letStmt->variables.emplace_back(arrayExpr, initializeList);
+						}
+						else
+							ASSERT(L"variable less than value.");
+					}
+					else if (value->type == AST_CALL)
+						letStmt->variables.emplace_back(arrayExpr, value);
+					else
+					{
+						initializeList->elements.resize(arrayExpr->elements.size(), value);
+						letStmt->variables.emplace_back(arrayExpr, initializeList);
+					}
+				}
+				else
+				{
+					initializeList->elements.resize(arrayExpr->elements.size(), mNullExpr);
+					letStmt->variables.emplace_back(arrayExpr, initializeList);
+				}
+			}
+			else
+			{
+				auto varDescExpr = ParseVarDescExpr();
+
+				Expr *value = mNullExpr;
+				if (IsMatchCurTokenAndStepOnce(TOKEN_EQUAL))
+					value = ParseExpr();
+				letStmt->variables.emplace_back(varDescExpr, value);
+			}
+
+		} while (IsMatchCurTokenAndStepOnce(TOKEN_COMMA));
 
 		Consume(TOKEN_SEMICOLON, L"Expect ';' after let declaration.");
 
 		return letStmt;
 	}
+
 	Stmt *Parser::ParseConstDeclaration()
 	{
 		auto constStmt = new ConstStmt();
@@ -237,26 +291,70 @@ namespace lws
 
 		Consume(TOKEN_CONST, L"Expect 'const' key word");
 
-		do{
-			// variable name
-			auto name = (IdentifierExpr *)ParseIdentifierExpr();
+		do
+		{
+			if (IsMatchCurTokenAndStepOnce(TOKEN_LBRACKET))
+			{
+				auto arrayExpr = new ArrayExpr();
+				do
+				{
+					if (IsMatchCurToken(TOKEN_RBRACKET))
+						break;
 
-			// variable type
-			std::wstring type = L"any";
-			if (IsMatchCurToken(TOKEN_COLON))
-				type = GetCurTokenAndStepOnce().literal;
+					auto varDescExpr = ParseVarDescExpr();
 
-			Expr *value = new NullExpr();
-			if (IsMatchCurTokenAndStepOnce(TOKEN_EQUAL))
-				value = ParseExpr();
-			constStmt->consts.emplace_back(VarDesc{.type = type,.name=name}, value);
-		}
-		while (IsMatchCurTokenAndStepOnce(TOKEN_COMMA));
+					arrayExpr->elements.emplace_back(varDescExpr);
+
+				} while (IsMatchCurTokenAndStepOnce(TOKEN_COMMA));
+
+				Consume(TOKEN_RBRACKET, L"Expect ']' destructuring assignment expr.");
+
+				ArrayExpr *initializeList = new ArrayExpr();
+
+				if (IsMatchCurTokenAndStepOnce(TOKEN_EQUAL))
+				{
+					Expr *value = mNullExpr;
+					value = ParseExpr();
+					if (value->type == AST_ARRAY)
+					{
+						auto grad = arrayExpr->elements.size() > ((ArrayExpr *)value)->elements.size();
+						if (grad == 0)
+							constStmt->consts.emplace_back(arrayExpr, value);
+						else if (grad > 0)
+						{
+							initializeList->elements = ((ArrayExpr *)value)->elements;
+							for (int32_t i = 0; i < grad; ++i)
+								initializeList->elements.emplace_back(mNullExpr);
+							constStmt->consts.emplace_back(arrayExpr, initializeList);
+						}
+						else
+							ASSERT("variable less than value.");
+					}
+					else if (value->type == AST_CALL)
+						constStmt->consts.emplace_back(arrayExpr, value);
+					else
+					{
+						initializeList->elements.resize(arrayExpr->elements.size(), value);
+						constStmt->consts.emplace_back(arrayExpr, initializeList);
+					}
+				}
+			}
+			else
+			{
+				auto varDescExpr = ParseVarDescExpr();
+
+				Expr *value = mNullExpr;
+				if (IsMatchCurTokenAndStepOnce(TOKEN_EQUAL))
+					value = ParseExpr();
+				constStmt->consts.emplace_back(varDescExpr, value);
+			}
+		} while (IsMatchCurTokenAndStepOnce(TOKEN_COMMA));
 
 		Consume(TOKEN_SEMICOLON, L"Expect ';' after const declaration.");
 
 		return constStmt;
 	}
+
 	Stmt *Parser::ParseFunctionDeclaration()
 	{
 		auto funcStmt = new FunctionStmt();
@@ -288,6 +386,7 @@ namespace lws
 
 		return funcStmt;
 	}
+
 	Stmt *Parser::ParseClassDeclaration()
 	{
 		auto classStmt = new ClassStmt();
@@ -445,16 +544,16 @@ namespace lws
 
 		if (!IsMatchCurToken(TOKEN_SEMICOLON))
 		{
-			std::vector<Expr* > returnExprs;
+			std::vector<Expr *> returnExprs;
 			do
 			{
-				if(IsMatchCurToken(TOKEN_SEMICOLON))
+				if (IsMatchCurToken(TOKEN_SEMICOLON))
 					break;
 
 				returnExprs.emplace_back(ParseExpr());
 
 			} while (IsMatchCurTokenAndStepOnce(TOKEN_COMMA));
-			
+
 			returnStmt->exprs = returnExprs;
 		}
 
@@ -922,7 +1021,7 @@ namespace lws
 		if (mPrefixFunctions.find(GetCurToken().type) == mPrefixFunctions.end())
 		{
 			std::wcout << L"no prefix definition for:" << GetCurTokenAndStepOnce().literal << std::endl;
-			return new NullExpr();
+			return mNullExpr;
 		}
 		auto prefixFn = mPrefixFunctions[GetCurToken().type];
 
@@ -991,7 +1090,7 @@ namespace lws
 	Expr *Parser::ParseNullExpr()
 	{
 		auto token = Consume(TOKEN_NULL, L"Expect 'null' keyword");
-		auto nullExpr = new NullExpr();
+		auto nullExpr = mNullExpr;
 		nullExpr->line = token.line;
 		nullExpr->column = token.column;
 		return nullExpr;
@@ -1097,7 +1196,7 @@ namespace lws
 
 				Consume(TOKEN_COLON, L"Expect ':' after anony object key.");
 				Expr *value = ParseExpr();
-				elements.emplace_back(((IdentifierExpr*)key)->literal, value);
+				elements.emplace_back(((IdentifierExpr *)key)->literal, value);
 			} while (IsMatchCurTokenAndStepOnce(TOKEN_COMMA));
 
 			anonyObjExpr->elements = elements;
@@ -1203,6 +1302,18 @@ namespace lws
 		dotExpr->callee = prefixExpr;
 		dotExpr->callMember = (IdentifierExpr *)ParseIdentifierExpr();
 		return dotExpr;
+	}
+
+	Expr *Parser::ParseVarDescExpr()
+	{
+		// variable name
+		auto name = (IdentifierExpr *)ParseIdentifierExpr();
+
+		// variable type
+		std::wstring type = L"any";
+		if (IsMatchCurToken(TOKEN_COLON))
+			type = GetCurTokenAndStepOnce().literal;
+		return new VarDescExpr(type, name);
 	}
 
 	Token Parser::GetCurToken()

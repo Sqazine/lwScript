@@ -87,14 +87,40 @@ namespace lws
 
 		for (const auto &[k, v] : stmt->variables)
 		{
-			CompileExpr(v);
-			auto symbol = mSymbolTable->Define(DESC_VARIABLE, k.name->literal);
-			if (symbol.type == SYMBOL_GLOBAL)
+			if (k->type == AST_ARRAY)
 			{
-				Emit(OP_SET_GLOBAL);
-				Emit(symbol.index);
-				Emit(OP_POP);
+				if (v->type == AST_CALL)
+					CompileExpr(v);
+				else if (v->type == AST_ARRAY)
+					for (int32_t i = 0; i < ((ArrayExpr *)v)->elements.size(); ++i)
+						CompileExpr(((ArrayExpr *)v)->elements[i]);
+
+				auto arrayExpr = (ArrayExpr *)k;
+
+				for (int32_t i = arrayExpr->elements.size() - 1; i >= 0; --i)
+				{
+					auto symbol = mSymbolTable->Define(DESC_VARIABLE, ((VarDescExpr *)arrayExpr->elements[i])->name->literal);
+					if (symbol.type == SYMBOL_GLOBAL)
+					{
+						Emit(OP_SET_GLOBAL);
+						Emit(symbol.index);
+						Emit(OP_POP);
+					}
+				}
 			}
+			else if (k->type == AST_VAR_DESC)
+			{
+				CompileExpr(v);
+				auto symbol = mSymbolTable->Define(DESC_VARIABLE, ((VarDescExpr *)k)->name->literal);
+				if (symbol.type == SYMBOL_GLOBAL)
+				{
+					Emit(OP_SET_GLOBAL);
+					Emit(symbol.index);
+					Emit(OP_POP);
+				}
+			}
+			else
+				ASSERT(L"Unknown variable:" + k->Stringify())
 		}
 
 		if (!postfixExprs.empty())
@@ -111,12 +137,37 @@ namespace lws
 		for (const auto &[k, v] : stmt->consts)
 		{
 			CompileExpr(v);
-			auto symbol = mSymbolTable->Define(DESC_CONSTANT, k.name->literal);
-			if (symbol.type == SYMBOL_GLOBAL)
+
+			if (k->type == AST_ARRAY)
 			{
-				Emit(OP_SET_GLOBAL);
-				Emit(symbol.index);
-				Emit(OP_POP);
+				if (v->type == AST_CALL)
+					CompileExpr(v);
+				else if (v->type == AST_ARRAY)
+					for (int32_t i = 0; i < ((ArrayExpr *)v)->elements.size(); ++i)
+						CompileExpr(((ArrayExpr *)v)->elements[i]);
+
+				auto arrayExpr = (ArrayExpr *)k;
+
+				for (int32_t i = arrayExpr->elements.size() - 1; i >= 0; --i)
+				{
+					auto symbol = mSymbolTable->Define(DESC_CONSTANT, ((VarDescExpr *)arrayExpr->elements[i])->name->literal);
+					if (symbol.type == SYMBOL_GLOBAL)
+					{
+						Emit(OP_SET_GLOBAL);
+						Emit(symbol.index);
+						Emit(OP_POP);
+					}
+				}
+			}
+			else if (k->type == AST_VAR_DESC)
+			{
+				auto symbol = mSymbolTable->Define(DESC_CONSTANT, ((VarDescExpr *)k)->name->literal);
+				if (symbol.type == SYMBOL_GLOBAL)
+				{
+					Emit(OP_SET_GLOBAL);
+					Emit(symbol.index);
+					Emit(OP_POP);
+				}
 			}
 		}
 
@@ -158,7 +209,16 @@ namespace lws
 			for (const auto &[k, v] : letStmt->variables)
 			{
 				CompileExpr(v);
-				EmitConstant(new StrObject(k.name->literal));
+
+				if (k->type == AST_ARRAY)
+				{
+					auto arrayExpr = (ArrayExpr *)k;
+					for (int32_t i = arrayExpr->elements.size() - 1; i >= 0; --i)
+						EmitConstant(new StrObject(((VarDescExpr *)arrayExpr->elements[i])->name->literal));
+				}
+				else if (k->type == AST_VAR_DESC)
+					EmitConstant(new StrObject(((VarDescExpr *)k)->name->literal));
+
 				varCount++;
 			}
 		}
@@ -168,7 +228,15 @@ namespace lws
 			for (const auto &[k, v] : constStmt->consts)
 			{
 				CompileExpr(v);
-				EmitConstant(new StrObject(k.name->literal));
+				if (k->type == AST_ARRAY)
+				{
+					auto arrayExpr = (ArrayExpr *)k;
+					for (int32_t i = arrayExpr->elements.size() - 1; i >= 0; --i)
+						EmitConstant(new StrObject(((VarDescExpr *)arrayExpr->elements[i])->name->literal));
+				}
+				else if (k->type == AST_VAR_DESC)
+					EmitConstant(new StrObject(((VarDescExpr *)k)->name->literal));
+
 				constCount++;
 			}
 		}
@@ -474,8 +542,49 @@ namespace lws
 	{
 		if (expr->op == L"=")
 		{
-			CompileExpr(expr->right);
-			CompileExpr(expr->left, RWState::WRITE);
+			if (expr->left->type == AST_ARRAY)
+			{
+				if (expr->right->type == AST_CALL)
+					CompileExpr(expr->right);
+				else if (expr->right->type == AST_ARRAY)
+				{
+					auto initializeList = ((ArrayExpr *)expr->right);
+
+					int32_t grad = ((ArrayExpr *)expr->left)->elements.size() - initializeList->elements.size();
+
+					if (grad == 0)
+					{
+						for (int32_t i = 0; i < ((ArrayExpr *)expr->right)->elements.size(); ++i)
+							CompileExpr(((ArrayExpr *)expr->right)->elements[i]);
+					}
+					else if (grad > 0)
+					{
+						for (int32_t i = 0; i < ((ArrayExpr *)expr->right)->elements.size(); ++i)
+							CompileExpr(((ArrayExpr *)expr->right)->elements[i]);
+						for (int32_t i = 0; i < grad; ++i)
+							CompileNullExpr(nullptr);
+					}
+					else
+						ASSERT(L"assigned variable less than value.");
+				}
+				else
+				{
+					for (int32_t i = 0; i < ((ArrayExpr *)expr->left)->elements.size(); ++i)
+						CompileExpr(expr->right);
+				}
+
+				for (int32_t i = ((ArrayExpr *)expr->left)->elements.size() - 1; i >= 0; --i)
+				{
+					CompileExpr(((ArrayExpr *)expr->left)->elements[i], RWState::WRITE);
+					if (i > 0)
+						Emit(OP_POP);
+				}
+			}
+			else
+			{
+				CompileExpr(expr->right);
+				CompileExpr(expr->left, RWState::WRITE);
+			}
 		}
 		else if (expr->op == L"&&")
 		{

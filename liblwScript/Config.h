@@ -8,5 +8,5 @@
 
 #define GC_HEAP_GROW_FACTOR 2
 
-#define GC_DEBUG
-#define GC_STRESS
+// #define GC_DEBUG
+// #define GC_STRESS

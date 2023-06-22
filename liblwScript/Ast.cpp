@@ -102,6 +102,25 @@ namespace lws
 		return literal;
 	}
 
+	VarDescExpr::VarDescExpr()
+		: Expr(AST_VAR_DESC)
+	{
+	}
+	VarDescExpr::VarDescExpr(std::wstring_view type, IdentifierExpr *name)
+		: Expr(AST_VAR_DESC), name(name), type(type)
+	{
+	}
+	VarDescExpr::~VarDescExpr()
+	{
+		delete name;
+		name = nullptr;
+	}
+
+	std::wstring VarDescExpr::Stringify()
+	{
+		return name->Stringify() + L":" + type;
+	}
+
 	ArrayExpr::ArrayExpr()
 		: Expr(AST_ARRAY)
 	{
@@ -481,13 +500,13 @@ namespace lws
 		: Stmt(AST_LET)
 	{
 	}
-	LetStmt::LetStmt(const std::vector<std::pair<VarDesc,Expr*>> &variables)
+	LetStmt::LetStmt(const std::vector<std::pair<Expr*, Expr *>> &variables)
 		: Stmt(AST_LET), variables(variables)
 	{
 	}
 	LetStmt::~LetStmt()
 	{
-		std::vector<std::pair<VarDesc,Expr*>>().swap(variables);
+		std::vector<std::pair<Expr*, Expr *>>().swap(variables);
 	}
 
 	std::wstring LetStmt::Stringify()
@@ -496,7 +515,7 @@ namespace lws
 		if (!variables.empty())
 		{
 			for (auto [key, value] : variables)
-				result += key.name->Stringify() + L":" + key.type + L"=" + value->Stringify() + L",";
+				result += key->Stringify() +L"="+ value->Stringify() + L",";
 			result = result.substr(0, result.size() - 1);
 		}
 		return result + L";";
@@ -506,13 +525,13 @@ namespace lws
 		: Stmt(AST_CONST)
 	{
 	}
-	ConstStmt::ConstStmt(const std::vector<std::pair<VarDesc,Expr*>> &consts)
+	ConstStmt::ConstStmt(const std::vector<std::pair<Expr*, Expr *>> &consts)
 		: Stmt(AST_CONST), consts(consts)
 	{
 	}
 	ConstStmt::~ConstStmt()
 	{
-		std::vector<std::pair<VarDesc,Expr*>>().swap(consts);
+		std::vector<std::pair<Expr*, Expr *>>().swap(consts);
 	}
 
 	std::wstring ConstStmt::Stringify()
@@ -521,7 +540,7 @@ namespace lws
 		if (!consts.empty())
 		{
 			for (auto [key, value] : consts)
-				result += key.name->Stringify() + L":" + key.type + L"=" + value->Stringify() + L",";
+				result += key->Stringify() + value->Stringify() + L",";
 			result = result.substr(0, result.size() - 1);
 		}
 		return result + L";";

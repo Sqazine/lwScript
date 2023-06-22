@@ -15,6 +15,7 @@ namespace lws
 		AST_NULL,
 		AST_BOOL,
 		AST_IDENTIFIER,
+		AST_VAR_DESC,
 		AST_GROUP,
 		AST_ARRAY,
 		AST_TABLE,
@@ -133,6 +134,18 @@ namespace lws
 		std::wstring literal;
 	};
 
+	struct VarDescExpr:public Expr
+	{
+		VarDescExpr();
+		VarDescExpr(std::wstring_view type,IdentifierExpr* name);
+		~VarDescExpr();
+
+		std::wstring Stringify() override;
+
+		std::wstring type;
+		IdentifierExpr* name;
+	};
+
 	struct ArrayExpr : public Expr
 	{
 		ArrayExpr();
@@ -143,6 +156,7 @@ namespace lws
 
 		std::vector<Expr *> elements;
 	};
+	
 
 	struct DictExpr : public Expr
 	{
@@ -345,32 +359,26 @@ namespace lws
 		Expr *expr;
 	};
 
-	struct VarDesc
-	{
-		std::wstring type;
-		IdentifierExpr* name;
-	};
-
 	struct LetStmt : public Stmt
 	{
 		LetStmt();
-		LetStmt(const std::vector<std::pair<VarDesc,Expr*>> &variables);
+		LetStmt(const std::vector<std::pair<Expr*,Expr*>> &variables);
 		~LetStmt();
 
 		std::wstring Stringify() override;
 
-		std::vector<std::pair<VarDesc,Expr*>> variables;
+		std::vector<std::pair<Expr*,Expr*>> variables;
 	};
 
 	struct ConstStmt : public Stmt
 	{
 		ConstStmt();
-		ConstStmt(const std::vector<std::pair<VarDesc,Expr*>> &consts);
+		ConstStmt(const std::vector<std::pair<Expr*,Expr*>> &consts);
 		~ConstStmt();
 
 		std::wstring Stringify() override;
 
-		std::vector<std::pair<VarDesc,Expr*>> consts;
+		std::vector<std::pair<Expr*,Expr*>> consts;
 	};
 
 	struct ReturnStmt : public Stmt
