@@ -496,51 +496,32 @@ namespace lws
 		return expr->Stringify() + L";";
 	}
 
-	LetStmt::LetStmt()
-		: Stmt(AST_LET)
+	VarStmt::VarStmt()
+		: Stmt(AST_VARIABLE)
 	{
 	}
-	LetStmt::LetStmt(const std::vector<std::pair<Expr*, Expr *>> &variables)
-		: Stmt(AST_LET), variables(variables)
+	VarStmt::VarStmt(Privilege privilege, const std::vector<std::pair<Expr *, Expr *>> &variables)
+		: Stmt(AST_VARIABLE), privilege(privilege), variables(variables)
 	{
 	}
-	LetStmt::~LetStmt()
+	VarStmt::~VarStmt()
 	{
-		std::vector<std::pair<Expr*, Expr *>>().swap(variables);
+		std::vector<std::pair<Expr *, Expr *>>().swap(variables);
 	}
 
-	std::wstring LetStmt::Stringify()
+	std::wstring VarStmt::Stringify()
 	{
-		std::wstring result = L"let ";
+		std::wstring result;
+
+		if (privilege == Privilege::IMMUTABLE)
+			result += L"const ";
+		else
+			result += L"let ";
+
 		if (!variables.empty())
 		{
 			for (auto [key, value] : variables)
-				result += key->Stringify() +L"="+ value->Stringify() + L",";
-			result = result.substr(0, result.size() - 1);
-		}
-		return result + L";";
-	}
-
-	ConstStmt::ConstStmt()
-		: Stmt(AST_CONST)
-	{
-	}
-	ConstStmt::ConstStmt(const std::vector<std::pair<Expr*, Expr *>> &consts)
-		: Stmt(AST_CONST), consts(consts)
-	{
-	}
-	ConstStmt::~ConstStmt()
-	{
-		std::vector<std::pair<Expr*, Expr *>>().swap(consts);
-	}
-
-	std::wstring ConstStmt::Stringify()
-	{
-		std::wstring result = L"const ";
-		if (!consts.empty())
-		{
-			for (auto [key, value] : consts)
-				result += key->Stringify() + value->Stringify() + L",";
+				result += key->Stringify() + L"=" + value->Stringify() + L",";
 			result = result.substr(0, result.size() - 1);
 		}
 		return result + L";";
@@ -756,15 +737,13 @@ namespace lws
 	{
 	}
 	ClassStmt::ClassStmt(std::wstring name,
-						 std::vector<LetStmt *> letStmts,
-						 std::vector<ConstStmt *> constStmts,
+						 std::vector<VarStmt *> varStmts,
 						 std::vector<FunctionStmt *> fnStmts,
 						 std::vector<FunctionStmt *> constructors,
 						 std::vector<IdentifierExpr *> parentClasses)
 		: Stmt(AST_CLASS),
 		  name(name),
-		  letStmts(letStmts),
-		  constStmts(constStmts),
+		  varStmts(varStmts),
 		  fnStmts(fnStmts),
 		  constructors(constructors),
 		  parentClasses(parentClasses)
@@ -774,8 +753,7 @@ namespace lws
 	{
 		std::vector<IdentifierExpr *>().swap(parentClasses);
 		std::vector<FunctionStmt *>().swap(constructors);
-		std::vector<LetStmt *>().swap(letStmts);
-		std::vector<ConstStmt *>().swap(constStmts);
+		std::vector<VarStmt *>().swap(varStmts);
 		std::vector<FunctionStmt *>().swap(fnStmts);
 	}
 
@@ -790,10 +768,8 @@ namespace lws
 			result = result.substr(0, result.size() - 1);
 		}
 		result += L"{";
-		for (auto constStmt : constStmts)
-			result += constStmt->Stringify();
-		for (auto letStmt : letStmts)
-			result += letStmt->Stringify();
+		for (auto variableStmt : varStmts)
+			result += variableStmt->Stringify();
 		for (auto fnStmt : fnStmts)
 			result += fnStmt->Stringify();
 		return result + L"}";

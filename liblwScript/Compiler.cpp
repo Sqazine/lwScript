@@ -20,10 +20,10 @@ namespace lws
 		{
 			auto stmts = ((AstStmts *)stmt)->stmts;
 			for (const auto &s : stmts)
-				CompileDeclaration(s);
+				CompileDecl(s);
 		}
 		else
-			CompileDeclaration(stmt);
+			CompileDecl(stmt);
 
 		EmitReturn(0);
 
@@ -50,39 +50,43 @@ namespace lws
 			mSymbolTable->Define(DESC_CONSTANT, libName);
 	}
 
-	void Compiler::CompileDeclaration(Stmt *stmt)
+	void Compiler::CompileDecl(Stmt *stmt)
 	{
 		int64_t breakStmtAddress = -1;	  // useless
 		int64_t contineuStmtAddress = -1; // useless
-		CompileDeclaration(stmt, breakStmtAddress, contineuStmtAddress);
+		CompileDecl(stmt, breakStmtAddress, contineuStmtAddress);
 	}
 
-	void Compiler::CompileDeclaration(Stmt *stmt, int64_t &breakStmtAddress, int64_t &continueStmtAddress)
+	void Compiler::CompileDecl(Stmt *stmt, int64_t &breakStmtAddress, int64_t &continueStmtAddress)
 	{
 		switch (stmt->type)
 		{
-		case AST_LET:
-			CompileLetDeclaration((LetStmt *)stmt);
-			break;
-		case AST_CONST:
-			CompileConstDeclaration((ConstStmt *)stmt);
+		case AST_VARIABLE:
+			CompileVarDecl((VarStmt *)stmt);
 			break;
 		case AST_FUNCTION:
-			CompileFunctionDeclaration((FunctionStmt *)stmt);
+			CompileFunctionDecl((FunctionStmt *)stmt);
 			break;
 		case AST_CLASS:
-			CompileClassDeclaration((ClassStmt *)stmt);
+			CompileClassDecl((ClassStmt *)stmt);
 			break;
 		case AST_ENUM:
-			CompileEnumDeclaration((EnumStmt *)stmt);
+			CompileEnumDecl((EnumStmt *)stmt);
 			break;
 		default:
 			CompileStmt((Stmt *)stmt, breakStmtAddress, continueStmtAddress);
 			break;
 		}
 	}
-	void Compiler::CompileLetDeclaration(LetStmt *stmt)
+	void Compiler::CompileVarDecl(VarStmt *stmt)
 	{
+		ValueDesc valueDesc;
+
+		if (stmt->privilege == VarStmt::Privilege ::MUTABLE)
+			valueDesc = ValueDesc::DESC_VARIABLE;
+		else if (stmt->privilege == VarStmt::Privilege ::IMMUTABLE)
+			valueDesc = ValueDesc::DESC_CONSTANT;
+
 		auto postfixExprs = StatsPostfixExprs(stmt);
 
 		for (const auto &[k, v] : stmt->variables)
@@ -99,7 +103,7 @@ namespace lws
 
 				for (int32_t i = arrayExpr->elements.size() - 1; i >= 0; --i)
 				{
-					auto symbol = mSymbolTable->Define(DESC_VARIABLE, ((VarDescExpr *)arrayExpr->elements[i])->name->literal);
+					auto symbol = mSymbolTable->Define(valueDesc, ((VarDescExpr *)arrayExpr->elements[i])->name->literal);
 					if (symbol.type == SYMBOL_GLOBAL)
 					{
 						Emit(OP_SET_GLOBAL);
@@ -111,7 +115,7 @@ namespace lws
 			else if (k->type == AST_VAR_DESC)
 			{
 				CompileExpr(v);
-				auto symbol = mSymbolTable->Define(DESC_VARIABLE, ((VarDescExpr *)k)->name->literal);
+				auto symbol = mSymbolTable->Define(valueDesc, ((VarDescExpr *)k)->name->literal);
 				if (symbol.type == SYMBOL_GLOBAL)
 				{
 					Emit(OP_SET_GLOBAL);
@@ -130,55 +134,7 @@ namespace lws
 		}
 	}
 
-	void Compiler::CompileConstDeclaration(ConstStmt *stmt)
-	{
-		auto postfixExprs = StatsPostfixExprs(stmt);
-
-		for (const auto &[k, v] : stmt->consts)
-		{
-			CompileExpr(v);
-
-			if (k->type == AST_ARRAY)
-			{
-				if (v->type == AST_CALL)
-					CompileExpr(v);
-				else if (v->type == AST_ARRAY)
-					for (int32_t i = 0; i < ((ArrayExpr *)v)->elements.size(); ++i)
-						CompileExpr(((ArrayExpr *)v)->elements[i]);
-
-				auto arrayExpr = (ArrayExpr *)k;
-
-				for (int32_t i = arrayExpr->elements.size() - 1; i >= 0; --i)
-				{
-					auto symbol = mSymbolTable->Define(DESC_CONSTANT, ((VarDescExpr *)arrayExpr->elements[i])->name->literal);
-					if (symbol.type == SYMBOL_GLOBAL)
-					{
-						Emit(OP_SET_GLOBAL);
-						Emit(symbol.index);
-						Emit(OP_POP);
-					}
-				}
-			}
-			else if (k->type == AST_VAR_DESC)
-			{
-				auto symbol = mSymbolTable->Define(DESC_CONSTANT, ((VarDescExpr *)k)->name->literal);
-				if (symbol.type == SYMBOL_GLOBAL)
-				{
-					Emit(OP_SET_GLOBAL);
-					Emit(symbol.index);
-					Emit(OP_POP);
-				}
-			}
-		}
-
-		if (!postfixExprs.empty())
-		{
-			for (const auto &postfixExpr : postfixExprs)
-				CompilePostfixExpr((PostfixExpr *)postfixExpr, RWState::READ, false);
-		}
-	}
-
-	void Compiler::CompileFunctionDeclaration(FunctionStmt *stmt)
+	void Compiler::CompileFunctionDecl(FunctionStmt *stmt)
 	{
 		auto symbol = CompileFunction(stmt);
 		if (symbol.type == SYMBOL_GLOBAL)
@@ -193,7 +149,7 @@ namespace lws
 		}
 		Emit(OP_POP);
 	}
-	void Compiler::CompileClassDeclaration(ClassStmt *stmt)
+	void Compiler::CompileClassDecl(ClassStmt *stmt)
 	{
 		auto symbol = mSymbolTable->Define(DESC_CONSTANT, stmt->name);
 
@@ -204,9 +160,9 @@ namespace lws
 
 		int8_t varCount = 0;
 		int8_t constCount = 0;
-		for (const auto &letStmt : stmt->letStmts)
+		for (const auto &varStmt : stmt->varStmts)
 		{
-			for (const auto &[k, v] : letStmt->variables)
+			for (const auto &[k, v] : varStmt->variables)
 			{
 				CompileExpr(v);
 
@@ -220,24 +176,6 @@ namespace lws
 					EmitConstant(new StrObject(((VarDescExpr *)k)->name->literal));
 
 				varCount++;
-			}
-		}
-
-		for (const auto &constStmt : stmt->constStmts)
-		{
-			for (const auto &[k, v] : constStmt->consts)
-			{
-				CompileExpr(v);
-				if (k->type == AST_ARRAY)
-				{
-					auto arrayExpr = (ArrayExpr *)k;
-					for (int32_t i = arrayExpr->elements.size() - 1; i >= 0; --i)
-						EmitConstant(new StrObject(((VarDescExpr *)arrayExpr->elements[i])->name->literal));
-				}
-				else if (k->type == AST_VAR_DESC)
-					EmitConstant(new StrObject(((VarDescExpr *)k)->name->literal));
-
-				constCount++;
 			}
 		}
 
@@ -289,7 +227,7 @@ namespace lws
 		Emit(OP_POP);
 	}
 
-	void Compiler::CompileEnumDeclaration(EnumStmt *stmt)
+	void Compiler::CompileEnumDecl(EnumStmt *stmt)
 	{
 		std::unordered_map<std::wstring, Value> pairs;
 		for (const auto &[k, v] : stmt->enumItems)
@@ -380,7 +318,7 @@ namespace lws
 
 		Emit(OP_POP);
 
-		CompileDeclaration(stmt->thenBranch, breakStmtAddress, continueStmtAddress);
+		CompileDecl(stmt->thenBranch, breakStmtAddress, continueStmtAddress);
 
 		auto jmpAddress = EmitJump(OP_JUMP);
 
@@ -389,14 +327,14 @@ namespace lws
 		Emit(OP_POP);
 
 		if (stmt->elseBranch)
-			CompileDeclaration(stmt->elseBranch, breakStmtAddress, continueStmtAddress);
+			CompileDecl(stmt->elseBranch, breakStmtAddress, continueStmtAddress);
 
 		PatchJump(jmpAddress);
 	}
 	void Compiler::CompileScopeStmt(ScopeStmt *stmt, int64_t &breakStmtAddress, int64_t &continueStmtAddress)
 	{
 		for (const auto &s : stmt->stmts)
-			CompileDeclaration(s, breakStmtAddress, continueStmtAddress);
+			CompileDecl(s, breakStmtAddress, continueStmtAddress);
 	}
 	void Compiler::CompileWhileStmt(WhileStmt *stmt)
 	{
@@ -922,7 +860,7 @@ namespace lws
 	{
 		EnterScope();
 		for (const auto &s : expr->stmts)
-			CompileDeclaration(s);
+			CompileDecl(s);
 		CompileExpr(expr->endExpr);
 		ExitScope();
 	}
@@ -1187,20 +1125,10 @@ namespace lws
 		}
 		case AST_EXPR:
 			return StatsPostfixExprs(((ExprStmt *)astNode)->expr);
-		case AST_LET:
+		case AST_VARIABLE:
 		{
 			std::vector<Expr *> result;
-			for (const auto &[k, v] : ((LetStmt *)astNode)->variables)
-			{
-				auto varResult = StatsPostfixExprs(v);
-				result.insert(result.end(), varResult.begin(), varResult.end());
-			}
-			return result;
-		}
-		case AST_CONST:
-		{
-			std::vector<Expr *> result;
-			for (const auto &[k, v] : ((ConstStmt *)astNode)->consts)
+			for (const auto &[k, v] : ((VarStmt *)astNode)->variables)
 			{
 				auto varResult = StatsPostfixExprs(v);
 				result.insert(result.end(), varResult.begin(), varResult.end());
@@ -1263,16 +1191,10 @@ namespace lws
 		{
 			std::vector<Expr *> result;
 
-			for (const auto &letStmt : ((ClassStmt *)astNode)->letStmts)
+			for (const auto &varStmt : ((ClassStmt *)astNode)->varStmts)
 			{
-				auto letStmtResult = StatsPostfixExprs(letStmt);
+				auto letStmtResult = StatsPostfixExprs(varStmt);
 				result.insert(result.end(), letStmtResult.begin(), letStmtResult.end());
-			}
-
-			for (const auto &constStmt : ((ClassStmt *)astNode)->constStmts)
-			{
-				auto constStmtResult = StatsPostfixExprs(constStmt);
-				result.insert(result.end(), constStmtResult.begin(), constStmtResult.end());
 			}
 
 			for (const auto &fnStmt : ((ClassStmt *)astNode)->fnStmts)

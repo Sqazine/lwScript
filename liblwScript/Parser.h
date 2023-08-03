@@ -58,13 +58,12 @@ namespace lws
 	private:
 		void ResetStatus();
 
-		Stmt *ParseDeclaration();
-		Stmt *ParseLetDeclaration();
-		Stmt *ParseConstDeclaration();
-		Stmt *ParseFunctionDeclaration();
-		Stmt *ParseClassDeclaration();
-		Stmt *ParseEnumDeclaration();
-		Stmt* ParseModuleDeclaration();
+		Stmt *ParseDecl();
+		Stmt *ParseVarDecl(TokenType tType);
+		Stmt *ParseFunctionDecl();
+		Stmt *ParseClassDecl();
+		Stmt *ParseEnumDecl();
+		Stmt* ParseModuleDecl();
 
 		Stmt *ParseStmt();
 		Stmt *ParseExprStmt();

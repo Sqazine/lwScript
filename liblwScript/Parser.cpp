@@ -165,7 +165,7 @@ namespace lws
 		mTokens = tokens;
 
 		while (!IsMatchCurToken(TOKEN_EOF))
-			mStmts->stmts.emplace_back(ParseDeclaration());
+			mStmts->stmts.emplace_back(ParseDecl());
 		return mStmts;
 	}
 
@@ -183,35 +183,42 @@ namespace lws
 		mStmts = new AstStmts();
 	}
 
-	Stmt *Parser::ParseDeclaration()
+	Stmt *Parser::ParseDecl()
 	{
 		switch (GetCurToken().type)
 		{
 		case TOKEN_LET:
-			return ParseLetDeclaration();
+			return ParseVarDecl(TOKEN_LET);
 		case TOKEN_CONST:
-			return ParseConstDeclaration();
+			return ParseVarDecl(TOKEN_CONST);
 		case TOKEN_FUNCTION:
 			GetCurTokenAndStepOnce();
-			return ParseFunctionDeclaration();
+			return ParseFunctionDecl();
 		case TOKEN_CLASS:
-			return ParseClassDeclaration();
+			return ParseClassDecl();
 		case TOKEN_ENUM:
-			return ParseEnumDeclaration();
+			return ParseEnumDecl();
 		case TOKEN_MODULE:
-			return ParseModuleDeclaration();
+			return ParseModuleDecl();
 		default:
 			return ParseStmt();
 		}
 	}
 
-	Stmt *Parser::ParseLetDeclaration()
+	Stmt *Parser::ParseVarDecl(TokenType tType)
 	{
-		auto letStmt = new LetStmt();
-		letStmt->line = GetCurToken().line;
-		letStmt->column = GetCurToken().column;
+		auto varStmt = new VarStmt();
 
-		Consume(TOKEN_LET, L"Expect 'let' key word");
+		if(tType==TOKEN_LET)
+			varStmt->privilege=VarStmt::Privilege::MUTABLE;
+		else if(tType==TOKEN_CONST)
+			varStmt->privilege=VarStmt::Privilege::IMMUTABLE;
+
+
+		varStmt->line = GetCurToken().line;
+		varStmt->column = GetCurToken().column;
+
+		Consume(tType, L"Expect 'let' or 'const' key word");
 
 		do
 		{
@@ -241,29 +248,29 @@ namespace lws
 					{
 						int32_t grad = arrayExpr->elements.size() > ((ArrayExpr *)value)->elements.size();
 						if (grad == 0)
-							letStmt->variables.emplace_back(arrayExpr, value);
+							varStmt->variables.emplace_back(arrayExpr, value);
 						else if (grad > 0)
 						{
 							initializeList->elements = ((ArrayExpr *)value)->elements;
 							for (int32_t i = 0; i < grad; ++i)
 								initializeList->elements.emplace_back(mNullExpr);
-							letStmt->variables.emplace_back(arrayExpr, initializeList);
+							varStmt->variables.emplace_back(arrayExpr, initializeList);
 						}
 						else
 							ASSERT(L"variable less than value.");
 					}
 					else if (value->type == AST_CALL)
-						letStmt->variables.emplace_back(arrayExpr, value);
+						varStmt->variables.emplace_back(arrayExpr, value);
 					else
 					{
 						initializeList->elements.resize(arrayExpr->elements.size(), value);
-						letStmt->variables.emplace_back(arrayExpr, initializeList);
+						varStmt->variables.emplace_back(arrayExpr, initializeList);
 					}
 				}
 				else
 				{
 					initializeList->elements.resize(arrayExpr->elements.size(), mNullExpr);
-					letStmt->variables.emplace_back(arrayExpr, initializeList);
+					varStmt->variables.emplace_back(arrayExpr, initializeList);
 				}
 			}
 			else
@@ -273,89 +280,17 @@ namespace lws
 				Expr *value = mNullExpr;
 				if (IsMatchCurTokenAndStepOnce(TOKEN_EQUAL))
 					value = ParseExpr();
-				letStmt->variables.emplace_back(varDescExpr, value);
+				varStmt->variables.emplace_back(varDescExpr, value);
 			}
 
 		} while (IsMatchCurTokenAndStepOnce(TOKEN_COMMA));
 
-		Consume(TOKEN_SEMICOLON, L"Expect ';' after let declaration.");
+		Consume(TOKEN_SEMICOLON, L"Expect ';' after let or const declaration.");
 
-		return letStmt;
+		return varStmt;
 	}
 
-	Stmt *Parser::ParseConstDeclaration()
-	{
-		auto constStmt = new ConstStmt();
-		constStmt->line = GetCurToken().line;
-		constStmt->column = GetCurToken().column;
-
-		Consume(TOKEN_CONST, L"Expect 'const' key word");
-
-		do
-		{
-			if (IsMatchCurTokenAndStepOnce(TOKEN_LBRACKET))
-			{
-				auto arrayExpr = new ArrayExpr();
-				do
-				{
-					if (IsMatchCurToken(TOKEN_RBRACKET))
-						break;
-
-					auto varDescExpr = ParseVarDescExpr();
-
-					arrayExpr->elements.emplace_back(varDescExpr);
-
-				} while (IsMatchCurTokenAndStepOnce(TOKEN_COMMA));
-
-				Consume(TOKEN_RBRACKET, L"Expect ']' destructuring assignment expr.");
-
-				ArrayExpr *initializeList = new ArrayExpr();
-
-				if (IsMatchCurTokenAndStepOnce(TOKEN_EQUAL))
-				{
-					Expr *value = mNullExpr;
-					value = ParseExpr();
-					if (value->type == AST_ARRAY)
-					{
-						auto grad = arrayExpr->elements.size() > ((ArrayExpr *)value)->elements.size();
-						if (grad == 0)
-							constStmt->consts.emplace_back(arrayExpr, value);
-						else if (grad > 0)
-						{
-							initializeList->elements = ((ArrayExpr *)value)->elements;
-							for (int32_t i = 0; i < grad; ++i)
-								initializeList->elements.emplace_back(mNullExpr);
-							constStmt->consts.emplace_back(arrayExpr, initializeList);
-						}
-						else
-							ASSERT("variable less than value.");
-					}
-					else if (value->type == AST_CALL)
-						constStmt->consts.emplace_back(arrayExpr, value);
-					else
-					{
-						initializeList->elements.resize(arrayExpr->elements.size(), value);
-						constStmt->consts.emplace_back(arrayExpr, initializeList);
-					}
-				}
-			}
-			else
-			{
-				auto varDescExpr = ParseVarDescExpr();
-
-				Expr *value = mNullExpr;
-				if (IsMatchCurTokenAndStepOnce(TOKEN_EQUAL))
-					value = ParseExpr();
-				constStmt->consts.emplace_back(varDescExpr, value);
-			}
-		} while (IsMatchCurTokenAndStepOnce(TOKEN_COMMA));
-
-		Consume(TOKEN_SEMICOLON, L"Expect ';' after const declaration.");
-
-		return constStmt;
-	}
-
-	Stmt *Parser::ParseFunctionDeclaration()
+	Stmt *Parser::ParseFunctionDecl()
 	{
 		auto funcStmt = new FunctionStmt();
 		funcStmt->line = GetCurToken().line;
@@ -387,7 +322,7 @@ namespace lws
 		return funcStmt;
 	}
 
-	Stmt *Parser::ParseClassDeclaration()
+	Stmt *Parser::ParseClassDecl()
 	{
 		auto classStmt = new ClassStmt();
 		classStmt->line = GetCurToken().line;
@@ -418,19 +353,19 @@ namespace lws
 		while (!IsMatchCurToken(TOKEN_RBRACE))
 		{
 			if (IsMatchCurToken(TOKEN_LET))
-				classStmt->letStmts.emplace_back((LetStmt *)ParseLetDeclaration());
+				classStmt->varStmts.emplace_back((VarStmt *)ParseVarDecl(TOKEN_LET));
 			else if (IsMatchCurToken(TOKEN_CONST))
-				classStmt->constStmts.emplace_back((ConstStmt *)ParseConstDeclaration());
+				classStmt->varStmts.emplace_back((VarStmt *)ParseVarDecl(TOKEN_CONST));
 			else if (IsMatchCurTokenAndStepOnce(TOKEN_FUNCTION))
 			{
-				auto fn = (FunctionStmt *)ParseFunctionDeclaration();
+				auto fn = (FunctionStmt *)ParseFunctionDecl();
 				if (fn->name->literal == classStmt->name)
 					ASSERT(L"The class name conflicts with the class member function name");
 				classStmt->fnStmts.emplace_back(fn);
 			}
 			else if (GetCurToken().literal == classStmt->name) // constructor
 			{
-				auto fn = (FunctionStmt *)ParseFunctionDeclaration();
+				auto fn = (FunctionStmt *)ParseFunctionDecl();
 				classStmt->constructors.emplace_back(fn);
 			}
 			else
@@ -443,7 +378,7 @@ namespace lws
 
 		return classStmt;
 	}
-	Stmt *Parser::ParseEnumDeclaration()
+	Stmt *Parser::ParseEnumDecl()
 	{
 		auto enumStmt = new EnumStmt();
 		enumStmt->line = GetCurToken().line;
@@ -478,7 +413,7 @@ namespace lws
 		return enumStmt;
 	}
 
-	Stmt *Parser::ParseModuleDeclaration()
+	Stmt *Parser::ParseModuleDecl()
 	{
 		Consume(TOKEN_MODULE, L"Expect 'module' keyword.");
 
@@ -490,7 +425,7 @@ namespace lws
 
 		do
 		{
-			moduleDecl->modItems.emplace_back(ParseDeclaration());
+			moduleDecl->modItems.emplace_back(ParseDecl());
 		} while (!IsMatchCurToken(TOKEN_RBRACE));
 
 		Consume(TOKEN_RBRACE, L"Expect '}'.");
@@ -590,7 +525,7 @@ namespace lws
 
 		Consume(TOKEN_LBRACE, L"Expect '{'.");
 		while (!IsMatchCurToken(TOKEN_RBRACE))
-			scopeStmt->stmts.emplace_back(ParseDeclaration());
+			scopeStmt->stmts.emplace_back(ParseDecl());
 		Consume(TOKEN_RBRACE, L"Expect '}'.");
 		return scopeStmt;
 	}
@@ -658,9 +593,9 @@ namespace lws
 
 		// initializer
 		if (IsMatchCurToken(TOKEN_LET))
-			scopeStmt->stmts.emplace_back(ParseLetDeclaration());
+			scopeStmt->stmts.emplace_back(ParseVarDecl(TOKEN_LET));
 		else if (IsMatchCurToken(TOKEN_CONST))
-			scopeStmt->stmts.emplace_back(ParseConstDeclaration());
+			scopeStmt->stmts.emplace_back(ParseVarDecl(TOKEN_CONST));
 		else
 		{
 			if (!IsMatchCurToken(TOKEN_SEMICOLON))
@@ -997,7 +932,7 @@ namespace lws
 		{
 			if (IsMatchCurToken(TOKEN_RBRACE_RPAREN))
 				ASSERT("Expr required at the end of block expression.");
-			stmts.emplace_back(ParseDeclaration());
+			stmts.emplace_back(ParseDecl());
 		} while (IsMatchCurTokenAndStepOnce(TOKEN_SEMICOLON));
 
 		mSkippingConsumeTokenTypeStack.pop_back();

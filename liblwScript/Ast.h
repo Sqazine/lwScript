@@ -34,8 +34,7 @@ namespace lws
 		AST_BLOCK,
 		AST_ANONY_OBJ,
 		// stmt
-		AST_LET,
-		AST_CONST,
+		AST_VARIABLE,
 		AST_EXPR,
 		AST_RETURN,
 		AST_IF,
@@ -134,16 +133,16 @@ namespace lws
 		std::wstring literal;
 	};
 
-	struct VarDescExpr:public Expr
+	struct VarDescExpr : public Expr
 	{
 		VarDescExpr();
-		VarDescExpr(std::wstring_view type,IdentifierExpr* name);
+		VarDescExpr(std::wstring_view type, IdentifierExpr *name);
 		~VarDescExpr();
 
 		std::wstring Stringify() override;
 
 		std::wstring type;
-		IdentifierExpr* name;
+		IdentifierExpr *name;
 	};
 
 	struct ArrayExpr : public Expr
@@ -156,7 +155,6 @@ namespace lws
 
 		std::vector<Expr *> elements;
 	};
-	
 
 	struct DictExpr : public Expr
 	{
@@ -318,19 +316,19 @@ namespace lws
 		IdentifierExpr *callMember;
 	};
 
-	struct BlockExpr:public Expr
+	struct BlockExpr : public Expr
 	{
 		BlockExpr();
-		BlockExpr(const std::vector<struct Stmt*>& stmts,Expr* endExpr);
+		BlockExpr(const std::vector<struct Stmt *> &stmts, Expr *endExpr);
 		~BlockExpr();
 
 		std::wstring Stringify() override;
 
-		std::vector<struct Stmt*> stmts;
-		Expr* endExpr;
+		std::vector<struct Stmt *> stmts;
+		Expr *endExpr;
 	};
 
-	struct AnonyObjExpr:public Expr
+	struct AnonyObjExpr : public Expr
 	{
 		AnonyObjExpr();
 		AnonyObjExpr(const std::vector<std::pair<std::wstring, Expr *>> &elements);
@@ -338,7 +336,7 @@ namespace lws
 
 		std::wstring Stringify() override;
 
-		std::vector<std::pair<std::wstring, Expr *>> elements;	
+		std::vector<std::pair<std::wstring, Expr *>> elements;
 	};
 
 	struct Stmt : public AstNode
@@ -359,32 +357,29 @@ namespace lws
 		Expr *expr;
 	};
 
-	struct LetStmt : public Stmt
+	struct VarStmt : public Stmt
 	{
-		LetStmt();
-		LetStmt(const std::vector<std::pair<Expr*,Expr*>> &variables);
-		~LetStmt();
+		enum class Privilege
+		{
+			MUTABLE,
+			IMMUTABLE,
+		};
+
+		VarStmt();
+		VarStmt(Privilege privilege, const std::vector<std::pair<Expr *, Expr *>> &variables);
+		~VarStmt();
 
 		std::wstring Stringify() override;
 
-		std::vector<std::pair<Expr*,Expr*>> variables;
-	};
 
-	struct ConstStmt : public Stmt
-	{
-		ConstStmt();
-		ConstStmt(const std::vector<std::pair<Expr*,Expr*>> &consts);
-		~ConstStmt();
-
-		std::wstring Stringify() override;
-
-		std::vector<std::pair<Expr*,Expr*>> consts;
+		Privilege privilege;
+		std::vector<std::pair<Expr *, Expr *>> variables;
 	};
 
 	struct ReturnStmt : public Stmt
 	{
 		ReturnStmt();
-		ReturnStmt(const std::vector<Expr *>& exprs);
+		ReturnStmt(const std::vector<Expr *> &exprs);
 		~ReturnStmt();
 
 		std::wstring Stringify() override;
@@ -494,8 +489,7 @@ namespace lws
 	{
 		ClassStmt();
 		ClassStmt(std::wstring name,
-				  std::vector<LetStmt *> letStmts,
-				  std::vector<ConstStmt *> constStmts,
+				  std::vector<VarStmt *> varStmts,
 				  std::vector<FunctionStmt *> fnStmts,
 				  std::vector<FunctionStmt *> constructors = {},
 				  std::vector<IdentifierExpr *> parentClasses = {});
@@ -506,8 +500,7 @@ namespace lws
 		std::wstring name;
 		std::vector<IdentifierExpr *> parentClasses;
 		std::vector<FunctionStmt *> constructors;
-		std::vector<LetStmt *> letStmts;
-		std::vector<ConstStmt *> constStmts;
+		std::vector<VarStmt *> varStmts;
 		std::vector<FunctionStmt *> fnStmts;
 	};
 

@@ -22,13 +22,12 @@ namespace lws
 		void ResetStatus();
 
 	private:
-		void CompileDeclaration(Stmt *stmt);
-		void CompileDeclaration(Stmt *stmt, int64_t &breakStmtAddress, int64_t &continueStmtAddress);
-		void CompileLetDeclaration(LetStmt *stmt);
-		void CompileConstDeclaration(ConstStmt *stmt);
-		void CompileFunctionDeclaration(FunctionStmt *stmt);
-		void CompileClassDeclaration(ClassStmt *stmt);
-		void CompileEnumDeclaration(EnumStmt *stmt);
+		void CompileDecl(Stmt *stmt);
+		void CompileDecl(Stmt *stmt, int64_t &breakStmtAddress, int64_t &continueStmtAddress);
+		void CompileVarDecl(VarStmt *stmt);
+		void CompileFunctionDecl(FunctionStmt *stmt);
+		void CompileClassDecl(ClassStmt *stmt);
+		void CompileEnumDecl(EnumStmt *stmt);
 
 		void CompileStmt(Stmt *stmt, int64_t &breakStmtAddress, int64_t &continueStmtAddress);
 		void CompileExprStmt(ExprStmt *stmt);

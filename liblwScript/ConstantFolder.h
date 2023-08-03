@@ -15,8 +15,8 @@ namespace lws
     private:
         Stmt *FoldStmt(Stmt *stmt);
         Stmt *FoldAstStmts(AstStmts *stmt);
-        Stmt *FoldLetStmt(LetStmt *stmt);
-        Stmt *FoldConstStmt(ConstStmt *stmt);
+        Stmt *FoldVarStmt(VarStmt *stmt);
+
         Stmt *FoldExprStmt(ExprStmt *stmt);
         Stmt *FoldReturnStmt(ReturnStmt *stmt);
         Stmt *FoldIfStmt(IfStmt *stmt);

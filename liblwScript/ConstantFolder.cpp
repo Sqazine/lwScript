@@ -24,10 +24,8 @@ namespace lws
 			return FoldReturnStmt((ReturnStmt *)stmt);
 		case AST_EXPR:
 			return FoldExprStmt((ExprStmt *)stmt);
-		case AST_LET:
-			return FoldLetStmt((LetStmt *)stmt);
-		case AST_CONST:
-			return FoldConstStmt((ConstStmt *)stmt);
+		case AST_VARIABLE:
+			return FoldVarStmt((VarStmt *)stmt);
 		case AST_SCOPE:
 			return FoldScopeStmt((ScopeStmt *)stmt);
 		case AST_IF:
@@ -95,18 +93,13 @@ namespace lws
 		}
 		return stmt;
 	}
-	Stmt *ConstantFolder::FoldLetStmt(LetStmt *stmt)
+	Stmt *ConstantFolder::FoldVarStmt(VarStmt *stmt)
 	{
 		for (auto &[k, v] : stmt->variables)
 			v = FoldExpr(v);
 		return stmt;
 	}
-	Stmt *ConstantFolder::FoldConstStmt(ConstStmt *stmt)
-	{
-		for (auto &[k, v] : stmt->consts)
-			v = FoldExpr(v);
-		return stmt;
-	}
+	
 	Stmt *ConstantFolder::FoldFunctionStmt(FunctionStmt *stmt)
 	{
 		for (auto &e : stmt->parameters)
@@ -117,11 +110,8 @@ namespace lws
 	}
 	Stmt *ConstantFolder::FoldClassStmt(ClassStmt *stmt)
 	{
-		for (auto &letStmt : stmt->letStmts)
-			letStmt = (LetStmt *)FoldLetStmt(letStmt);
-
-		for (auto &constStmt : stmt->constStmts)
-			constStmt = (ConstStmt *)FoldConstStmt(constStmt);
+		for (auto &varStmt : stmt->varStmts)
+			varStmt = (VarStmt *)FoldVarStmt(varStmt);
 
 		for (auto &fnStmt : stmt->fnStmts)
 			fnStmt = (FunctionStmt *)FoldFunctionStmt(fnStmt);
