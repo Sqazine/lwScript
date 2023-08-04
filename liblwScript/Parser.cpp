@@ -94,6 +94,7 @@ namespace lws
 			{TOKEN_BASE, &Parser::ParseBaseExpr},
 			{TOKEN_MATCH, &Parser::ParseMatchExpr},
 			{TOKEN_LPAREN_LBRACE, &Parser::ParseBlockExpr},
+			{TOKEN_ELLIPSIS, &Parser::ParseVarArgExpr},
 	};
 
 	std::unordered_map<TokenType, InfixFn> Parser::mInfixFunctions =
@@ -209,11 +210,10 @@ namespace lws
 	{
 		auto varStmt = new VarStmt();
 
-		if(tType==TOKEN_LET)
-			varStmt->privilege=VarStmt::Privilege::MUTABLE;
-		else if(tType==TOKEN_CONST)
-			varStmt->privilege=VarStmt::Privilege::IMMUTABLE;
-
+		if (tType == TOKEN_LET)
+			varStmt->privilege = VarStmt::Privilege::MUTABLE;
+		else if (tType == TOKEN_CONST)
+			varStmt->privilege = VarStmt::Privilege::IMMUTABLE;
 
 		varStmt->line = GetCurToken().line;
 		varStmt->column = GetCurToken().column;
@@ -225,18 +225,28 @@ namespace lws
 			if (IsMatchCurTokenAndStepOnce(TOKEN_LBRACKET))
 			{
 				auto arrayExpr = new ArrayExpr();
+
+				int8_t varArgCount = 0;
 				do
 				{
 					if (IsMatchCurToken(TOKEN_RBRACKET))
 						break;
 
-					auto varDescExpr = ParseVarDescExpr();
+					auto varDescExpr = (VarDescExpr*)ParseVarDescExpr();
+					if (varDescExpr->name->type == AST_VAR_ARG) //check if has var arg
+						varArgCount++;
 
 					arrayExpr->elements.emplace_back(varDescExpr);
 
 				} while (IsMatchCurTokenAndStepOnce(TOKEN_COMMA));
 
 				Consume(TOKEN_RBRACKET, L"Expect ']' destructuring assignment expr.");
+
+				if (varArgCount > 1)
+					ASSERT(L"only 1 variable arg decl is available in var declaration and it must be located at the last of destructing assignment declaration");
+
+				if (varArgCount == 1 && ((VarDescExpr*)arrayExpr->elements.back())->name->type != AST_VAR_ARG)
+					ASSERT(L"variable arg decl must be located at the last of destructing assignment declaration");
 
 				ArrayExpr *initializeList = new ArrayExpr();
 
@@ -246,7 +256,7 @@ namespace lws
 					value = ParseExpr();
 					if (value->type == AST_ARRAY)
 					{
-						int32_t grad = arrayExpr->elements.size() > ((ArrayExpr *)value)->elements.size();
+						int32_t grad = arrayExpr->elements.size() - ((ArrayExpr *)value)->elements.size();
 						if (grad == 0)
 							varStmt->variables.emplace_back(arrayExpr, value);
 						else if (grad > 0)
@@ -254,6 +264,11 @@ namespace lws
 							initializeList->elements = ((ArrayExpr *)value)->elements;
 							for (int32_t i = 0; i < grad; ++i)
 								initializeList->elements.emplace_back(mNullExpr);
+							varStmt->variables.emplace_back(arrayExpr, initializeList);
+						}
+						else if( ((VarDescExpr*)arrayExpr->elements.back())->name->type == AST_VAR_ARG)
+						{
+							initializeList->elements = ((ArrayExpr *)value)->elements;	
 							varStmt->variables.emplace_back(arrayExpr, initializeList);
 						}
 						else
@@ -1241,14 +1256,29 @@ namespace lws
 
 	Expr *Parser::ParseVarDescExpr()
 	{
-		// variable name
-		auto name = (IdentifierExpr *)ParseIdentifierExpr();
+		Expr *expr = nullptr;
+		if (IsMatchCurToken(TOKEN_ELLIPSIS))
+			expr = ParseVarArgExpr();
+		else
+			expr = (IdentifierExpr *)ParseIdentifierExpr(); // variable name
 
 		// variable type
 		std::wstring type = L"any";
 		if (IsMatchCurToken(TOKEN_COLON))
 			type = GetCurTokenAndStepOnce().literal;
-		return new VarDescExpr(type, name);
+		return new VarDescExpr(type, expr);
+	}
+
+	Expr *Parser::ParseVarArgExpr()
+	{
+		Consume(TOKEN_ELLIPSIS, L"Expect '...'");
+
+		if (IsMatchCurToken(TOKEN_IDENTIFIER))
+		{
+			auto name = (IdentifierExpr *)ParseIdentifierExpr();
+			return new VarArgExpr(name);
+		}
+		return new VarArgExpr();
 	}
 
 	Token Parser::GetCurToken()

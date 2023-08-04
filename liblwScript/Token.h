@@ -11,6 +11,7 @@ namespace lws
 		TOKEN_STRING,
 		TOKEN_IDENTIFIER,
 		TOKEN_DOT,					 // .
+		TOKEN_ELLIPSIS,				 // ...
 		TOKEN_COMMA,				 // ,
 		TOKEN_COLON,				 // :
 		TOKEN_SEMICOLON,			 // ;

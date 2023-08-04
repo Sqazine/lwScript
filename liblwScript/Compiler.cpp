@@ -32,6 +32,8 @@ namespace lws
 
 	void Compiler::ResetStatus()
 	{
+		mVarArgCount = 0;
+
 		std::vector<FunctionObject *>().swap(mFunctionList);
 		mFunctionList.emplace_back(new FunctionObject(L"_main_start_up"));
 
@@ -61,7 +63,7 @@ namespace lws
 	{
 		switch (stmt->type)
 		{
-		case AST_VARIABLE:
+		case AST_VAR:
 			CompileVarDecl((VarStmt *)stmt);
 			break;
 		case AST_FUNCTION:
@@ -91,20 +93,68 @@ namespace lws
 
 		for (const auto &[k, v] : stmt->variables)
 		{
+			//destructuring assignment like let [x,y,...args]=....
 			if (k->type == AST_ARRAY)
 			{
+				bool isArrayValue = false;
 				if (v->type == AST_CALL)
 					CompileExpr(v);
 				else if (v->type == AST_ARRAY)
+				{
+					isArrayValue = true;
 					for (int32_t i = 0; i < ((ArrayExpr *)v)->elements.size(); ++i)
 						CompileExpr(((ArrayExpr *)v)->elements[i]);
+				}
 
 				auto arrayExpr = (ArrayExpr *)k;
 
 				for (int32_t i = arrayExpr->elements.size() - 1; i >= 0; --i)
 				{
-					auto symbol = mSymbolTable->Define(valueDesc, ((VarDescExpr *)arrayExpr->elements[i])->name->literal);
-					if (symbol.type == SYMBOL_GLOBAL)
+					Symbol symbol;
+					bool hasSymbol = true;
+
+					if (((VarDescExpr *)arrayExpr->elements[i])->name->type == AST_IDENTIFIER)
+					{
+						auto literal = ((IdentifierExpr *)((VarDescExpr *)arrayExpr->elements[i])->name)->literal;
+						symbol = mSymbolTable->Define(valueDesc, literal);
+					}
+					else if (((VarDescExpr *)arrayExpr->elements[i])->name->type == AST_VAR_ARG)
+					{
+						//varArg with name like:let [x,y,...args] (means IdentifierExpr* in VarDescExpr* not nullptr)
+						if (((VarArgExpr *)((VarDescExpr *)arrayExpr->elements[i])->name)->argName)
+						{
+							auto literal = ((VarArgExpr *)((VarDescExpr *)arrayExpr->elements[i])->name)->argName->literal;
+
+							if (isArrayValue)
+							{
+								int8_t restValueCount = ((ArrayExpr *)v)->elements.size() - arrayExpr->elements.size() + 1;
+
+								if (restValueCount > 0)
+								{
+									Emit(OP_ARRAY);
+									Emit(restValueCount);
+								}
+							}
+
+							symbol = mSymbolTable->Define(valueDesc, literal);
+						}
+						else // var arg without names like: let [x,y,...]
+						{
+							hasSymbol = false;
+							if (isArrayValue)
+							{
+								int8_t restValueCount = ((ArrayExpr *)v)->elements.size() - arrayExpr->elements.size() + 1;
+
+								while (restValueCount > 0)
+								{
+									Emit(OP_POP);
+									--restValueCount;
+								}
+							}
+						}
+					}
+
+					if (hasSymbol && symbol.type == SYMBOL_GLOBAL)
 					{
 						Emit(OP_SET_GLOBAL);
 						Emit(symbol.index);
@@ -115,7 +165,15 @@ namespace lws
 			else if (k->type == AST_VAR_DESC)
 			{
 				CompileExpr(v);
-				auto symbol = mSymbolTable->Define(valueDesc, ((VarDescExpr *)k)->name->literal);
+
+				std::wstring literal;
+
+				if (((VarDescExpr *)k)->name->type == AST_IDENTIFIER)
+					literal = ((IdentifierExpr *)(((VarDescExpr *)k)->name))->literal;
+				else if (((VarDescExpr *)k)->name->type == AST_VAR_ARG)
+					literal = ((VarArgExpr *)((VarDescExpr *)k)->name)->argName->literal;
+
+				auto symbol = mSymbolTable->Define(valueDesc, literal);
 				if (symbol.type == SYMBOL_GLOBAL)
 				{
 					Emit(OP_SET_GLOBAL);
@@ -169,11 +227,31 @@ namespace lws
 				if (k->type == AST_ARRAY)
 				{
 					auto arrayExpr = (ArrayExpr *)k;
+
 					for (int32_t i = arrayExpr->elements.size() - 1; i >= 0; --i)
-						EmitConstant(new StrObject(((VarDescExpr *)arrayExpr->elements[i])->name->literal));
+					{
+
+						std::wstring literal;
+
+						if (((VarDescExpr *)arrayExpr->elements[i])->name->type == AST_IDENTIFIER)
+							literal = ((IdentifierExpr *)((VarDescExpr *)arrayExpr->elements[i])->name)->literal;
+						else if (((VarDescExpr *)arrayExpr->elements[i])->name->type == AST_VAR_ARG)
+							literal = ((VarArgExpr *)((VarDescExpr *)arrayExpr->elements[i])->name)->argName->literal;
+
+						EmitConstant(new StrObject(literal));
+					}
 				}
 				else if (k->type == AST_VAR_DESC)
-					EmitConstant(new StrObject(((VarDescExpr *)k)->name->literal));
+				{
+					std::wstring literal;
+
+					if (((VarDescExpr *)k)->name->type == AST_IDENTIFIER)
+						literal = ((IdentifierExpr *)(((VarDescExpr *)k)->name))->literal;
+					else if (((VarDescExpr *)k)->name->type == AST_VAR_ARG)
+						literal = ((VarArgExpr *)((VarDescExpr *)k)->name)->argName->literal;
+
+					EmitConstant(new StrObject(literal));
+				}
 
 				varCount++;
 			}
@@ -472,6 +550,9 @@ namespace lws
 		case AST_BASE:
 			CompileBaseExpr((BaseExpr *)expr);
 			break;
+		case AST_VAR_ARG:
+			CompileVarArgExpr((VarArgExpr *)expr, state);
+			break;
 		default:
 			break;
 		}
@@ -490,20 +571,36 @@ namespace lws
 
 					int32_t grad = ((ArrayExpr *)expr->left)->elements.size() - initializeList->elements.size();
 
-					if (grad == 0)
+					if (((ArrayExpr *)expr->left)->elements.back()->type == AST_VAR_ARG)
 					{
 						for (int32_t i = 0; i < ((ArrayExpr *)expr->right)->elements.size(); ++i)
 							CompileExpr(((ArrayExpr *)expr->right)->elements[i]);
-					}
-					else if (grad > 0)
-					{
-						for (int32_t i = 0; i < ((ArrayExpr *)expr->right)->elements.size(); ++i)
-							CompileExpr(((ArrayExpr *)expr->right)->elements[i]);
-						for (int32_t i = 0; i < grad; ++i)
-							CompileNullExpr(nullptr);
+
+						if (grad < 0)
+							mVarArgCount = abs(grad) + 1;
+
+						if(grad>1)
+						{
+							for (int32_t i = 0; i < grad-1; ++i)
+									CompileNullExpr(new NullExpr());
+						}
 					}
 					else
-						ASSERT(L"assigned variable less than value.");
+					{
+						if (grad >= 0)
+						{
+							for (int32_t i = 0; i < ((ArrayExpr *)expr->right)->elements.size(); ++i)
+								CompileExpr(((ArrayExpr *)expr->right)->elements[i]);
+
+							if (grad > 0)
+							{
+								for (int32_t i = 0; i < grad; ++i)
+									CompileNullExpr(new NullExpr());
+							}
+						}
+						else
+							ASSERT(L"assigned variable less than value.");
+					}
 				}
 				else
 				{
@@ -938,6 +1035,17 @@ namespace lws
 		Emit(pos);
 	}
 
+	void Compiler::CompileVarArgExpr(VarArgExpr *expr, const RWState &state)
+	{
+		if (expr->argName)
+		{
+			Emit(OP_ARRAY);
+			Emit(mVarArgCount);
+			CompileExpr(expr->argName, state);
+			mVarArgCount = 0;
+		}
+	}
+
 	Symbol Compiler::CompileFunction(FunctionStmt *stmt)
 	{
 		auto functionSymbol = mSymbolTable->Define(DESC_CONSTANT, stmt->name->literal, stmt->parameters.size());
@@ -1125,7 +1233,7 @@ namespace lws
 		}
 		case AST_EXPR:
 			return StatsPostfixExprs(((ExprStmt *)astNode)->expr);
-		case AST_VARIABLE:
+		case AST_VAR:
 		{
 			std::vector<Expr *> result;
 			for (const auto &[k, v] : ((VarStmt *)astNode)->variables)

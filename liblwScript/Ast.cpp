@@ -106,8 +106,8 @@ namespace lws
 		: Expr(AST_VAR_DESC)
 	{
 	}
-	VarDescExpr::VarDescExpr(std::wstring_view type, IdentifierExpr *name)
-		: Expr(AST_VAR_DESC), name(name), type(type)
+	VarDescExpr::VarDescExpr(std::wstring_view typeDesc, Expr *name)
+		: Expr(AST_VAR_DESC), name(name), typeDesc(typeDesc)
 	{
 	}
 	VarDescExpr::~VarDescExpr()
@@ -118,7 +118,7 @@ namespace lws
 
 	std::wstring VarDescExpr::Stringify()
 	{
-		return name->Stringify() + L":" + type;
+		return name->Stringify() + L":" + typeDesc;
 	}
 
 	ArrayExpr::ArrayExpr()
@@ -474,6 +474,23 @@ namespace lws
 		result += L"}";
 		return result;
 	}
+	VarArgExpr::VarArgExpr()
+		: Expr(AST_VAR_ARG), argName(nullptr)
+	{
+	}
+	VarArgExpr::VarArgExpr(IdentifierExpr *argName)
+		: Expr(AST_VAR_ARG), argName(argName)
+	{
+	}
+	VarArgExpr::~VarArgExpr()
+	{
+		delete argName;
+	}
+
+	std::wstring VarArgExpr::Stringify()
+	{
+		return L"..." + (argName ? argName->Stringify() : L"");
+	}
 
 	//----------------------Statements-----------------------------
 
@@ -497,11 +514,11 @@ namespace lws
 	}
 
 	VarStmt::VarStmt()
-		: Stmt(AST_VARIABLE)
+		: Stmt(AST_VAR)
 	{
 	}
 	VarStmt::VarStmt(Privilege privilege, const std::vector<std::pair<Expr *, Expr *>> &variables)
-		: Stmt(AST_VARIABLE), privilege(privilege), variables(variables)
+		: Stmt(AST_VAR), privilege(privilege), variables(variables)
 	{
 	}
 	VarStmt::~VarStmt()

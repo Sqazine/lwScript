@@ -1,0 +1,34 @@
+
+let [x1,y1,...args]=[100,200,300,400,500];
+io.println("{},{},{}",x1,y1,args);//100,200,[300,400,500]
+
+[x1,y1,...args]=[100,200];
+io.println("{},{},{}",x1,y1,args);//100,200,[]
+
+[x1,y1,...args]=[100,200,300,400,500,600];
+io.println("{},{},{}",x1,y1,args);//100,200,[300,400,500,600]
+
+[x1,y1]=[y1,x1];
+io.println("{},{}",x1,y1);//200,100
+
+[x1,y1,...args]=[100];
+io.println("{},{},{}",x1,y1,args);//100,null,[]
+
+let [x2,y2,...]=[150,100,100];
+io.println("{},{}",x2,y2);//150,100
+
+[x2,y2,...]=1000;
+io.println("{},{}",x2,y2);//1000,1000
+
+//TODO:not implement yet!
+//fn variableParamFn(x,y,...args)
+//{
+//    let result=x+y;
+//    for(let i=0;i<sizeof(args);++i)
+//        result+=args[i];
+//    return result;
+//}
+//
+//io.println(variableParamFn(10,20));
+//io.println(variableParamFn(10,20,30));
+//io.println(variableParamFn(10,20,40));

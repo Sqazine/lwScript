@@ -24,7 +24,7 @@ namespace lws
 			return FoldReturnStmt((ReturnStmt *)stmt);
 		case AST_EXPR:
 			return FoldExprStmt((ExprStmt *)stmt);
-		case AST_VARIABLE:
+		case AST_VAR:
 			return FoldVarStmt((VarStmt *)stmt);
 		case AST_SCOPE:
 			return FoldScopeStmt((ScopeStmt *)stmt);

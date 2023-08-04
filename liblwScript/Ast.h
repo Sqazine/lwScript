@@ -33,8 +33,9 @@ namespace lws
 		AST_BASE,
 		AST_BLOCK,
 		AST_ANONY_OBJ,
+		AST_VAR_ARG,
 		// stmt
-		AST_VARIABLE,
+		AST_VAR,
 		AST_EXPR,
 		AST_RETURN,
 		AST_IF,
@@ -136,13 +137,13 @@ namespace lws
 	struct VarDescExpr : public Expr
 	{
 		VarDescExpr();
-		VarDescExpr(std::wstring_view type, IdentifierExpr *name);
+		VarDescExpr(std::wstring_view typeDesc, Expr *name);
 		~VarDescExpr();
 
 		std::wstring Stringify() override;
 
-		std::wstring type;
-		IdentifierExpr *name;
+		std::wstring typeDesc;
+		Expr *name;
 	};
 
 	struct ArrayExpr : public Expr
@@ -337,6 +338,16 @@ namespace lws
 		std::wstring Stringify() override;
 
 		std::vector<std::pair<std::wstring, Expr *>> elements;
+	};
+
+	struct VarArgExpr : public Expr
+	{
+		VarArgExpr();
+		VarArgExpr(IdentifierExpr* argName);
+		~VarArgExpr();
+
+		std::wstring Stringify() override;
+		IdentifierExpr* argName;
 	};
 
 	struct Stmt : public AstNode

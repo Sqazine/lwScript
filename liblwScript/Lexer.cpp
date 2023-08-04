@@ -113,7 +113,17 @@ namespace lws
 				AddToken(TOKEN_RBRACE);
 		}
 		else if (c == L".")
-			AddToken(TOKEN_DOT);
+		{
+			if (IsMatchCurCharAndStepOnce(L'.'))
+			{
+				if (IsMatchCurCharAndStepOnce(L'.'))
+					AddToken(TOKEN_ELLIPSIS);
+				else
+					ASSERT(L"Unknown literal:..");
+			}
+			else
+				AddToken(TOKEN_DOT);
+		}
 		else if (c == L",")
 			AddToken(TOKEN_COMMA);
 		else if (c == L":")

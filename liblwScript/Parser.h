@@ -102,6 +102,7 @@ namespace lws
 		Expr *ParseCallExpr(Expr *prefixExpr);
 		Expr *ParseDotExpr(Expr *prefixExpr);
 		Expr* ParseVarDescExpr();
+		Expr* ParseVarArgExpr();
 
 		Token GetCurToken();
 		Token GetCurTokenAndStepOnce();
