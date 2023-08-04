@@ -563,40 +563,38 @@ namespace lws
 		{
 			if (expr->left->type == AST_ARRAY)
 			{
+				auto assignee = (ArrayExpr *)expr->left;
+
 				if (expr->right->type == AST_CALL)
 					CompileExpr(expr->right);
 				else if (expr->right->type == AST_ARRAY)
 				{
 					auto initializeList = ((ArrayExpr *)expr->right);
 
-					int32_t grad = ((ArrayExpr *)expr->left)->elements.size() - initializeList->elements.size();
+					int32_t grad = assignee->elements.size() - initializeList->elements.size();
 
-					if (((ArrayExpr *)expr->left)->elements.back()->type == AST_VAR_ARG)
+					if (assignee->elements.back()->type == AST_VAR_ARG)
 					{
-						for (int32_t i = 0; i < ((ArrayExpr *)expr->right)->elements.size(); ++i)
-							CompileExpr(((ArrayExpr *)expr->right)->elements[i]);
+						for (int32_t i = 0; i < initializeList->elements.size(); ++i)
+							CompileExpr(initializeList->elements[i]);
 
 						if (grad < 0)
 							mVarArgCount = abs(grad) + 1;
 
-						if(grad>1)
-						{
-							for (int32_t i = 0; i < grad-1; ++i)
-									CompileNullExpr(new NullExpr());
-						}
+						if (grad > 1)
+							for (int32_t i = 0; i < grad - 1; ++i)
+								CompileNullExpr(new NullExpr());
 					}
 					else
 					{
 						if (grad >= 0)
 						{
-							for (int32_t i = 0; i < ((ArrayExpr *)expr->right)->elements.size(); ++i)
-								CompileExpr(((ArrayExpr *)expr->right)->elements[i]);
+							for (int32_t i = 0; i < initializeList->elements.size(); ++i)
+								CompileExpr(initializeList->elements[i]);
 
 							if (grad > 0)
-							{
 								for (int32_t i = 0; i < grad; ++i)
 									CompileNullExpr(new NullExpr());
-							}
 						}
 						else
 							ASSERT(L"assigned variable less than value.");
@@ -604,13 +602,13 @@ namespace lws
 				}
 				else
 				{
-					for (int32_t i = 0; i < ((ArrayExpr *)expr->left)->elements.size(); ++i)
+					for (int32_t i = 0; i < assignee->elements.size(); ++i)
 						CompileExpr(expr->right);
 				}
 
-				for (int32_t i = ((ArrayExpr *)expr->left)->elements.size() - 1; i >= 0; --i)
+				for (int32_t i = assignee->elements.size() - 1; i >= 0; --i)
 				{
-					CompileExpr(((ArrayExpr *)expr->left)->elements[i], RWState::WRITE);
+					CompileExpr(assignee->elements[i], RWState::WRITE);
 					if (i > 0)
 						Emit(OP_POP);
 				}

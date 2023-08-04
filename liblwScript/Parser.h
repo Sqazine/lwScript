@@ -103,6 +103,7 @@ namespace lws
 		Expr *ParseDotExpr(Expr *prefixExpr);
 		Expr* ParseVarDescExpr();
 		Expr* ParseVarArgExpr();
+		std::pair<Expr*,Expr*> ParseDestructuringAssignmentExpr();
 
 		Token GetCurToken();
 		Token GetCurTokenAndStepOnce();
@@ -132,6 +133,7 @@ namespace lws
 		AstStmts *mStmts;
 		std::vector<Token> mTokens;
 
+		int32_t mIsVarArgScopeAvailable;
 
 		static std::unordered_map<TokenType, PrefixFn> mPrefixFunctions;
 		static std::unordered_map<TokenType, InfixFn> mInfixFunctions;

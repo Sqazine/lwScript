@@ -175,6 +175,7 @@ namespace lws
 		mCurPos = 0;
 		mLoopDepth = 0;
 		mCurClassInfo = nullptr;
+		mIsVarArgScopeAvailable = 0;
 
 		if (mStmts != nullptr)
 		{
@@ -189,9 +190,8 @@ namespace lws
 		switch (GetCurToken().type)
 		{
 		case TOKEN_LET:
-			return ParseVarDecl(TOKEN_LET);
 		case TOKEN_CONST:
-			return ParseVarDecl(TOKEN_CONST);
+			return ParseVarDecl(GetCurToken().type);
 		case TOKEN_FUNCTION:
 			GetCurTokenAndStepOnce();
 			return ParseFunctionDecl();
@@ -222,72 +222,8 @@ namespace lws
 
 		do
 		{
-			if (IsMatchCurTokenAndStepOnce(TOKEN_LBRACKET))
-			{
-				auto arrayExpr = new ArrayExpr();
-
-				int8_t varArgCount = 0;
-				do
-				{
-					if (IsMatchCurToken(TOKEN_RBRACKET))
-						break;
-
-					auto varDescExpr = (VarDescExpr*)ParseVarDescExpr();
-					if (varDescExpr->name->type == AST_VAR_ARG) //check if has var arg
-						varArgCount++;
-
-					arrayExpr->elements.emplace_back(varDescExpr);
-
-				} while (IsMatchCurTokenAndStepOnce(TOKEN_COMMA));
-
-				Consume(TOKEN_RBRACKET, L"Expect ']' destructuring assignment expr.");
-
-				if (varArgCount > 1)
-					ASSERT(L"only 1 variable arg decl is available in var declaration and it must be located at the last of destructing assignment declaration");
-
-				if (varArgCount == 1 && ((VarDescExpr*)arrayExpr->elements.back())->name->type != AST_VAR_ARG)
-					ASSERT(L"variable arg decl must be located at the last of destructing assignment declaration");
-
-				ArrayExpr *initializeList = new ArrayExpr();
-
-				if (IsMatchCurTokenAndStepOnce(TOKEN_EQUAL))
-				{
-					Expr *value = mNullExpr;
-					value = ParseExpr();
-					if (value->type == AST_ARRAY)
-					{
-						int32_t grad = arrayExpr->elements.size() - ((ArrayExpr *)value)->elements.size();
-						if (grad == 0)
-							varStmt->variables.emplace_back(arrayExpr, value);
-						else if (grad > 0)
-						{
-							initializeList->elements = ((ArrayExpr *)value)->elements;
-							for (int32_t i = 0; i < grad; ++i)
-								initializeList->elements.emplace_back(mNullExpr);
-							varStmt->variables.emplace_back(arrayExpr, initializeList);
-						}
-						else if( ((VarDescExpr*)arrayExpr->elements.back())->name->type == AST_VAR_ARG)
-						{
-							initializeList->elements = ((ArrayExpr *)value)->elements;	
-							varStmt->variables.emplace_back(arrayExpr, initializeList);
-						}
-						else
-							ASSERT(L"variable less than value.");
-					}
-					else if (value->type == AST_CALL)
-						varStmt->variables.emplace_back(arrayExpr, value);
-					else
-					{
-						initializeList->elements.resize(arrayExpr->elements.size(), value);
-						varStmt->variables.emplace_back(arrayExpr, initializeList);
-					}
-				}
-				else
-				{
-					initializeList->elements.resize(arrayExpr->elements.size(), mNullExpr);
-					varStmt->variables.emplace_back(arrayExpr, initializeList);
-				}
-			}
+			if (IsMatchCurToken(TOKEN_LBRACKET))
+				varStmt->variables.emplace_back(ParseDestructuringAssignmentExpr());
 			else
 			{
 				auto varDescExpr = ParseVarDescExpr();
@@ -973,9 +909,16 @@ namespace lws
 			std::wcout << L"no prefix definition for:" << GetCurTokenAndStepOnce().literal << std::endl;
 			return mNullExpr;
 		}
-		auto prefixFn = mPrefixFunctions[GetCurToken().type];
 
+		auto prefixFn = mPrefixFunctions[GetCurToken().type];
+		
+		//for var arg scope judgement
+		if(GetCurToken().type==TOKEN_LBRACKET)
+			mIsVarArgScopeAvailable++;
+		
 		auto leftExpr = (this->*prefixFn)();
+
+		mIsVarArgScopeAvailable--;
 
 		while (!IsMatchCurToken(TOKEN_SEMICOLON) && (GetCurTokenAssociativity() == Associativity::L2R ? precedence < GetCurTokenPrecedence() : precedence <= GetCurTokenPrecedence()))
 		{
@@ -1271,6 +1214,9 @@ namespace lws
 
 	Expr *Parser::ParseVarArgExpr()
 	{
+		if(mIsVarArgScopeAvailable==0)
+			ASSERT("Var arg only available in destructuring assignment expr or function parameter scope");
+			
 		Consume(TOKEN_ELLIPSIS, L"Expect '...'");
 
 		if (IsMatchCurToken(TOKEN_IDENTIFIER))
@@ -1279,6 +1225,71 @@ namespace lws
 			return new VarArgExpr(name);
 		}
 		return new VarArgExpr();
+	}
+
+	std::pair<Expr *, Expr *> Parser::ParseDestructuringAssignmentExpr()
+	{
+		mIsVarArgScopeAvailable++;
+
+		Consume(TOKEN_LBRACKET, L"Expect '['");
+
+		auto arrayExpr = new ArrayExpr();
+
+		int8_t varArgCount = 0;
+		do
+		{
+			if (IsMatchCurToken(TOKEN_RBRACKET))
+				break;
+
+			auto varDescExpr = (VarDescExpr *)ParseVarDescExpr();
+			if (varDescExpr->name->type == AST_VAR_ARG) //check if has var arg
+				varArgCount++;
+
+			arrayExpr->elements.emplace_back(varDescExpr);
+
+		} while (IsMatchCurTokenAndStepOnce(TOKEN_COMMA));
+
+		Consume(TOKEN_RBRACKET, L"Expect ']' destructuring assignment expr.");
+
+		if (varArgCount > 1)
+			ASSERT(L"only 1 variable arg decl is available in var declaration and it must be located at the last of destructing assignment declaration");
+
+		if (varArgCount == 1 && ((VarDescExpr *)arrayExpr->elements.back())->name->type != AST_VAR_ARG)
+			ASSERT(L"variable arg decl must be located at the last of destructing assignment declaration");
+
+		ArrayExpr *initializeList = new ArrayExpr();
+
+		if (IsMatchCurTokenAndStepOnce(TOKEN_EQUAL))
+		{
+			Expr *value = mNullExpr;
+			value = ParseExpr();
+			if (value->type == AST_ARRAY)
+			{
+				int32_t grad = arrayExpr->elements.size() - ((ArrayExpr *)value)->elements.size();
+				if (grad == 0)
+					return std::make_pair(arrayExpr, value);
+				else if (grad > 0)
+				{
+					initializeList->elements = ((ArrayExpr *)value)->elements;
+					for (int32_t i = 0; i < grad; ++i)
+						initializeList->elements.emplace_back(mNullExpr);
+				}
+				else if (((VarDescExpr *)arrayExpr->elements.back())->name->type == AST_VAR_ARG)
+					initializeList->elements = ((ArrayExpr *)value)->elements;
+				else
+					ASSERT(L"variable less than value.");
+			}
+			else if (value->type == AST_CALL)
+				return std::make_pair(arrayExpr, value);
+			else
+				initializeList->elements.resize(arrayExpr->elements.size(), value);
+		}
+		else
+			initializeList->elements.resize(arrayExpr->elements.size(), mNullExpr);
+
+		mIsVarArgScopeAvailable--;
+
+		return std::make_pair(arrayExpr, initializeList);
 	}
 
 	Token Parser::GetCurToken()
