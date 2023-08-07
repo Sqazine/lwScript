@@ -1,60 +1,62 @@
-#include "ConstantFolder.h"
+#include "Optimizer.h"
 #include "Utils.h"
 namespace lws
 {
-	ConstantFolder::ConstantFolder()
+	Optimizer::Optimizer()
 	{
 	}
-	ConstantFolder::~ConstantFolder()
+	Optimizer::~Optimizer()
 	{
 	}
 
-	Stmt *ConstantFolder::Fold(Stmt *stmt)
+	Stmt *Optimizer::Opt(Stmt *stmt)
 	{
-		return FoldStmt(stmt);
+		return OptStmt(stmt);
 	}
 
-	Stmt *ConstantFolder::FoldStmt(Stmt *stmt)
+	Stmt *Optimizer::OptStmt(Stmt *stmt)
 	{
 		switch (stmt->type)
 		{
 		case AST_ASTSTMTS:
-			return FoldAstStmts((AstStmts *)stmt);
+			return OptAstStmts((AstStmts *)stmt);
 		case AST_RETURN:
-			return FoldReturnStmt((ReturnStmt *)stmt);
+			return OptReturnStmt((ReturnStmt *)stmt);
 		case AST_EXPR:
-			return FoldExprStmt((ExprStmt *)stmt);
+			return OptExprStmt((ExprStmt *)stmt);
 		case AST_VAR:
-			return FoldVarStmt((VarStmt *)stmt);
+			return OptVarStmt((VarStmt *)stmt);
 		case AST_SCOPE:
-			return FoldScopeStmt((ScopeStmt *)stmt);
+			return OptScopeStmt((ScopeStmt *)stmt);
 		case AST_IF:
-			return FoldIfStmt((IfStmt *)stmt);
+			return OptIfStmt((IfStmt *)stmt);
 		case AST_WHILE:
-			return FoldWhileStmt((WhileStmt *)stmt);
+			return OptWhileStmt((WhileStmt *)stmt);
 		case AST_FUNCTION:
-			return FoldFunctionStmt((FunctionStmt *)stmt);
+			return OptFunctionStmt((FunctionStmt *)stmt);
+		case AST_CLASS:
+			return OptClassStmt((ClassStmt*)stmt);
 		default:
 			return stmt;
 		}
 	}
-	Stmt *ConstantFolder::FoldAstStmts(AstStmts *stmt)
+	Stmt *Optimizer::OptAstStmts(AstStmts *stmt)
 	{
 		for (auto &s : stmt->stmts)
-			s = FoldStmt(s);
+			s = OptStmt(s);
 		return stmt;
 	}
-	Stmt *ConstantFolder::FoldExprStmt(ExprStmt *stmt)
+	Stmt *Optimizer::OptExprStmt(ExprStmt *stmt)
 	{
-		stmt->expr = FoldExpr(stmt->expr);
+		stmt->expr = OptExpr(stmt->expr);
 		return stmt;
 	}
-	Stmt *ConstantFolder::FoldIfStmt(IfStmt *stmt)
+	Stmt *Optimizer::OptIfStmt(IfStmt *stmt)
 	{
-		stmt->condition = FoldExpr(stmt->condition);
-		stmt->thenBranch = FoldStmt(stmt->thenBranch);
+		stmt->condition = OptExpr(stmt->condition);
+		stmt->thenBranch = OptStmt(stmt->thenBranch);
 		if (stmt->elseBranch)
-			stmt->elseBranch = FoldStmt(stmt->elseBranch);
+			stmt->elseBranch = OptStmt(stmt->elseBranch);
 
 		if (stmt->condition->type == AST_BOOL)
 		{
@@ -66,118 +68,138 @@ namespace lws
 
 		return stmt;
 	}
-	Stmt *ConstantFolder::FoldScopeStmt(ScopeStmt *stmt)
+	Stmt *Optimizer::OptScopeStmt(ScopeStmt *stmt)
 	{
 		for (auto &s : stmt->stmts)
-			s = FoldStmt(s);
+			s = OptStmt(s);
 		return stmt;
 	}
-	Stmt *ConstantFolder::FoldWhileStmt(WhileStmt *stmt)
+	Stmt *Optimizer::OptWhileStmt(WhileStmt *stmt)
 	{
-		stmt->condition = FoldExpr(stmt->condition);
-		stmt->body = (ScopeStmt *)FoldScopeStmt(stmt->body);
+		stmt->condition = OptExpr(stmt->condition);
+		stmt->body = (ScopeStmt *)OptScopeStmt(stmt->body);
 		return stmt;
 	}
-	Stmt *ConstantFolder::FoldEnumStmt(EnumStmt *stmt)
+	Stmt *Optimizer::OptEnumStmt(EnumStmt *stmt)
 	{
 		for (auto &[k, v] : stmt->enumItems)
-			v = FoldExpr(v);
+			v = OptExpr(v);
 		return stmt;
 	}
-	Stmt *ConstantFolder::FoldReturnStmt(ReturnStmt *stmt)
+	Stmt *Optimizer::OptReturnStmt(ReturnStmt *stmt)
 	{
+		if (mFunctionStmtInfo.back().maxReturnCount > stmt->exprs.size())
+		{
+			auto diff = mFunctionStmtInfo.back().maxReturnCount - stmt->exprs.size();
+			while (diff > 0)
+			{
+				stmt->exprs.emplace_back(new NullExpr());
+				diff--;
+			}
+		}
+
+		mFunctionStmtInfo.back().hasReturnStmt = true;
+
 		if (!stmt->exprs.empty())
 		{
 			for (auto &expr : stmt->exprs)
-				expr = FoldExpr(expr);
+				expr = OptExpr(expr);
 		}
 		return stmt;
 	}
-	Stmt *ConstantFolder::FoldVarStmt(VarStmt *stmt)
+	Stmt *Optimizer::OptVarStmt(VarStmt *stmt)
 	{
 		for (auto &[k, v] : stmt->variables)
-			v = FoldExpr(v);
+			v = OptExpr(v);
 		return stmt;
 	}
-	
-	Stmt *ConstantFolder::FoldFunctionStmt(FunctionStmt *stmt)
-	{
-		for (auto &e : stmt->parameters)
-			e = (IdentifierExpr *)FoldIdentifierExpr(e);
 
-		stmt->body = (ScopeStmt *)FoldScopeStmt(stmt->body);
+	Stmt *Optimizer::OptFunctionStmt(FunctionStmt *stmt)
+	{
+		mFunctionStmtInfo.emplace_back(FunctionInfo{.maxReturnCount = stmt->maxReturnCount, .hasReturnStmt = false});
+		{
+			for (auto &e : stmt->parameters)
+				e = (IdentifierExpr *)OptIdentifierExpr(e);
+
+			stmt->body = (ScopeStmt *)OptScopeStmt(stmt->body);
+
+			if(mFunctionStmtInfo.back().hasReturnStmt==false)
+				stmt->body->stmts.emplace_back(new ReturnStmt());
+
+		}
+		mFunctionStmtInfo.pop_back();
 		return stmt;
 	}
-	Stmt *ConstantFolder::FoldClassStmt(ClassStmt *stmt)
+	Stmt *Optimizer::OptClassStmt(ClassStmt *stmt)
 	{
 		for (auto &varStmt : stmt->varStmts)
-			varStmt = (VarStmt *)FoldVarStmt(varStmt);
+			varStmt = (VarStmt *)OptVarStmt(varStmt);
 
 		for (auto &fnStmt : stmt->fnStmts)
-			fnStmt = (FunctionStmt *)FoldFunctionStmt(fnStmt);
+			fnStmt = (FunctionStmt *)OptFunctionStmt(fnStmt);
 
 		return stmt;
 	}
 
-	Expr *ConstantFolder::FoldExpr(Expr *expr)
+	Expr *Optimizer::OptExpr(Expr *expr)
 	{
 		switch (expr->type)
 		{
 		case AST_INT:
-			return FoldIntNumExpr((IntNumExpr *)expr);
+			return OptIntNumExpr((IntNumExpr *)expr);
 		case AST_REAL:
-			return FoldRealNumExpr((RealNumExpr *)expr);
+			return OptRealNumExpr((RealNumExpr *)expr);
 		case AST_STR:
-			return FoldStrExpr((StrExpr *)expr);
+			return OptStrExpr((StrExpr *)expr);
 		case AST_BOOL:
-			return FoldBoolExpr((BoolExpr *)expr);
+			return OptBoolExpr((BoolExpr *)expr);
 		case AST_NULL:
-			return FoldNullExpr((NullExpr *)expr);
+			return OptNullExpr((NullExpr *)expr);
 		case AST_IDENTIFIER:
-			return FoldIdentifierExpr((IdentifierExpr *)expr);
+			return OptIdentifierExpr((IdentifierExpr *)expr);
 		case AST_GROUP:
-			return FoldGroupExpr((GroupExpr *)expr);
+			return OptGroupExpr((GroupExpr *)expr);
 		case AST_ARRAY:
-			return FoldArrayExpr((ArrayExpr *)expr);
+			return OptArrayExpr((ArrayExpr *)expr);
 		case AST_INDEX:
-			return FoldIndexExpr((IndexExpr *)expr);
+			return OptIndexExpr((IndexExpr *)expr);
 		case AST_PREFIX:
-			return FoldPrefixExpr((PrefixExpr *)expr);
+			return OptPrefixExpr((PrefixExpr *)expr);
 		case AST_INFIX:
-			return FoldInfixExpr((InfixExpr *)expr);
+			return OptInfixExpr((InfixExpr *)expr);
 		case AST_POSTFIX:
-			return FoldPostfixExpr((PostfixExpr *)expr);
+			return OptPostfixExpr((PostfixExpr *)expr);
 		case AST_CONDITION:
-			return FoldConditionExpr((ConditionExpr *)expr);
+			return OptConditionExpr((ConditionExpr *)expr);
 		case AST_REF:
-			return FoldRefExpr((RefExpr *)expr);
+			return OptRefExpr((RefExpr *)expr);
 		case AST_CALL:
-			return FoldCallExpr((CallExpr *)expr);
+			return OptCallExpr((CallExpr *)expr);
 		case AST_DOT:
-			return FoldDotExpr((DotExpr *)expr);
+			return OptDotExpr((DotExpr *)expr);
 		case AST_LAMBDA:
-			return FoldLambdaExpr((LambdaExpr *)expr);
+			return OptLambdaExpr((LambdaExpr *)expr);
 		default:
 			return expr;
 		}
 	}
-	Expr *ConstantFolder::FoldInfixExpr(InfixExpr *expr)
+	Expr *Optimizer::OptInfixExpr(InfixExpr *expr)
 	{
-		expr->left = FoldExpr(expr->left);
-		expr->right = FoldExpr(expr->right);
+		expr->left = OptExpr(expr->left);
+		expr->right = OptExpr(expr->right);
 
-		return ConstantFold(expr);
+		return OptFlow(expr);
 	}
-	Expr *ConstantFolder::FoldPostfixExpr(PostfixExpr *expr)
+	Expr *Optimizer::OptPostfixExpr(PostfixExpr *expr)
 	{
-		expr->left = FoldExpr(expr->left);
-		return ConstantFold(expr);
+		expr->left = OptExpr(expr->left);
+		return OptFlow(expr);
 	}
-	Expr *ConstantFolder::FoldConditionExpr(ConditionExpr *expr)
+	Expr *Optimizer::OptConditionExpr(ConditionExpr *expr)
 	{
-		expr->condition = FoldExpr(expr->condition);
-		expr->trueBranch = FoldExpr(expr->trueBranch);
-		expr->falseBranch = FoldExpr(expr->falseBranch);
+		expr->condition = OptExpr(expr->condition);
+		expr->trueBranch = OptExpr(expr->trueBranch);
+		expr->falseBranch = OptExpr(expr->falseBranch);
 
 		if (expr->condition->type == AST_BOOL)
 		{
@@ -190,97 +212,103 @@ namespace lws
 
 		return expr;
 	}
-	Expr *ConstantFolder::FoldIntNumExpr(IntNumExpr *expr)
+	Expr *Optimizer::OptIntNumExpr(IntNumExpr *expr)
 	{
 		return expr;
 	}
-	Expr *ConstantFolder::FoldRealNumExpr(RealNumExpr *expr)
+	Expr *Optimizer::OptRealNumExpr(RealNumExpr *expr)
 	{
 		return expr;
 	}
-	Expr *ConstantFolder::FoldBoolExpr(BoolExpr *expr)
+	Expr *Optimizer::OptBoolExpr(BoolExpr *expr)
 	{
 		return expr;
 	}
-	Expr *ConstantFolder::FoldPrefixExpr(PrefixExpr *expr)
+	Expr *Optimizer::OptPrefixExpr(PrefixExpr *expr)
 	{
-		expr->right = FoldExpr(expr->right);
-		return ConstantFold(expr);
+		expr->right = OptExpr(expr->right);
+		return OptFlow(expr);
 	}
-	Expr *ConstantFolder::FoldStrExpr(StrExpr *expr)
-	{
-		return expr;
-	}
-	Expr *ConstantFolder::FoldNullExpr(NullExpr *expr)
+	Expr *Optimizer::OptStrExpr(StrExpr *expr)
 	{
 		return expr;
 	}
-	Expr *ConstantFolder::FoldGroupExpr(GroupExpr *expr)
+	Expr *Optimizer::OptNullExpr(NullExpr *expr)
 	{
-		return FoldExpr(expr->expr);
+		return expr;
 	}
-	Expr *ConstantFolder::FoldArrayExpr(ArrayExpr *expr)
+	Expr *Optimizer::OptGroupExpr(GroupExpr *expr)
+	{
+		return OptExpr(expr->expr);
+	}
+	Expr *Optimizer::OptArrayExpr(ArrayExpr *expr)
 	{
 		for (auto &e : expr->elements)
-			e = FoldExpr(e);
+			e = OptExpr(e);
 		return expr;
 	}
-	Expr *ConstantFolder::FoldDictExpr(DictExpr *expr)
+	Expr *Optimizer::OptDictExpr(DictExpr *expr)
 	{
 		for (auto &[k, v] : expr->elements)
 		{
-			k = FoldExpr(k);
-			v = FoldExpr(v);
+			k = OptExpr(k);
+			v = OptExpr(v);
 		}
 		return expr;
 	}
-	Expr *ConstantFolder::FoldIndexExpr(IndexExpr *expr)
+	Expr *Optimizer::OptIndexExpr(IndexExpr *expr)
 	{
-		expr->ds = FoldExpr(expr->ds);
-		expr->index = FoldExpr(expr->index);
+		expr->ds = OptExpr(expr->ds);
+		expr->index = OptExpr(expr->index);
 		return expr;
 	}
-	Expr *ConstantFolder::FoldIdentifierExpr(IdentifierExpr *expr)
+	Expr *Optimizer::OptIdentifierExpr(IdentifierExpr *expr)
 	{
 		return expr;
 	}
-	Expr *ConstantFolder::FoldLambdaExpr(LambdaExpr *expr)
+	Expr *Optimizer::OptLambdaExpr(LambdaExpr *expr)
 	{
 		for (auto &e : expr->parameters)
-			e = (IdentifierExpr *)FoldIdentifierExpr(e);
-		expr->body = (ScopeStmt *)FoldScopeStmt(expr->body);
+			e = (IdentifierExpr *)OptIdentifierExpr(e);
+		expr->body = (ScopeStmt *)OptScopeStmt(expr->body);
 		return expr;
 	}
-	Expr *ConstantFolder::FoldDotExpr(DotExpr *expr)
+	Expr *Optimizer::OptDotExpr(DotExpr *expr)
 	{
 		return expr;
 	}
-	Expr *ConstantFolder::FoldCallExpr(CallExpr *expr)
+	Expr *Optimizer::OptCallExpr(CallExpr *expr)
 	{
-		expr->callee = FoldExpr(expr->callee);
+		expr->callee = OptExpr(expr->callee);
 		for (auto &arg : expr->arguments)
-			arg = FoldExpr(arg);
+			arg = OptExpr(arg);
 		return expr;
 	}
-	Expr *ConstantFolder::FoldNewExpr(NewExpr *expr)
+	Expr *Optimizer::OptNewExpr(NewExpr *expr)
 	{
 		return expr;
 	}
-	Expr *ConstantFolder::FoldThisExpr(ThisExpr *expr)
+	Expr *Optimizer::OptThisExpr(ThisExpr *expr)
 	{
 		return expr;
 	}
-	Expr *ConstantFolder::FoldBaseExpr(BaseExpr *expr)
+	Expr *Optimizer::OptBaseExpr(BaseExpr *expr)
 	{
 		return expr;
 	}
-	Expr *ConstantFolder::FoldRefExpr(RefExpr *expr)
+	Expr *Optimizer::OptRefExpr(RefExpr *expr)
 	{
-		expr->refExpr = (IdentifierExpr *)FoldExpr(expr->refExpr);
+		expr->refExpr = (IdentifierExpr *)OptExpr(expr->refExpr);
 		return expr;
 	}
 
-	Expr *ConstantFolder::ConstantFold(Expr *expr)
+	Expr *Optimizer::OptFlow(Expr *expr)
+	{
+		expr = ConstantFold(expr);
+		return expr;
+	}
+
+	Expr *Optimizer::ConstantFold(Expr *expr)
 	{
 		if (expr->type == AST_INFIX)
 		{

@@ -91,98 +91,104 @@ namespace lws
 
 		auto postfixExprs = StatsPostfixExprs(stmt);
 
-		for (const auto &[k, v] : stmt->variables)
 		{
-			//destructuring assignment like let [x,y,...args]=....
-			if (k->type == AST_ARRAY)
+			for (const auto &[k, v] : stmt->variables)
 			{
-				bool isArrayValue = false;
-				if (v->type == AST_CALL)
-					CompileExpr(v);
-				else if (v->type == AST_ARRAY)
+				//destructuring assignment like let [x,y,...args]=....
+				if (k->type == AST_ARRAY)
 				{
-					isArrayValue = true;
-					for (int32_t i = 0; i < ((ArrayExpr *)v)->elements.size(); ++i)
-						CompileExpr(((ArrayExpr *)v)->elements[i]);
-				}
+					Emit(OP_STORE_SP);
 
-				auto arrayExpr = (ArrayExpr *)k;
-
-				for (int32_t i = arrayExpr->elements.size() - 1; i >= 0; --i)
-				{
-					Symbol symbol;
-					bool hasSymbol = true;
-
-					if (((VarDescExpr *)arrayExpr->elements[i])->name->type == AST_IDENTIFIER)
+					bool isArrayValue = false;
+					if (v->type == AST_ARRAY)
 					{
-						auto literal = ((IdentifierExpr *)((VarDescExpr *)arrayExpr->elements[i])->name)->literal;
-						symbol = mSymbolTable->Define(valueDesc, literal);
+						isArrayValue = true;
+						for (int32_t i = 0; i < ((ArrayExpr *)v)->elements.size(); ++i)
+							CompileExpr(((ArrayExpr *)v)->elements[i]);
 					}
-					else if (((VarDescExpr *)arrayExpr->elements[i])->name->type == AST_VAR_ARG)
+					else
+						CompileExpr(v);
+
+					auto arrayExpr = (ArrayExpr *)k;
+
+					for (int32_t i = 0; i < arrayExpr->elements.size(); ++i)
 					{
-						//varArg with name like:let [x,y,...args] (means IdentifierExpr* in VarDescExpr* not nullptr)
-						if (((VarArgExpr *)((VarDescExpr *)arrayExpr->elements[i])->name)->argName)
+						Symbol symbol;
+						bool hasSymbol = true;
+
+						if (((VarDescExpr *)arrayExpr->elements[i])->name->type == AST_IDENTIFIER)
 						{
-							auto literal = ((VarArgExpr *)((VarDescExpr *)arrayExpr->elements[i])->name)->argName->literal;
-
-							if (isArrayValue)
-							{
-								int8_t restValueCount = ((ArrayExpr *)v)->elements.size() - arrayExpr->elements.size() + 1;
-
-								if (restValueCount > 0)
-								{
-									Emit(OP_ARRAY);
-									Emit(restValueCount);
-								}
-							}
-
+							auto literal = ((IdentifierExpr *)((VarDescExpr *)arrayExpr->elements[i])->name)->literal;
 							symbol = mSymbolTable->Define(valueDesc, literal);
 						}
-						else // var arg without names like: let [x,y,...]
+						else if (((VarDescExpr *)arrayExpr->elements[i])->name->type == AST_VAR_ARG)
 						{
-							hasSymbol = false;
-							if (isArrayValue)
+							//varArg with name like:let [x,y,...args] (means IdentifierExpr* in VarDescExpr* not nullptr)
+							if (((VarArgExpr *)((VarDescExpr *)arrayExpr->elements[i])->name)->argName)
 							{
-								int8_t restValueCount = ((ArrayExpr *)v)->elements.size() - arrayExpr->elements.size() + 1;
+								auto literal = ((VarArgExpr *)((VarDescExpr *)arrayExpr->elements[i])->name)->argName->literal;
 
-								while (restValueCount > 0)
+								if (isArrayValue)
 								{
-									Emit(OP_POP);
-									--restValueCount;
+									int8_t restValueCount = ((ArrayExpr *)v)->elements.size() - arrayExpr->elements.size() + 1;
+
+									if (restValueCount > 0)
+									{
+										Emit(OP_ARRAY);
+										Emit(restValueCount);
+									}
+								}
+
+								symbol = mSymbolTable->Define(valueDesc, literal);
+							}
+							else // var arg without names like: let [x,y,...]
+							{
+								hasSymbol = false;
+								if (isArrayValue)
+								{
+									int8_t restValueCount = ((ArrayExpr *)v)->elements.size() - arrayExpr->elements.size() + 1;
+
+									while (restValueCount > 0)
+									{
+										Emit(OP_POP);
+										--restValueCount;
+									}
 								}
 							}
 						}
+
+						if (hasSymbol && symbol.type == SYMBOL_GLOBAL)
+						{
+							Emit(OP_SET_GLOBAL);
+							Emit(symbol.index);
+							Emit(OP_POP);
+						}
 					}
 
-					if (hasSymbol && symbol.type == SYMBOL_GLOBAL)
+					Emit(OP_RECOVER_SP);
+				}
+				else if (k->type == AST_VAR_DESC)
+				{
+					CompileExpr(v);
+
+					std::wstring literal;
+
+					if (((VarDescExpr *)k)->name->type == AST_IDENTIFIER)
+						literal = ((IdentifierExpr *)(((VarDescExpr *)k)->name))->literal;
+					else if (((VarDescExpr *)k)->name->type == AST_VAR_ARG)
+						literal = ((VarArgExpr *)((VarDescExpr *)k)->name)->argName->literal;
+
+					auto symbol = mSymbolTable->Define(valueDesc, literal);
+					if (symbol.type == SYMBOL_GLOBAL)
 					{
 						Emit(OP_SET_GLOBAL);
 						Emit(symbol.index);
 						Emit(OP_POP);
 					}
 				}
+				else
+					ASSERT(L"Unknown variable:" + k->Stringify())
 			}
-			else if (k->type == AST_VAR_DESC)
-			{
-				CompileExpr(v);
-
-				std::wstring literal;
-
-				if (((VarDescExpr *)k)->name->type == AST_IDENTIFIER)
-					literal = ((IdentifierExpr *)(((VarDescExpr *)k)->name))->literal;
-				else if (((VarDescExpr *)k)->name->type == AST_VAR_ARG)
-					literal = ((VarArgExpr *)((VarDescExpr *)k)->name)->argName->literal;
-
-				auto symbol = mSymbolTable->Define(valueDesc, literal);
-				if (symbol.type == SYMBOL_GLOBAL)
-				{
-					Emit(OP_SET_GLOBAL);
-					Emit(symbol.index);
-					Emit(OP_POP);
-				}
-			}
-			else
-				ASSERT(L"Unknown variable:" + k->Stringify())
 		}
 
 		if (!postfixExprs.empty())
@@ -222,15 +228,17 @@ namespace lws
 		{
 			for (const auto &[k, v] : varStmt->variables)
 			{
+				if(varStmt->privilege!=VarStmt::Privilege::MUTABLE)
+					continue;
+
 				CompileExpr(v);
 
 				if (k->type == AST_ARRAY)
 				{
 					auto arrayExpr = (ArrayExpr *)k;
 
-					for (int32_t i = arrayExpr->elements.size() - 1; i >= 0; --i)
+					for (int32_t i = 0; i < arrayExpr->elements.size(); ++i)
 					{
-
 						std::wstring literal;
 
 						if (((VarDescExpr *)arrayExpr->elements[i])->name->type == AST_IDENTIFIER)
@@ -254,6 +262,47 @@ namespace lws
 				}
 
 				varCount++;
+			}
+		}
+
+		for (const auto &varStmt : stmt->varStmts)
+		{
+			for (const auto &[k, v] : varStmt->variables)
+			{
+				if(varStmt->privilege!=VarStmt::Privilege::IMMUTABLE)
+					continue;
+					
+				CompileExpr(v);
+
+				if (k->type == AST_ARRAY)
+				{
+					auto arrayExpr = (ArrayExpr *)k;
+
+					for (int32_t i = 0; i < arrayExpr->elements.size(); ++i)
+					{
+						std::wstring literal;
+
+						if (((VarDescExpr *)arrayExpr->elements[i])->name->type == AST_IDENTIFIER)
+							literal = ((IdentifierExpr *)((VarDescExpr *)arrayExpr->elements[i])->name)->literal;
+						else if (((VarDescExpr *)arrayExpr->elements[i])->name->type == AST_VAR_ARG)
+							literal = ((VarArgExpr *)((VarDescExpr *)arrayExpr->elements[i])->name)->argName->literal;
+
+						EmitConstant(new StrObject(literal));
+					}
+				}
+				else if (k->type == AST_VAR_DESC)
+				{
+					std::wstring literal;
+
+					if (((VarDescExpr *)k)->name->type == AST_IDENTIFIER)
+						literal = ((IdentifierExpr *)(((VarDescExpr *)k)->name))->literal;
+					else if (((VarDescExpr *)k)->name->type == AST_VAR_ARG)
+						literal = ((VarArgExpr *)((VarDescExpr *)k)->name)->argName->literal;
+
+					EmitConstant(new StrObject(literal));
+				}
+
+				constCount++;
 			}
 		}
 
@@ -380,6 +429,7 @@ namespace lws
 				CompilePostfixExpr((PostfixExpr *)postfixExpr, RWState::READ, false);
 		}
 	}
+
 	void Compiler::CompileIfStmt(IfStmt *stmt, int64_t &breakStmtAddress, int64_t &continueStmtAddress)
 	{
 		auto conditionPostfixExprs = StatsPostfixExprs(stmt->condition);
@@ -457,8 +507,8 @@ namespace lws
 
 		if (!stmt->exprs.empty())
 		{
-			for (const auto &expr : stmt->exprs)
-				CompileExpr(expr);
+			for (int32_t i = stmt->exprs.size() - 1; i >= 0; --i)
+				CompileExpr(stmt->exprs[i]);
 			EmitReturn(stmt->exprs.size());
 		}
 		else
@@ -563,6 +613,8 @@ namespace lws
 		{
 			if (expr->left->type == AST_ARRAY)
 			{
+				Emit(OP_STORE_SP);
+
 				auto assignee = (ArrayExpr *)expr->left;
 
 				if (expr->right->type == AST_CALL)
@@ -606,12 +658,14 @@ namespace lws
 						CompileExpr(expr->right);
 				}
 
-				for (int32_t i = assignee->elements.size() - 1; i >= 0; --i)
+				for (int32_t i = 0; i < assignee->elements.size(); ++i)
 				{
 					CompileExpr(assignee->elements[i], RWState::WRITE);
 					if (i > 0)
 						Emit(OP_POP);
 				}
+
+				Emit(OP_RECOVER_SP);
 			}
 			else
 			{
@@ -820,8 +874,8 @@ namespace lws
 	}
 	void Compiler::CompileArrayExpr(ArrayExpr *expr)
 	{
-		for (const auto &e : expr->elements)
-			CompileExpr(e);
+		for (int32_t i = expr->elements.size() - 1; i >= 0; --i)
+			CompileExpr(expr->elements[i]);
 		Emit(OP_ARRAY);
 
 		uint8_t pos = expr->elements.size();
@@ -830,10 +884,10 @@ namespace lws
 
 	void Compiler::CompileDictExpr(DictExpr *expr)
 	{
-		for (const auto &[k, v] : expr->elements)
+		for (int32_t i = expr->elements.size() - 1; i >= 0; --i)
 		{
-			CompileExpr(v);
-			CompileExpr(k);
+			CompileExpr(expr->elements[i].second);
+			CompileExpr(expr->elements[i].first);
 		}
 		Emit(OP_DICT);
 		uint8_t pos = expr->elements.size();
@@ -1073,9 +1127,6 @@ namespace lws
 			Emit(0);
 			EmitReturn(1);
 		}
-
-		if (CurChunk().opCodes[CurChunk().opCodes.size() - 2] != OP_RETURN)
-			EmitReturn(0);
 
 		mFunctionList.back()->upValueCount = mSymbolTable->mUpValueCount;
 

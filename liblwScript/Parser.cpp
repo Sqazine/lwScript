@@ -167,7 +167,8 @@ namespace lws
 
 		while (!IsMatchCurToken(TOKEN_EOF))
 			mStmts->stmts.emplace_back(ParseDecl());
-		return mStmts;
+
+		return mOptimizer.Opt(mStmts);
 	}
 
 	void Parser::ResetStatus()
@@ -243,32 +244,39 @@ namespace lws
 
 	Stmt *Parser::ParseFunctionDecl()
 	{
+		mFunctionStmtMaxReturnCount.emplace_back(0);
+
 		auto funcStmt = new FunctionStmt();
 		funcStmt->line = GetCurToken().line;
 		funcStmt->column = GetCurToken().column;
-
-		funcStmt->name = (IdentifierExpr *)ParseIdentifierExpr();
-
-		if (mCurClassInfo)
 		{
-			funcStmt->type = FunctionType::CLASS_CLOSURE;
-			if (mCurClassInfo->name == funcStmt->name->literal)
-				funcStmt->type = FunctionType::CLASS_CONSTRUCTOR;
-		}
+			funcStmt->name = (IdentifierExpr *)ParseIdentifierExpr();
 
-		Consume(TOKEN_LPAREN, L"Expect '(' after 'fn' keyword");
-
-		if (!IsMatchCurToken(TOKEN_RPAREN)) // has parameter
-		{
-			do
+			if (mCurClassInfo)
 			{
-				IdentifierExpr *idenExpr = (IdentifierExpr *)ParseIdentifierExpr();
-				funcStmt->parameters.emplace_back(idenExpr);
-			} while (IsMatchCurTokenAndStepOnce(TOKEN_COMMA));
-		}
-		Consume(TOKEN_RPAREN, L"Expect ')' after function stmt's '('");
+				funcStmt->type = FunctionType::CLASS_CLOSURE;
+				if (mCurClassInfo->name == funcStmt->name->literal)
+					funcStmt->type = FunctionType::CLASS_CONSTRUCTOR;
+			}
 
-		funcStmt->body = (ScopeStmt *)ParseScopeStmt();
+			Consume(TOKEN_LPAREN, L"Expect '(' after 'fn' keyword");
+
+			if (!IsMatchCurToken(TOKEN_RPAREN)) // has parameter
+			{
+				do
+				{
+					IdentifierExpr *idenExpr = (IdentifierExpr *)ParseIdentifierExpr();
+					funcStmt->parameters.emplace_back(idenExpr);
+				} while (IsMatchCurTokenAndStepOnce(TOKEN_COMMA));
+			}
+			Consume(TOKEN_RPAREN, L"Expect ')' after function stmt's '('");
+
+			funcStmt->body = (ScopeStmt *)ParseScopeStmt();
+
+			funcStmt->maxReturnCount = mFunctionStmtMaxReturnCount.back();
+
+			mFunctionStmtMaxReturnCount.pop_back();
+		}
 
 		return funcStmt;
 	}
@@ -442,6 +450,9 @@ namespace lws
 
 			returnStmt->exprs = returnExprs;
 		}
+
+		if (mFunctionStmtMaxReturnCount.back() < returnStmt->exprs.size())
+			mFunctionStmtMaxReturnCount.back() = returnStmt->exprs.size();
 
 		Consume(TOKEN_SEMICOLON, L"Expect ';' after return stmt");
 		return returnStmt;
@@ -911,11 +922,11 @@ namespace lws
 		}
 
 		auto prefixFn = mPrefixFunctions[GetCurToken().type];
-		
+
 		//for var arg scope judgement
-		if(GetCurToken().type==TOKEN_LBRACKET)
+		if (GetCurToken().type == TOKEN_LBRACKET)
 			mIsVarArgScopeAvailable++;
-		
+
 		auto leftExpr = (this->*prefixFn)();
 
 		mIsVarArgScopeAvailable--;
@@ -1214,9 +1225,9 @@ namespace lws
 
 	Expr *Parser::ParseVarArgExpr()
 	{
-		if(mIsVarArgScopeAvailable==0)
+		if (mIsVarArgScopeAvailable == 0)
 			ASSERT("Var arg only available in destructuring assignment expr or function parameter scope");
-			
+
 		Consume(TOKEN_ELLIPSIS, L"Expect '...'");
 
 		if (IsMatchCurToken(TOKEN_IDENTIFIER))

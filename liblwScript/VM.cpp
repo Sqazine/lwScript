@@ -27,6 +27,7 @@ namespace lws
 		mStackTop = mValueStack;
 		mObjectChain = nullptr;
 		mOpenUpValues = nullptr;
+		mStoredSp = nullptr;
 
 		for (int32_t i = 0; i < LibraryManager::Instance().mStdLibraries.size(); ++i)
 			mGlobalVariables[i] = LibraryManager::Instance().mStdLibraries[i]->Clone();
@@ -50,6 +51,9 @@ namespace lws
 		Execute();
 
 		std::vector<Value> returnValues;
+
+		if(mStackTop != mValueStack + 1)
+			ASSERT(L"Fuck error");
 
 		while (mStackTop != mValueStack + 1)
 			returnValues.emplace_back(Pop());
@@ -366,10 +370,8 @@ namespace lws
 				auto count = READ_INS();
 
 				std::vector<Value> elements;
-				auto prePtr = mStackTop - count;
 				for (auto i = 0; i < count; ++i)
-					elements.emplace_back(*prePtr++);
-				mStackTop -= count;
+					elements.emplace_back(*--mStackTop);
 				auto arrayObject = CreateObject<ArrayObject>(elements);
 				Push(arrayObject);
 				break;
@@ -848,6 +850,17 @@ namespace lws
 				}
 
 				Push(closure);
+				break;
+			}
+			case OP_STORE_SP:
+			{
+				mStoredSp = mStackTop + 1;
+				break;
+			}
+			case OP_RECOVER_SP:
+			{
+				mStackTop = mStoredSp;
+				mStoredSp = nullptr;
 				break;
 			}
 			default:

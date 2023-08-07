@@ -6,6 +6,7 @@
 #include "Token.h"
 #include "Ast.h"
 #include "Utils.h"
+#include "Optimizer.h"
 namespace lws
 {
 	enum class Precedence
@@ -25,7 +26,7 @@ namespace lws
 		MUL_DIV_MOD, // * / %
 		PREFIX,		 // ! ~ - & ++ --
 		INFIX,		 // [] () .
-		POSTFIX,	 // ++ --
+		POSTFIX,	 // ++ -- !
 	};
 
 	enum class Associativity
@@ -124,10 +125,14 @@ namespace lws
 
 		bool IsAtEnd();
 
+		Optimizer mOptimizer;
+
 		ClassInfo *mCurClassInfo;
 
 		uint32_t mLoopDepth; //record cur stmt or expr is in 'for' or 'while' loop
 		std::vector<TokenType> mSkippingConsumeTokenTypeStack;//skip token while call consume function
+
+		 std::vector<uint32_t> mFunctionStmtMaxReturnCount;
 
 		int64_t mCurPos;
 		AstStmts *mStmts;

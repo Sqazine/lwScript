@@ -1,4 +1,3 @@
-
 let [x1,y1,...args]=[100,200,300,400,500];
 io.println("{},{},{}",x1,y1,args);//100,200,[300,400,500]
 
@@ -19,6 +18,20 @@ io.println("{},{}",x2,y2);//150,100
 
 [x2,y2,...]=1000;
 io.println("{},{}",x2,y2);//1000,1000
+
+fn IsNull(obj)
+{
+    if(obj==null)
+        return true;
+    return false,obj;
+}
+
+let [isNull]=IsNull(10);
+io.println("{}",isNull);// false
+
+[x2,...args]=IsNull(null);
+io.println("{},{}",x2,args);//true,[]
+
 
 //TODO:not implement yet!
 //fn variableParamFn(x,y,...args)

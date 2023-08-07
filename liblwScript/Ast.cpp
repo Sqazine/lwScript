@@ -567,7 +567,7 @@ namespace lws
 			for (const auto &expr : exprs)
 				result += expr->Stringify() + L",";
 			result = result.substr(0, result.size() - 1);
-			return result;
+			return result + L";";
 		}
 	}
 

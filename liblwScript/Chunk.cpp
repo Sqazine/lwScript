@@ -304,6 +304,16 @@ namespace lws
 				}
 				break;
 			}
+			case OP_STORE_SP:
+			{
+				cout << std::setfill(L'0') << std::setw(8) << i << L"    " << L"OP_STORE_SP" << std::endl;
+				break;
+			}
+			case OP_RECOVER_SP:
+			{
+				cout << std::setfill(L'0') << std::setw(8) << i << L"    " << L"OP_RECOVER_SP" << std::endl;
+				break;
+			}
 			default:
 				break;
 			}

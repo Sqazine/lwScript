@@ -494,6 +494,7 @@ namespace lws
 		IdentifierExpr *name;
 		std::vector<IdentifierExpr *> parameters;
 		ScopeStmt *body;
+		uint32_t maxReturnCount;
 	};
 
 	struct ClassStmt : public Stmt
