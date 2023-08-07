@@ -492,6 +492,25 @@ namespace lws
 		return L"..." + (argName ? argName->Stringify() : L"");
 	}
 
+	FactorialExpr::FactorialExpr()
+		: Expr(AST_FACTORIAL), expr(nullptr)
+	{
+	}
+	FactorialExpr::FactorialExpr(Expr *expr)
+		: Expr(AST_FACTORIAL), expr(expr)
+	{
+	}
+	FactorialExpr::~FactorialExpr()
+	{
+		delete expr;
+		expr = nullptr;
+	}
+
+	std::wstring FactorialExpr::Stringify()
+	{
+		return expr->Stringify() + L"!";
+	}
+
 	//----------------------Statements-----------------------------
 
 	ExprStmt::ExprStmt()

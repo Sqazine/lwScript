@@ -35,7 +35,7 @@ namespace lws
 		case AST_FUNCTION:
 			return OptFunctionStmt((FunctionStmt *)stmt);
 		case AST_CLASS:
-			return OptClassStmt((ClassStmt*)stmt);
+			return OptClassStmt((ClassStmt *)stmt);
 		default:
 			return stmt;
 		}
@@ -123,9 +123,8 @@ namespace lws
 
 			stmt->body = (ScopeStmt *)OptScopeStmt(stmt->body);
 
-			if(mFunctionStmtInfo.back().hasReturnStmt==false)
+			if (mFunctionStmtInfo.back().hasReturnStmt == false)
 				stmt->body->stmts.emplace_back(new ReturnStmt());
-
 		}
 		mFunctionStmtInfo.pop_back();
 		return stmt;
@@ -179,6 +178,8 @@ namespace lws
 			return OptDotExpr((DotExpr *)expr);
 		case AST_LAMBDA:
 			return OptLambdaExpr((LambdaExpr *)expr);
+		case AST_FACTORIAL:
+			return OptFactorialExpr((FactorialExpr *)expr);
 		default:
 			return expr;
 		}
@@ -296,6 +297,13 @@ namespace lws
 	{
 		return expr;
 	}
+
+	Expr *Optimizer::OptFactorialExpr(FactorialExpr *expr)
+	{
+		expr->expr = OptExpr(expr->expr);
+		return expr;
+	}
+
 	Expr *Optimizer::OptRefExpr(RefExpr *expr)
 	{
 		expr->refExpr = (IdentifierExpr *)OptExpr(expr->refExpr);

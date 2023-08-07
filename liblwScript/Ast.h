@@ -34,6 +34,7 @@ namespace lws
 		AST_BLOCK,
 		AST_ANONY_OBJ,
 		AST_VAR_ARG,
+		AST_FACTORIAL,
 		// stmt
 		AST_VAR,
 		AST_EXPR,
@@ -348,6 +349,17 @@ namespace lws
 
 		std::wstring Stringify() override;
 		IdentifierExpr* argName;
+	};
+
+	struct FactorialExpr:public Expr
+	{
+		FactorialExpr();
+		FactorialExpr(Expr* expr);
+		~FactorialExpr();
+
+		std::wstring Stringify() override;
+
+		Expr* expr;
 	};
 
 	struct Stmt : public AstNode

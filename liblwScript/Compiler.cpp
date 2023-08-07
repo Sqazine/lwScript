@@ -103,7 +103,7 @@ namespace lws
 					if (v->type == AST_ARRAY)
 					{
 						isArrayValue = true;
-						for (int32_t i = 0; i < ((ArrayExpr *)v)->elements.size(); ++i)
+						for (int32_t i = ((ArrayExpr *)v)->elements.size() - 1; i >= 0; --i)
 							CompileExpr(((ArrayExpr *)v)->elements[i]);
 					}
 					else
@@ -166,6 +166,7 @@ namespace lws
 					}
 
 					Emit(OP_RECOVER_SP);
+					Emit(OP_POP);
 				}
 				else if (k->type == AST_VAR_DESC)
 				{
@@ -228,7 +229,7 @@ namespace lws
 		{
 			for (const auto &[k, v] : varStmt->variables)
 			{
-				if(varStmt->privilege!=VarStmt::Privilege::MUTABLE)
+				if (varStmt->privilege != VarStmt::Privilege::MUTABLE)
 					continue;
 
 				CompileExpr(v);
@@ -269,9 +270,9 @@ namespace lws
 		{
 			for (const auto &[k, v] : varStmt->variables)
 			{
-				if(varStmt->privilege!=VarStmt::Privilege::IMMUTABLE)
+				if (varStmt->privilege != VarStmt::Privilege::IMMUTABLE)
 					continue;
-					
+
 				CompileExpr(v);
 
 				if (k->type == AST_ARRAY)
@@ -603,6 +604,9 @@ namespace lws
 		case AST_VAR_ARG:
 			CompileVarArgExpr((VarArgExpr *)expr, state);
 			break;
+		case AST_FACTORIAL:
+			CompileFactorialExpr((FactorialExpr *)expr);
+			break;
 		default:
 			break;
 		}
@@ -823,9 +827,7 @@ namespace lws
 	void Compiler::CompilePostfixExpr(PostfixExpr *expr, const RWState &state, bool isDelayCompile)
 	{
 		CompileExpr(expr->left, state);
-		if (expr->op == L"!")
-			Emit(OP_FACTORIAL);
-		else if (!isDelayCompile)
+		if (!isDelayCompile)
 		{
 			EmitConstant((int64_t)1);
 			if (expr->op == L"++")
@@ -1096,6 +1098,12 @@ namespace lws
 			CompileExpr(expr->argName, state);
 			mVarArgCount = 0;
 		}
+	}
+
+	void Compiler::CompileFactorialExpr(FactorialExpr *expr, const RWState &state)
+	{
+		CompileExpr(expr->expr, state);
+		Emit(OP_FACTORIAL);
 	}
 
 	Symbol Compiler::CompileFunction(FunctionStmt *stmt)

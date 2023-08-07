@@ -57,7 +57,7 @@ namespace lws
         Value *mStackTop;
         Value mValueStack[STACK_MAX];
 
-        Value* mStoredSp;
+        Value *mStoredSp;
 
         CallFrame mFrames[STACK_MAX];
         int32_t mFrameCount;

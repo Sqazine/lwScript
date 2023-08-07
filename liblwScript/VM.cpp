@@ -51,9 +51,10 @@ namespace lws
 		Execute();
 
 		std::vector<Value> returnValues;
-
+#ifdef _DEBUG
 		if(mStackTop != mValueStack + 1)
-			ASSERT(L"Fuck error");
+			ASSERT(L"Stack occupancy exception.");
+#endif
 
 		while (mStackTop != mValueStack + 1)
 			returnValues.emplace_back(Pop());

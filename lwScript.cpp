@@ -76,14 +76,12 @@ int main(int argc, const char *argv[])
 	system("chcp 65001");
 #endif
 
-	// if (argc == 2)
-	// 	RunFile(argv[1]);
-	// else if (argc == 1)
-	// 	Repl();
-	// else
-	// 	std::wcout << L"Usage: lwScript [filepath]" << std::endl;
-
-	RunFile("D:\\.sc\\lwScript\\examples\\factorial.lws");
+	if (argc == 2)
+		RunFile(argv[1]);
+	else if (argc == 1)
+		Repl();
+	else
+		std::wcout << L"Usage: lwScript [filepath]" << std::endl;
 
 	return 0;
 }

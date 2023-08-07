@@ -42,9 +42,10 @@ namespace lws
 		{TOKEN_LBRACKET, Precedence::INFIX},
 		{TOKEN_LPAREN, Precedence::INFIX},
 		{TOKEN_DOT, Precedence::INFIX},
+		{TOKEN_BANG, Precedence::INFIX},
 		{TOKEN_PLUS_PLUS, Precedence::POSTFIX},
 		{TOKEN_MINUS_MINUS, Precedence::POSTFIX},
-		{TOKEN_BANG, Precedence::POSTFIX}};
+		};
 
 	struct AssociativityBinding
 	{
@@ -132,13 +133,13 @@ namespace lws
 			{TOKEN_LPAREN, &Parser::ParseCallExpr},
 			{TOKEN_LBRACKET, &Parser::ParseIndexExpr},
 			{TOKEN_DOT, &Parser::ParseDotExpr},
+			{TOKEN_BANG, &Parser::ParseFactorialExpr},
 	};
 
 	std::unordered_map<TokenType, PostfixFn> Parser::mPostfixFunctions =
 		{
 			{TOKEN_PLUS_PLUS, &Parser::ParsePostfixExpr},
 			{TOKEN_MINUS_MINUS, &Parser::ParsePostfixExpr},
-			{TOKEN_BANG, &Parser::ParsePostfixExpr},
 	};
 
 	NullExpr *Parser::mNullExpr = new NullExpr();
@@ -1206,6 +1207,12 @@ namespace lws
 		dotExpr->callee = prefixExpr;
 		dotExpr->callMember = (IdentifierExpr *)ParseIdentifierExpr();
 		return dotExpr;
+	}
+
+	Expr *Parser::ParseFactorialExpr(Expr *prefixExpr)
+	{
+		Consume(TOKEN_BANG,L"Expect '!'");
+		return new FactorialExpr(prefixExpr);
 	}
 
 	Expr *Parser::ParseVarDescExpr()

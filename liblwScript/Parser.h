@@ -25,7 +25,7 @@ namespace lws
 		ADD_PLUS,	 // + -
 		MUL_DIV_MOD, // * / %
 		PREFIX,		 // ! ~ - & ++ --
-		INFIX,		 // [] () .
+		INFIX,		 // [] () . !
 		POSTFIX,	 // ++ -- !
 	};
 
@@ -64,7 +64,7 @@ namespace lws
 		Stmt *ParseFunctionDecl();
 		Stmt *ParseClassDecl();
 		Stmt *ParseEnumDecl();
-		Stmt* ParseModuleDecl();
+		Stmt *ParseModuleDecl();
 
 		Stmt *ParseStmt();
 		Stmt *ParseExprStmt();
@@ -87,7 +87,7 @@ namespace lws
 		Expr *ParseGroupExpr();
 		Expr *ParseArrayExpr();
 		Expr *ParseDictExpr();
-		Expr* ParseAnonyObjExpr();
+		Expr *ParseAnonyObjExpr();
 		Expr *ParsePrefixExpr();
 		Expr *ParseRefExpr();
 		Expr *ParseLambdaExpr();
@@ -102,9 +102,10 @@ namespace lws
 		Expr *ParseIndexExpr(Expr *prefixExpr);
 		Expr *ParseCallExpr(Expr *prefixExpr);
 		Expr *ParseDotExpr(Expr *prefixExpr);
-		Expr* ParseVarDescExpr();
-		Expr* ParseVarArgExpr();
-		std::pair<Expr*,Expr*> ParseDestructuringAssignmentExpr();
+		Expr *ParseFactorialExpr(Expr *prefixExpr);
+		Expr *ParseVarDescExpr();
+		Expr *ParseVarArgExpr();
+		std::pair<Expr *, Expr *> ParseDestructuringAssignmentExpr();
 
 		Token GetCurToken();
 		Token GetCurTokenAndStepOnce();
@@ -129,10 +130,10 @@ namespace lws
 
 		ClassInfo *mCurClassInfo;
 
-		uint32_t mLoopDepth; //record cur stmt or expr is in 'for' or 'while' loop
-		std::vector<TokenType> mSkippingConsumeTokenTypeStack;//skip token while call consume function
+		uint32_t mLoopDepth;								   //record cur stmt or expr is in 'for' or 'while' loop
+		std::vector<TokenType> mSkippingConsumeTokenTypeStack; //skip token while call consume function
 
-		 std::vector<uint32_t> mFunctionStmtMaxReturnCount;
+		std::vector<uint32_t> mFunctionStmtMaxReturnCount;
 
 		int64_t mCurPos;
 		AstStmts *mStmts;
@@ -144,6 +145,6 @@ namespace lws
 		static std::unordered_map<TokenType, InfixFn> mInfixFunctions;
 		static std::unordered_map<TokenType, PostfixFn> mPostfixFunctions;
 
-		static NullExpr* mNullExpr;
+		static NullExpr *mNullExpr;
 	};
 }
