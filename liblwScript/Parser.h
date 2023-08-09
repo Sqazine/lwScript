@@ -133,8 +133,6 @@ namespace lws
 		uint32_t mLoopDepth;								   //record cur stmt or expr is in 'for' or 'while' loop
 		std::vector<TokenType> mSkippingConsumeTokenTypeStack; //skip token while call consume function
 
-		std::vector<uint32_t> mFunctionStmtMaxReturnCount;
-
 		int64_t mCurPos;
 		AstStmts *mStmts;
 		std::vector<Token> mTokens;

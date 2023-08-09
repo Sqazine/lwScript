@@ -511,6 +511,34 @@ namespace lws
 		return expr->Stringify() + L"!";
 	}
 
+	AppregateExpr::AppregateExpr()
+	:Expr(AST_APPREGATE)
+	{
+
+	}
+		AppregateExpr::AppregateExpr(const std::vector<Expr*>& exprs)
+			:Expr(AST_APPREGATE),exprs(exprs)
+		{
+
+		}
+		AppregateExpr::~AppregateExpr()
+		{
+			std::vector<Expr*> ().swap(exprs);
+		}
+
+		std::wstring AppregateExpr::Stringify()
+		{
+			std::wstring result=L"(";
+			if(!exprs.empty())
+			{
+				for(const auto& expr:exprs)
+					result+=expr->Stringify()+L",";
+				result=result.substr(0,result.size()-1);
+			}
+
+			return result+L")";
+		}
+
 	//----------------------Statements-----------------------------
 
 	ExprStmt::ExprStmt()
@@ -564,30 +592,25 @@ namespace lws
 	}
 
 	ReturnStmt::ReturnStmt()
-		: Stmt(AST_RETURN)
+		: Stmt(AST_RETURN),expr(nullptr)
 	{
 	}
-	ReturnStmt::ReturnStmt(const std::vector<Expr *> &exprs)
-		: Stmt(AST_RETURN), exprs(exprs)
+	ReturnStmt::ReturnStmt(const Expr * exprs)
+		: Stmt(AST_RETURN), expr(expr)
 	{
 	}
 	ReturnStmt::~ReturnStmt()
 	{
-		std::vector<Expr *>().swap(exprs);
+		delete expr;
+		expr=nullptr;
 	}
 
 	std::wstring ReturnStmt::Stringify()
 	{
-		if (exprs.empty())
+		if (!expr)
 			return L"return;";
 		else
-		{
-			std::wstring result = L"return ";
-			for (const auto &expr : exprs)
-				result += expr->Stringify() + L",";
-			result = result.substr(0, result.size() - 1);
-			return result + L";";
-		}
+			return L"return "+expr->Stringify()+L";";
 	}
 
 	IfStmt::IfStmt()

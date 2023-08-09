@@ -53,13 +53,5 @@ namespace lws
         Expr* OptFlow(Expr* expr);
 
         Expr *ConstantFold(Expr *expr);
-
-        struct FunctionInfo
-        {
-            uint32_t maxReturnCount=0;
-            bool hasReturnStmt=false;
-        };
-
-        std::vector<FunctionInfo> mFunctionStmtInfo;
     };
 }

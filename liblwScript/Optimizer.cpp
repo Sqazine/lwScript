@@ -88,23 +88,6 @@ namespace lws
 	}
 	Stmt *Optimizer::OptReturnStmt(ReturnStmt *stmt)
 	{
-		if (mFunctionStmtInfo.back().maxReturnCount > stmt->exprs.size())
-		{
-			auto diff = mFunctionStmtInfo.back().maxReturnCount - stmt->exprs.size();
-			while (diff > 0)
-			{
-				stmt->exprs.emplace_back(new NullExpr());
-				diff--;
-			}
-		}
-
-		mFunctionStmtInfo.back().hasReturnStmt = true;
-
-		if (!stmt->exprs.empty())
-		{
-			for (auto &expr : stmt->exprs)
-				expr = OptExpr(expr);
-		}
 		return stmt;
 	}
 	Stmt *Optimizer::OptVarStmt(VarStmt *stmt)
@@ -116,17 +99,12 @@ namespace lws
 
 	Stmt *Optimizer::OptFunctionStmt(FunctionStmt *stmt)
 	{
-		mFunctionStmtInfo.emplace_back(FunctionInfo{.maxReturnCount = stmt->maxReturnCount, .hasReturnStmt = false});
-		{
-			for (auto &e : stmt->parameters)
-				e = (IdentifierExpr *)OptIdentifierExpr(e);
 
-			stmt->body = (ScopeStmt *)OptScopeStmt(stmt->body);
+		for (auto &e : stmt->parameters)
+			e = (IdentifierExpr *)OptIdentifierExpr(e);
 
-			if (mFunctionStmtInfo.back().hasReturnStmt == false)
-				stmt->body->stmts.emplace_back(new ReturnStmt());
-		}
-		mFunctionStmtInfo.pop_back();
+		stmt->body = (ScopeStmt *)OptScopeStmt(stmt->body);
+
 		return stmt;
 	}
 	Stmt *Optimizer::OptClassStmt(ClassStmt *stmt)

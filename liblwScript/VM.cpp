@@ -27,7 +27,6 @@ namespace lws
 		mStackTop = mValueStack;
 		mObjectChain = nullptr;
 		mOpenUpValues = nullptr;
-		mStoredSp = nullptr;
 
 		for (int32_t i = 0; i < LibraryManager::Instance().mStdLibraries.size(); ++i)
 			mGlobalVariables[i] = LibraryManager::Instance().mStdLibraries[i]->Clone();
@@ -52,7 +51,7 @@ namespace lws
 
 		std::vector<Value> returnValues;
 #ifdef _DEBUG
-		if(mStackTop != mValueStack + 1)
+		if (mStackTop != mValueStack + 1)
 			ASSERT(L"Stack occupancy exception.");
 #endif
 
@@ -198,7 +197,7 @@ namespace lws
 			case OP_SET_GLOBAL:
 			{
 				auto pos = READ_INS();
-				auto v = Peek(0);
+				auto v = Peek();
 				if (IS_REF_VALUE(mGlobalVariables[pos]))
 					*TO_REF_VALUE(mGlobalVariables[pos])->pointer = v;
 				else
@@ -214,7 +213,7 @@ namespace lws
 			case OP_SET_LOCAL:
 			{
 				auto pos = READ_INS();
-				auto value = Peek(0);
+				auto value = Peek();
 
 				auto slot = frame->slots + pos;
 
@@ -233,8 +232,8 @@ namespace lws
 			case OP_SET_UPVALUE:
 			{
 				auto pos = READ_INS();
-				auto v = Peek(0);
-				*frame->closure->upvalues[pos]->location = Peek(0);
+				auto v = Peek();
+				*frame->closure->upvalues[pos]->location = Peek();
 				break;
 			}
 			case OP_GET_UPVALUE:
@@ -370,9 +369,9 @@ namespace lws
 			{
 				auto count = READ_INS();
 
-				std::vector<Value> elements;
+				std::vector<Value> elements(count);
 				for (auto i = 0; i < count; ++i)
-					elements.emplace_back(*--mStackTop);
+					elements[i] = (*--mStackTop);
 				auto arrayObject = CreateObject<ArrayObject>(elements);
 				Push(arrayObject);
 				break;
@@ -440,7 +439,7 @@ namespace lws
 			{
 				auto idxValue = Pop();
 				auto dsValue = Pop();
-				auto newValue = Peek(0);
+				auto newValue = Peek();
 				if (IS_ARRAY_VALUE(dsValue))
 				{
 					auto array = TO_ARRAY_VALUE(dsValue);
@@ -485,7 +484,7 @@ namespace lws
 			case OP_JUMP_IF_FALSE:
 			{
 				uint16_t address = (*(frame->ip++) << 8) | (*(frame->ip++));
-				if (IsFalsey(Peek(0)))
+				if (IsFalsey(Peek()))
 					frame->ip += address;
 				break;
 			}
@@ -667,7 +666,7 @@ namespace lws
 			}
 			case OP_CLASS:
 			{
-				auto name = Peek(0);
+				auto name = Peek();
 				auto ctorCount = READ_INS();
 				auto varCount = READ_INS();
 				auto constCount = READ_INS();
@@ -797,7 +796,7 @@ namespace lws
 						if (member.desc == DESC_CONSTANT)
 							ASSERT(L"Constant cannot be assigned twice:" + klass->name + L"'s member:" + propName + L" is a constant value")
 						else
-							klass->members[propName] = Peek(0);
+							klass->members[propName] = Peek();
 					}
 					else
 						ASSERT(L"No member named:" + propName + L"in class:" + klass->name)
@@ -809,7 +808,7 @@ namespace lws
 					if (iter == anonymousObj->elements.end())
 						ASSERT(L"No property:" + propName + L"in anonymous object.");
 					Pop(); //pop anonymouse object
-					anonymousObj->elements[iter->first] = Peek(0);
+					anonymousObj->elements[iter->first] = Peek();
 					break;
 				}
 				else if (IS_ENUM_VALUE(peekValue))
@@ -853,15 +852,90 @@ namespace lws
 				Push(closure);
 				break;
 			}
-			case OP_STORE_SP:
+			case OP_APPREGATE_RESOLVE:
 			{
-				mStoredSp = mStackTop + 1;
+				auto count = READ_INS();
+				auto value = Pop();
+				if (IS_ARRAY_VALUE(value))
+				{
+					auto arrayObj = TO_ARRAY_VALUE(value);
+					if (count >= arrayObj->elements.size())
+					{
+						auto diff = count - arrayObj->elements.size();
+						while (diff > 0)
+						{
+							Push(Value());
+							diff--;
+						}
+						for (int32_t i = arrayObj->elements.size() - 1; i >= 0; --i)
+							Push(arrayObj->elements[i]);
+					}
+					else
+					{
+						for (int32_t i = count - 1; i >= 0; --i)
+							Push(arrayObj->elements[i]);
+					}
+				}
+				else
+				{
+
+					auto diff = count - 1;
+					while (diff > 0)
+					{
+						Push(Value());
+						diff--;
+					}
+
+					Push(value);
+				}
 				break;
 			}
-			case OP_RECOVER_SP:
+			case OP_APPREGATE_RESOLVE_VAR_ARG:
 			{
-				mStackTop = mStoredSp;
-				mStoredSp = nullptr;
+				auto count = READ_INS();
+				auto value = Pop();
+				if (IS_ARRAY_VALUE(value))
+				{
+					auto arrayObj = TO_ARRAY_VALUE(value);
+					if (count >= arrayObj->elements.size())
+					{
+						auto diff = count - arrayObj->elements.size();
+
+						for (int32_t i = diff; i > 0; --i)
+						{
+							if (i == diff)
+								Push(CreateObject<ArrayObject>());
+							else
+								Push(Value());
+						}
+
+						for (int32_t i = arrayObj->elements.size() - 1; i >= 0; --i)
+							Push(arrayObj->elements[i]);
+					}
+					else
+					{
+						ArrayObject *varArgArray = CreateObject<ArrayObject>();
+						for (int32_t i = count - 1; i < arrayObj->elements.size(); ++i)
+							varArgArray->elements.emplace_back(arrayObj->elements[i]);
+						Push(varArgArray);
+
+						for (int32_t i = count - 2; i >= 0; --i)
+							Push(arrayObj->elements[i]);
+					}
+				}
+				else
+				{
+
+					auto diff = count - 2;
+					while (diff > 0)
+					{
+						Push(Value());
+						diff--;
+					}
+
+					Push(CreateObject<ArrayObject>());
+					Push(value);
+				}
 				break;
 			}
 			default:

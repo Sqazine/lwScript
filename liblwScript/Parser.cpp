@@ -245,8 +245,6 @@ namespace lws
 
 	Stmt *Parser::ParseFunctionDecl()
 	{
-		mFunctionStmtMaxReturnCount.emplace_back(0);
-
 		auto funcStmt = new FunctionStmt();
 		funcStmt->line = GetCurToken().line;
 		funcStmt->column = GetCurToken().column;
@@ -274,9 +272,8 @@ namespace lws
 
 			funcStmt->body = (ScopeStmt *)ParseScopeStmt();
 
-			funcStmt->maxReturnCount = mFunctionStmtMaxReturnCount.back();
-
-			mFunctionStmtMaxReturnCount.pop_back();
+			if(funcStmt->body->stmts.back()->type!=AST_RETURN)
+				funcStmt->body->stmts.emplace_back(new ReturnStmt());
 		}
 
 		return funcStmt;
@@ -449,11 +446,11 @@ namespace lws
 
 			} while (IsMatchCurTokenAndStepOnce(TOKEN_COMMA));
 
-			returnStmt->exprs = returnExprs;
+			if(returnExprs.size()>1)
+				returnStmt->expr=new AppregateExpr(returnExprs);
+			else if(returnExprs.size()==1)
+				returnStmt->expr=returnExprs[0];
 		}
-
-		if (mFunctionStmtMaxReturnCount.back() < returnStmt->exprs.size())
-			mFunctionStmtMaxReturnCount.back() = returnStmt->exprs.size();
 
 		Consume(TOKEN_SEMICOLON, L"Expect ';' after return stmt");
 		return returnStmt;

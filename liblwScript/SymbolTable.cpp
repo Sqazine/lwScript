@@ -21,10 +21,10 @@ namespace lws
         for (int16_t i = mSymbolCount - 1; i >= 0; --i)
         {
             auto isSameParamCount = (mSymbols[i].paramCount < 0 || paramCount < 0) ? true : mSymbols[i].paramCount == paramCount;
+            if (mSymbols[i].scopeDepth == -1 || mSymbols[i].scopeDepth < mScopeDepth)
+                break;
             if (mSymbols[i].name == name && isSameParamCount)
                 ASSERT(L"Redefinition symbol:" + name)
-            if (mSymbols[i].scopeDepth == -1 && mSymbols[i].scopeDepth < mScopeDepth)
-                break;
         }
 
         auto *symbol = &mSymbols[mSymbolCount++];

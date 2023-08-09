@@ -20,10 +20,10 @@ io.println("{},{}",x2,y2);//null,null
 io.println("{},{}",x2,y2);//1,1000
 
 [x2,y2]=150;
-io.println("{},{}",x2,y2);//150,150
+io.println("{},{}",x2,y2);//150,null
 
 [x2,y2]=[150];
 io.println("{},{}",x2,y2);//150,null
 
-[x2,y2]=[150,100,100];
-io.println("{},{}",x2,y2);//assigned variable less than value.
+//[x2,y2]=[150,100,100];
+//io.println("{},{}",x2,y2);//assigned variable less than value.

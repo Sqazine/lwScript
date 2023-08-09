@@ -30,7 +30,7 @@ namespace lws
 
         void Push(const Value &value);
         Value Pop();
-        Value Peek(int32_t distance);
+        Value Peek(int32_t distance=0);
 
         template <class T, typename... Args>
         T *CreateObject(Args &&...params);
@@ -56,8 +56,6 @@ namespace lws
 
         Value *mStackTop;
         Value mValueStack[STACK_MAX];
-
-        Value *mStoredSp;
 
         CallFrame mFrames[STACK_MAX];
         int32_t mFrameCount;

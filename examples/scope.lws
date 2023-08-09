@@ -1,0 +1,11 @@
+let a=10;
+{
+    let a=20;
+    {
+        let a=30;
+        io.println(a);
+    }
+
+    io.println(a);
+}
+io.println(a);

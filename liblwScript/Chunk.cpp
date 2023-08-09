@@ -304,14 +304,18 @@ namespace lws
 				}
 				break;
 			}
-			case OP_STORE_SP:
+			case OP_APPREGATE_RESOLVE:
 			{
-				cout << std::setfill(L'0') << std::setw(8) << i << L"    " << L"OP_STORE_SP" << std::endl;
+				auto count = opcodes[i + 1];
+				cout << std::setfill(L'0') << std::setw(8) << i << L"    " << L"OP_APPREGATE_RESOLVE    "  << count << std::endl;
+				i++;
 				break;
 			}
-			case OP_RECOVER_SP:
+			case OP_APPREGATE_RESOLVE_VAR_ARG:
 			{
-				cout << std::setfill(L'0') << std::setw(8) << i << L"    " << L"OP_RECOVER_SP" << std::endl;
+				auto count = opcodes[i + 1];
+				cout << std::setfill(L'0') << std::setw(8) << i << L"    " << L"OP_APPREGATE_RESOLVE_VAR_ARG    "  << count << std::endl;
+				i++;
 				break;
 			}
 			default:

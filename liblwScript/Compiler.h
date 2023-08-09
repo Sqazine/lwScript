@@ -50,6 +50,7 @@ namespace lws
 		void CompileNullExpr(NullExpr *expr);
 		void CompileGroupExpr(GroupExpr *expr);
 		void CompileArrayExpr(ArrayExpr *expr);
+		void CompileAppregateExpr(AppregateExpr *expr);
 		void CompileDictExpr(DictExpr *expr);
 		void CompileIndexExpr(IndexExpr *expr, const RWState &state = RWState::READ);
 		void CompileNewExpr(NewExpr *expr);
@@ -87,7 +88,5 @@ namespace lws
 
 		std::vector<FunctionObject *> mFunctionList;
 		SymbolTable *mSymbolTable;
-
-		int32_t mVarArgCount;
 	};
 }

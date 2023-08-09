@@ -17,7 +17,7 @@ let [x2,y2,...]=[150,100,100];
 io.println("{},{}",x2,y2);//150,100
 
 [x2,y2,...]=1000;
-io.println("{},{}",x2,y2);//1000,1000
+io.println("{},{}",x2,y2);//1000,null
 
 fn IsNull(obj)
 {
@@ -26,8 +26,13 @@ fn IsNull(obj)
     return false,obj;
 }
 
-let [isNull]=IsNull(10);
-io.println("{}",isNull);// false
+let [isNull,value,value2,...argsOther]=IsNull(10);
+io.println("{},{},{},{}",isNull,value,value2,argsOther);// false,10,null,[]
+
+{
+    let [isNull,value,value2,...argsOther]=IsNull(10);
+    io.println("{},{},{},{}",isNull,value,value2,argsOther);// false,10,null,[]
+}
 
 [x2,...args]=IsNull(null);
 io.println("{},{}",x2,args);//true,[]

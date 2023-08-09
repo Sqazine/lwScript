@@ -35,6 +35,7 @@ namespace lws
 		AST_ANONY_OBJ,
 		AST_VAR_ARG,
 		AST_FACTORIAL,
+		AST_APPREGATE,
 		// stmt
 		AST_VAR,
 		AST_EXPR,
@@ -362,6 +363,17 @@ namespace lws
 		Expr* expr;
 	};
 
+	struct AppregateExpr:public  Expr
+	{
+		AppregateExpr();
+		AppregateExpr(const std::vector<Expr*>& exprs);
+		~AppregateExpr();
+
+		std::wstring Stringify() override;
+
+		std::vector<Expr*> exprs;
+	};
+
 	struct Stmt : public AstNode
 	{
 		Stmt(AstType type) : AstNode(type) {}
@@ -402,12 +414,12 @@ namespace lws
 	struct ReturnStmt : public Stmt
 	{
 		ReturnStmt();
-		ReturnStmt(const std::vector<Expr *> &exprs);
+		ReturnStmt(const Expr * exprs);
 		~ReturnStmt();
 
 		std::wstring Stringify() override;
 
-		std::vector<Expr *> exprs;
+		Expr * expr;
 	};
 
 	struct IfStmt : public Stmt
@@ -506,7 +518,6 @@ namespace lws
 		IdentifierExpr *name;
 		std::vector<IdentifierExpr *> parameters;
 		ScopeStmt *body;
-		uint32_t maxReturnCount;
 	};
 
 	struct ClassStmt : public Stmt
