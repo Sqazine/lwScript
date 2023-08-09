@@ -42,12 +42,12 @@ namespace lws
 		auto symbol = &mSymbolTable->mSymbols[mSymbolTable->mSymbolCount++];
 		symbol->type = SYMBOL_LOCAL;
 		symbol->index = mSymbolTable->mLocalSymbolCount++;
-		symbol->descType = DESC_CONSTANT;
+		symbol->descType = ValueDesc::CONSTANT;
 		symbol->scopeDepth = 0;
 		symbol->name = L"_main_start_up";
 
 		for (const auto &libName : LibraryManager::Instance().mStdLibraryMap)
-			mSymbolTable->Define(DESC_CONSTANT, libName);
+			mSymbolTable->Define(ValueDesc::CONSTANT, libName);
 	}
 
 	void Compiler::CompileDecl(Stmt *stmt)
@@ -83,9 +83,9 @@ namespace lws
 		ValueDesc valueDesc;
 
 		if (stmt->privilege == VarStmt::Privilege ::MUTABLE)
-			valueDesc = ValueDesc::DESC_VARIABLE;
+			valueDesc = ValueDesc::VARIABLE;
 		else if (stmt->privilege == VarStmt::Privilege ::IMMUTABLE)
-			valueDesc = ValueDesc::DESC_CONSTANT;
+			valueDesc = ValueDesc::CONSTANT;
 
 		auto postfixExprs = StatsPostfixExprs(stmt);
 
@@ -200,7 +200,7 @@ namespace lws
 	}
 	void Compiler::CompileClassDecl(ClassStmt *stmt)
 	{
-		auto symbol = mSymbolTable->Define(DESC_CONSTANT, stmt->name);
+		auto symbol = mSymbolTable->Define(ValueDesc::CONSTANT, stmt->name);
 
 		mFunctionList.emplace_back(new FunctionObject(stmt->name));
 		mSymbolTable = new SymbolTable(mSymbolTable);
@@ -360,7 +360,7 @@ namespace lws
 		}
 
 		EmitConstant(new EnumObject(stmt->enumName->literal, pairs));
-		auto symbol = mSymbolTable->Define(DESC_CONSTANT, stmt->enumName->literal);
+		auto symbol = mSymbolTable->Define(ValueDesc::CONSTANT, stmt->enumName->literal);
 		if (symbol.type == SYMBOL_GLOBAL)
 		{
 			Emit(OP_SET_GLOBAL);
@@ -936,7 +936,7 @@ namespace lws
 
 		if (state == RWState::WRITE)
 		{
-			if (symbol.descType == DESC_VARIABLE)
+			if (symbol.descType == ValueDesc::VARIABLE)
 			{
 				Emit(setOp);
 				if (symbol.type == SYMBOL_UPVALUE)
@@ -961,12 +961,12 @@ namespace lws
 		mFunctionList.emplace_back(new FunctionObject());
 		mSymbolTable = new SymbolTable(mSymbolTable);
 
-		mSymbolTable->Define(DESC_CONSTANT, L"");
+		mSymbolTable->Define(ValueDesc::CONSTANT, L"");
 
 		CurFunction()->arity = expr->parameters.size();
 
 		for (const auto &param : expr->parameters)
-			mSymbolTable->Define(DESC_VARIABLE, param->literal);
+			mSymbolTable->Define(ValueDesc::VARIABLE, param->literal);
 
 		EnterScope();
 
@@ -1083,7 +1083,7 @@ namespace lws
 
 	Symbol Compiler::CompileFunction(FunctionStmt *stmt)
 	{
-		auto functionSymbol = mSymbolTable->Define(DESC_CONSTANT, stmt->name->literal, stmt->parameters.size());
+		auto functionSymbol = mSymbolTable->Define(ValueDesc::CONSTANT, stmt->name->literal, stmt->parameters.size());
 
 		mFunctionList.emplace_back(new FunctionObject(stmt->name->literal));
 		mSymbolTable = new SymbolTable(mSymbolTable);
@@ -1091,12 +1091,12 @@ namespace lws
 		std::wstring symbolName = L"";
 		if (stmt->type == FunctionType::CLASS_CLOSURE || stmt->type == FunctionType::CLASS_CONSTRUCTOR)
 			symbolName = L"this";
-		mSymbolTable->Define(DESC_CONSTANT, symbolName);
+		mSymbolTable->Define(ValueDesc::CONSTANT, symbolName);
 
 		CurFunction()->arity = stmt->parameters.size();
 
 		for (const auto &param : stmt->parameters)
-			mSymbolTable->Define(DESC_VARIABLE, param->literal);
+			mSymbolTable->Define(ValueDesc::VARIABLE, param->literal);
 
 		EnterScope();
 

@@ -23,7 +23,7 @@ namespace lws
     {
         std::wstring name;
         SymbolType type = SYMBOL_GLOBAL;
-        ValueDesc descType = DESC_VARIABLE;
+        ValueDesc descType = ValueDesc::VARIABLE;
         uint8_t index = 0;
         int8_t scopeDepth = -1;
         int8_t paramCount = -1;
@@ -47,10 +47,10 @@ namespace lws
         std::array<UpValue, UINT8_COUNT> mUpValues;
         int32_t mUpValueCount;
         uint8_t mScopeDepth; // Depth of scope nesting(related to code {} scope)
-        uint8_t mTableDepth; // Depth of symbol table nesting(related to symboltable's enclosing)
         SymbolTable *enclosing;
 
     private:
         UpValue AddUpValue(uint8_t location, uint8_t depth);
+        uint8_t mTableDepth; // Depth of symbol table nesting(related to symboltable's enclosing)
     };
 }

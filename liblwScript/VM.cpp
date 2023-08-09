@@ -693,7 +693,7 @@ namespace lws
 				{
 					name = Pop();
 					auto v = Pop();
-					v.desc = DESC_CONSTANT;
+					v.desc = ValueDesc::CONSTANT;
 					classObj->members[TO_STR_VALUE(name)] = v;
 				}
 
@@ -701,7 +701,7 @@ namespace lws
 				{
 					name = Pop();
 					auto v = Pop();
-					v.desc = DESC_VARIABLE;
+					v.desc = ValueDesc::VARIABLE;
 					classObj->members[TO_STR_VALUE(name)] = v;
 				}
 
@@ -793,7 +793,7 @@ namespace lws
 					Value member;
 					if (klass->GetMember(propName, member))
 					{
-						if (member.desc == DESC_CONSTANT)
+						if (member.desc == ValueDesc::CONSTANT)
 							ASSERT(L"Constant cannot be assigned twice:" + klass->name + L"'s member:" + propName + L" is a constant value")
 						else
 							klass->members[propName] = Peek();
@@ -864,7 +864,7 @@ namespace lws
 						auto diff = count - arrayObj->elements.size();
 						while (diff > 0)
 						{
-							Push(Value());
+							Push(sNullValue);
 							diff--;
 						}
 						for (int32_t i = arrayObj->elements.size() - 1; i >= 0; --i)
@@ -882,7 +882,7 @@ namespace lws
 					auto diff = count - 1;
 					while (diff > 0)
 					{
-						Push(Value());
+						Push(sNullValue);
 						diff--;
 					}
 
@@ -906,7 +906,7 @@ namespace lws
 							if (i == diff)
 								Push(CreateObject<ArrayObject>());
 							else
-								Push(Value());
+								Push(sNullValue);
 						}
 
 						for (int32_t i = arrayObj->elements.size() - 1; i >= 0; --i)
@@ -929,7 +929,7 @@ namespace lws
 					auto diff = count - 2;
 					while (diff > 0)
 					{
-						Push(Value());
+						Push(sNullValue);
 						diff--;
 					}
 

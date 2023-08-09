@@ -175,9 +175,8 @@ namespace lws
 	void Parser::ResetStatus()
 	{
 		mCurPos = 0;
-		mLoopDepth = 0;
+
 		mCurClassInfo = nullptr;
-		mIsVarArgScopeAvailable = 0;
 
 		if (mStmts != nullptr)
 		{
@@ -492,8 +491,6 @@ namespace lws
 
 	Stmt *Parser::ParseWhileStmt()
 	{
-		mLoopDepth++;
-
 		auto whileStmt = new WhileStmt();
 		whileStmt->line = GetCurToken().line;
 		whileStmt->column = GetCurToken().column;
@@ -512,8 +509,6 @@ namespace lws
 			scopeStmt->stmts.emplace_back(ParseStmt());
 			whileStmt->body = scopeStmt;
 		}
-
-		mLoopDepth--;
 
 		return whileStmt;
 	}
@@ -541,8 +536,6 @@ namespace lws
 		//			}
 		//		}
 		// }
-
-		mLoopDepth++;
 
 		auto scopeStmt = new ScopeStmt();
 		scopeStmt->line = GetCurToken().line;
@@ -600,15 +593,12 @@ namespace lws
 			incrementStmts.emplace_back(new ExprStmt(expr));
 		whileStmt->increment = new ScopeStmt(incrementStmts);
 		scopeStmt->stmts.emplace_back(whileStmt);
-		mLoopDepth--;
+
 		return scopeStmt;
 	}
 
 	Stmt *Parser::ParseBreakStmt()
 	{
-		if (mLoopDepth == 0)
-			ASSERT(L"Cannot use 'break' stmt outside of 'for' or 'while' loop.")
-
 		auto breakStmt = new BreakStmt();
 		breakStmt->line = GetCurToken().line;
 		breakStmt->column = GetCurToken().column;
@@ -619,8 +609,6 @@ namespace lws
 
 	Stmt *Parser::ParseContinueStmt()
 	{
-		if (mLoopDepth == 0)
-			ASSERT(L"Cannot use 'break' stmt outside of 'for' or 'while' loop.")
 		auto continueStmt = new ContinueStmt();
 		continueStmt->line = GetCurToken().line;
 		continueStmt->column = GetCurToken().column;
@@ -921,13 +909,7 @@ namespace lws
 
 		auto prefixFn = mPrefixFunctions[GetCurToken().type];
 
-		//for var arg scope judgement
-		if (GetCurToken().type == TOKEN_LBRACKET)
-			mIsVarArgScopeAvailable++;
-
 		auto leftExpr = (this->*prefixFn)();
-
-		mIsVarArgScopeAvailable--;
 
 		while (!IsMatchCurToken(TOKEN_SEMICOLON) && (GetCurTokenAssociativity() == Associativity::L2R ? precedence < GetCurTokenPrecedence() : precedence <= GetCurTokenPrecedence()))
 		{
@@ -1229,9 +1211,6 @@ namespace lws
 
 	Expr *Parser::ParseVarArgExpr()
 	{
-		if (mIsVarArgScopeAvailable == 0)
-			ASSERT("Var arg only available in destructuring assignment expr or function parameter scope");
-
 		Consume(TOKEN_ELLIPSIS, L"Expect '...'");
 
 		if (IsMatchCurToken(TOKEN_IDENTIFIER))
@@ -1244,8 +1223,6 @@ namespace lws
 
 	std::pair<Expr *, Expr *> Parser::ParseDestructuringAssignmentExpr()
 	{
-		mIsVarArgScopeAvailable++;
-
 		Consume(TOKEN_LBRACKET, L"Expect '['");
 
 		auto arrayExpr = new ArrayExpr();
@@ -1301,8 +1278,6 @@ namespace lws
 		}
 		else
 			initializeList->elements.resize(arrayExpr->elements.size(), mNullExpr);
-
-		mIsVarArgScopeAvailable--;
 
 		return std::make_pair(arrayExpr, initializeList);
 	}

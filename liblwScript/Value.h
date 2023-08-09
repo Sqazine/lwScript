@@ -12,10 +12,10 @@ namespace lws
         VALUE_OBJECT,
     };
 
-    enum ValueDesc
+    enum class ValueDesc
     {
-        DESC_VARIABLE,
-        DESC_CONSTANT
+        VARIABLE,
+        CONSTANT
     };
 
     struct Value
@@ -33,7 +33,7 @@ namespace lws
         Value Clone() const;
 
         ValueType type;
-        ValueDesc desc = DESC_VARIABLE;
+        ValueDesc desc = ValueDesc::VARIABLE;
 
         union
         {

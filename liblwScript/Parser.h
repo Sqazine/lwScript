@@ -130,14 +130,11 @@ namespace lws
 
 		ClassInfo *mCurClassInfo;
 
-		uint32_t mLoopDepth;								   //record cur stmt or expr is in 'for' or 'while' loop
 		std::vector<TokenType> mSkippingConsumeTokenTypeStack; //skip token while call consume function
 
 		int64_t mCurPos;
 		AstStmts *mStmts;
 		std::vector<Token> mTokens;
-
-		int32_t mIsVarArgScopeAvailable;
 
 		static std::unordered_map<TokenType, PrefixFn> mPrefixFunctions;
 		static std::unordered_map<TokenType, InfixFn> mInfixFunctions;
