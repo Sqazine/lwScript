@@ -272,7 +272,7 @@ namespace lws
 
 			funcStmt->body = (ScopeStmt *)ParseScopeStmt();
 
-			if(funcStmt->body->stmts.back()->type!=AST_RETURN)
+			if(funcStmt->body->stmts.back()->type!=AST_RETURN&&funcStmt->type!=FunctionType::CLASS_CONSTRUCTOR)
 				funcStmt->body->stmts.emplace_back(new ReturnStmt());
 		}
 
