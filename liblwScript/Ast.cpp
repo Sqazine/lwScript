@@ -148,11 +148,11 @@ namespace lws
 	}
 
 	DictExpr::DictExpr()
-		: Expr(AST_TABLE)
+		: Expr(AST_DICT)
 	{
 	}
 	DictExpr::DictExpr(const std::vector<std::pair<Expr *, Expr *>> &elements)
-		: Expr(AST_TABLE), elements(elements)
+		: Expr(AST_DICT), elements(elements)
 	{
 	}
 	DictExpr::~DictExpr()
@@ -387,7 +387,7 @@ namespace lws
 		: Expr(AST_NEW)
 	{
 	}
-	NewExpr::NewExpr(CallExpr *callee)
+	NewExpr::NewExpr(Expr *callee)
 		: Expr(AST_NEW), callee(callee)
 	{
 	}
@@ -512,32 +512,30 @@ namespace lws
 	}
 
 	AppregateExpr::AppregateExpr()
-	:Expr(AST_APPREGATE)
+		: Expr(AST_APPREGATE)
 	{
-
 	}
-		AppregateExpr::AppregateExpr(const std::vector<Expr*>& exprs)
-			:Expr(AST_APPREGATE),exprs(exprs)
-		{
+	AppregateExpr::AppregateExpr(const std::vector<Expr *> &exprs)
+		: Expr(AST_APPREGATE), exprs(exprs)
+	{
+	}
+	AppregateExpr::~AppregateExpr()
+	{
+		std::vector<Expr *>().swap(exprs);
+	}
 
-		}
-		AppregateExpr::~AppregateExpr()
+	std::wstring AppregateExpr::Stringify()
+	{
+		std::wstring result = L"(";
+		if (!exprs.empty())
 		{
-			std::vector<Expr*> ().swap(exprs);
+			for (const auto &expr : exprs)
+				result += expr->Stringify() + L",";
+			result = result.substr(0, result.size() - 1);
 		}
 
-		std::wstring AppregateExpr::Stringify()
-		{
-			std::wstring result=L"(";
-			if(!exprs.empty())
-			{
-				for(const auto& expr:exprs)
-					result+=expr->Stringify()+L",";
-				result=result.substr(0,result.size()-1);
-			}
-
-			return result+L")";
-		}
+		return result + L")";
+	}
 
 	//----------------------Statements-----------------------------
 
@@ -592,17 +590,17 @@ namespace lws
 	}
 
 	ReturnStmt::ReturnStmt()
-		: Stmt(AST_RETURN),expr(nullptr)
+		: Stmt(AST_RETURN), expr(nullptr)
 	{
 	}
-	ReturnStmt::ReturnStmt(const Expr * exprs)
+	ReturnStmt::ReturnStmt(Expr *expr)
 		: Stmt(AST_RETURN), expr(expr)
 	{
 	}
 	ReturnStmt::~ReturnStmt()
 	{
 		delete expr;
-		expr=nullptr;
+		expr = nullptr;
 	}
 
 	std::wstring ReturnStmt::Stringify()
@@ -610,7 +608,7 @@ namespace lws
 		if (!expr)
 			return L"return;";
 		else
-			return L"return "+expr->Stringify()+L";";
+			return L"return " + expr->Stringify() + L";";
 	}
 
 	IfStmt::IfStmt()
@@ -842,6 +840,7 @@ namespace lws
 		: Stmt(AST_ASTSTMTS), stmts(stmts)
 	{
 	}
+
 	AstStmts::~AstStmts()
 	{
 		std::vector<Stmt *>().swap(stmts);

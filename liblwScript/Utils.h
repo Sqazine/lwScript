@@ -9,7 +9,7 @@
 namespace lws
 {
 #ifdef _DEBUG
-#define ASSERT(msg)                         \
+#define ERROR(msg)                          \
     {                                       \
         do                                  \
         {                                   \
@@ -18,7 +18,7 @@ namespace lws
         } while (false);                    \
     }
 #else
-#define ASSERT(msg)                         \
+#define ERROR(msg)                          \
     {                                       \
         do                                  \
         {                                   \
@@ -27,6 +27,14 @@ namespace lws
         } while (false);                    \
     }
 #endif
+
+#define WARN(msg)                           \
+    {                                       \
+        do                                  \
+        {                                   \
+            std::wcout << msg << std::endl; \
+        } while (false);                    \
+    }
 
     inline std::wstring ReadFile(std::string_view path)
     {

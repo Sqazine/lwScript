@@ -172,7 +172,7 @@ namespace lws
 					}
 				}
 				else
-					ASSERT(L"Unknown variable:" + k->Stringify())
+					ERROR(L"Unknown variable:" + k->Stringify())
 			}
 		}
 
@@ -354,7 +354,7 @@ namespace lws
 			else if (v->type == AST_STR)
 				enumValue = new StrObject(((StrExpr *)v)->value);
 			else
-				ASSERT(L"Enum value only integer num,floating point num,boolean or string is available")
+				ERROR(L"Enum value only integer num,floating point num,boolean or string is available")
 
 			pairs[k->literal] = enumValue;
 		}
@@ -554,7 +554,7 @@ namespace lws
 		case AST_APPREGATE:
 			CompileAppregateExpr((AppregateExpr *)expr);
 			break;
-		case AST_TABLE:
+		case AST_DICT:
 			CompileDictExpr((DictExpr *)expr);
 			break;
 		case AST_INDEX:
@@ -790,7 +790,7 @@ namespace lws
 			CompileExpr(expr->right, RWState::WRITE);
 		}
 		else
-			ASSERT(L"No prefix op:" + expr->op)
+			ERROR(L"No prefix op:" + expr->op)
 	}
 	void Compiler::CompilePostfixExpr(PostfixExpr *expr, const RWState &state, bool isDelayCompile)
 	{
@@ -803,7 +803,7 @@ namespace lws
 			else if (expr->op == L"--")
 				Emit(OP_SUB);
 			else
-				ASSERT(L"No postfix op:" + expr->op)
+				ERROR(L"No postfix op:" + expr->op)
 			CompileExpr(expr->left, RWState::WRITE);
 			Emit(OP_POP);
 		}
@@ -888,8 +888,7 @@ namespace lws
 	{
 		if (expr->callee->type == AST_CALL)
 		{
-
-			auto callee = expr->callee;
+			auto callee = (CallExpr*)expr->callee;
 			CompileExpr(callee->callee, RWState::READ);
 			Emit(OP_CALL);
 			Emit(0);
@@ -945,7 +944,7 @@ namespace lws
 					Emit(symbol.index);
 			}
 			else
-				ASSERT(expr->Stringify() + L"is a constant,which cannot be assigned!")
+				ERROR(expr->Stringify() + L"is a constant,which cannot be assigned!")
 		}
 		else
 		{
@@ -1348,7 +1347,7 @@ namespace lws
 			}
 			return result;
 		}
-		case AST_TABLE:
+		case AST_DICT:
 		{
 			std::vector<Expr *> result;
 			for (const auto &[k, v] : ((DictExpr *)astNode)->elements)

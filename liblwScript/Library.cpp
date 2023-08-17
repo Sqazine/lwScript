@@ -143,7 +143,7 @@ namespace lws
         dsClass->members[L"sizeof"] = new NativeFunctionObject([](const std::vector<Value> &args) -> Value
                                                                {
                                                                    if (args.empty() || args.size() > 1)
-                                                                       ASSERT(L"[Native function 'sizeof']:Expect a argument.")
+                                                                       ERROR(L"[Native function 'sizeof']:Expect a argument.")
 
                                                                    if (IS_ARRAY_VALUE(args[0]))
                                                                        return Value((int64_t)TO_ARRAY_VALUE(args[0])->elements.size());
@@ -152,25 +152,25 @@ namespace lws
                                                                    else if (IS_STR_VALUE(args[0]))
                                                                        return Value((int64_t)TO_STR_VALUE(args[0]).size());
                                                                    else
-                                                                       ASSERT(L"[Native function 'sizeof']:Expect a array,dict ot string argument.")
+                                                                       ERROR(L"[Native function 'sizeof']:Expect a array,dict ot string argument.")
 
                                                                    return Value(); });
 
         dsClass->members[L"insert"] = new NativeFunctionObject([](const std::vector<Value> &args) -> Value
                                                                {
                                                                    if (args.empty() || args.size() != 3)
-                                                                       ASSERT(L"[Native function 'insert']:Expect 3 arguments,the arg0 must be array,dict or string object.The arg1 is the index object.The arg2 is the value object.")
+                                                                       ERROR(L"[Native function 'insert']:Expect 3 arguments,the arg0 must be array,dict or string object.The arg1 is the index object.The arg2 is the value object.")
 
                                                                    if (IS_ARRAY_VALUE(args[0]))
                                                                    {
                                                                        ArrayObject *array = TO_ARRAY_VALUE(args[0]);
                                                                        if (!IS_INT_VALUE(args[1]))
-                                                                           ASSERT(L"[Native function 'insert']:Arg1 must be integer type while insert to a array")
+                                                                           ERROR(L"[Native function 'insert']:Arg1 must be integer type while insert to a array")
 
                                                                        int64_t iIndex = TO_INT_VALUE(args[1]);
 
                                                                        if (iIndex < 0 || iIndex >= (int64_t)array->elements.size())
-                                                                           ASSERT(L"[Native function 'insert']:Index out of array's range")
+                                                                           ERROR(L"[Native function 'insert']:Index out of array's range")
 
                                                                        array->elements.insert(array->elements.begin() + iIndex, 1, args[2]);
                                                                    }
@@ -180,7 +180,7 @@ namespace lws
 
                                                                        for (auto [key, value] : dict->elements)
                                                                            if (key == args[1])
-                                                                               ASSERT(L"[Native function 'insert']:Already exist value in the dict object of arg1" + args[1].Stringify())
+                                                                               ERROR(L"[Native function 'insert']:Already exist value in the dict object of arg1" + args[1].Stringify())
 
                                                                        dict->elements[args[1]] = args[2];
                                                                    }
@@ -188,35 +188,35 @@ namespace lws
                                                                    {
                                                                        auto &string = TO_STR_VALUE(args[0]);
                                                                        if (!IS_INT_VALUE(args[1]))
-                                                                           ASSERT(L"[Native function 'insert']:Arg1 must be integer type while insert to a array")
+                                                                           ERROR(L"[Native function 'insert']:Arg1 must be integer type while insert to a array")
 
                                                                        int64_t iIndex = TO_INT_VALUE(args[1]);
 
                                                                        if (iIndex < 0 || iIndex >= (int64_t)string.size())
-                                                                           ASSERT(L"[Native function 'insert']:Index out of array's range")
+                                                                           ERROR(L"[Native function 'insert']:Index out of array's range")
 
                                                                        string.insert(iIndex, args[2].Stringify());
                                                                    }
                                                                    else
-                                                                       ASSERT(L"[Native function 'insert']:Expect a array,dict ot string argument.")
+                                                                       ERROR(L"[Native function 'insert']:Expect a array,dict ot string argument.")
 
                                                                    return args[0]; });
 
         dsClass->members[L"erase"] = new NativeFunctionObject([](const std::vector<Value> &args) -> Value
                                                               {
                                                                   if (args.empty() || args.size() != 2)
-                                                                      ASSERT(L"[Native function 'erase']:Expect 2 arguments,the arg0 must be array,dict or string object.The arg1 is the corresponding index object.")
+                                                                      ERROR(L"[Native function 'erase']:Expect 2 arguments,the arg0 must be array,dict or string object.The arg1 is the corresponding index object.")
 
                                                                   if (IS_ARRAY_VALUE(args[0]))
                                                                   {
                                                                       ArrayObject *array = TO_ARRAY_VALUE(args[0]);
                                                                       if (!IS_INT_VALUE(args[1]))
-                                                                          ASSERT(L"[Native function 'erase']:Arg1 must be integer type while insert to a array")
+                                                                          ERROR(L"[Native function 'erase']:Arg1 must be integer type while insert to a array")
 
                                                                       int64_t iIndex = TO_INT_VALUE(args[1]);
 
                                                                       if (iIndex < 0 || iIndex >= (int64_t)array->elements.size())
-                                                                          ASSERT(L"[Native function 'erase']:Index out of array's range")
+                                                                          ERROR(L"[Native function 'erase']:Index out of array's range")
 
                                                                       array->elements.erase(array->elements.begin() + iIndex);
                                                                   }
@@ -235,32 +235,32 @@ namespace lws
                                                                           }
 
                                                                       if (!hasValue)
-                                                                          ASSERT(L"[Native function 'erase']:No corresponding index in dict.")
+                                                                          ERROR(L"[Native function 'erase']:No corresponding index in dict.")
                                                                   }
                                                                   else if (IS_STR_VALUE(args[0]))
                                                                   {
                                                                       auto &string = TO_STR_VALUE(args[0]);
                                                                       if (!IS_INT_VALUE(args[1]))
-                                                                          ASSERT(L"[Native function 'erase']:Arg1 must be integer type while insert to a array")
+                                                                          ERROR(L"[Native function 'erase']:Arg1 must be integer type while insert to a array")
 
                                                                       int64_t iIndex = TO_INT_VALUE(args[1]);
 
                                                                       if (iIndex < 0 || iIndex >= (int64_t)string.size())
-                                                                          ASSERT(L"[Native function 'erase']:Index out of array's range")
+                                                                          ERROR(L"[Native function 'erase']:Index out of array's range")
 
                                                                       string.erase(string.begin() + iIndex);
                                                                   }
                                                                   else
-                                                                      ASSERT(L"[Native function 'erase']:Expect a array,dict ot string argument.")
+                                                                      ERROR(L"[Native function 'erase']:Expect a array,dict ot string argument.")
                                                                   return args[0]; });
 
         memClass->members[L"addressof"] = new NativeFunctionObject([](const std::vector<Value> &args) -> Value
                                                                    {
                                                                        if (args.empty() || args.size() != 1)
-                                                                           ASSERT(L"[Native function 'addressof']:Expect 1 arguments.")
+                                                                           ERROR(L"[Native function 'addressof']:Expect 1 arguments.")
 
                                                                        if (!IS_OBJECT_VALUE(args[0]))
-                                                                           ASSERT(L"[Native function 'addressof']:The arg0 is a value,only object has address.")
+                                                                           ERROR(L"[Native function 'addressof']:The arg0 is a value,only object has address.")
 
                                                                        return new StrObject(PointerAddressToString(args[0].object)); });
 

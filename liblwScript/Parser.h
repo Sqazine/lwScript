@@ -7,6 +7,7 @@
 #include "Ast.h"
 #include "Utils.h"
 #include "Optimizer.h"
+#include "SyntaxChecker.h"
 namespace lws
 {
 	enum class Precedence
@@ -127,13 +128,13 @@ namespace lws
 		bool IsAtEnd();
 
 		Optimizer mOptimizer;
+		SyntaxChecker mSyntaxChecker;
 
 		ClassInfo *mCurClassInfo;
 
 		std::vector<TokenType> mSkippingConsumeTokenTypeStack; //skip token while call consume function
 
 		int64_t mCurPos;
-		AstStmts *mStmts;
 		std::vector<Token> mTokens;
 
 		static std::unordered_map<TokenType, PrefixFn> mPrefixFunctions;

@@ -278,8 +278,21 @@ namespace lws
 
 	Expr *Optimizer::OptFactorialExpr(FactorialExpr *expr)
 	{
-		expr->expr = OptExpr(expr->expr);
-		return expr;
+		if(expr->expr->type==AST_INT)
+		{
+			auto intExpr=new IntNumExpr();
+			intExpr->value=Factorial(((IntNumExpr*)expr->expr)->value);
+
+			delete expr;
+			expr=nullptr;
+
+			return intExpr;
+		}
+		else
+		{
+			expr->expr = OptExpr(expr->expr);
+			return expr;
+		}
 	}
 
 	Expr *Optimizer::OptRefExpr(RefExpr *expr)

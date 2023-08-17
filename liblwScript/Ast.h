@@ -18,7 +18,7 @@ namespace lws
 		AST_VAR_DESC,
 		AST_GROUP,
 		AST_ARRAY,
-		AST_TABLE,
+		AST_DICT,
 		AST_PREFIX,
 		AST_INFIX,
 		AST_POSTFIX,
@@ -293,12 +293,12 @@ namespace lws
 	struct NewExpr : public Expr
 	{
 		NewExpr();
-		NewExpr(CallExpr *callee);
+		NewExpr(Expr *callee);
 		~NewExpr();
 
 		std::wstring Stringify() override;
 
-		CallExpr *callee;
+		Expr *callee;
 	};
 
 	struct ThisExpr : public Expr
@@ -406,7 +406,6 @@ namespace lws
 
 		std::wstring Stringify() override;
 
-
 		Privilege privilege;
 		std::vector<std::pair<Expr *, Expr *>> variables;
 	};
@@ -414,7 +413,7 @@ namespace lws
 	struct ReturnStmt : public Stmt
 	{
 		ReturnStmt();
-		ReturnStmt(const Expr * exprs);
+		ReturnStmt(Expr * expr);
 		~ReturnStmt();
 
 		std::wstring Stringify() override;

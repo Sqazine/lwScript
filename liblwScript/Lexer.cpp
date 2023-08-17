@@ -119,7 +119,7 @@ namespace lws
 				if (IsMatchCurCharAndStepOnce(L'.'))
 					AddToken(TOKEN_ELLIPSIS);
 				else
-					ASSERT(L"Unknown literal:..");
+					ERROR(L"Unknown literal:..");
 			}
 			else
 				AddToken(TOKEN_DOT);
@@ -280,7 +280,7 @@ namespace lws
 			else
 			{
 				auto literal = mSource.substr(mStartPos, mCurPos - mStartPos);
-				ASSERT(L"Unknown literal:" + literal)
+				ERROR(L"Unknown literal:" + literal)
 			}
 		}
 	}
@@ -383,7 +383,7 @@ namespace lws
 				while (IsNumber(GetCurChar()))
 					GetCurCharAndStepOnce();
 			else
-				ASSERT(L"[line " + std::to_wstring(mLine) + L"]:Number cannot end with '.'")
+				ERROR(L"[line " + std::to_wstring(mLine) + L"]:Number cannot end with '.'")
 		}
 
 		AddToken(TOKEN_NUMBER);

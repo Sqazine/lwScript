@@ -45,7 +45,7 @@ namespace lws
 		{TOKEN_BANG, Precedence::INFIX},
 		{TOKEN_PLUS_PLUS, Precedence::POSTFIX},
 		{TOKEN_MINUS_MINUS, Precedence::POSTFIX},
-		};
+	};
 
 	struct AssociativityBinding
 	{
@@ -145,18 +145,11 @@ namespace lws
 	NullExpr *Parser::mNullExpr = new NullExpr();
 
 	Parser::Parser()
-		: mStmts(nullptr)
 	{
 	}
 
 	Parser::~Parser()
 	{
-		if (mStmts != nullptr)
-		{
-			delete mStmts;
-			mStmts = nullptr;
-		}
-
 		std::unordered_map<TokenType, PrefixFn>().swap(mPrefixFunctions);
 		std::unordered_map<TokenType, InfixFn>().swap(mInfixFunctions);
 	}
@@ -166,10 +159,15 @@ namespace lws
 		ResetStatus();
 		mTokens = tokens;
 
-		while (!IsMatchCurToken(TOKEN_EOF))
-			mStmts->stmts.emplace_back(ParseDecl());
+		AstStmts *astStmts = new AstStmts();
 
-		return mOptimizer.Opt(mStmts);
+		while (!IsMatchCurToken(TOKEN_EOF))
+			astStmts->stmts.emplace_back(ParseDecl());
+
+		auto result = mSyntaxChecker.Check(astStmts);
+		result = mOptimizer.Opt(result);
+
+		return result;
 	}
 
 	void Parser::ResetStatus()
@@ -177,13 +175,6 @@ namespace lws
 		mCurPos = 0;
 
 		mCurClassInfo = nullptr;
-
-		if (mStmts != nullptr)
-		{
-			delete mStmts;
-			mStmts = nullptr;
-		}
-		mStmts = new AstStmts();
 	}
 
 	Stmt *Parser::ParseDecl()
@@ -271,7 +262,7 @@ namespace lws
 
 			funcStmt->body = (ScopeStmt *)ParseScopeStmt();
 
-			if(funcStmt->body->stmts.back()->type!=AST_RETURN&&funcStmt->type!=FunctionType::CLASS_CONSTRUCTOR)
+			if (funcStmt->body->stmts.back()->type != AST_RETURN && funcStmt->type != FunctionType::CLASS_CONSTRUCTOR)
 				funcStmt->body->stmts.emplace_back(new ReturnStmt());
 		}
 
@@ -316,7 +307,7 @@ namespace lws
 			{
 				auto fn = (FunctionStmt *)ParseFunctionDecl();
 				if (fn->name->literal == classStmt->name)
-					ASSERT(L"The class name conflicts with the class member function name");
+					ERROR(L"The class name conflicts with the class member function name");
 				classStmt->fnStmts.emplace_back(fn);
 			}
 			else if (GetCurToken().literal == classStmt->name) // constructor
@@ -445,10 +436,10 @@ namespace lws
 
 			} while (IsMatchCurTokenAndStepOnce(TOKEN_COMMA));
 
-			if(returnExprs.size()>1)
-				returnStmt->expr=new AppregateExpr(returnExprs);
-			else if(returnExprs.size()==1)
-				returnStmt->expr=returnExprs[0];
+			if (returnExprs.size() > 1)
+				returnStmt->expr = new AppregateExpr(returnExprs);
+			else if (returnExprs.size() == 1)
+				returnStmt->expr = returnExprs[0];
 		}
 
 		Consume(TOKEN_SEMICOLON, L"Expect ';' after return stmt");
@@ -755,10 +746,7 @@ namespace lws
 		else
 			callee = ParseExpr();
 
-		if (callee->type != AST_CALL && callee->type != AST_ANONY_OBJ)
-			ASSERT(L"Not a valid new expr,call expr or anonymous object expr is necessary followed 'new' keyword.");
-
-		newExpr->callee = (CallExpr *)callee;
+		newExpr->callee = callee;
 		return newExpr;
 	}
 
@@ -766,7 +754,7 @@ namespace lws
 	{
 		Consume(TOKEN_THIS, L"Expect 'this' keyword");
 		if (!mCurClassInfo)
-			ASSERT(L"Invalid 'this' keyword:Cannot use 'this' outside class.")
+			ERROR(L"Invalid 'this' keyword:Cannot use 'this' outside class.")
 		return new ThisExpr();
 	}
 
@@ -774,7 +762,7 @@ namespace lws
 	{
 		Consume(TOKEN_BASE, L"Expect 'base' keyword");
 		if (!mCurClassInfo)
-			ASSERT(L"Invalid 'base' keyword:Cannot use 'base' outside class.")
+			ERROR(L"Invalid 'base' keyword:Cannot use 'base' outside class.")
 
 		Consume(TOKEN_DOT, L"Expect '.' after 'base' keyword");
 
@@ -804,7 +792,7 @@ namespace lws
 				if (IsMatchCurTokenAndStepOnce(TOKEN_DEFAULT))
 				{
 					if (hasDefaultBranch)
-						ASSERT(L"Already exists a default branch.only a default branch is available in a match expr.");
+						ERROR(L"Already exists a default branch.only a default branch is available in a match expr.");
 					Consume(TOKEN_COLON, L"Expect ':' after default's condition expr.");
 					defaultBranch = ParseExpr();
 					defaultBranch->line = GetCurToken().line;
@@ -879,14 +867,14 @@ namespace lws
 		do
 		{
 			if (IsMatchCurToken(TOKEN_RBRACE_RPAREN))
-				ASSERT("Expr required at the end of block expression.");
+				ERROR("Expr required at the end of block expression.");
 			stmts.emplace_back(ParseDecl());
 		} while (IsMatchCurTokenAndStepOnce(TOKEN_SEMICOLON));
 
 		mSkippingConsumeTokenTypeStack.pop_back();
 
 		if (stmts.back()->type != AST_EXPR)
-			ASSERT("Expr required at the end of block expression.");
+			ERROR("Expr required at the end of block expression.");
 
 		auto expr = ((ExprStmt *)stmts.back())->expr;
 		stmts.pop_back();
@@ -1076,7 +1064,7 @@ namespace lws
 				Expr *key = ParseExpr();
 
 				if (key->type != AST_IDENTIFIER)
-					ASSERT(L"Anonymous object require key must be a valid identifier.");
+					ERROR(L"Anonymous object require key must be a valid identifier.");
 
 				Consume(TOKEN_COLON, L"Expect ':' after anony object key.");
 				Expr *value = ParseExpr();
@@ -1190,7 +1178,7 @@ namespace lws
 
 	Expr *Parser::ParseFactorialExpr(Expr *prefixExpr)
 	{
-		Consume(TOKEN_BANG,L"Expect '!'");
+		Consume(TOKEN_BANG, L"Expect '!'");
 		return new FactorialExpr(prefixExpr);
 	}
 
@@ -1244,10 +1232,10 @@ namespace lws
 		Consume(TOKEN_RBRACKET, L"Expect ']' destructuring assignment expr.");
 
 		if (varArgCount > 1)
-			ASSERT(L"only 1 variable arg decl is available in var declaration and it must be located at the last of destructing assignment declaration");
+			ERROR(L"only 1 variable arg decl is available in var declaration and it must be located at the last of destructing assignment declaration");
 
 		if (varArgCount == 1 && ((VarDescExpr *)arrayExpr->elements.back())->name->type != AST_VAR_ARG)
-			ASSERT(L"variable arg decl must be located at the last of destructing assignment declaration");
+			ERROR(L"variable arg decl must be located at the last of destructing assignment declaration");
 
 		ArrayExpr *initializeList = new ArrayExpr();
 
@@ -1269,7 +1257,7 @@ namespace lws
 				else if (((VarDescExpr *)arrayExpr->elements.back())->name->type == AST_VAR_ARG)
 					initializeList->elements = ((ArrayExpr *)value)->elements;
 				else
-					ASSERT(L"variable less than value.");
+					ERROR(L"variable less than value.");
 			}
 			else if (value->type == AST_CALL)
 				return std::make_pair(arrayExpr, value);
@@ -1369,7 +1357,7 @@ namespace lws
 			if (IsMatchCurToken(type))
 				return GetCurTokenAndStepOnce();
 			Token token = GetCurToken();
-			ASSERT(L"[line:" + std::to_wstring(token.line) + L",column:" + std::to_wstring(token.column) + L"]:" + std::wstring(errMsg))
+			ERROR(L"[line:" + std::to_wstring(token.line) + L",column:" + std::to_wstring(token.column) + L"]:" + std::wstring(errMsg))
 		}
 		// avoid C++ compiler warning
 		return Token(TOKEN_EOF, L"", -1, -1);
@@ -1386,7 +1374,7 @@ namespace lws
 			if (IsMatchCurToken(type))
 				return GetCurTokenAndStepOnce();
 		Token token = GetCurToken();
-		ASSERT(L"[" + std::to_wstring(token.line) + L"," + std::to_wstring(token.column) + L"]:" + std::wstring(errMsg))
+		ERROR(L"[" + std::to_wstring(token.line) + L"," + std::to_wstring(token.column) + L"]:" + std::wstring(errMsg))
 
 		// avoid C++ compiler warning
 		return Token(TOKEN_EOF, L"", -1, -1);
