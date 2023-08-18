@@ -39,14 +39,14 @@ io.println("{},{}",x2,args);//true,[]
 
 
 //TODO:not implement yet!
-//fn variableParamFn(x,y,...args)
-//{
-//    let result=x+y;
-//    for(let i=0;i<sizeof(args);++i)
-//        result+=args[i];
-//    return result;
-//}
-//
-//io.println(variableParamFn(10,20));
-//io.println(variableParamFn(10,20,30));
-//io.println(variableParamFn(10,20,40));
+fn variableParamFn(x,y,...args)
+{
+    let result=x+y;
+    for(let i=0;i<sizeof(args);++i)
+        result+=args[i];
+    return result;
+}
+
+io.println(variableParamFn(10,20));
+io.println(variableParamFn(10,20,30));
+io.println(variableParamFn(10,20,40));

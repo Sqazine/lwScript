@@ -49,6 +49,7 @@ namespace lws
         Expr *OptThisExpr(ThisExpr *expr);
         Expr *OptBaseExpr(BaseExpr *expr);
         Expr* OptFactorialExpr(FactorialExpr* expr);
+        Expr* OptVarDescExpr(VarDescExpr* expr);
 
         Expr* OptFlow(Expr* expr);
 

@@ -34,12 +34,12 @@ namespace lws
 
         if (mScopeDepth == 0)
         {
-            symbol->type = SYMBOL_GLOBAL;
+            symbol->type = SymbolType::GLOBAL;
             symbol->index = mGlobalSymbolCount++;
         }
         else
         {
-            symbol->type = SYMBOL_LOCAL;
+            symbol->type = SymbolType::LOCAL;
             symbol->index = mLocalSymbolCount++;
         }
         symbol->scopeDepth = mScopeDepth;
@@ -66,9 +66,9 @@ namespace lws
         if (enclosing)
         {
             Symbol result = enclosing->Resolve(name, paramCount, ++d);
-            if (d > 0 && result.type != SYMBOL_GLOBAL)
+            if (d > 0 && result.type != SymbolType::GLOBAL)
             {
-                result.type = SYMBOL_UPVALUE;
+                result.type = SymbolType::UPVALUE;
                 result.upvalue = AddUpValue(result.index, enclosing->mTableDepth);
             }
             return result;

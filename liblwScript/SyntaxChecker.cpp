@@ -68,11 +68,11 @@ namespace lws
                 }
             }
             else if (k->type == AST_VAR_DESC)
-                k = CheckIdentifierExpr((IdentifierExpr *)k);
+                k = CheckExpr(k);
             else
                 ERROR("only destructing assign expr or variable description is available in let/const stmt's binding part.");
-        
-            v=CheckExpr(v);
+
+            v = CheckExpr(v);
         }
         return stmt;
     }
@@ -88,7 +88,9 @@ namespace lws
     }
     Stmt *SyntaxChecker::CheckScopeStmt(ScopeStmt *stmt)
     {
-        return CheckStmt(stmt);
+        for (auto &s : stmt->stmts)
+            s = CheckStmt(s);
+        return stmt;
     }
     Stmt *SyntaxChecker::CheckWhileStmt(WhileStmt *stmt)
     {
@@ -100,7 +102,17 @@ namespace lws
     }
     Stmt *SyntaxChecker::CheckFunctionStmt(FunctionStmt *stmt)
     {
-        return CheckStmt(stmt);
+        for (int32_t i = 0; i < stmt->parameters.size(); ++i)
+        {
+            auto e = stmt->parameters[i];
+            e = (VarDescExpr *)CheckVarDescExpr(e);
+
+            if (e->name->type == AST_VAR_ARG && i != stmt->parameters.size() - 1)
+                ERROR("variable argument expr only available at the end of function parameter list.")
+        }
+
+        stmt->body = (ScopeStmt *)CheckScopeStmt(stmt->body);
+        return stmt;
     }
     Stmt *SyntaxChecker::CheckClassStmt(ClassStmt *stmt)
     {
@@ -108,7 +120,8 @@ namespace lws
     }
     Stmt *SyntaxChecker::CheckReturnStmt(ReturnStmt *stmt)
     {
-        return CheckStmt(stmt);
+        stmt->expr = CheckExpr(stmt->expr);
+        return stmt;
     }
     Stmt *SyntaxChecker::CheckBreakStmt(BreakStmt *stmt)
     {
@@ -277,6 +290,16 @@ namespace lws
     }
     Expr *SyntaxChecker::CheckLambdaExpr(LambdaExpr *expr)
     {
+       for (int32_t i = 0; i < expr->parameters.size(); ++i)
+        {
+            auto e = expr->parameters[i];
+            e = (VarDescExpr *)CheckVarDescExpr(e);
+
+            if (e->name->type == AST_VAR_ARG && i != expr->parameters.size() - 1)
+                ERROR("variable argument expr only available at the end of lambda parameter list.")
+        }
+
+        expr->body=(ScopeStmt*)CheckScopeStmt(expr->body);
         return expr;
     }
     Expr *SyntaxChecker::CheckBlockExpr(BlockExpr *expr)
@@ -293,7 +316,7 @@ namespace lws
     }
     Expr *SyntaxChecker::CheckRefExpr(RefExpr *expr)
     {
-        if(expr->refExpr->type!=AST_IDENTIFIER)
+        if (expr->refExpr->type != AST_IDENTIFIER)
             ERROR("Only left value is available for reference.");
         return expr;
     }
@@ -305,8 +328,16 @@ namespace lws
     {
         return expr;
     }
+
     Expr *SyntaxChecker::CheckFactorialExpr(FactorialExpr *expr)
     {
+        return expr;
+    }
+
+    Expr *SyntaxChecker::CheckVarDescExpr(VarDescExpr *expr)
+    {
+        if (expr->name->type != AST_IDENTIFIER && expr->name->type != AST_VAR_ARG)
+            ERROR("Only identifier or variable argument is available at variable declaration or param declaration");
         return expr;
     }
 

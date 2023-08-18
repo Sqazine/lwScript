@@ -257,12 +257,12 @@ namespace lws
 	struct LambdaExpr : public Expr
 	{
 		LambdaExpr();
-		LambdaExpr(std::vector<IdentifierExpr *> parameters, struct ScopeStmt *body);
+		LambdaExpr(std::vector<VarDescExpr *> parameters, struct ScopeStmt *body);
 		~LambdaExpr();
 
 		std::wstring Stringify() override;
 
-		std::vector<IdentifierExpr *> parameters;
+		std::vector<VarDescExpr *> parameters;
 		struct ScopeStmt *body;
 	};
 
@@ -502,20 +502,20 @@ namespace lws
 	{
 		CLASS_CONSTRUCTOR,
 		CLASS_CLOSURE,
-		NORMAL_FUNCTION,
+		FUNCTION,
 	};
 
 	struct FunctionStmt : public Stmt
 	{
 		FunctionStmt();
-		FunctionStmt(FunctionType type, IdentifierExpr *name, std::vector<IdentifierExpr *> parameters, ScopeStmt *body);
+		FunctionStmt(FunctionType type, IdentifierExpr *name, std::vector<VarDescExpr *> parameters, ScopeStmt *body);
 		~FunctionStmt();
 
 		std::wstring Stringify() override;
 
 		FunctionType type;
 		IdentifierExpr *name;
-		std::vector<IdentifierExpr *> parameters;
+		std::vector<VarDescExpr*> parameters;
 		ScopeStmt *body;
 	};
 

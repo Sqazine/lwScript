@@ -99,9 +99,8 @@ namespace lws
 
 	Stmt *Optimizer::OptFunctionStmt(FunctionStmt *stmt)
 	{
-
 		for (auto &e : stmt->parameters)
-			e = (IdentifierExpr *)OptIdentifierExpr(e);
+			e = (VarDescExpr *)OptVarDescExpr(e);
 
 		stmt->body = (ScopeStmt *)OptScopeStmt(stmt->body);
 
@@ -248,14 +247,16 @@ namespace lws
 	Expr *Optimizer::OptLambdaExpr(LambdaExpr *expr)
 	{
 		for (auto &e : expr->parameters)
-			e = (IdentifierExpr *)OptIdentifierExpr(e);
+			e = (VarDescExpr *)OptVarDescExpr(e);
 		expr->body = (ScopeStmt *)OptScopeStmt(expr->body);
 		return expr;
 	}
+
 	Expr *Optimizer::OptDotExpr(DotExpr *expr)
 	{
 		return expr;
 	}
+
 	Expr *Optimizer::OptCallExpr(CallExpr *expr)
 	{
 		expr->callee = OptExpr(expr->callee);
@@ -278,13 +279,13 @@ namespace lws
 
 	Expr *Optimizer::OptFactorialExpr(FactorialExpr *expr)
 	{
-		if(expr->expr->type==AST_INT)
+		if (expr->expr->type == AST_INT)
 		{
-			auto intExpr=new IntNumExpr();
-			intExpr->value=Factorial(((IntNumExpr*)expr->expr)->value);
+			auto intExpr = new IntNumExpr();
+			intExpr->value = Factorial(((IntNumExpr *)expr->expr)->value);
 
 			delete expr;
-			expr=nullptr;
+			expr = nullptr;
 
 			return intExpr;
 		}
@@ -293,6 +294,11 @@ namespace lws
 			expr->expr = OptExpr(expr->expr);
 			return expr;
 		}
+	}
+
+	Expr *Optimizer::OptVarDescExpr(VarDescExpr *expr)
+	{
+		return expr;
 	}
 
 	Expr *Optimizer::OptRefExpr(RefExpr *expr)

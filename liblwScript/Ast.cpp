@@ -315,13 +315,13 @@ namespace lws
 		: Expr(AST_LAMBDA), body(nullptr)
 	{
 	}
-	LambdaExpr::LambdaExpr(std::vector<IdentifierExpr *> parameters, ScopeStmt *body)
+	LambdaExpr::LambdaExpr(std::vector<VarDescExpr *> parameters, ScopeStmt *body)
 		: Expr(AST_LAMBDA), parameters(parameters), body(body)
 	{
 	}
 	LambdaExpr::~LambdaExpr()
 	{
-		std::vector<IdentifierExpr *>().swap(parameters);
+		std::vector<VarDescExpr *>().swap(parameters);
 
 		delete body;
 		body = nullptr;
@@ -763,13 +763,15 @@ namespace lws
 		: Stmt(AST_FUNCTION), name(nullptr), body(nullptr)
 	{
 	}
-	FunctionStmt::FunctionStmt(FunctionType type, IdentifierExpr *name, std::vector<IdentifierExpr *> parameters, ScopeStmt *body)
+
+	FunctionStmt::FunctionStmt(FunctionType type, IdentifierExpr *name, std::vector<VarDescExpr *> parameters, ScopeStmt *body)
 		: Stmt(AST_FUNCTION), type(type), name(name), parameters(parameters), body(body)
 	{
 	}
+
 	FunctionStmt::~FunctionStmt()
 	{
-		std::vector<IdentifierExpr *>().swap(parameters);
+		std::vector<VarDescExpr *>().swap(parameters);
 
 		delete body;
 		body = nullptr;

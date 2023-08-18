@@ -254,10 +254,10 @@ namespace lws
 			{
 				do
 				{
-					IdentifierExpr *idenExpr = (IdentifierExpr *)ParseIdentifierExpr();
-					funcStmt->parameters.emplace_back(idenExpr);
+					funcStmt->parameters.emplace_back((VarDescExpr *)ParseVarDescExpr());
 				} while (IsMatchCurTokenAndStepOnce(TOKEN_COMMA));
 			}
+			
 			Consume(TOKEN_RPAREN, L"Expect ')' after function stmt's '('");
 
 			funcStmt->body = (ScopeStmt *)ParseScopeStmt();
@@ -721,8 +721,7 @@ namespace lws
 		{
 			do
 			{
-				IdentifierExpr *idenExpr = (IdentifierExpr *)ParseIdentifierExpr();
-				lambdaExpr->parameters.emplace_back(idenExpr);
+				lambdaExpr->parameters.emplace_back((VarDescExpr *)ParseVarDescExpr());
 			} while (IsMatchCurTokenAndStepOnce(TOKEN_COMMA));
 		}
 		Consume(TOKEN_RPAREN, L"Expect ')' after lambda expr's '('");
@@ -1193,7 +1192,10 @@ namespace lws
 		// variable type
 		std::wstring type = L"any";
 		if (IsMatchCurToken(TOKEN_COLON))
+		{
+			GetCurTokenAndStepOnce();
 			type = GetCurTokenAndStepOnce().literal;
+		}
 		return new VarDescExpr(type, expr);
 	}
 

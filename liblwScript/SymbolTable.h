@@ -5,11 +5,11 @@
 #include "Value.h"
 namespace lws
 {
-    enum SymbolType
+    enum class SymbolType
     {
-        SYMBOL_GLOBAL,
-        SYMBOL_LOCAL,
-        SYMBOL_UPVALUE,
+        GLOBAL,
+        LOCAL,
+        UPVALUE,
     };
 
     struct UpValue
@@ -22,12 +22,12 @@ namespace lws
     struct Symbol
     {
         std::wstring name;
-        SymbolType type = SYMBOL_GLOBAL;
+        SymbolType type = SymbolType::GLOBAL;
         ValueDesc descType = ValueDesc::VARIABLE;
         uint8_t index = 0;
         int8_t scopeDepth = -1;
         int8_t paramCount = -1;
-        UpValue upvalue; // available only while type is SYMBOL_UPVALUE
+        UpValue upvalue; // available only while type is SymbolType::UPVALUE
         bool isCaptured = false;
     };
     class SymbolTable

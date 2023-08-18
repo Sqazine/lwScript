@@ -40,7 +40,7 @@ namespace lws
 		mSymbolTable = new SymbolTable();
 
 		auto symbol = &mSymbolTable->mSymbols[mSymbolTable->mSymbolCount++];
-		symbol->type = SYMBOL_LOCAL;
+		symbol->type = SymbolType::LOCAL;
 		symbol->index = mSymbolTable->mLocalSymbolCount++;
 		symbol->descType = ValueDesc::CONSTANT;
 		symbol->scopeDepth = 0;
@@ -141,7 +141,7 @@ namespace lws
 								continue;
 						}
 
-						if (symbol.type == SYMBOL_GLOBAL)
+						if (symbol.type == SymbolType::GLOBAL)
 						{
 							Emit(OP_SET_GLOBAL);
 							Emit(symbol.index);
@@ -164,7 +164,7 @@ namespace lws
 						literal = ((VarArgExpr *)((VarDescExpr *)k)->name)->argName->literal;
 
 					auto symbol = mSymbolTable->Define(valueDesc, literal);
-					if (symbol.type == SYMBOL_GLOBAL)
+					if (symbol.type == SymbolType::GLOBAL)
 					{
 						Emit(OP_SET_GLOBAL);
 						Emit(symbol.index);
@@ -186,12 +186,12 @@ namespace lws
 	void Compiler::CompileFunctionDecl(FunctionStmt *stmt)
 	{
 		auto symbol = CompileFunction(stmt);
-		if (symbol.type == SYMBOL_GLOBAL)
+		if (symbol.type == SymbolType::GLOBAL)
 		{
 			Emit(OP_SET_GLOBAL);
 			Emit(symbol.index);
 		}
-		else if (symbol.type == SYMBOL_LOCAL)
+		else if (symbol.type == SymbolType::LOCAL)
 		{
 			Emit(OP_SET_LOCAL);
 			Emit(symbol.index);
@@ -326,12 +326,12 @@ namespace lws
 
 		EmitClosure(function);
 
-		if (symbol.type == SYMBOL_GLOBAL)
+		if (symbol.type == SymbolType::GLOBAL)
 		{
 			Emit(OP_SET_GLOBAL);
 			Emit(symbol.index);
 		}
-		else if (symbol.type == SYMBOL_LOCAL)
+		else if (symbol.type == SymbolType::LOCAL)
 		{
 			Emit(OP_SET_LOCAL);
 			Emit(symbol.index);
@@ -361,7 +361,7 @@ namespace lws
 
 		EmitConstant(new EnumObject(stmt->enumName->literal, pairs));
 		auto symbol = mSymbolTable->Define(ValueDesc::CONSTANT, stmt->enumName->literal);
-		if (symbol.type == SYMBOL_GLOBAL)
+		if (symbol.type == SymbolType::GLOBAL)
 		{
 			Emit(OP_SET_GLOBAL);
 			Emit(symbol.index);
@@ -635,7 +635,7 @@ namespace lws
 				for (int32_t i = 0; i < resolveCount; ++i)
 				{
 					CompileExpr(assignee->elements[i], RWState::WRITE);
-					if (i < resolveCount-1)
+					if (i < resolveCount - 1)
 						Emit(OP_POP);
 				}
 			}
@@ -888,7 +888,7 @@ namespace lws
 	{
 		if (expr->callee->type == AST_CALL)
 		{
-			auto callee = (CallExpr*)expr->callee;
+			auto callee = (CallExpr *)expr->callee;
 			CompileExpr(callee->callee, RWState::READ);
 			Emit(OP_CALL);
 			Emit(0);
@@ -917,17 +917,17 @@ namespace lws
 	{
 		OpCode getOp, setOp;
 		auto symbol = mSymbolTable->Resolve(expr->literal, paramCount);
-		if (symbol.type == SYMBOL_GLOBAL)
+		if (symbol.type == SymbolType::GLOBAL)
 		{
 			getOp = OP_GET_GLOBAL;
 			setOp = OP_SET_GLOBAL;
 		}
-		else if (symbol.type == SYMBOL_LOCAL)
+		else if (symbol.type == SymbolType::LOCAL)
 		{
 			getOp = OP_GET_LOCAL;
 			setOp = OP_SET_LOCAL;
 		}
-		else if (symbol.type == SYMBOL_UPVALUE)
+		else if (symbol.type == SymbolType::UPVALUE)
 		{
 			getOp = OP_GET_UPVALUE;
 			setOp = OP_SET_UPVALUE;
@@ -938,7 +938,7 @@ namespace lws
 			if (symbol.descType == ValueDesc::VARIABLE)
 			{
 				Emit(setOp);
-				if (symbol.type == SYMBOL_UPVALUE)
+				if (symbol.type == SymbolType::UPVALUE)
 					Emit(symbol.upvalue.index);
 				else
 					Emit(symbol.index);
@@ -949,7 +949,7 @@ namespace lws
 		else
 		{
 			Emit(getOp);
-			if (symbol.type == SYMBOL_UPVALUE)
+			if (symbol.type == SymbolType::UPVALUE)
 				Emit(symbol.upvalue.index);
 			else
 				Emit(symbol.index);
@@ -965,7 +965,17 @@ namespace lws
 		CurFunction()->arity = expr->parameters.size();
 
 		for (const auto &param : expr->parameters)
-			mSymbolTable->Define(ValueDesc::VARIABLE, param->literal);
+		{
+			auto varDescExpr = (VarDescExpr *)param;
+			if (varDescExpr->name->type == AST_IDENTIFIER)
+				mSymbolTable->Define(ValueDesc::VARIABLE, ((IdentifierExpr *)((VarDescExpr *)param)->name)->literal);
+			else if (varDescExpr->name->type == AST_VAR_ARG)
+			{
+				auto varArg = ((VarArgExpr *)varDescExpr->name);
+				if (varArg->argName)
+					mSymbolTable->Define(ValueDesc::VARIABLE, varArg->argName->literal);
+			}
+		}
 
 		EnterScope();
 
@@ -1017,17 +1027,17 @@ namespace lws
 		{
 			CompileExpr(((IndexExpr *)expr->refExpr)->index);
 			symbol = mSymbolTable->Resolve(((IndexExpr *)expr->refExpr)->ds->Stringify());
-			if (symbol.type == SYMBOL_GLOBAL)
+			if (symbol.type == SymbolType::GLOBAL)
 			{
 				Emit(OP_REF_INDEX_GLOBAL);
 				Emit(symbol.index);
 			}
-			else if (symbol.type == SYMBOL_LOCAL)
+			else if (symbol.type == SymbolType::LOCAL)
 			{
 				Emit(OP_REF_INDEX_LOCAL);
 				Emit(symbol.index);
 			}
-			else if (symbol.type == SYMBOL_UPVALUE)
+			else if (symbol.type == SymbolType::UPVALUE)
 			{
 				Emit(OP_REF_INDEX_UPVALUE);
 				Emit(symbol.upvalue.index);
@@ -1036,17 +1046,17 @@ namespace lws
 		else
 		{
 			symbol = mSymbolTable->Resolve(expr->refExpr->Stringify());
-			if (symbol.type == SYMBOL_GLOBAL)
+			if (symbol.type == SymbolType::GLOBAL)
 			{
 				Emit(OP_REF_GLOBAL);
 				Emit(symbol.index);
 			}
-			else if (symbol.type == SYMBOL_LOCAL)
+			else if (symbol.type == SymbolType::LOCAL)
 			{
 				Emit(OP_REF_LOCAL);
 				Emit(symbol.index);
 			}
-			else if (symbol.type == SYMBOL_UPVALUE)
+			else if (symbol.type == SymbolType::UPVALUE)
 			{
 				Emit(OP_REF_UPVALUE);
 				Emit(symbol.upvalue.index);
@@ -1095,7 +1105,17 @@ namespace lws
 		CurFunction()->arity = stmt->parameters.size();
 
 		for (const auto &param : stmt->parameters)
-			mSymbolTable->Define(ValueDesc::VARIABLE, param->literal);
+		{
+			auto varDescExpr = (VarDescExpr *)param;
+			if (varDescExpr->name->type == AST_IDENTIFIER)
+				mSymbolTable->Define(ValueDesc::VARIABLE, ((IdentifierExpr *)((VarDescExpr *)param)->name)->literal);
+			else if (varDescExpr->name->type == AST_VAR_ARG)
+			{
+				auto varArg = ((VarArgExpr *)varDescExpr->name);
+				if (varArg->argName)
+					mSymbolTable->Define(ValueDesc::VARIABLE, varArg->argName->literal);
+			}
+		}
 
 		EnterScope();
 
@@ -1199,14 +1219,14 @@ namespace lws
 
 		for (int32_t i = 0; i < mSymbolTable->mSymbols.size(); ++i)
 		{
-			if (mSymbolTable->mSymbols[i].type == SYMBOL_LOCAL &&
+			if (mSymbolTable->mSymbols[i].type == SymbolType::LOCAL &&
 				mSymbolTable->mSymbols[i].scopeDepth > mSymbolTable->mScopeDepth)
 			{
 				if (mSymbolTable->mSymbols[i].isCaptured)
 					Emit(OP_CLOSE_UPVALUE);
 				else
 					Emit(OP_POP);
-				mSymbolTable->mSymbols[i].type = SYMBOL_GLOBAL; // mark as global to avoid second pop
+				mSymbolTable->mSymbols[i].type = SymbolType::GLOBAL; // mark as global to avoid second pop
 			}
 		}
 	}

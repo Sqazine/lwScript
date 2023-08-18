@@ -15,8 +15,8 @@ namespace lws
 
     private:
         Stmt *CheckStmt(Stmt *stmt);
-        Stmt* CheckAstStmts(AstStmts* stmt);
-        Stmt* CheckVarStmt(VarStmt* stmt);
+        Stmt *CheckAstStmts(AstStmts *stmt);
+        Stmt *CheckVarStmt(VarStmt *stmt);
         Stmt *CheckExprStmt(ExprStmt *stmt);
         Stmt *CheckIfStmt(IfStmt *stmt);
         Stmt *CheckScopeStmt(ScopeStmt *stmt);
@@ -55,8 +55,9 @@ namespace lws
         Expr *CheckAnonymousObjExpr(AnonyObjExpr *expr);
         Expr *CheckVarArgExpr(VarArgExpr *expr);
         Expr *CheckFactorialExpr(FactorialExpr *expr);
+        Expr *CheckVarDescExpr(VarDescExpr *expr);
 
-        bool IsConstantLiteral(Expr* expr);
+        bool IsConstantLiteral(Expr *expr);
 
         uint32_t mLoopDepth;
         uint32_t mVarArgScopeDepth;
