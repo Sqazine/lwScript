@@ -61,8 +61,7 @@ namespace lws
 
 		const AstType type;
 
-		uint64_t line{1};
-		uint64_t column{1};
+		Token tagToken;
 	};
 
 	struct Expr : public AstNode

@@ -1,0 +1,7 @@
+let a=1.0;
+
+io.println(a); // 1.000000
+
+let b=2..f;
+
+io.println(b);// 2.000000

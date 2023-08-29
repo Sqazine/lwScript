@@ -1,4 +1,5 @@
 #include "Compiler.h"
+
 #include "Utils.h"
 #include "Object.h"
 #include "Library.h"
@@ -172,7 +173,7 @@ namespace lws
 					}
 				}
 				else
-					ERROR(L"Unknown variable:" + k->Stringify())
+					Hint::Error(k->tagToken, L"Unknown variable:{}", k->Stringify());
 			}
 		}
 
@@ -354,7 +355,7 @@ namespace lws
 			else if (v->type == AST_STR)
 				enumValue = new StrObject(((StrExpr *)v)->value);
 			else
-				ERROR(L"Enum value only integer num,floating point num,boolean or string is available")
+				Hint::Error(v->tagToken, L"Enum value only integer num,floating point num,boolean or string is available.");
 
 			pairs[k->literal] = enumValue;
 		}
@@ -790,7 +791,7 @@ namespace lws
 			CompileExpr(expr->right, RWState::WRITE);
 		}
 		else
-			ERROR(L"No prefix op:" + expr->op)
+			Hint::Error(expr->tagToken, L"No prefix op:{}", expr->op);
 	}
 	void Compiler::CompilePostfixExpr(PostfixExpr *expr, const RWState &state, bool isDelayCompile)
 	{
@@ -803,7 +804,7 @@ namespace lws
 			else if (expr->op == L"--")
 				Emit(OP_SUB);
 			else
-				ERROR(L"No postfix op:" + expr->op)
+				Hint::Error(expr->tagToken, L"No postfix op:{}", expr->op);
 			CompileExpr(expr->left, RWState::WRITE);
 			Emit(OP_POP);
 		}
@@ -944,7 +945,7 @@ namespace lws
 					Emit(symbol.index);
 			}
 			else
-				ERROR(expr->Stringify() + L"is a constant,which cannot be assigned!")
+				Hint::Error(expr->tagToken, L"{} is a constant,which cannot be assigned!", expr->Stringify());
 		}
 		else
 		{

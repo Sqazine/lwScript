@@ -15,7 +15,7 @@ void Repl()
 	lws::Compiler compiler;
 	lws::VM vm;
 
-	std::wcout << L"> ";
+	lws::OutputToConsole(L"> ");
 	while (getline(std::wcin, line))
 	{
 		if (line == L"clear")
@@ -27,19 +27,19 @@ void Repl()
 			auto tokens = lexer.ScanTokens(line);
 #ifdef _DEBUG
 			for (const auto &token : tokens)
-				std::wcout << token << std::endl;
+				lws::OutputToConsole(L"{}", token);
 #endif
 			auto stmt = parser.Parse(tokens);
 #ifdef _DEBUG
-			std::wcout << stmt->Stringify() << std::endl;
+			lws::OutputToConsole(L"{}", stmt->Stringify());
 #endif
 			auto mainFunc = compiler.Compile(stmt);
 #ifdef _DEBUG
-			std::wcout << mainFunc->Stringify(true) << std::endl;
+			lws::OutputToConsole(L"{}", mainFunc->Stringify(true));
 #endif
 			vm.Run(mainFunc);
 		}
-		std::wcout << L"> ";
+		lws::OutputToConsole(L"> ");
 	}
 }
 
@@ -54,17 +54,15 @@ void RunFile(std::string_view path)
 	auto tokens = lexer.ScanTokens(content);
 #ifdef _DEBUG
 	for (const auto &token : tokens)
-		std::wcout << token << std::endl;
+		lws::OutputToConsole(L"{}", token);
 #endif
 	auto stmt = parser.Parse(tokens);
-
 #ifdef _DEBUG
-	std::wcout << stmt->Stringify() << std::endl;
+	lws::OutputToConsole(L"{}", stmt->Stringify());
 #endif
-
 	auto mainFunc = compiler.Compile(stmt);
 #ifdef _DEBUG
-	std::wcout << mainFunc->Stringify(true) << std::endl;
+	lws::OutputToConsole(L"{}", mainFunc->Stringify(true));
 #endif
 
 	vm.Run(mainFunc);
@@ -81,7 +79,7 @@ int main(int argc, const char *argv[])
 	else if (argc == 1)
 		Repl();
 	else
-		std::wcout << L"Usage: lwScript [filepath]" << std::endl;
+		lws::OutputToConsole(L"Usage: lwScript [filepath]");
 
 	return 0;
 }

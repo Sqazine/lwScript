@@ -1,5 +1,6 @@
 #include "SymbolTable.h"
 #include "Utils.h"
+
 namespace lws
 {
     SymbolTable::SymbolTable()

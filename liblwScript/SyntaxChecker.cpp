@@ -1,5 +1,6 @@
 #include "SyntaxChecker.h"
 #include "Utils.h"
+
 namespace lws
 {
     SyntaxChecker::SyntaxChecker()
@@ -61,16 +62,16 @@ namespace lws
                     auto e = arrayK->elements[i];
                     e = CheckExpr(e);
                     if (e->type != AST_VAR_DESC && e->type != AST_VAR_ARG)
-                        ERROR("only variable description or variable argument is available in destructing assign expr.");
+                        Hint::Error(e->tagToken,L"only variable description or variable argument is available in destructing assign expr.");
 
                     if (e->type == AST_VAR_ARG && i != arrayK->elements.size() - 1)
-                        ERROR("variable argument expr only available at last of destructing assignment expr.")
+                       Hint::Error(k->tagToken, L"variable argument expr only available at the end of destructing assignment expr.");
                 }
             }
             else if (k->type == AST_VAR_DESC)
                 k = CheckExpr(k);
             else
-                ERROR("only destructing assign expr or variable description is available in let/const stmt's binding part.");
+               Hint::Error(k->tagToken,L"only destructing assign expr or variable description is available in let/const stmt's binding part.");
 
             v = CheckExpr(v);
         }
@@ -108,7 +109,7 @@ namespace lws
             e = (VarDescExpr *)CheckVarDescExpr(e);
 
             if (e->name->type == AST_VAR_ARG && i != stmt->parameters.size() - 1)
-                ERROR("variable argument expr only available at the end of function parameter list.")
+               Hint::Error(e->tagToken,L"variable argument expr only available at the end of function parameter list.");
         }
 
         stmt->body = (ScopeStmt *)CheckScopeStmt(stmt->body);
@@ -258,7 +259,7 @@ namespace lws
         for (auto &[k, v] : expr->elements)
         {
             if (!IsConstantLiteral(k))
-                ERROR("Dict keys can only have constant literals (int num,real num,string,boolean,null or variable identifier).");
+               Hint::Error(k->tagToken,L"Dict keys can only have constant literals (int num,real num,string,boolean,null or variable identifier).");
             v = CheckExpr(v);
         }
         return expr;
@@ -272,7 +273,7 @@ namespace lws
     Expr *SyntaxChecker::CheckNewExpr(NewExpr *expr)
     {
         if (expr->callee->type != AST_CALL && expr->callee->type != AST_ANONY_OBJ)
-            ERROR(L"Not a valid new expr,call expr or anonymous object expr is necessary followed 'new' keyword.");
+            Hint::Error(expr->callee->tagToken,L"Not a valid new expr,call expr or anonymous object expr is necessary followed 'new' keyword.");
 
         return expr;
     }
@@ -296,7 +297,7 @@ namespace lws
             e = (VarDescExpr *)CheckVarDescExpr(e);
 
             if (e->name->type == AST_VAR_ARG && i != expr->parameters.size() - 1)
-                ERROR("variable argument expr only available at the end of lambda parameter list.")
+                Hint::Error(e->tagToken,L"variable argument expr only available at the end of lambda parameter list.");
         }
 
         expr->body=(ScopeStmt*)CheckScopeStmt(expr->body);
@@ -317,7 +318,7 @@ namespace lws
     Expr *SyntaxChecker::CheckRefExpr(RefExpr *expr)
     {
         if (expr->refExpr->type != AST_IDENTIFIER)
-            ERROR("Only left value is available for reference.");
+           Hint::Error(expr->tagToken,L"Only left value is available for reference.");
         return expr;
     }
     Expr *SyntaxChecker::CheckAnonymousObjExpr(AnonyObjExpr *expr)
@@ -337,7 +338,7 @@ namespace lws
     Expr *SyntaxChecker::CheckVarDescExpr(VarDescExpr *expr)
     {
         if (expr->name->type != AST_IDENTIFIER && expr->name->type != AST_VAR_ARG)
-            ERROR("Only identifier or variable argument is available at variable declaration or param declaration");
+            Hint::Error(expr->tagToken,L"Only identifier or variable argument is available at variable declaration or param declaration");
         return expr;
     }
 

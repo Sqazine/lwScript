@@ -101,12 +101,14 @@ namespace lws
 
 	struct Token
 	{
-		Token(TokenType type, std::wstring_view literal, uint64_t line, uint64_t column) : type(type), literal(literal), line(line), column(column) {}
+		Token() : type(TOKEN_EOF), literal(L""), line(-1), column(-1), pos(-1) {}
+		Token(TokenType type, std::wstring_view literal, uint64_t line, uint64_t column, uint64_t pos) : type(type), literal(literal), line(line), column(column), pos(pos) {}
 
 		TokenType type;
 		std::wstring literal;
 		uint64_t line;
 		uint64_t column;
+		uint64_t pos;
 	};
 
 	inline std::wostream &operator<<(std::wostream &stream, const Token &token)

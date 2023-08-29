@@ -1,5 +1,6 @@
 #include "Optimizer.h"
 #include "Utils.h"
+
 namespace lws
 {
 	Optimizer::Optimizer()

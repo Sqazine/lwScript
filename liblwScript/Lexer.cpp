@@ -56,6 +56,8 @@ namespace lws
 
 	const std::vector<Token> &Lexer::ScanTokens(std::wstring_view src)
 	{
+		Hint::RecordSource(src);
+
 		ResetStatus();
 		mSource = src;
 		while (!IsAtEnd())
@@ -119,7 +121,7 @@ namespace lws
 				if (IsMatchCurCharAndStepOnce(L'.'))
 					AddToken(TOKEN_ELLIPSIS);
 				else
-					ERROR(L"Unknown literal:..");
+					Hint::Error(mCurPos, L"Unknown literal:'..',did you want '.' or '...'?");
 			}
 			else
 				AddToken(TOKEN_DOT);
@@ -280,7 +282,7 @@ namespace lws
 			else
 			{
 				auto literal = mSource.substr(mStartPos, mCurPos - mStartPos);
-				ERROR(L"Unknown literal:" + literal)
+				Hint::Error(mCurPos, L"Unknown literal:" + literal);
 			}
 		}
 	}
@@ -345,11 +347,11 @@ namespace lws
 	void Lexer::AddToken(TokenType type)
 	{
 		auto literal = mSource.substr(mStartPos, mCurPos - mStartPos);
-		mTokens.emplace_back(type, literal, mLine, mStartPos + 1); //+1 means that the column beginning front 1
+		mTokens.emplace_back(type, literal, mLine, mStartPos + 1, mCurPos - literal.size()); //+1 means that the column beginning front 1
 	}
 	void Lexer::AddToken(TokenType type, std::wstring_view literal)
 	{
-		mTokens.emplace_back(type, literal, mLine, mStartPos + 1);
+		mTokens.emplace_back(type, literal, mLine, mStartPos + 1, mCurPos - literal.size());
 	}
 
 	bool Lexer::IsAtEnd()
@@ -382,8 +384,10 @@ namespace lws
 			if (IsNumber(GetCurChar()))
 				while (IsNumber(GetCurChar()))
 					GetCurCharAndStepOnce();
+			else if (GetCurChar() == L'f')
+				GetCurCharAndStepOnce();
 			else
-				ERROR(L"[line " + std::to_wstring(mLine) + L"]:Number cannot end with '.'")
+				Hint::Error(mCurPos, L"The character next to '.' in a floating number must be in [0-9] range or a single 'f' character.");
 		}
 
 		AddToken(TOKEN_NUMBER);

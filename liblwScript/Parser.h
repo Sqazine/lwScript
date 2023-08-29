@@ -6,6 +6,7 @@
 #include "Token.h"
 #include "Ast.h"
 #include "Utils.h"
+
 #include "Optimizer.h"
 #include "SyntaxChecker.h"
 namespace lws

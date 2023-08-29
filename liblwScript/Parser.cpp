@@ -207,8 +207,7 @@ namespace lws
 		else if (tType == TOKEN_CONST)
 			varStmt->privilege = VarStmt::Privilege::IMMUTABLE;
 
-		varStmt->line = GetCurToken().line;
-		varStmt->column = GetCurToken().column;
+		varStmt->tagToken = GetCurToken();
 
 		Consume(tType, L"Expect 'let' or 'const' key word");
 
@@ -236,8 +235,8 @@ namespace lws
 	Stmt *Parser::ParseFunctionDecl()
 	{
 		auto funcStmt = new FunctionStmt();
-		funcStmt->line = GetCurToken().line;
-		funcStmt->column = GetCurToken().column;
+		funcStmt->tagToken = GetCurToken();
+
 		{
 			funcStmt->name = (IdentifierExpr *)ParseIdentifierExpr();
 
@@ -257,7 +256,7 @@ namespace lws
 					funcStmt->parameters.emplace_back((VarDescExpr *)ParseVarDescExpr());
 				} while (IsMatchCurTokenAndStepOnce(TOKEN_COMMA));
 			}
-			
+
 			Consume(TOKEN_RPAREN, L"Expect ')' after function stmt's '('");
 
 			funcStmt->body = (ScopeStmt *)ParseScopeStmt();
@@ -272,8 +271,7 @@ namespace lws
 	Stmt *Parser::ParseClassDecl()
 	{
 		auto classStmt = new ClassStmt();
-		classStmt->line = GetCurToken().line;
-		classStmt->column = GetCurToken().column;
+		classStmt->tagToken = GetCurToken();
 
 		Consume(TOKEN_CLASS, L"Expect 'class' keyword");
 
@@ -307,7 +305,7 @@ namespace lws
 			{
 				auto fn = (FunctionStmt *)ParseFunctionDecl();
 				if (fn->name->literal == classStmt->name)
-					ERROR(L"The class name conflicts with the class member function name");
+					Hint::Error(fn->name->tagToken, L"The class member function name :{} conflicts with its class:{}, only constructor function name is allowed to same with its class's name", fn->name->literal);
 				classStmt->fnStmts.emplace_back(fn);
 			}
 			else if (GetCurToken().literal == classStmt->name) // constructor
@@ -328,8 +326,8 @@ namespace lws
 	Stmt *Parser::ParseEnumDecl()
 	{
 		auto enumStmt = new EnumStmt();
-		enumStmt->line = GetCurToken().line;
-		enumStmt->column = GetCurToken().column;
+		enumStmt->tagToken = GetCurToken();
+
 		Consume(TOKEN_ENUM, L"Expect 'enum' keyword.");
 		enumStmt->enumName = (IdentifierExpr *)ParseIdentifierExpr();
 		Consume(TOKEN_LBRACE, L"Expect '{' after 'enum' keyword.");
@@ -408,8 +406,7 @@ namespace lws
 	Stmt *Parser::ParseExprStmt()
 	{
 		auto exprStmt = new ExprStmt();
-		exprStmt->line = GetCurToken().line;
-		exprStmt->column = GetCurToken().column;
+		exprStmt->tagToken = GetCurToken();
 
 		exprStmt->expr = ParseExpr();
 
@@ -420,8 +417,8 @@ namespace lws
 	Stmt *Parser::ParseReturnStmt()
 	{
 		auto returnStmt = new ReturnStmt();
-		returnStmt->line = GetCurToken().line;
-		returnStmt->column = GetCurToken().column;
+		returnStmt->tagToken = GetCurToken();
+
 		Consume(TOKEN_RETURN, L"Expect 'return' key word.");
 
 		if (!IsMatchCurToken(TOKEN_SEMICOLON))
@@ -449,8 +446,7 @@ namespace lws
 	Stmt *Parser::ParseIfStmt()
 	{
 		auto ifStmt = new IfStmt();
-		ifStmt->column = GetCurToken().column;
-		ifStmt->line = GetCurToken().line;
+		ifStmt->tagToken = GetCurToken();
 
 		Consume(TOKEN_IF, L"Expect 'if' key word.");
 		Consume(TOKEN_LPAREN, L"Expect '(' after 'if'.");
@@ -470,8 +466,7 @@ namespace lws
 	Stmt *Parser::ParseScopeStmt()
 	{
 		auto scopeStmt = new ScopeStmt();
-		scopeStmt->line = GetCurToken().line;
-		scopeStmt->column = GetCurToken().column;
+		scopeStmt->tagToken = GetCurToken();
 
 		Consume(TOKEN_LBRACE, L"Expect '{'.");
 		while (!IsMatchCurToken(TOKEN_RBRACE))
@@ -483,8 +478,8 @@ namespace lws
 	Stmt *Parser::ParseWhileStmt()
 	{
 		auto whileStmt = new WhileStmt();
-		whileStmt->line = GetCurToken().line;
-		whileStmt->column = GetCurToken().column;
+		whileStmt->tagToken = GetCurToken();
+
 		Consume(TOKEN_WHILE, L"Expect 'while' keyword.");
 		Consume(TOKEN_LPAREN, L"Expect '(' after 'while'.");
 
@@ -529,8 +524,7 @@ namespace lws
 		// }
 
 		auto scopeStmt = new ScopeStmt();
-		scopeStmt->line = GetCurToken().line;
-		scopeStmt->column = GetCurToken().column;
+		scopeStmt->tagToken = GetCurToken();
 
 		Consume(TOKEN_FOR, L"Expect 'for' keyword.");
 		Consume(TOKEN_LPAREN, L"Expect '(' after 'for'.");
@@ -591,8 +585,8 @@ namespace lws
 	Stmt *Parser::ParseBreakStmt()
 	{
 		auto breakStmt = new BreakStmt();
-		breakStmt->line = GetCurToken().line;
-		breakStmt->column = GetCurToken().column;
+		breakStmt->tagToken = GetCurToken();
+
 		Consume(TOKEN_BREAK, L"Expect 'break' keyword.");
 		Consume(TOKEN_SEMICOLON, L"Expect ';' after 'break' keyword.");
 		return breakStmt;
@@ -601,8 +595,8 @@ namespace lws
 	Stmt *Parser::ParseContinueStmt()
 	{
 		auto continueStmt = new ContinueStmt();
-		continueStmt->line = GetCurToken().line;
-		continueStmt->column = GetCurToken().column;
+		continueStmt->tagToken = GetCurToken();
+
 		Consume(TOKEN_CONTINUE, L"Expect 'continue' keyword");
 		Consume(TOKEN_SEMICOLON, L"Expect ';' after 'continue' keyword.");
 		return continueStmt;
@@ -611,14 +605,13 @@ namespace lws
 	Stmt *Parser::ParseSwitchStmt()
 	{
 		auto ifStmt = new IfStmt();
-		ifStmt->line = GetCurToken().line;
-		ifStmt->column = GetCurToken().column;
+		ifStmt->tagToken = GetCurToken();
 
 		Consume(TOKEN_SWITCH, L"Expect 'switch' keyword.");
 		Consume(TOKEN_LPAREN, L"Expect '(' after 'switch' keyword.");
+
 		auto switchExpr = ParseIdentifierExpr();
-		switchExpr->column = GetCurToken().column;
-		switchExpr->line = GetCurToken().line;
+
 		Consume(TOKEN_RPAREN, L"Expect ')' after switch's expression.");
 		Consume(TOKEN_LBRACE, L"Expect '{' after 'switch' keyword.");
 
@@ -632,8 +625,8 @@ namespace lws
 			{
 				Consume(TOKEN_COLON, L"Expect ':' after condition expr.");
 				defaultScopeStmt = new ScopeStmt();
-				defaultScopeStmt->line = GetCurToken().line;
-				defaultScopeStmt->column = GetCurToken().column;
+				defaultScopeStmt->tagToken = GetCurToken();
+
 				if (IsMatchCurTokenAndStepOnce(TOKEN_LBRACE))
 				{
 					while (!IsMatchCurToken(TOKEN_RBRACE))
@@ -652,16 +645,14 @@ namespace lws
 				{
 					auto valueCompareExpr = ParseExpr();
 					auto caseCondition = new InfixExpr(L"==", switchExpr, valueCompareExpr);
-					caseCondition->line = GetCurToken().line;
-					caseCondition->column = GetCurToken().column;
+					caseCondition->tagToken = GetCurToken();
 					conditions.emplace_back(caseCondition);
 				} while (IsMatchCurTokenAndStepOnce(TOKEN_COMMA));
 				Consume(TOKEN_COLON, L"Expect ':' after condition expr.");
 
 				item.first = conditions;
 				item.second = new ScopeStmt();
-				item.second->line = GetCurToken().line;
-				item.second->column = GetCurToken().column;
+				item.second->tagToken = GetCurToken();
 
 				if (IsMatchCurTokenAndStepOnce(TOKEN_LBRACE))
 				{
@@ -711,8 +702,7 @@ namespace lws
 	Expr *Parser::ParseLambdaExpr()
 	{
 		auto lambdaExpr = new LambdaExpr();
-		lambdaExpr->line = GetCurToken().line;
-		lambdaExpr->column = GetCurToken().column;
+		lambdaExpr->tagToken = GetCurToken();
 
 		Consume(TOKEN_FUNCTION, L"Expect 'fn' keyword");
 		Consume(TOKEN_LPAREN, L"Expect '(' after 'fn' keyword");
@@ -734,8 +724,7 @@ namespace lws
 	Expr *Parser::ParseNewExpr()
 	{
 		auto newExpr = new NewExpr();
-		newExpr->line = GetCurToken().line;
-		newExpr->column = GetCurToken().column;
+		newExpr->tagToken = GetCurToken();
 
 		Consume(TOKEN_NEW, L"Expect 'new' keyword");
 
@@ -751,21 +740,30 @@ namespace lws
 
 	Expr *Parser::ParseThisExpr()
 	{
-		Consume(TOKEN_THIS, L"Expect 'this' keyword");
+		auto token = Consume(TOKEN_THIS, L"Expect 'this' keyword");
+
+		auto thisExpr = new ThisExpr();
+		thisExpr->tagToken = token;
+
 		if (!mCurClassInfo)
-			ERROR(L"Invalid 'this' keyword:Cannot use 'this' outside class.")
-		return new ThisExpr();
+			Hint::Error(thisExpr->tagToken, L"Invalid 'this' keyword:Cannot use 'this' outside class.");
+
+		return thisExpr;
 	}
 
 	Expr *Parser::ParseBaseExpr()
 	{
-		Consume(TOKEN_BASE, L"Expect 'base' keyword");
+		auto token = Consume(TOKEN_BASE, L"Expect 'base' keyword");
+
+		auto baseExpr = new BaseExpr((IdentifierExpr *)ParseIdentifierExpr());
+		baseExpr->tagToken = token;
+
 		if (!mCurClassInfo)
-			ERROR(L"Invalid 'base' keyword:Cannot use 'base' outside class.")
+			Hint::Error(baseExpr->tagToken, L"Invalid 'base' keyword:Cannot use 'base' outside class.");
 
 		Consume(TOKEN_DOT, L"Expect '.' after 'base' keyword");
 
-		return new BaseExpr((IdentifierExpr *)ParseIdentifierExpr());
+		return baseExpr;
 	}
 
 	Expr *Parser::ParseMatchExpr()
@@ -774,9 +772,9 @@ namespace lws
 
 		Consume(TOKEN_MATCH, L"Expect 'match' keyword.");
 		Consume(TOKEN_LPAREN, L"Expect '(' after 'match' keyword.");
+
 		auto judgeExpr = ParseExpr();
-		judgeExpr->column = GetCurToken().column;
-		judgeExpr->line = GetCurToken().line;
+
 		Consume(TOKEN_RPAREN, L"Expect ')' after match's expression.");
 		Consume(TOKEN_LBRACE, L"Expect '{' after 'match' keyword.");
 
@@ -788,14 +786,15 @@ namespace lws
 		{
 			do
 			{
-				if (IsMatchCurTokenAndStepOnce(TOKEN_DEFAULT))
+				if (IsMatchCurToken(TOKEN_DEFAULT))
 				{
 					if (hasDefaultBranch)
-						ERROR(L"Already exists a default branch.only a default branch is available in a match expr.");
+						Hint::Error(GetCurToken(), L"Already exists a default branch.only a default branch is available in a match expr.");
+
+					GetCurTokenAndStepOnce();
+
 					Consume(TOKEN_COLON, L"Expect ':' after default's condition expr.");
 					defaultBranch = ParseExpr();
-					defaultBranch->line = GetCurToken().line;
-					defaultBranch->column = GetCurToken().column;
 					hasDefaultBranch = true;
 				}
 				else
@@ -808,16 +807,13 @@ namespace lws
 					{
 						auto valueCompareExpr = ParseExpr();
 						auto caseCondition = new InfixExpr(L"==", judgeExpr, valueCompareExpr);
-						caseCondition->line = GetCurToken().line;
-						caseCondition->column = GetCurToken().column;
+						caseCondition->tagToken = GetCurToken();
 						conditions.emplace_back(caseCondition);
 					} while (IsMatchCurTokenAndStepOnce(TOKEN_COMMA));
 					Consume(TOKEN_COLON, L"Expect ':' after match item's condition expr.");
 
 					item.first = conditions;
 					item.second = ParseExpr();
-					item.second->line = GetCurToken().line;
-					item.second->column = GetCurToken().column;
 
 					items.emplace_back(item);
 				}
@@ -866,14 +862,14 @@ namespace lws
 		do
 		{
 			if (IsMatchCurToken(TOKEN_RBRACE_RPAREN))
-				ERROR("Expr required at the end of block expression.");
+				Hint::Error(GetCurToken(), L"Expr required at the end of block expression.");
 			stmts.emplace_back(ParseDecl());
 		} while (IsMatchCurTokenAndStepOnce(TOKEN_SEMICOLON));
 
 		mSkippingConsumeTokenTypeStack.pop_back();
 
 		if (stmts.back()->type != AST_EXPR)
-			ERROR("Expr required at the end of block expression.");
+			Hint::Error(stmts.back()->tagToken, L"Expr required at the end of block expression.");
 
 		auto expr = ((ExprStmt *)stmts.back())->expr;
 		stmts.pop_back();
@@ -921,8 +917,7 @@ namespace lws
 	{
 		auto identifierExpr = new IdentifierExpr();
 		auto token = Consume(TOKEN_IDENTIFIER, L"Unexpect Identifier'" + GetCurToken().literal + L"'.");
-		identifierExpr->line = token.line;
-		identifierExpr->column = token.column;
+		identifierExpr->tagToken = token;
 		identifierExpr->literal = token.literal;
 		return identifierExpr;
 	}
@@ -935,15 +930,13 @@ namespace lws
 		if (numLiteral.find('.') != std::wstring::npos)
 		{
 			auto realNumExpr = new RealNumExpr(std::stod(numLiteral));
-			realNumExpr->line = line;
-			realNumExpr->column = column;
+			realNumExpr->tagToken = GetCurToken();
 			return realNumExpr;
 		}
 		else
 		{
 			auto intNumExpr = new IntNumExpr(std::stoll(numLiteral));
-			intNumExpr->line = line;
-			intNumExpr->column = column;
+			intNumExpr->tagToken = GetCurToken();
 			return intNumExpr;
 		}
 	}
@@ -952,8 +945,7 @@ namespace lws
 	{
 		auto token = Consume(TOKEN_STRING, L"Expect a string literal.");
 		auto strExpr = new StrExpr();
-		strExpr->column = token.column;
-		strExpr->line = token.line;
+		strExpr->tagToken = token;
 		strExpr->value = token.literal;
 		return strExpr;
 	}
@@ -962,24 +954,21 @@ namespace lws
 	{
 		auto token = Consume(TOKEN_NULL, L"Expect 'null' keyword");
 		auto nullExpr = mNullExpr;
-		nullExpr->line = token.line;
-		nullExpr->column = token.column;
+		nullExpr->tagToken = token;
 		return nullExpr;
 	}
 	Expr *Parser::ParseTrueExpr()
 	{
 		auto token = Consume(TOKEN_TRUE, L"Expect 'true' keyword");
 		auto trueExpr = new BoolExpr(true);
-		trueExpr->line = token.line;
-		trueExpr->column = token.column;
+		trueExpr->tagToken = token;
 		return trueExpr;
 	}
 	Expr *Parser::ParseFalseExpr()
 	{
 		auto token = Consume(TOKEN_FALSE, L"Expect 'false' keyword");
 		auto falseExpr = new BoolExpr(false);
-		falseExpr->line = token.line;
-		falseExpr->column = token.column;
+		falseExpr->tagToken = token;
 		return falseExpr;
 	}
 
@@ -987,8 +976,7 @@ namespace lws
 	{
 		auto token = Consume(TOKEN_LPAREN, L"Expect '('.");
 		auto groupExpr = new GroupExpr();
-		groupExpr->column = token.column;
-		groupExpr->line = token.line;
+		groupExpr->tagToken = token;
 		groupExpr->expr = ParseExpr();
 		Consume(TOKEN_RPAREN, L"Expect ')'.");
 		return groupExpr;
@@ -997,8 +985,7 @@ namespace lws
 	Expr *Parser::ParseArrayExpr()
 	{
 		auto arrayExpr = new ArrayExpr();
-		arrayExpr->column = GetCurToken().column;
-		arrayExpr->line = GetCurToken().line;
+		arrayExpr->tagToken = GetCurToken();
 
 		Consume(TOKEN_LBRACKET, L"Expect '['.");
 
@@ -1021,8 +1008,8 @@ namespace lws
 	Expr *Parser::ParseDictExpr()
 	{
 		auto dictExpr = new DictExpr();
-		dictExpr->column = GetCurToken().column;
-		dictExpr->line = GetCurToken().line;
+		dictExpr->tagToken = GetCurToken();
+
 		Consume(TOKEN_LBRACE, L"Expect '{'.");
 
 		if (!IsMatchCurToken(TOKEN_RBRACE))
@@ -1048,8 +1035,8 @@ namespace lws
 	Expr *Parser::ParseAnonyObjExpr()
 	{
 		auto anonyObjExpr = new AnonyObjExpr();
-		anonyObjExpr->column = GetCurToken().column;
-		anonyObjExpr->line = GetCurToken().line;
+		anonyObjExpr->tagToken = GetCurToken();
+
 		Consume(TOKEN_LBRACE, L"Expect '{'.");
 
 		if (!IsMatchCurToken(TOKEN_RBRACE))
@@ -1063,7 +1050,7 @@ namespace lws
 				Expr *key = ParseExpr();
 
 				if (key->type != AST_IDENTIFIER)
-					ERROR(L"Anonymous object require key must be a valid identifier.");
+					Hint::Error(key->tagToken, L"Anonymous object require key must be a valid identifier.");
 
 				Consume(TOKEN_COLON, L"Expect ':' after anony object key.");
 				Expr *value = ParseExpr();
@@ -1079,8 +1066,7 @@ namespace lws
 	Expr *Parser::ParsePrefixExpr()
 	{
 		auto prefixExpr = new PrefixExpr();
-		prefixExpr->column = GetCurToken().column;
-		prefixExpr->line = GetCurToken().line;
+		prefixExpr->tagToken = GetCurToken();
 		prefixExpr->op = GetCurTokenAndStepOnce().literal;
 		prefixExpr->right = ParseExpr(Precedence::PREFIX);
 		return prefixExpr;
@@ -1090,8 +1076,7 @@ namespace lws
 	{
 		auto token = Consume(TOKEN_AMPERSAND, L"Expect '&'.");
 		auto refExpr = new RefExpr();
-		refExpr->line = token.line;
-		refExpr->column = token.column;
+		refExpr->tagToken = token;
 		refExpr->refExpr = ParseExpr(Precedence::PREFIX);
 		return refExpr;
 	}
@@ -1099,8 +1084,7 @@ namespace lws
 	Expr *Parser::ParseInfixExpr(Expr *prefixExpr)
 	{
 		auto infixExpr = new InfixExpr();
-		infixExpr->column = GetCurToken().column;
-		infixExpr->line = GetCurToken().line;
+		infixExpr->tagToken = GetCurToken();
 		infixExpr->left = prefixExpr;
 		Precedence opPrece = GetCurTokenPrecedence();
 		infixExpr->op = GetCurTokenAndStepOnce().literal;
@@ -1111,8 +1095,7 @@ namespace lws
 	Expr *Parser::ParsePostfixExpr(Expr *prefixExpr)
 	{
 		auto postfixExpr = new PostfixExpr();
-		postfixExpr->column = GetCurToken().column;
-		postfixExpr->line = GetCurToken().line;
+		postfixExpr->tagToken = GetCurToken();
 		postfixExpr->op = GetCurTokenAndStepOnce().literal;
 		postfixExpr->left = prefixExpr;
 		return postfixExpr;
@@ -1121,8 +1104,7 @@ namespace lws
 	Expr *Parser::ParseConditionExpr(Expr *prefixExpr)
 	{
 		ConditionExpr *conditionExpr = new ConditionExpr();
-		conditionExpr->column = GetCurToken().column;
-		conditionExpr->line = GetCurToken().line;
+		conditionExpr->tagToken = GetCurToken();
 		conditionExpr->condition = prefixExpr;
 		Consume(TOKEN_QUESTION, L"Expect '?'.");
 		conditionExpr->trueBranch = ParseExpr(Precedence::CONDITION);
@@ -1134,8 +1116,7 @@ namespace lws
 	Expr *Parser::ParseIndexExpr(Expr *prefixExpr)
 	{
 		auto indexExpr = new IndexExpr();
-		indexExpr->column = GetCurToken().column;
-		indexExpr->line = GetCurToken().line;
+		indexExpr->tagToken = GetCurToken();
 
 		Consume(TOKEN_LBRACKET, L"Expect '['.");
 		indexExpr->ds = prefixExpr;
@@ -1147,8 +1128,7 @@ namespace lws
 	Expr *Parser::ParseCallExpr(Expr *prefixExpr)
 	{
 		auto callExpr = new CallExpr();
-		callExpr->column = GetCurToken().column;
-		callExpr->line = GetCurToken().line;
+		callExpr->tagToken = GetCurToken();
 
 		callExpr->callee = (IdentifierExpr *)prefixExpr;
 		Consume(TOKEN_LPAREN, L"Expect '('.");
@@ -1167,8 +1147,7 @@ namespace lws
 	Expr *Parser::ParseDotExpr(Expr *prefixExpr)
 	{
 		auto dotExpr = new DotExpr();
-		dotExpr->column = GetCurToken().column;
-		dotExpr->line = GetCurToken().line;
+		dotExpr->tagToken = GetCurToken();
 		Consume(TOKEN_DOT, L"Expect '.'.");
 		dotExpr->callee = prefixExpr;
 		dotExpr->callMember = (IdentifierExpr *)ParseIdentifierExpr();
@@ -1196,19 +1175,25 @@ namespace lws
 			GetCurTokenAndStepOnce();
 			type = GetCurTokenAndStepOnce().literal;
 		}
-		return new VarDescExpr(type, expr);
+
+		auto varDescExpr = new VarDescExpr(type, expr);
+		varDescExpr->tagToken = expr->tagToken;
+		return varDescExpr;
 	}
 
 	Expr *Parser::ParseVarArgExpr()
 	{
 		Consume(TOKEN_ELLIPSIS, L"Expect '...'");
 
+		auto varArgExpr = new VarArgExpr();
+		varArgExpr->tagToken = GetCurToken();
+
 		if (IsMatchCurToken(TOKEN_IDENTIFIER))
 		{
-			auto name = (IdentifierExpr *)ParseIdentifierExpr();
-			return new VarArgExpr(name);
+			varArgExpr->argName = (IdentifierExpr *)ParseIdentifierExpr();
+			return varArgExpr;
 		}
-		return new VarArgExpr();
+		return varArgExpr;
 	}
 
 	std::pair<Expr *, Expr *> Parser::ParseDestructuringAssignmentExpr()
@@ -1216,6 +1201,7 @@ namespace lws
 		Consume(TOKEN_LBRACKET, L"Expect '['");
 
 		auto arrayExpr = new ArrayExpr();
+		arrayExpr->tagToken=GetCurToken();
 
 		int8_t varArgCount = 0;
 		do
@@ -1225,21 +1211,32 @@ namespace lws
 
 			auto varDescExpr = (VarDescExpr *)ParseVarDescExpr();
 			if (varDescExpr->name->type == AST_VAR_ARG) //check if has var arg
+			{
 				varArgCount++;
+				if (varArgCount > 1)
+					Hint::Error(varDescExpr->tagToken, L"only 1 variable arg decl is available in var declaration.");
+			}
 
 			arrayExpr->elements.emplace_back(varDescExpr);
-
+ 
 		} while (IsMatchCurTokenAndStepOnce(TOKEN_COMMA));
 
 		Consume(TOKEN_RBRACKET, L"Expect ']' destructuring assignment expr.");
 
-		if (varArgCount > 1)
-			ERROR(L"only 1 variable arg decl is available in var declaration and it must be located at the last of destructing assignment declaration");
-
-		if (varArgCount == 1 && ((VarDescExpr *)arrayExpr->elements.back())->name->type != AST_VAR_ARG)
-			ERROR(L"variable arg decl must be located at the last of destructing assignment declaration");
+		if (varArgCount == 1 )
+		{
+			for(int32_t i=0;i<arrayExpr->elements.size();++i)
+			{
+				if(((VarDescExpr *)arrayExpr->elements[i])->name->type == AST_VAR_ARG)
+				{
+					if(i<arrayExpr->elements.size()-1)
+						Hint::Error(arrayExpr->elements[i]->tagToken,L"variable arg decl must be located at the end of destructing assignment declaration.");
+				}
+			}
+		}
 
 		ArrayExpr *initializeList = new ArrayExpr();
+		initializeList->tagToken=GetCurToken();
 
 		if (IsMatchCurTokenAndStepOnce(TOKEN_EQUAL))
 		{
@@ -1259,7 +1256,7 @@ namespace lws
 				else if (((VarDescExpr *)arrayExpr->elements.back())->name->type == AST_VAR_ARG)
 					initializeList->elements = ((ArrayExpr *)value)->elements;
 				else
-					ERROR(L"variable less than value.");
+					Hint::Error(GetCurToken(), L"variable less than value.");
 			}
 			else if (value->type == AST_CALL)
 				return std::make_pair(arrayExpr, value);
@@ -1359,10 +1356,9 @@ namespace lws
 			if (IsMatchCurToken(type))
 				return GetCurTokenAndStepOnce();
 			Token token = GetCurToken();
-			ERROR(L"[line:" + std::to_wstring(token.line) + L",column:" + std::to_wstring(token.column) + L"]:" + std::wstring(errMsg))
+			Hint::Error(token,L"{}",errMsg);
 		}
-		// avoid C++ compiler warning
-		return Token(TOKEN_EOF, L"", -1, -1);
+		return Token();
 	}
 
 	Token Parser::Consume(const std::vector<TokenType> &types, std::wstring_view errMsg)
@@ -1370,16 +1366,13 @@ namespace lws
 		if (!mSkippingConsumeTokenTypeStack.empty())
 			for (const auto &type : types)
 				if (type == mSkippingConsumeTokenTypeStack.back())
-					return Token(TOKEN_EOF, L"", -1, -1);
+					return Token();
 
 		for (const auto &type : types)
 			if (IsMatchCurToken(type))
 				return GetCurTokenAndStepOnce();
 		Token token = GetCurToken();
-		ERROR(L"[" + std::to_wstring(token.line) + L"," + std::to_wstring(token.column) + L"]:" + std::wstring(errMsg))
-
-		// avoid C++ compiler warning
-		return Token(TOKEN_EOF, L"", -1, -1);
+		Hint::Error(token,L"{}",errMsg);
 	}
 
 	bool Parser::IsAtEnd()
