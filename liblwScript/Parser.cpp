@@ -142,8 +142,6 @@ namespace lws
 			{TOKEN_MINUS_MINUS, &Parser::ParsePostfixExpr},
 	};
 
-	NullExpr *Parser::mNullExpr = new NullExpr();
-
 	Parser::Parser()
 	{
 	}
@@ -160,6 +158,7 @@ namespace lws
 		mTokens = tokens;
 
 		AstStmts *astStmts = new AstStmts();
+		astStmts->tagToken=GetCurToken();
 
 		while (!IsMatchCurToken(TOKEN_EOF))
 			astStmts->stmts.emplace_back(ParseDecl());
@@ -219,7 +218,8 @@ namespace lws
 			{
 				auto varDescExpr = ParseVarDescExpr();
 
-				Expr *value = mNullExpr;
+				Expr *value = new NullExpr();
+				value->tagToken = varDescExpr->tagToken;
 				if (IsMatchCurTokenAndStepOnce(TOKEN_EQUAL))
 					value = ParseExpr();
 				varStmt->variables.emplace_back(varDescExpr, value);
@@ -755,13 +755,13 @@ namespace lws
 	{
 		auto token = Consume(TOKEN_BASE, L"Expect 'base' keyword");
 
+		Consume(TOKEN_DOT,L"Expect '.' after base keyword");
+
 		auto baseExpr = new BaseExpr((IdentifierExpr *)ParseIdentifierExpr());
 		baseExpr->tagToken = token;
 
 		if (!mCurClassInfo)
 			Hint::Error(baseExpr->tagToken, L"Invalid 'base' keyword:Cannot use 'base' outside class.");
-
-		Consume(TOKEN_DOT, L"Expect '.' after 'base' keyword");
 
 		return baseExpr;
 	}
@@ -886,8 +886,13 @@ namespace lws
 	{
 		if (mPrefixFunctions.find(GetCurToken().type) == mPrefixFunctions.end())
 		{
-			std::wcout << L"no prefix definition for:" << GetCurTokenAndStepOnce().literal << std::endl;
-			return mNullExpr;
+			auto token = GetCurTokenAndStepOnce();
+			Hint::Error(token, L"no prefix definition for:{}", token.literal);
+
+			auto nullExpr = new NullExpr();
+			nullExpr->tagToken = token;
+
+			return nullExpr;
 		}
 
 		auto prefixFn = mPrefixFunctions[GetCurToken().type];
@@ -924,19 +929,18 @@ namespace lws
 
 	Expr *Parser::ParseNumExpr()
 	{
-		size_t line = GetCurToken().line;
-		size_t column = GetCurToken().column;
+		auto token = GetCurToken();
 		std::wstring numLiteral = Consume(TOKEN_NUMBER, L"Expexct a number literal.").literal;
 		if (numLiteral.find('.') != std::wstring::npos)
 		{
 			auto realNumExpr = new RealNumExpr(std::stod(numLiteral));
-			realNumExpr->tagToken = GetCurToken();
+			realNumExpr->tagToken = token;
 			return realNumExpr;
 		}
 		else
 		{
 			auto intNumExpr = new IntNumExpr(std::stoll(numLiteral));
-			intNumExpr->tagToken = GetCurToken();
+			intNumExpr->tagToken = token;
 			return intNumExpr;
 		}
 	}
@@ -953,7 +957,7 @@ namespace lws
 	Expr *Parser::ParseNullExpr()
 	{
 		auto token = Consume(TOKEN_NULL, L"Expect 'null' keyword");
-		auto nullExpr = mNullExpr;
+		auto nullExpr = new NullExpr;
 		nullExpr->tagToken = token;
 		return nullExpr;
 	}
@@ -1201,7 +1205,7 @@ namespace lws
 		Consume(TOKEN_LBRACKET, L"Expect '['");
 
 		auto arrayExpr = new ArrayExpr();
-		arrayExpr->tagToken=GetCurToken();
+		arrayExpr->tagToken = GetCurToken();
 
 		int8_t varArgCount = 0;
 		do
@@ -1218,30 +1222,30 @@ namespace lws
 			}
 
 			arrayExpr->elements.emplace_back(varDescExpr);
- 
+
 		} while (IsMatchCurTokenAndStepOnce(TOKEN_COMMA));
 
 		Consume(TOKEN_RBRACKET, L"Expect ']' destructuring assignment expr.");
 
-		if (varArgCount == 1 )
+		if (varArgCount == 1)
 		{
-			for(int32_t i=0;i<arrayExpr->elements.size();++i)
+			for (int32_t i = 0; i < arrayExpr->elements.size(); ++i)
 			{
-				if(((VarDescExpr *)arrayExpr->elements[i])->name->type == AST_VAR_ARG)
+				if (((VarDescExpr *)arrayExpr->elements[i])->name->type == AST_VAR_ARG)
 				{
-					if(i<arrayExpr->elements.size()-1)
-						Hint::Error(arrayExpr->elements[i]->tagToken,L"variable arg decl must be located at the end of destructing assignment declaration.");
+					if (i < arrayExpr->elements.size() - 1)
+						Hint::Error(arrayExpr->elements[i]->tagToken, L"variable arg decl must be located at the end of destructing assignment declaration.");
 				}
 			}
 		}
 
 		ArrayExpr *initializeList = new ArrayExpr();
-		initializeList->tagToken=GetCurToken();
+		initializeList->tagToken = GetCurToken();
 
 		if (IsMatchCurTokenAndStepOnce(TOKEN_EQUAL))
 		{
-			Expr *value = mNullExpr;
-			value = ParseExpr();
+			Expr *value = ParseExpr();
+
 			if (value->type == AST_ARRAY)
 			{
 				int32_t grad = arrayExpr->elements.size() - ((ArrayExpr *)value)->elements.size();
@@ -1251,7 +1255,11 @@ namespace lws
 				{
 					initializeList->elements = ((ArrayExpr *)value)->elements;
 					for (int32_t i = 0; i < grad; ++i)
-						initializeList->elements.emplace_back(mNullExpr);
+					{
+						auto nullExpr = new NullExpr();
+						nullExpr->tagToken = GetCurToken();
+						initializeList->elements.emplace_back(nullExpr);
+					}
 				}
 				else if (((VarDescExpr *)arrayExpr->elements.back())->name->type == AST_VAR_ARG)
 					initializeList->elements = ((ArrayExpr *)value)->elements;
@@ -1264,7 +1272,11 @@ namespace lws
 				initializeList->elements.resize(arrayExpr->elements.size(), value);
 		}
 		else
-			initializeList->elements.resize(arrayExpr->elements.size(), mNullExpr);
+		{
+			auto nullExpr = new NullExpr();
+			nullExpr->tagToken = GetCurToken();
+			initializeList->elements.resize(arrayExpr->elements.size(), nullExpr);
+		}
 
 		return std::make_pair(arrayExpr, initializeList);
 	}
@@ -1356,7 +1368,7 @@ namespace lws
 			if (IsMatchCurToken(type))
 				return GetCurTokenAndStepOnce();
 			Token token = GetCurToken();
-			Hint::Error(token,L"{}",errMsg);
+			Hint::Error(token, L"{}", errMsg);
 		}
 		return Token();
 	}
@@ -1372,7 +1384,7 @@ namespace lws
 			if (IsMatchCurToken(type))
 				return GetCurTokenAndStepOnce();
 		Token token = GetCurToken();
-		Hint::Error(token,L"{}",errMsg);
+		Hint::Error(token, L"{}", errMsg);
 	}
 
 	bool Parser::IsAtEnd()

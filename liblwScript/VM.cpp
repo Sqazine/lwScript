@@ -2,6 +2,7 @@
 #include <iostream>
 #include "Utils.h"
 #include "Object.h"
+#include "Token.h"
 namespace lws
 {
 	Value VM::sNullValue = Value();
@@ -52,7 +53,7 @@ namespace lws
 		std::vector<Value> returnValues;
 #ifdef _DEBUG
 		if (mStackTop != mValueStack + 1)
-			ERROR(L"Stack occupancy exception.");
+			Hint::Error(Token(), L"Stack occupancy exception.");
 #endif
 
 		while (mStackTop != mValueStack + 1)
@@ -66,41 +67,41 @@ namespace lws
 	void VM::Execute()
 	{
 		//  - * /
-#define COMMON_BINARY(op)                                                                 \
-	do                                                                                    \
-	{                                                                                     \
-		Value right = Pop();                                                              \
-		Value left = Pop();                                                               \
-		if (IS_REF_VALUE(left))                                                           \
-			left = *TO_REF_VALUE(left)->pointer;                                          \
-		if (IS_REF_VALUE(right))                                                          \
-			right = *TO_REF_VALUE(right)->pointer;                                        \
-		if (IS_INT_VALUE(left) && IS_INT_VALUE(right))                                    \
-			Push(TO_INT_VALUE(left) op TO_INT_VALUE(right));                              \
-		else if (IS_REAL_VALUE(left) && IS_REAL_VALUE(right))                             \
-			Push(TO_REAL_VALUE(left) op TO_REAL_VALUE(right));                            \
-		else if (IS_INT_VALUE(left) && IS_REAL_VALUE(right))                              \
-			Push(TO_INT_VALUE(left) op TO_REAL_VALUE(right));                             \
-		else if (IS_REAL_VALUE(left) && IS_INT_VALUE(right))                              \
-			Push(TO_REAL_VALUE(left) op TO_INT_VALUE(right));                             \
-		else                                                                              \
-			ERROR(L"Invalid binary op:" + left.Stringify() + (L#op) + right.Stringify()) \
+#define COMMON_BINARY(op)                                                                                                                                                                                  \
+	do                                                                                                                                                                                                     \
+	{                                                                                                                                                                                                      \
+		Value right = Pop();                                                                                                                                                                               \
+		Value left = Pop();                                                                                                                                                                                \
+		if (IS_REF_VALUE(left))                                                                                                                                                                            \
+			left = *TO_REF_VALUE(left)->pointer;                                                                                                                                                           \
+		if (IS_REF_VALUE(right))                                                                                                                                                                           \
+			right = *TO_REF_VALUE(right)->pointer;                                                                                                                                                         \
+		if (IS_INT_VALUE(left) && IS_INT_VALUE(right))                                                                                                                                                     \
+			Push(TO_INT_VALUE(left) op TO_INT_VALUE(right));                                                                                                                                               \
+		else if (IS_REAL_VALUE(left) && IS_REAL_VALUE(right))                                                                                                                                              \
+			Push(TO_REAL_VALUE(left) op TO_REAL_VALUE(right));                                                                                                                                             \
+		else if (IS_INT_VALUE(left) && IS_REAL_VALUE(right))                                                                                                                                               \
+			Push(TO_INT_VALUE(left) op TO_REAL_VALUE(right));                                                                                                                                              \
+		else if (IS_REAL_VALUE(left) && IS_INT_VALUE(right))                                                                                                                                               \
+			Push(TO_REAL_VALUE(left) op TO_INT_VALUE(right));                                                                                                                                              \
+		else                                                                                                                                                                                               \
+			Hint::Error(relatedToken, L"Invalid binary op:{}{}{},only (&)int-(&)int,(&)real-(&)real,(&)int-(&)real or (&)real-(&)int type pair is available.", left.ToString(), (L#op), right.ToString()); \
 	} while (0);
 
 // & | << >>
-#define INTEGER_BINARY(op)                                                                \
-	do                                                                                    \
-	{                                                                                     \
-		Value right = Pop();                                                              \
-		Value left = Pop();                                                               \
-		if (IS_REF_VALUE(left))                                                           \
-			left = *TO_REF_VALUE(left)->pointer;                                          \
-		if (IS_REF_VALUE(right))                                                          \
-			right = *TO_REF_VALUE(right)->pointer;                                        \
-		if (IS_INT_VALUE(left) && IS_INT_VALUE(right))                                    \
-			Push(TO_INT_VALUE(left) op TO_INT_VALUE(right));                              \
-		else                                                                              \
-			ERROR(L"Invalid binary op:" + left.Stringify() + (L#op) + right.Stringify()) \
+#define INTEGER_BINARY(op)                                                                                                                                \
+	do                                                                                                                                                    \
+	{                                                                                                                                                     \
+		Value right = Pop();                                                                                                                              \
+		Value left = Pop();                                                                                                                               \
+		if (IS_REF_VALUE(left))                                                                                                                           \
+			left = *TO_REF_VALUE(left)->pointer;                                                                                                          \
+		if (IS_REF_VALUE(right))                                                                                                                          \
+			right = *TO_REF_VALUE(right)->pointer;                                                                                                        \
+		if (IS_INT_VALUE(left) && IS_INT_VALUE(right))                                                                                                    \
+			Push(TO_INT_VALUE(left) op TO_INT_VALUE(right));                                                                                              \
+		else                                                                                                                                              \
+			Hint::Error(relatedToken, L"Invalid binary op:{}{}{},only (&)int-(&)int type pair is available.", left.ToString(), (L#op), right.ToString()); \
 	} while (0);
 
 // > <
@@ -126,19 +127,19 @@ namespace lws
 	} while (0);
 
 // && ||
-#define LOGIC_BINARY(op)                                                                    \
-	do                                                                                      \
-	{                                                                                       \
-		Value right = Pop();                                                                \
-		Value left = Pop();                                                                 \
-		if (IS_REF_VALUE(left))                                                             \
-			left = *TO_REF_VALUE(left)->pointer;                                            \
-		if (IS_REF_VALUE(right))                                                            \
-			right = *TO_REF_VALUE(right)->pointer;                                          \
-		if (IS_BOOL_VALUE(left) && IS_BOOL_VALUE(right))                                    \
-			Push(TO_BOOL_VALUE(left) op TO_BOOL_VALUE(right) ? Value(true) : Value(false)); \
-		else                                                                                \
-			ERROR("Invalid op:" + left.Stringify() + (L#op) + right.Stringify())           \
+#define LOGIC_BINARY(op)                                                                                                                                    \
+	do                                                                                                                                                      \
+	{                                                                                                                                                       \
+		Value right = Pop();                                                                                                                                \
+		Value left = Pop();                                                                                                                                 \
+		if (IS_REF_VALUE(left))                                                                                                                             \
+			left = *TO_REF_VALUE(left)->pointer;                                                                                                            \
+		if (IS_REF_VALUE(right))                                                                                                                            \
+			right = *TO_REF_VALUE(right)->pointer;                                                                                                          \
+		if (IS_BOOL_VALUE(left) && IS_BOOL_VALUE(right))                                                                                                    \
+			Push(TO_BOOL_VALUE(left) op TO_BOOL_VALUE(right) ? Value(true) : Value(false));                                                                 \
+		else                                                                                                                                                \
+			Hint::Error(relatedToken, L"Invalid binary op:{}{}{},only (&)bool-(&)bool type pair is available.", left.ToString(), (L#op), right.ToString()); \
 	} while (0);
 
 #define READ_INS() (*frame->ip++)
@@ -148,6 +149,7 @@ namespace lws
 		while (1)
 		{
 			auto instruction = READ_INS();
+			auto relatedToken = frame->closure->function->chunk.opCodeRelatedTokens[READ_INS()];
 			switch (instruction)
 			{
 			case OP_RETURN:
@@ -267,7 +269,7 @@ namespace lws
 				else if (IS_STR_VALUE(left) && IS_STR_VALUE(right))
 					Push(CreateObject<StrObject>(TO_STR_VALUE(left) + TO_STR_VALUE(right)));
 				else
-					ERROR(L"Invalid binary op:" + left.Stringify() + L" + " + right.Stringify())
+					Hint::Error(relatedToken, L"Invalid binary op:{}+{},only (&)int-(&)int,(&)real-(&)real,(&)int-(&)real or (&)real-(&)int type pair is available.", left.ToString(), right.ToString());
 				break;
 			}
 			case OP_SUB:
@@ -326,7 +328,7 @@ namespace lws
 				if (IS_REF_VALUE(value))
 					value = *TO_REF_VALUE(value)->pointer;
 				if (!IS_BOOL_VALUE(value))
-					ERROR(L"Invalid op:! " + value.Stringify() + L", only !(bool expr) is available.")
+					Hint::Error(relatedToken, L"Invalid op:!{}, only bool type is available.", value.ToString());
 				Push(!TO_BOOL_VALUE(value));
 				break;
 			}
@@ -351,7 +353,7 @@ namespace lws
 				else if (IS_REAL_VALUE(value))
 					Push(-TO_REAL_VALUE(value));
 				else
-					ERROR(L"Invalid op:-" + value.Stringify() + L", only -(int||real expr) is available.")
+					Hint::Error(relatedToken, L"Invalid op:-{}, only -(int||real expr) is available.", value.ToString());
 				break;
 			}
 			case OP_FACTORIAL:
@@ -362,7 +364,7 @@ namespace lws
 				if (IS_INT_VALUE(value))
 					Push(Factorial(TO_INT_VALUE(value)));
 				else
-					ERROR(L"Invalid op:" + value.Stringify() + L"!, only (int expr)! is available.")
+					Hint::Error(relatedToken, L"Invalid op:{}!, only (int expr)! is available.", value.ToString());
 				break;
 			}
 			case OP_ARRAY:
@@ -397,21 +399,23 @@ namespace lws
 				{
 					auto array = TO_ARRAY_VALUE(dsValue);
 					if (!IS_INT_VALUE(idxValue))
-						ERROR("Invalid idx for array,only integer is available.")
+						Hint::Error(relatedToken, L"Invalid idx for array,only integer is available.");
+
 					auto intIdx = TO_INT_VALUE(idxValue);
 
 					if (intIdx < 0)
 						intIdx = (int64_t)array->elements.size() + intIdx;
 
 					if (intIdx < 0 || intIdx >= (int64_t)array->elements.size())
-						ERROR("Idx out of range.")
+						Hint::Error(relatedToken, L"Idx out of range.array size is {}", (int64_t)array->elements.size());
+
 					Push(array->elements[intIdx]);
 				}
 				else if (IS_STR_VALUE(dsValue))
 				{
 					auto str = TO_STR_VALUE(dsValue);
 					if (!IS_INT_VALUE(idxValue))
-						ERROR("Invalid idx for array,only integer is available.")
+						Hint::Error(relatedToken, L"Invalid idx for array,only integer is available.");
 
 					auto intIdx = TO_INT_VALUE(idxValue);
 
@@ -419,7 +423,8 @@ namespace lws
 						intIdx = (int64_t)str.size() + intIdx;
 
 					if (intIdx < 0 || intIdx >= (int64_t)str.size())
-						ERROR("Idx out of range.")
+						Hint::Error(relatedToken, L"Idx out of range.string size is {}", (int64_t)str.size());
+
 					Push(CreateObject<StrObject>(str.substr(intIdx, 1)));
 				}
 				else if (IS_DICT_VALUE(dsValue))
@@ -431,7 +436,7 @@ namespace lws
 					if (iter != dict->elements.end())
 						Push(iter->second);
 					else
-						ERROR("No key in dict.")
+						Hint::Error(relatedToken, L"No key in dict");
 				}
 				break;
 			}
@@ -444,28 +449,29 @@ namespace lws
 				{
 					auto array = TO_ARRAY_VALUE(dsValue);
 					if (!IS_INT_VALUE(idxValue))
-						ERROR(L"Invalid idx for array,only integer is available.")
+						Hint::Error(relatedToken, L"Invalid idx for array,only integer is available.");
 					auto intIdx = TO_INT_VALUE(idxValue);
 
 					if (intIdx < 0 || intIdx >= (int64_t)array->elements.size())
-						ERROR("Idx out of range.")
+						Hint::Error(relatedToken, L"Idx out of range.");
 
 					if (intIdx < 0 || intIdx >= (int64_t)array->elements.size())
-						ERROR(L"Idx out of range.")
+						Hint::Error(relatedToken, L"Idx out of range.");
+
 					array->elements[intIdx] = newValue;
 				}
 				else if (IS_STR_VALUE(dsValue))
 				{
 					auto str = TO_STR_VALUE(dsValue);
 					if (!IS_INT_VALUE(idxValue))
-						ERROR(L"Invalid idx for array,only integer is available.")
+						Hint::Error(relatedToken, L"Invalid idx for array,only integer is available.");
 
 					auto intIdx = TO_INT_VALUE(idxValue);
 					if (intIdx < 0 || intIdx >= (int64_t)str.size())
-						ERROR("Idx out of range.")
+						Hint::Error(relatedToken, L"Idx out of range.");
 
 					if (!IS_STR_VALUE(newValue))
-						ERROR(L"Cannot insert a non string clip:" + newValue.Stringify() + L" to string:" + str)
+						Hint::Error(relatedToken, L"Cannot insert a non string clip:{} to string:{}", newValue.ToString(), str);
 
 					str.append(TO_STR_VALUE(newValue), intIdx, TO_STR_VALUE(newValue).size());
 				}
@@ -531,18 +537,20 @@ namespace lws
 					auto array = TO_ARRAY_VALUE(mGlobalVariables[index]);
 
 					if (!IS_INT_VALUE(idxValue))
-						ERROR(L"Invalid idx for array,only integer is available.")
+						Hint::Error(relatedToken, L"Invalid idx for array,only integer is available.");
+
 					auto intIdx = TO_INT_VALUE(idxValue);
 
 					if (intIdx < 0)
 						intIdx = (int64_t)array->elements.size() + intIdx;
 
 					if (intIdx < 0 || intIdx >= array->elements.size())
-						ERROR(L"Idx out of range.")
+						Hint::Error(relatedToken, L"Idx out of range.");
+
 					Push(CreateObject<RefObject>(&(array->elements[intIdx])));
 				}
 				else
-					ERROR(L"Invalid indexed reference type:" + mGlobalVariables[index].Stringify() + L" not a dict or array value.")
+					Hint::Error(relatedToken, L"Invalid indexed reference type:{} not a dict or array value.", mGlobalVariables[index].ToString());
 				break;
 			}
 			case OP_REF_INDEX_LOCAL:
@@ -559,18 +567,18 @@ namespace lws
 					auto array = TO_ARRAY_VALUE((*v));
 
 					if (!IS_INT_VALUE(idxValue))
-						ERROR(L"Invalid idx for array,only integer is available.")
+						Hint::Error(relatedToken, L"Invalid idx for array,only integer is available.");
 					auto intIdx = TO_INT_VALUE(idxValue);
 
 					if (intIdx < 0)
 						intIdx = (int64_t)array->elements.size() + intIdx;
 
 					if (intIdx < 0 || intIdx >= array->elements.size())
-						ERROR(L"Idx out of range.")
+						Hint::Error(relatedToken, L"Idx out of range.");
 					Push(CreateObject<RefObject>(&array->elements[intIdx]));
 				}
 				else
-					ERROR(L"Invalid indexed reference type:" + v->Stringify() + L" not a dict or array value.")
+					Hint::Error(relatedToken, L"Invalid indexed reference type:{} not a dict or array value.", v->ToString());
 				break;
 			}
 			case OP_REF_INDEX_UPVALUE:
@@ -586,18 +594,18 @@ namespace lws
 				{
 					auto array = TO_ARRAY_VALUE((*v));
 					if (!IS_INT_VALUE(idxValue))
-						ERROR(L"Invalid idx for array,only integer is available.")
+						Hint::Error(relatedToken, L"Invalid idx for array,only integer is available.");
 					auto intIdx = TO_INT_VALUE(idxValue);
 
 					if (intIdx < 0)
 						intIdx = (int64_t)array->elements.size() + intIdx;
 
 					if (intIdx < 0 || intIdx >= array->elements.size())
-						ERROR(L"Idx out of range.")
+						Hint::Error(relatedToken, L"Idx out of range.");
 					Push(CreateObject<RefObject>(&array->elements[intIdx]));
 				}
 				else
-					ERROR(L"Invalid indexed reference type:" + v->Stringify() + L" not a dict or array value.")
+					Hint::Error(relatedToken, L"Invalid indexed reference type: {}  not a dict or array value.", v->ToString());
 				break;
 			}
 			case OP_CALL:
@@ -614,7 +622,7 @@ namespace lws
 					}
 
 					if (argCount != TO_CLOSURE_VALUE(callee)->function->arity)
-						ERROR(L"No matching argument count.")
+						Hint::Error(relatedToken, L"No matching argument count.");
 					// init a new frame
 					CallFrame *newframe = &mFrames[mFrameCount++];
 					newframe->closure = TO_CLOSURE_VALUE(callee);
@@ -635,7 +643,7 @@ namespace lws
 					{
 						auto iter = klass->constructors.find(argCount);
 						if (iter == klass->constructors.end())
-							ERROR(L"Not matching argument count of class:" + klass->name + L"'s constructors.");
+							Hint::Error(relatedToken, L"Not matching argument count of class: {}'s constructors.", klass->name);
 
 						auto ctor = iter->second;
 						// init a new frame
@@ -661,7 +669,7 @@ namespace lws
 					Push(retV);
 				}
 				else
-					ERROR(L"Invalid callee,Only function is available:" + callee.Stringify())
+					Hint::Error(relatedToken, L"Invalid callee,Only function is available: {}", callee.ToString());
 				break;
 			}
 			case OP_CLASS:
@@ -746,7 +754,7 @@ namespace lws
 						break;
 					}
 					else
-						ERROR(L"No member:" + propName + L" in class object" + klass->name)
+						Hint::Error(relatedToken, L"No member: {} in class object:{}", propName, klass->name);
 				}
 				else if (IS_ENUM_VALUE(peekValue))
 				{
@@ -760,20 +768,20 @@ namespace lws
 						break;
 					}
 					else
-						ERROR(L"No member:" + propName + L" in enum object " + enumObj->name)
+						Hint::Error(relatedToken, L"No member: {} in enum object: {}", propName, enumObj->name);
 				}
 				else if (IS_ANONYMOUS_VALUE(peekValue))
 				{
 					auto anonymousObj = TO_ANONYMOUS_VALUE(peekValue);
 					auto iter = anonymousObj->elements.find(propName);
 					if (iter == anonymousObj->elements.end())
-						ERROR(L"No property:" + propName + L" in anonymous object.");
+						Hint::Error(relatedToken, L"No property: {} in anonymous object:{}.", propName, anonymousObj->ToString());
 					Pop(); //pop anonymouse object
 					Push(iter->second);
 					break;
 				}
 				else
-					ERROR(L"Invalid call:not a valid class,enum or anonymous object instance:" + peekValue.Stringify())
+					Hint::Error(relatedToken, L"Invalid call:not a valid class,enum or anonymous object instance: {}", peekValue.ToString());
 
 				break;
 			}
@@ -794,39 +802,39 @@ namespace lws
 					if (klass->GetMember(propName, member))
 					{
 						if (member.desc == ValueDesc::CONSTANT)
-							ERROR(L"Constant cannot be assigned twice:" + klass->name + L"'s member:" + propName + L" is a constant value")
+							Hint::Error(relatedToken, L"Constant cannot be assigned twice: {}'s member: {} is a constant value", klass->name, propName);
 						else
 							klass->members[propName] = Peek();
 					}
 					else
-						ERROR(L"No member named:" + propName + L"in class:" + klass->name)
+						Hint::Error(relatedToken, L"No member named: {} in class: {}", propName, klass->name);
 				}
 				else if (IS_ANONYMOUS_VALUE(peekValue))
 				{
 					auto anonymousObj = TO_ANONYMOUS_VALUE(peekValue);
 					auto iter = anonymousObj->elements.find(propName);
 					if (iter == anonymousObj->elements.end())
-						ERROR(L"No property:" + propName + L"in anonymous object.");
+						Hint::Error(relatedToken, L"No property: {} in anonymous object.", propName);
 					Pop(); //pop anonymouse object
 					anonymousObj->elements[iter->first] = Peek();
 					break;
 				}
 				else if (IS_ENUM_VALUE(peekValue))
-					ERROR(L"Invalid call:cannot assign value to a enum object member.")
+					Hint::Error(relatedToken, L"Invalid call:cannot assign value to a enum object member.");
 				else
-					ERROR(L"Invalid call:not a valid class or anonymous object instance.")
+					Hint::Error(relatedToken, L"Invalid call:not a valid class or anonymous object instance.");
 				break;
 			}
 			case OP_GET_BASE:
 			{
 				if (!IS_CLASS_VALUE(Peek(1)))
-					ERROR(L"Invalid class call:not a valid class instance.")
+					Hint::Error(relatedToken, L"Invalid class call:not a valid class instance.");
 				auto propName = TO_STR_VALUE(Pop());
 				auto klass = TO_CLASS_VALUE(Pop());
 				Value member;
 				bool hasValue = klass->GetParentMember(propName, member);
 				if (!hasValue)
-					ERROR(L"No member:" + propName + L"in class:" + klass->name + L" 's parent class(es).")
+					Hint::Error(relatedToken, L"No member: {} in class: {}'s parent class(es).", propName, klass->name);
 				Push(member);
 				break;
 			}
@@ -878,7 +886,6 @@ namespace lws
 				}
 				else
 				{
-
 					auto diff = count - 1;
 					while (diff > 0)
 					{

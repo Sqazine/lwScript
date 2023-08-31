@@ -30,7 +30,7 @@ namespace lws
     {
     }
 
-    std::wstring Value::Stringify(bool outputOpCodeIfExists) const
+    std::wstring Value::ToString(bool outputOpCodeIfExists) const
     {
         switch (type)
         {
@@ -43,7 +43,7 @@ namespace lws
         case VALUE_NULL:
             return L"null";
         case VALUE_OBJECT:
-            return object->Stringify(outputOpCodeIfExists);
+            return object->ToString(outputOpCodeIfExists);
         default:
             return L"null";
         }

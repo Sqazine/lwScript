@@ -31,11 +31,11 @@ void Repl()
 #endif
 			auto stmt = parser.Parse(tokens);
 #ifdef _DEBUG
-			lws::OutputToConsole(L"{}", stmt->Stringify());
+			lws::OutputToConsole(L"{}", stmt->ToString());
 #endif
 			auto mainFunc = compiler.Compile(stmt);
 #ifdef _DEBUG
-			lws::OutputToConsole(L"{}", mainFunc->Stringify(true));
+			lws::OutputToConsole(L"{}", mainFunc->ToString(true));
 #endif
 			vm.Run(mainFunc);
 		}
@@ -58,11 +58,11 @@ void RunFile(std::string_view path)
 #endif
 	auto stmt = parser.Parse(tokens);
 #ifdef _DEBUG
-	lws::OutputToConsole(L"{}", stmt->Stringify());
+	lws::OutputToConsole(L"{}", stmt->ToString());
 #endif
 	auto mainFunc = compiler.Compile(stmt);
 #ifdef _DEBUG
-	lws::OutputToConsole(L"{}", mainFunc->Stringify(true));
+	lws::OutputToConsole(L"{}", mainFunc->ToString(true));
 #endif
 
 	vm.Run(mainFunc);

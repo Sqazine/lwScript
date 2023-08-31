@@ -35,8 +35,8 @@ namespace lws
 		void CompileScopeStmt(ScopeStmt *stmt, int64_t &breakStmtAddress, int64_t &continueStmtAddress);
 		void CompileWhileStmt(WhileStmt *stmt);
 		void CompileReturnStmt(ReturnStmt *stmt);
-		void CompileBreakStmt(int64_t &stmtAddress);
-		void CompileContinueStmt(int64_t &stmtAddress);
+		void CompileBreakStmt(BreakStmt* stmt, int64_t &stmtAddress);
+		void CompileContinueStmt(ContinueStmt* stmt, int64_t &stmtAddress);
 
 		void CompileExpr(Expr *expr, const RWState &state = RWState::READ, int8_t paramCount = -1);
 		void CompileInfixExpr(InfixExpr *expr);
@@ -68,12 +68,13 @@ namespace lws
 
 		Symbol CompileFunction(FunctionStmt *stmt);
 
-		uint8_t Emit(uint8_t opcode);
-		uint8_t EmitConstant(const Value &value);
-		uint8_t EmitClosure(FunctionObject *function);
-		uint8_t EmitReturn(uint8_t retCount);
-		uint8_t EmitJump(uint8_t opcode);
-		void EmitLoop(uint16_t opcode);
+		uint64_t EmitOpCode(OpCode opCode,Token token);
+		uint64_t Emit(uint8_t opcode);
+		uint64_t EmitConstant(const Value &value,Token token);
+		uint64_t EmitClosure(FunctionObject *function,Token token);
+		uint64_t EmitReturn(uint8_t retCount,Token token);
+		uint64_t EmitJump(uint8_t opcode,Token token);
+		void EmitLoop(uint16_t opcode,Token token);
 		void PatchJump(uint8_t offset);
 		uint8_t AddConstant(const Value &value);
 

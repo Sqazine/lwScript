@@ -15,23 +15,24 @@ namespace lws
         mTableDepth = enclosing->mTableDepth + 1;
     }
 
-    Symbol SymbolTable::Define(ValueDesc descType, const std::wstring &name, int8_t paramCount)
+    Symbol SymbolTable::Define(Token relatedToken, ValueDesc descType, const std::wstring &name, int8_t paramCount)
     {
         if (mSymbolCount >= mSymbols.size())
-            ERROR(L"Too many symbols in current scope.")
+            Hint::Error(relatedToken, L"Too many symbols in current scope.");
         for (int16_t i = mSymbolCount - 1; i >= 0; --i)
         {
             auto isSameParamCount = (mSymbols[i].paramCount < 0 || paramCount < 0) ? true : mSymbols[i].paramCount == paramCount;
             if (mSymbols[i].scopeDepth == -1 || mSymbols[i].scopeDepth < mScopeDepth)
                 break;
             if (mSymbols[i].name == name && isSameParamCount)
-                ERROR(L"Redefinition symbol:" + name)
+                Hint::Error(relatedToken, L"Redefinition symbol:{}", name);
         }
 
         auto *symbol = &mSymbols[mSymbolCount++];
         symbol->name = name;
         symbol->descType = descType;
         symbol->paramCount = paramCount;
+        symbol->relatedToken = relatedToken;
 
         if (mScopeDepth == 0)
         {
@@ -47,7 +48,7 @@ namespace lws
         return *symbol;
     }
 
-    Symbol SymbolTable::Resolve(const std::wstring &name, int8_t paramCount, int8_t d)
+    Symbol SymbolTable::Resolve(Token relatedToken, const std::wstring &name, int8_t paramCount, int8_t d)
     {
         for (int16_t i = mSymbolCount - 1; i >= 0; --i)
         {
@@ -55,7 +56,7 @@ namespace lws
             if (mSymbols[i].name == name && isSameParamCount && mSymbols[i].scopeDepth <= mScopeDepth)
             {
                 if (mSymbols[i].scopeDepth == -1)
-                    ERROR("symbol not defined yet!")
+                    Hint::Error(relatedToken, L"symbol not defined yet!");
 
                 if (d == 1)
                     mSymbols[i].isCaptured = true;
@@ -66,19 +67,19 @@ namespace lws
 
         if (enclosing)
         {
-            Symbol result = enclosing->Resolve(name, paramCount, ++d);
+            Symbol result = enclosing->Resolve(relatedToken, name, paramCount, ++d);
             if (d > 0 && result.type != SymbolType::GLOBAL)
             {
                 result.type = SymbolType::UPVALUE;
-                result.upvalue = AddUpValue(result.index, enclosing->mTableDepth);
+                result.upvalue = AddUpValue(relatedToken, result.index, enclosing->mTableDepth);
             }
             return result;
         }
 
-        ERROR(L"No symbol:" + name + L" in current scope.")
+        Hint::Error(relatedToken, L"No symbol:{} in current scope.", name);
     }
 
-    UpValue SymbolTable::AddUpValue(uint8_t location, uint8_t depth)
+    UpValue SymbolTable::AddUpValue(Token relatedToken, uint8_t location, uint8_t depth)
     {
         for (int32_t i = 0; i < mUpValueCount; ++i)
         {
@@ -88,7 +89,7 @@ namespace lws
         }
 
         if (mUpValueCount == UINT8_COUNT)
-            ERROR("Too many closure upvalues in function.")
+            Hint::Error(relatedToken, L"Too many closure upvalues in function.");
         mUpValues[mUpValueCount].location = location;
         mUpValues[mUpValueCount].depth = depth;
         mUpValues[mUpValueCount].index = mUpValueCount;

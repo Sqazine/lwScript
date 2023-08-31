@@ -85,7 +85,7 @@ namespace lws
     }
     Stmt *SyntaxChecker::CheckIfStmt(IfStmt *stmt)
     {
-        return CheckStmt(stmt);
+        return stmt;
     }
     Stmt *SyntaxChecker::CheckScopeStmt(ScopeStmt *stmt)
     {
@@ -95,11 +95,20 @@ namespace lws
     }
     Stmt *SyntaxChecker::CheckWhileStmt(WhileStmt *stmt)
     {
-        return CheckStmt(stmt);
+        stmt->condition=CheckExpr(stmt->condition);
+        stmt->body=(ScopeStmt*)CheckScopeStmt(stmt->body);
+        if(stmt->increment)
+            stmt->increment=(ScopeStmt*)CheckScopeStmt(stmt->increment);
+        return stmt;
     }
     Stmt *SyntaxChecker::CheckEnumStmt(EnumStmt *stmt)
     {
-        return CheckStmt(stmt);
+        stmt->enumName=(IdentifierExpr*)CheckIdentifierExpr(stmt->enumName);
+        for(auto& [k,v]:stmt->enumItems)
+        {
+            v=CheckExpr(v);
+        }
+        return stmt;
     }
     Stmt *SyntaxChecker::CheckFunctionStmt(FunctionStmt *stmt)
     {
@@ -117,7 +126,7 @@ namespace lws
     }
     Stmt *SyntaxChecker::CheckClassStmt(ClassStmt *stmt)
     {
-        return CheckStmt(stmt);
+        return stmt;
     }
     Stmt *SyntaxChecker::CheckReturnStmt(ReturnStmt *stmt)
     {

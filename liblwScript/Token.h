@@ -50,7 +50,7 @@ namespace lws
 		TOKEN_VBAR_EQUAL,			 // |=
 		TOKEN_CARET_EQUAL,			 // ^=
 		TOKEN_LESS_LESS_EQUAL,		 // <<=
-		TOKEN_GREATER_GREATER_EQUAL, // >>
+		TOKEN_GREATER_GREATER_EQUAL, // >>=
 		TOKEN_EQUAL_EQUAL,			 // ==
 		TOKEN_LESS_EQUAL,			 // <=
 		TOKEN_GREATER_EQUAL,		 // >=
@@ -104,6 +104,11 @@ namespace lws
 		Token() : type(TOKEN_EOF), literal(L""), line(-1), column(-1), pos(-1) {}
 		Token(TokenType type, std::wstring_view literal, uint64_t line, uint64_t column, uint64_t pos) : type(type), literal(literal), line(line), column(column), pos(pos) {}
 
+		std::wstring ToString() const
+		{
+			return L"\"" + literal + L"\"(" + std::to_wstring(line) + L"," + std::to_wstring(column) + L")";
+		}
+
 		TokenType type;
 		std::wstring literal;
 		uint64_t line;
@@ -113,6 +118,6 @@ namespace lws
 
 	inline std::wostream &operator<<(std::wostream &stream, const Token &token)
 	{
-		return stream << token.literal << L"(" << token.line << "," << token.column << L")";
+		return stream << token.ToString();
 	}
 }

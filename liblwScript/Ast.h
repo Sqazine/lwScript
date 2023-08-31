@@ -57,7 +57,7 @@ namespace lws
 		AstNode(AstType type) : type(type) {}
 		virtual ~AstNode() {}
 
-		virtual std::wstring Stringify() = 0;
+		virtual std::wstring ToString() = 0;
 
 		const AstType type;
 
@@ -69,7 +69,7 @@ namespace lws
 		Expr(AstType type) : AstNode(type) {}
 		virtual ~Expr() {}
 
-		virtual std::wstring Stringify() = 0;
+		virtual std::wstring ToString() = 0;
 	};
 
 	struct IntNumExpr : public Expr
@@ -78,7 +78,7 @@ namespace lws
 		IntNumExpr(int64_t value);
 		~IntNumExpr();
 
-		std::wstring Stringify() override;
+		std::wstring ToString() override;
 
 		int64_t value;
 	};
@@ -89,7 +89,7 @@ namespace lws
 		RealNumExpr(double value);
 		~RealNumExpr();
 
-		std::wstring Stringify() override;
+		std::wstring ToString() override;
 
 		double value;
 	};
@@ -100,7 +100,7 @@ namespace lws
 		StrExpr(std::wstring_view str);
 		~StrExpr();
 
-		std::wstring Stringify() override;
+		std::wstring ToString() override;
 
 		std::wstring value;
 	};
@@ -110,7 +110,7 @@ namespace lws
 		NullExpr();
 		~NullExpr();
 
-		std::wstring Stringify() override;
+		std::wstring ToString() override;
 	};
 
 	struct BoolExpr : public Expr
@@ -119,7 +119,7 @@ namespace lws
 		BoolExpr(bool value);
 		~BoolExpr();
 
-		std::wstring Stringify() override;
+		std::wstring ToString() override;
 
 		bool value;
 	};
@@ -130,7 +130,7 @@ namespace lws
 		IdentifierExpr(std::wstring_view literal);
 		~IdentifierExpr();
 
-		std::wstring Stringify() override;
+		std::wstring ToString() override;
 
 		std::wstring literal;
 	};
@@ -141,7 +141,7 @@ namespace lws
 		VarDescExpr(std::wstring_view typeDesc, Expr *name);
 		~VarDescExpr();
 
-		std::wstring Stringify() override;
+		std::wstring ToString() override;
 
 		std::wstring typeDesc;
 		Expr *name;
@@ -153,7 +153,7 @@ namespace lws
 		ArrayExpr(std::vector<Expr *> elements);
 		~ArrayExpr();
 
-		std::wstring Stringify() override;
+		std::wstring ToString() override;
 
 		std::vector<Expr *> elements;
 	};
@@ -164,7 +164,7 @@ namespace lws
 		DictExpr(const std::vector<std::pair<Expr *, Expr *>> &elements);
 		~DictExpr();
 
-		std::wstring Stringify() override;
+		std::wstring ToString() override;
 
 		std::vector<std::pair<Expr *, Expr *>> elements;
 	};
@@ -175,7 +175,7 @@ namespace lws
 		GroupExpr(Expr *expr);
 		~GroupExpr();
 
-		std::wstring Stringify() override;
+		std::wstring ToString() override;
 
 		Expr *expr;
 	};
@@ -186,7 +186,7 @@ namespace lws
 		PrefixExpr(std::wstring_view op, Expr *right);
 		~PrefixExpr();
 
-		std::wstring Stringify() override;
+		std::wstring ToString() override;
 
 		std::wstring op;
 		Expr *right;
@@ -198,7 +198,7 @@ namespace lws
 		InfixExpr(std::wstring_view op, Expr *left, Expr *right);
 		~InfixExpr();
 
-		std::wstring Stringify() override;
+		std::wstring ToString() override;
 
 		std::wstring op;
 		Expr *left;
@@ -211,7 +211,7 @@ namespace lws
 		PostfixExpr(Expr *left, std::wstring_view op);
 		~PostfixExpr();
 
-		std::wstring Stringify() override;
+		std::wstring ToString() override;
 
 		Expr *left;
 		std::wstring op;
@@ -223,7 +223,7 @@ namespace lws
 		ConditionExpr(Expr *condition, Expr *trueBranch, Expr *falseBranch);
 		~ConditionExpr();
 
-		std::wstring Stringify() override;
+		std::wstring ToString() override;
 
 		Expr *condition;
 		Expr *trueBranch;
@@ -236,7 +236,7 @@ namespace lws
 		IndexExpr(Expr *ds, Expr *index);
 		~IndexExpr();
 
-		std::wstring Stringify() override;
+		std::wstring ToString() override;
 
 		Expr *ds;
 		Expr *index;
@@ -248,7 +248,7 @@ namespace lws
 		RefExpr(Expr *refExpr);
 		~RefExpr();
 
-		std::wstring Stringify() override;
+		std::wstring ToString() override;
 
 		Expr *refExpr;
 	};
@@ -259,7 +259,7 @@ namespace lws
 		LambdaExpr(std::vector<VarDescExpr *> parameters, struct ScopeStmt *body);
 		~LambdaExpr();
 
-		std::wstring Stringify() override;
+		std::wstring ToString() override;
 
 		std::vector<VarDescExpr *> parameters;
 		struct ScopeStmt *body;
@@ -271,7 +271,7 @@ namespace lws
 		CallExpr(Expr *callee, std::vector<Expr *> arguments);
 		~CallExpr();
 
-		std::wstring Stringify() override;
+		std::wstring ToString() override;
 
 		Expr *callee;
 		std::vector<Expr *> arguments;
@@ -283,7 +283,7 @@ namespace lws
 		DotExpr(Expr *callee, IdentifierExpr *callMember);
 		~DotExpr();
 
-		std::wstring Stringify() override;
+		std::wstring ToString() override;
 
 		Expr *callee;
 		IdentifierExpr *callMember;
@@ -295,7 +295,7 @@ namespace lws
 		NewExpr(Expr *callee);
 		~NewExpr();
 
-		std::wstring Stringify() override;
+		std::wstring ToString() override;
 
 		Expr *callee;
 	};
@@ -305,7 +305,7 @@ namespace lws
 		ThisExpr();
 		~ThisExpr();
 
-		std::wstring Stringify() override;
+		std::wstring ToString() override;
 	};
 
 	struct BaseExpr : public Expr
@@ -313,7 +313,7 @@ namespace lws
 		BaseExpr(IdentifierExpr *callMember);
 		~BaseExpr();
 
-		std::wstring Stringify() override;
+		std::wstring ToString() override;
 
 		IdentifierExpr *callMember;
 	};
@@ -324,7 +324,7 @@ namespace lws
 		BlockExpr(const std::vector<struct Stmt *> &stmts, Expr *endExpr);
 		~BlockExpr();
 
-		std::wstring Stringify() override;
+		std::wstring ToString() override;
 
 		std::vector<struct Stmt *> stmts;
 		Expr *endExpr;
@@ -336,7 +336,7 @@ namespace lws
 		AnonyObjExpr(const std::vector<std::pair<std::wstring, Expr *>> &elements);
 		~AnonyObjExpr();
 
-		std::wstring Stringify() override;
+		std::wstring ToString() override;
 
 		std::vector<std::pair<std::wstring, Expr *>> elements;
 	};
@@ -347,7 +347,7 @@ namespace lws
 		VarArgExpr(IdentifierExpr* argName);
 		~VarArgExpr();
 
-		std::wstring Stringify() override;
+		std::wstring ToString() override;
 		IdentifierExpr* argName;
 	};
 
@@ -357,7 +357,7 @@ namespace lws
 		FactorialExpr(Expr* expr);
 		~FactorialExpr();
 
-		std::wstring Stringify() override;
+		std::wstring ToString() override;
 
 		Expr* expr;
 	};
@@ -368,7 +368,7 @@ namespace lws
 		AppregateExpr(const std::vector<Expr*>& exprs);
 		~AppregateExpr();
 
-		std::wstring Stringify() override;
+		std::wstring ToString() override;
 
 		std::vector<Expr*> exprs;
 	};
@@ -378,7 +378,7 @@ namespace lws
 		Stmt(AstType type) : AstNode(type) {}
 		virtual ~Stmt() {}
 
-		virtual std::wstring Stringify() = 0;
+		virtual std::wstring ToString() = 0;
 	};
 
 	struct ExprStmt : public Stmt
@@ -386,7 +386,7 @@ namespace lws
 		ExprStmt();
 		ExprStmt(Expr *expr);
 		~ExprStmt();
-		std::wstring Stringify() override;
+		std::wstring ToString() override;
 
 		Expr *expr;
 	};
@@ -403,7 +403,7 @@ namespace lws
 		VarStmt(Privilege privilege, const std::vector<std::pair<Expr *, Expr *>> &variables);
 		~VarStmt();
 
-		std::wstring Stringify() override;
+		std::wstring ToString() override;
 
 		Privilege privilege;
 		std::vector<std::pair<Expr *, Expr *>> variables;
@@ -415,7 +415,7 @@ namespace lws
 		ReturnStmt(Expr * expr);
 		~ReturnStmt();
 
-		std::wstring Stringify() override;
+		std::wstring ToString() override;
 
 		Expr * expr;
 	};
@@ -426,7 +426,7 @@ namespace lws
 		IfStmt(Expr *condition, Stmt *thenBranch, Stmt *elseBranch);
 		~IfStmt();
 
-		std::wstring Stringify() override;
+		std::wstring ToString() override;
 
 		Expr *condition;
 		Stmt *thenBranch;
@@ -439,7 +439,7 @@ namespace lws
 		ScopeStmt(std::vector<Stmt *> stmts);
 		~ScopeStmt();
 
-		std::wstring Stringify() override;
+		std::wstring ToString() override;
 
 		std::vector<Stmt *> stmts;
 	};
@@ -450,7 +450,7 @@ namespace lws
 		WhileStmt(Expr *condition, ScopeStmt *body, ScopeStmt *increment = nullptr);
 		~WhileStmt();
 
-		std::wstring Stringify() override;
+		std::wstring ToString() override;
 
 		Expr *condition;
 		ScopeStmt *body;
@@ -462,7 +462,7 @@ namespace lws
 		BreakStmt();
 		~BreakStmt();
 
-		std::wstring Stringify() override;
+		std::wstring ToString() override;
 	};
 
 	struct ContinueStmt : public Stmt
@@ -470,7 +470,7 @@ namespace lws
 		ContinueStmt();
 		~ContinueStmt();
 
-		std::wstring Stringify() override;
+		std::wstring ToString() override;
 	};
 
 	struct EnumStmt : public Stmt
@@ -479,7 +479,7 @@ namespace lws
 		EnumStmt(IdentifierExpr *enumName, const std::unordered_map<IdentifierExpr *, Expr *> &enumItems);
 		~EnumStmt();
 
-		std::wstring Stringify() override;
+		std::wstring ToString() override;
 
 		IdentifierExpr *enumName;
 		std::unordered_map<IdentifierExpr *, Expr *> enumItems;
@@ -491,7 +491,7 @@ namespace lws
 		ModuleStmt(IdentifierExpr *modName, const std::vector<Stmt *> &modItems);
 		~ModuleStmt();
 
-		std::wstring Stringify() override;
+		std::wstring ToString() override;
 
 		IdentifierExpr *modName;
 		std::vector<Stmt *> modItems;
@@ -510,7 +510,7 @@ namespace lws
 		FunctionStmt(FunctionType type, IdentifierExpr *name, std::vector<VarDescExpr *> parameters, ScopeStmt *body);
 		~FunctionStmt();
 
-		std::wstring Stringify() override;
+		std::wstring ToString() override;
 
 		FunctionType type;
 		IdentifierExpr *name;
@@ -528,7 +528,7 @@ namespace lws
 				  std::vector<IdentifierExpr *> parentClasses = {});
 		~ClassStmt();
 
-		std::wstring Stringify() override;
+		std::wstring ToString() override;
 
 		std::wstring name;
 		std::vector<IdentifierExpr *> parentClasses;
@@ -543,7 +543,7 @@ namespace lws
 		AstStmts(std::vector<Stmt *> stmts);
 		~AstStmts();
 
-		std::wstring Stringify() override;
+		std::wstring ToString() override;
 
 		std::vector<Stmt *> stmts;
 	};

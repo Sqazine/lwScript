@@ -3,6 +3,7 @@
 #include <array>
 #include "Config.h"
 #include "Value.h"
+#include "Token.h"
 namespace lws
 {
     enum class SymbolType
@@ -29,6 +30,7 @@ namespace lws
         int8_t paramCount = -1;
         UpValue upvalue; // available only while type is SymbolType::UPVALUE
         bool isCaptured = false;
+        Token relatedToken;
     };
     class SymbolTable
     {
@@ -36,9 +38,9 @@ namespace lws
         SymbolTable();
         SymbolTable(SymbolTable *enclosing);
 
-        Symbol Define(ValueDesc descType, const std::wstring &name, int8_t paramCount = -1);
+        Symbol Define(Token relatedToken, ValueDesc descType, const std::wstring &name, int8_t paramCount = -1);
 
-        Symbol Resolve(const std::wstring &name, int8_t paramCount = -1, int8_t d = 0);
+        Symbol Resolve(Token relatedToken,const std::wstring &name, int8_t paramCount = -1, int8_t d = 0);
 
         std::array<Symbol, UINT8_COUNT> mSymbols;
         uint8_t mSymbolCount;
@@ -50,7 +52,7 @@ namespace lws
         SymbolTable *enclosing;
 
     private:
-        UpValue AddUpValue(uint8_t location, uint8_t depth);
+        UpValue AddUpValue(Token relatedToken,uint8_t location, uint8_t depth);
         uint8_t mTableDepth; // Depth of symbol table nesting(related to symboltable's enclosing)
     };
 }

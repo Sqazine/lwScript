@@ -321,7 +321,8 @@ namespace lws
 			auto infix = (InfixExpr *)expr;
 			if (infix->left->type == AST_REAL && infix->right->type == AST_REAL)
 			{
-				Expr *newExpr = nullptr;
+				Expr *newExpr = infix;
+				bool needToDelete = true;
 				if (infix->op == L"+")
 					newExpr = new RealNumExpr(((RealNumExpr *)infix->left)->value + ((RealNumExpr *)infix->right)->value);
 				else if (infix->op == L"-")
@@ -342,14 +343,20 @@ namespace lws
 					newExpr = new BoolExpr(((RealNumExpr *)infix->left)->value < ((RealNumExpr *)infix->right)->value);
 				else if (infix->op == L"<=")
 					newExpr = new BoolExpr(((RealNumExpr *)infix->left)->value <= ((RealNumExpr *)infix->right)->value);
+				else
+					needToDelete = false;
 
-				delete infix;
-				infix = nullptr;
+				if (needToDelete)
+				{
+					delete infix;
+					infix = nullptr;
+				}
 				return newExpr;
 			}
 			else if (infix->left->type == AST_INT && infix->right->type == AST_INT)
 			{
-				Expr *newExpr = nullptr;
+				Expr *newExpr = infix;
+				bool needToDelete = true;
 				if (infix->op == L"+")
 					newExpr = new IntNumExpr(((IntNumExpr *)infix->left)->value + ((IntNumExpr *)infix->right)->value);
 				else if (infix->op == L"-")
@@ -378,14 +385,22 @@ namespace lws
 					newExpr = new BoolExpr(((IntNumExpr *)infix->left)->value < ((IntNumExpr *)infix->right)->value);
 				else if (infix->op == L"<=")
 					newExpr = new BoolExpr(((IntNumExpr *)infix->left)->value <= ((IntNumExpr *)infix->right)->value);
+				else if (infix->op == L"<<")
+					newExpr = new IntNumExpr(((IntNumExpr *)infix->left)->value << ((IntNumExpr *)infix->right)->value);
+				else
+					needToDelete = false;
 
-				delete infix;
-				infix = nullptr;
+				if (needToDelete)
+				{
+					delete infix;
+					infix = nullptr;
+				}
 				return newExpr;
 			}
 			else if (infix->left->type == AST_INT && infix->right->type == AST_REAL)
 			{
-				Expr *newExpr = nullptr;
+				Expr *newExpr = infix;
+				bool needToDelete = true;
 				if (infix->op == L"+")
 					newExpr = new RealNumExpr(((IntNumExpr *)infix->left)->value + ((RealNumExpr *)infix->right)->value);
 				else if (infix->op == L"-")
@@ -406,14 +421,20 @@ namespace lws
 					newExpr = new BoolExpr(((IntNumExpr *)infix->left)->value < ((RealNumExpr *)infix->right)->value);
 				else if (infix->op == L"<=")
 					newExpr = new BoolExpr(((IntNumExpr *)infix->left)->value <= ((RealNumExpr *)infix->right)->value);
+				else
+					needToDelete = false;
 
-				delete infix;
-				infix = nullptr;
+				if (needToDelete)
+				{
+					delete infix;
+					infix = nullptr;
+				}
 				return newExpr;
 			}
 			else if (infix->left->type == AST_REAL && infix->right->type == AST_INT)
 			{
-				Expr *newExpr = nullptr;
+				Expr *newExpr = infix;
+				bool needToDelete = true;
 				if (infix->op == L"+")
 					newExpr = new RealNumExpr(((RealNumExpr *)infix->left)->value + ((IntNumExpr *)infix->right)->value);
 				else if (infix->op == L"-")
@@ -434,9 +455,14 @@ namespace lws
 					newExpr = new BoolExpr(((RealNumExpr *)infix->left)->value < ((IntNumExpr *)infix->right)->value);
 				else if (infix->op == L"<=")
 					newExpr = new BoolExpr(((RealNumExpr *)infix->left)->value <= ((IntNumExpr *)infix->right)->value);
+				else
+					needToDelete = false;
 
-				delete infix;
-				infix = nullptr;
+				if (needToDelete)
+				{
+					delete infix;
+					infix = nullptr;
+				}
 				return newExpr;
 			}
 			else if (infix->left->type == AST_STR && infix->right->type == AST_STR)

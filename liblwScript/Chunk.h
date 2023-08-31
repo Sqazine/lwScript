@@ -2,6 +2,7 @@
 #include <vector>
 #include "Config.h"
 #include "Value.h"
+#include "Token.h"
 namespace lws
 {
     enum OpCode
@@ -18,8 +19,6 @@ namespace lws
         OP_LESS,
         OP_NOT,
         OP_MINUS,
-        OP_AND,
-        OP_OR,
         OP_BIT_AND,
         OP_BIT_OR,
         OP_BIT_XOR,
@@ -69,14 +68,15 @@ namespace lws
         Chunk(const OpCodes &opcodes, const std::vector<Value> &constants);
         ~Chunk();
 
-        std::wstring Stringify(bool outputOpCodeIfExists = false) const;
+        std::wstring ToString(bool outputOpCodeIfExists = false) const;
         std::vector<uint8_t> Serialization() const;
 
         OpCodes opCodes;
         std::vector<Value> constants;
-
+        std::vector<Token> opCodeRelatedTokens;
     private:
-        std::wstring OpCodeStringify(const OpCodes &opcodes) const;
+        std::wstring OpCodeToString(const OpCodes &opcodes) const;
+        uint32_t GetBiggestTokenLength() const;
     };
 
     bool operator==(const Chunk &left, const Chunk &right);

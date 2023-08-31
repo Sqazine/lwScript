@@ -26,7 +26,7 @@ namespace lws
 		else
 			CompileDecl(stmt);
 
-		EmitReturn(0);
+		EmitReturn(0, stmt->tagToken);
 
 		return CurFunction();
 	}
@@ -48,7 +48,7 @@ namespace lws
 		symbol->name = L"_main_start_up";
 
 		for (const auto &libName : LibraryManager::Instance().mStdLibraryMap)
-			mSymbolTable->Define(ValueDesc::CONSTANT, libName);
+			mSymbolTable->Define(Token(), ValueDesc::CONSTANT, libName);
 	}
 
 	void Compiler::CompileDecl(Stmt *stmt)
@@ -99,7 +99,6 @@ namespace lws
 					auto arrayExpr = (ArrayExpr *)k;
 
 					uint32_t resolveAddress = 0;
-
 					OpCode appregateOpCode = OP_APPREGATE_RESOLVE;
 					uint32_t appregateOpCodeAddress;
 
@@ -107,10 +106,8 @@ namespace lws
 					{
 						CompileExpr(v);
 
-						Emit(0xFF);
-						appregateOpCodeAddress = CurOpCodes().size() - 1;
-						Emit(0xFF);
-						resolveAddress = CurOpCodes().size() - 1;
+						appregateOpCodeAddress = EmitOpCode((OpCode)0xFF, arrayExpr->tagToken) - 1;
+						resolveAddress = Emit((OpCode)0xFF);
 					}
 
 					int32_t resolveCount = 0;
@@ -125,7 +122,8 @@ namespace lws
 						if (((VarDescExpr *)arrayExpr->elements[i])->name->type == AST_IDENTIFIER)
 						{
 							auto literal = ((IdentifierExpr *)((VarDescExpr *)arrayExpr->elements[i])->name)->literal;
-							symbol = mSymbolTable->Define(valueDesc, literal);
+							auto token = ((IdentifierExpr *)((VarDescExpr *)arrayExpr->elements[i])->name)->tagToken;
+							symbol = mSymbolTable->Define(token, valueDesc, literal);
 							resolveCount++;
 						}
 						else if (((VarDescExpr *)arrayExpr->elements[i])->name->type == AST_VAR_ARG)
@@ -134,7 +132,8 @@ namespace lws
 							if (((VarArgExpr *)((VarDescExpr *)arrayExpr->elements[i])->name)->argName)
 							{
 								auto literal = ((VarArgExpr *)((VarDescExpr *)arrayExpr->elements[i])->name)->argName->literal;
-								symbol = mSymbolTable->Define(valueDesc, literal);
+								auto token = ((VarArgExpr *)((VarDescExpr *)arrayExpr->elements[i])->name)->argName->tagToken;
+								symbol = mSymbolTable->Define(token, valueDesc, literal);
 								resolveCount++;
 								appregateOpCode = OP_APPREGATE_RESOLVE_VAR_ARG;
 							}
@@ -144,36 +143,43 @@ namespace lws
 
 						if (symbol.type == SymbolType::GLOBAL)
 						{
-							Emit(OP_SET_GLOBAL);
+							EmitOpCode(OP_SET_GLOBAL, symbol.relatedToken);
 							Emit(symbol.index);
-							Emit(OP_POP);
+							EmitOpCode(OP_POP, symbol.relatedToken);
 						}
 					}
 
-					CurOpCodes()[resolveAddress] = resolveCount;
 					CurOpCodes()[appregateOpCodeAddress] = appregateOpCode;
+					CurOpCodes()[resolveAddress] = resolveCount;
 				}
 				else if (k->type == AST_VAR_DESC)
 				{
 					CompileExpr(v);
 
 					std::wstring literal;
-
+					Token token;
 					if (((VarDescExpr *)k)->name->type == AST_IDENTIFIER)
+					{
 						literal = ((IdentifierExpr *)(((VarDescExpr *)k)->name))->literal;
-					else if (((VarDescExpr *)k)->name->type == AST_VAR_ARG)
-						literal = ((VarArgExpr *)((VarDescExpr *)k)->name)->argName->literal;
+						token = ((IdentifierExpr *)(((VarDescExpr *)k)->name))->tagToken;
+					}
 
-					auto symbol = mSymbolTable->Define(valueDesc, literal);
+					else if (((VarDescExpr *)k)->name->type == AST_VAR_ARG)
+					{
+						literal = ((VarArgExpr *)((VarDescExpr *)k)->name)->argName->literal;
+						token = ((VarArgExpr *)((VarDescExpr *)k)->name)->argName->tagToken;
+					}
+
+					auto symbol = mSymbolTable->Define(token, valueDesc, literal);
 					if (symbol.type == SymbolType::GLOBAL)
 					{
-						Emit(OP_SET_GLOBAL);
+						EmitOpCode(OP_SET_GLOBAL, symbol.relatedToken);
 						Emit(symbol.index);
-						Emit(OP_POP);
+						EmitOpCode(OP_POP, symbol.relatedToken);
 					}
 				}
 				else
-					Hint::Error(k->tagToken, L"Unknown variable:{}", k->Stringify());
+					Hint::Error(k->tagToken, L"Unknown variable:{}", k->ToString());
 			}
 		}
 
@@ -189,19 +195,19 @@ namespace lws
 		auto symbol = CompileFunction(stmt);
 		if (symbol.type == SymbolType::GLOBAL)
 		{
-			Emit(OP_SET_GLOBAL);
+			EmitOpCode(OP_SET_GLOBAL, symbol.relatedToken);
 			Emit(symbol.index);
 		}
 		else if (symbol.type == SymbolType::LOCAL)
 		{
-			Emit(OP_SET_LOCAL);
+			EmitOpCode(OP_SET_LOCAL, symbol.relatedToken);
 			Emit(symbol.index);
 		}
-		Emit(OP_POP);
+		EmitOpCode(OP_POP, symbol.relatedToken);
 	}
 	void Compiler::CompileClassDecl(ClassStmt *stmt)
 	{
-		auto symbol = mSymbolTable->Define(ValueDesc::CONSTANT, stmt->name);
+		auto symbol = mSymbolTable->Define(stmt->tagToken, ValueDesc::CONSTANT, stmt->name);
 
 		mFunctionList.emplace_back(new FunctionObject(stmt->name));
 		mSymbolTable = new SymbolTable(mSymbolTable);
@@ -226,25 +232,41 @@ namespace lws
 					for (int32_t i = 0; i < arrayExpr->elements.size(); ++i)
 					{
 						std::wstring literal;
-
+						Token token;
 						if (((VarDescExpr *)arrayExpr->elements[i])->name->type == AST_IDENTIFIER)
-							literal = ((IdentifierExpr *)((VarDescExpr *)arrayExpr->elements[i])->name)->literal;
+						{
+							auto identExpr = ((IdentifierExpr *)((VarDescExpr *)arrayExpr->elements[i])->name);
+							literal = identExpr->literal;
+							token = identExpr->tagToken;
+						}
 						else if (((VarDescExpr *)arrayExpr->elements[i])->name->type == AST_VAR_ARG)
-							literal = ((VarArgExpr *)((VarDescExpr *)arrayExpr->elements[i])->name)->argName->literal;
+						{
+							auto varArgExpr = ((VarArgExpr *)((VarDescExpr *)arrayExpr->elements[i])->name);
+							literal = varArgExpr->argName->literal;
+							token = varArgExpr->argName->tagToken;
+						}
 
-						EmitConstant(new StrObject(literal));
+						EmitConstant(new StrObject(literal), token);
 					}
 				}
 				else if (k->type == AST_VAR_DESC)
 				{
 					std::wstring literal;
-
+					Token token;
 					if (((VarDescExpr *)k)->name->type == AST_IDENTIFIER)
-						literal = ((IdentifierExpr *)(((VarDescExpr *)k)->name))->literal;
+					{
+						auto identExpr = ((IdentifierExpr *)(((VarDescExpr *)k)->name));
+						literal = identExpr->literal;
+						token = identExpr->tagToken;
+					}
 					else if (((VarDescExpr *)k)->name->type == AST_VAR_ARG)
-						literal = ((VarArgExpr *)((VarDescExpr *)k)->name)->argName->literal;
+					{
+						auto varArgExpr = ((VarArgExpr *)((VarDescExpr *)k)->name);
+						literal = varArgExpr->argName->literal;
+						token = varArgExpr->tagToken;
+					}
 
-					EmitConstant(new StrObject(literal));
+					EmitConstant(new StrObject(literal), token);
 				}
 
 				varCount++;
@@ -267,25 +289,41 @@ namespace lws
 					for (int32_t i = 0; i < arrayExpr->elements.size(); ++i)
 					{
 						std::wstring literal;
-
+						Token token;
 						if (((VarDescExpr *)arrayExpr->elements[i])->name->type == AST_IDENTIFIER)
-							literal = ((IdentifierExpr *)((VarDescExpr *)arrayExpr->elements[i])->name)->literal;
+						{
+							auto identExpr = ((IdentifierExpr *)((VarDescExpr *)arrayExpr->elements[i])->name);
+							literal = identExpr->literal;
+							token = identExpr->tagToken;
+						}
 						else if (((VarDescExpr *)arrayExpr->elements[i])->name->type == AST_VAR_ARG)
-							literal = ((VarArgExpr *)((VarDescExpr *)arrayExpr->elements[i])->name)->argName->literal;
+						{
+							auto varArgExpr = ((VarArgExpr *)((VarDescExpr *)arrayExpr->elements[i])->name);
+							literal = varArgExpr->argName->literal;
+							token = varArgExpr->argName->tagToken;
+						}
 
-						EmitConstant(new StrObject(literal));
+						EmitConstant(new StrObject(literal), token);
 					}
 				}
 				else if (k->type == AST_VAR_DESC)
 				{
 					std::wstring literal;
-
+					Token token;
 					if (((VarDescExpr *)k)->name->type == AST_IDENTIFIER)
-						literal = ((IdentifierExpr *)(((VarDescExpr *)k)->name))->literal;
+					{
+						auto identExpr = ((IdentifierExpr *)(((VarDescExpr *)k)->name));
+						literal = identExpr->literal;
+						token = identExpr->tagToken;
+					}
 					else if (((VarDescExpr *)k)->name->type == AST_VAR_ARG)
-						literal = ((VarArgExpr *)((VarDescExpr *)k)->name)->argName->literal;
+					{
+						auto varArgExpr = ((VarArgExpr *)((VarDescExpr *)k)->name);
+						literal = varArgExpr->argName->literal;
+						token = varArgExpr->tagToken;
+					}
 
-					EmitConstant(new StrObject(literal));
+					EmitConstant(new StrObject(literal), token);
 				}
 
 				constCount++;
@@ -295,29 +333,29 @@ namespace lws
 		for (const auto &fnStmt : stmt->fnStmts)
 		{
 			CompileFunction(fnStmt);
-			EmitConstant(new StrObject(fnStmt->name->literal));
+			EmitConstant(new StrObject(fnStmt->name->literal), fnStmt->tagToken);
 			constCount++;
 		}
 
 		for (const auto &parentClass : stmt->parentClasses)
 		{
 			CompileIdentifierExpr(parentClass, RWState::READ);
-			Emit(OP_CALL);
+			EmitOpCode(OP_CALL, parentClass->tagToken);
 			Emit(0);
-			EmitConstant(new StrObject(parentClass->literal));
+			EmitConstant(new StrObject(parentClass->literal), parentClass->tagToken);
 		}
 
 		for (const auto &ctor : stmt->constructors)
 			CompileFunction(ctor);
 
-		EmitConstant(new StrObject(stmt->name));
-		Emit(OP_CLASS);
+		EmitConstant(new StrObject(stmt->name), stmt->tagToken);
+		EmitOpCode(OP_CLASS, stmt->tagToken);
 		Emit(stmt->constructors.size());
 		Emit(varCount);
 		Emit(constCount);
 		Emit(stmt->parentClasses.size());
 
-		EmitReturn(1);
+		EmitReturn(1, stmt->tagToken);
 
 		ExitScope();
 		mSymbolTable = mSymbolTable->enclosing;
@@ -325,19 +363,19 @@ namespace lws
 		auto function = mFunctionList.back();
 		mFunctionList.pop_back();
 
-		EmitClosure(function);
+		EmitClosure(function, stmt->tagToken);
 
 		if (symbol.type == SymbolType::GLOBAL)
 		{
-			Emit(OP_SET_GLOBAL);
+			EmitOpCode(OP_SET_GLOBAL, symbol.relatedToken);
 			Emit(symbol.index);
 		}
 		else if (symbol.type == SymbolType::LOCAL)
 		{
-			Emit(OP_SET_LOCAL);
+			EmitOpCode(OP_SET_LOCAL, symbol.relatedToken);
 			Emit(symbol.index);
 		}
-		Emit(OP_POP);
+		EmitOpCode(OP_POP, symbol.relatedToken);
 	}
 
 	void Compiler::CompileEnumDecl(EnumStmt *stmt)
@@ -360,13 +398,13 @@ namespace lws
 			pairs[k->literal] = enumValue;
 		}
 
-		EmitConstant(new EnumObject(stmt->enumName->literal, pairs));
-		auto symbol = mSymbolTable->Define(ValueDesc::CONSTANT, stmt->enumName->literal);
+		EmitConstant(new EnumObject(stmt->enumName->literal, pairs), stmt->enumName->tagToken);
+		auto symbol = mSymbolTable->Define(stmt->tagToken, ValueDesc::CONSTANT, stmt->enumName->literal);
 		if (symbol.type == SymbolType::GLOBAL)
 		{
-			Emit(OP_SET_GLOBAL);
+			EmitOpCode(OP_SET_GLOBAL, symbol.relatedToken);
 			Emit(symbol.index);
-			Emit(OP_POP);
+			EmitOpCode(OP_POP, symbol.relatedToken);
 		}
 	}
 
@@ -391,10 +429,10 @@ namespace lws
 			CompileReturnStmt((ReturnStmt *)stmt);
 			break;
 		case AST_BREAK:
-			CompileBreakStmt(breakStmtAddress);
+			CompileBreakStmt((BreakStmt *)stmt, breakStmtAddress);
 			break;
 		case AST_CONTINUE:
-			CompileContinueStmt(continueStmtAddress);
+			CompileContinueStmt((ContinueStmt *)stmt, continueStmtAddress);
 			break;
 		default:
 			CompileExprStmt((ExprStmt *)stmt);
@@ -407,7 +445,7 @@ namespace lws
 
 		CompileExpr(stmt->expr);
 
-		Emit(OP_POP);
+		EmitOpCode(OP_POP, stmt->tagToken);
 
 		if (!postfixExprs.empty())
 		{
@@ -428,17 +466,17 @@ namespace lws
 				CompilePostfixExpr((PostfixExpr *)postfixExpr, RWState::READ, false);
 		}
 
-		auto jmpIfFalseAddress = EmitJump(OP_JUMP_IF_FALSE);
+		auto jmpIfFalseAddress = EmitJump(OP_JUMP_IF_FALSE, stmt->condition->tagToken);
 
-		Emit(OP_POP);
+		EmitOpCode(OP_POP, stmt->condition->tagToken);
 
 		CompileDecl(stmt->thenBranch, breakStmtAddress, continueStmtAddress);
 
-		auto jmpAddress = EmitJump(OP_JUMP);
+		auto jmpAddress = EmitJump(OP_JUMP, stmt->thenBranch->tagToken);
 
 		PatchJump(jmpIfFalseAddress);
 
-		Emit(OP_POP);
+		EmitOpCode(OP_POP, stmt->thenBranch->tagToken);
 
 		if (stmt->elseBranch)
 			CompileDecl(stmt->elseBranch, breakStmtAddress, continueStmtAddress);
@@ -464,9 +502,9 @@ namespace lws
 				CompilePostfixExpr((PostfixExpr *)postfixExpr, RWState::READ, false);
 		}
 
-		auto jmpIfFalseAddress = EmitJump(OP_JUMP_IF_FALSE);
+		auto jmpIfFalseAddress = EmitJump(OP_JUMP_IF_FALSE, stmt->condition->tagToken);
 
-		Emit(OP_POP);
+		EmitOpCode(OP_POP, stmt->condition->tagToken);
 
 		int64_t breakStmtAddress = -1;
 		int64_t continueStmtAddress = -1;
@@ -478,11 +516,11 @@ namespace lws
 		if (stmt->increment)
 			CompileStmt(stmt->increment, breakStmtAddress, breakStmtAddress);
 
-		EmitLoop(jmpAddress);
+		EmitLoop(jmpAddress, stmt->tagToken);
 
 		PatchJump(jmpIfFalseAddress);
 
-		Emit(OP_POP);
+		EmitOpCode(OP_POP, stmt->condition->tagToken);
 
 		if (breakStmtAddress != -1)
 			PatchJump(breakStmtAddress);
@@ -494,10 +532,10 @@ namespace lws
 		if (stmt->expr)
 		{
 			CompileExpr(stmt->expr);
-			EmitReturn(1);
+			EmitReturn(1, stmt->expr->tagToken);
 		}
 		else
-			EmitReturn(0);
+			EmitReturn(0, stmt->tagToken);
 
 		if (!postfixExprs.empty())
 		{
@@ -506,13 +544,13 @@ namespace lws
 		}
 	}
 
-	void Compiler::CompileBreakStmt(int64_t &stmtAddress)
+	void Compiler::CompileBreakStmt(BreakStmt *stmt, int64_t &stmtAddress)
 	{
-		stmtAddress = EmitJump(OP_JUMP);
+		stmtAddress = EmitJump(OP_JUMP, stmt->tagToken);
 	}
-	void Compiler::CompileContinueStmt(int64_t &stmtAddress)
+	void Compiler::CompileContinueStmt(ContinueStmt *stmt, int64_t &stmtAddress)
 	{
-		stmtAddress = EmitJump(OP_JUMP);
+		stmtAddress = EmitJump(OP_JUMP, stmt->tagToken);
 	}
 
 	void Compiler::CompileExpr(Expr *expr, const RWState &state, int8_t paramCount)
@@ -614,10 +652,8 @@ namespace lws
 				{
 					CompileExpr(expr->right);
 
-					Emit(0xFF);
-					appregateOpCodeAddress = CurOpCodes().size() - 1;
-					Emit(0xFF);
-					resolveAddress = CurOpCodes().size() - 1;
+					appregateOpCodeAddress = EmitOpCode((OpCode)0xFF, assignee->tagToken) - 1;
+					resolveAddress = Emit((OpCode)0xFF);
 				}
 
 				uint32_t resolveCount = assignee->elements.size();
@@ -630,14 +666,14 @@ namespace lws
 						resolveCount--;
 				}
 
-				CurOpCodes()[resolveAddress] = resolveCount;
 				CurOpCodes()[appregateOpCodeAddress] = appregateOpCode;
+				CurOpCodes()[resolveAddress] = resolveCount;
 
 				for (int32_t i = 0; i < resolveCount; ++i)
 				{
 					CompileExpr(assignee->elements[i], RWState::WRITE);
 					if (i < resolveCount - 1)
-						Emit(OP_POP);
+						EmitOpCode(OP_POP, assignee->elements[i]->tagToken);
 				}
 			}
 			else
@@ -650,18 +686,18 @@ namespace lws
 		{
 			// Short circuit calculation
 			CompileExpr(expr->left);
-			uint8_t address = EmitJump(OP_JUMP_IF_FALSE);
-			Emit(OP_POP);
+			uint8_t address = EmitJump(OP_JUMP_IF_FALSE, expr->left->tagToken);
+			EmitOpCode(OP_POP, expr->left->tagToken);
 			CompileExpr(expr->right);
 			PatchJump(address);
 		}
 		else if (expr->op == L"||")
 		{
 			CompileExpr(expr->left);
-			uint8_t elseJumpAddress = EmitJump(OP_JUMP_IF_FALSE);
-			uint8_t jumpAddress = EmitJump(OP_JUMP);
+			uint8_t elseJumpAddress = EmitJump(OP_JUMP_IF_FALSE, expr->left->tagToken);
+			uint8_t jumpAddress = EmitJump(OP_JUMP, expr->left->tagToken);
 			PatchJump(elseJumpAddress);
-			Emit(OP_POP);
+			EmitOpCode(OP_POP, expr->left->tagToken);
 			CompileExpr(expr->right);
 			PatchJump(jumpAddress);
 		}
@@ -670,124 +706,126 @@ namespace lws
 			CompileExpr(expr->left);
 			CompileExpr(expr->right);
 			if (expr->op == L"+")
-				Emit(OP_ADD);
+				EmitOpCode(OP_ADD, expr->tagToken);
 			else if (expr->op == L"-")
-				Emit(OP_SUB);
+				EmitOpCode(OP_SUB, expr->tagToken);
 			else if (expr->op == L"*")
-				Emit(OP_MUL);
+				EmitOpCode(OP_MUL, expr->tagToken);
 			else if (expr->op == L"/")
-				Emit(OP_DIV);
+				EmitOpCode(OP_DIV, expr->tagToken);
 			else if (expr->op == L"%")
-				Emit(OP_MOD);
+				EmitOpCode(OP_MOD, expr->tagToken);
 			else if (expr->op == L"&")
-				Emit(OP_BIT_AND);
+				EmitOpCode(OP_BIT_AND, expr->tagToken);
 			else if (expr->op == L"|")
-				Emit(OP_BIT_OR);
+				EmitOpCode(OP_BIT_OR, expr->tagToken);
 			else if (expr->op == L"<")
-				Emit(OP_LESS);
+				EmitOpCode(OP_LESS, expr->tagToken);
 			else if (expr->op == L">")
-				Emit(OP_GREATER);
+				EmitOpCode(OP_GREATER, expr->tagToken);
 			else if (expr->op == L"<<")
-				Emit(OP_BIT_LEFT_SHIFT);
+				EmitOpCode(OP_BIT_LEFT_SHIFT, expr->tagToken);
 			else if (expr->op == L">>")
-				Emit(OP_BIT_RIGHT_SHIFT);
+				EmitOpCode(OP_BIT_RIGHT_SHIFT, expr->tagToken);
 			else if (expr->op == L"<=")
 			{
-				Emit(OP_GREATER);
-				Emit(OP_NOT);
+				EmitOpCode(OP_GREATER, expr->tagToken);
+				EmitOpCode(OP_NOT, expr->tagToken);
 			}
 			else if (expr->op == L">=")
 			{
-				Emit(OP_LESS);
-				Emit(OP_NOT);
+				EmitOpCode(OP_LESS, expr->tagToken);
+				EmitOpCode(OP_NOT, expr->tagToken);
 			}
 			else if (expr->op == L"==")
-				Emit(OP_EQUAL);
+				EmitOpCode(OP_EQUAL, expr->tagToken);
 			else if (expr->op == L"!=")
 			{
-				Emit(OP_EQUAL);
-				Emit(OP_NOT);
+				EmitOpCode(OP_EQUAL, expr->tagToken);
+				EmitOpCode(OP_NOT, expr->tagToken);
 			}
 			else if (expr->op == L"+=")
 			{
-				Emit(OP_ADD);
+				EmitOpCode(OP_ADD, expr->tagToken);
 				CompileExpr(expr->left, RWState::WRITE);
 			}
 			else if (expr->op == L"-=")
 			{
-				Emit(OP_SUB);
+				EmitOpCode(OP_SUB, expr->tagToken);
 				CompileExpr(expr->left, RWState::WRITE);
 			}
 			else if (expr->op == L"*=")
 			{
-				Emit(OP_SUB);
+				EmitOpCode(OP_MUL, expr->tagToken);
 				CompileExpr(expr->left, RWState::WRITE);
 			}
 			else if (expr->op == L"/=")
 			{
-				Emit(OP_SUB);
+				EmitOpCode(OP_DIV, expr->tagToken);
 				CompileExpr(expr->left, RWState::WRITE);
 			}
 			else if (expr->op == L"%=")
 			{
-				Emit(OP_MOD);
+				EmitOpCode(OP_MOD, expr->tagToken);
 				CompileExpr(expr->left, RWState::WRITE);
 			}
 			else if (expr->op == L"&=")
 			{
-				Emit(OP_BIT_AND);
+				EmitOpCode(OP_BIT_AND, expr->tagToken);
 				CompileExpr(expr->left, RWState::WRITE);
 			}
 			else if (expr->op == L"|=")
 			{
-				Emit(OP_BIT_OR);
+				EmitOpCode(OP_BIT_OR, expr->tagToken);
 				CompileExpr(expr->left, RWState::WRITE);
 			}
 			else if (expr->op == L"<<=")
 			{
-				Emit(OP_BIT_LEFT_SHIFT);
+				EmitOpCode(OP_BIT_LEFT_SHIFT, expr->tagToken);
 				CompileExpr(expr->left, RWState::WRITE);
 			}
 			else if (expr->op == L">>=")
 			{
-				Emit(OP_BIT_RIGHT_SHIFT);
+				EmitOpCode(OP_BIT_RIGHT_SHIFT, expr->tagToken);
 				CompileExpr(expr->left, RWState::WRITE);
 			}
 		}
 	}
 	void Compiler::CompileIntNumExpr(IntNumExpr *expr)
 	{
-		EmitConstant(expr->value);
+		EmitConstant(expr->value, expr->tagToken);
 	}
 	void Compiler::CompileRealNumExpr(RealNumExpr *expr)
 	{
-		EmitConstant(expr->value);
+		EmitConstant(expr->value, expr->tagToken);
 	}
 	void Compiler::CompileBoolExpr(BoolExpr *expr)
 	{
-		EmitConstant(expr->value);
+		EmitConstant(expr->value, expr->tagToken);
 	}
 	void Compiler::CompilePrefixExpr(PrefixExpr *expr)
 	{
 		CompileExpr(expr->right);
 		if (expr->op == L"!")
-			Emit(OP_NOT);
+			EmitOpCode(OP_NOT, expr->tagToken);
 		else if (expr->op == L"-")
-			Emit(OP_MINUS);
+			EmitOpCode(OP_MINUS, expr->tagToken);
+		else if (expr->op == L"~")
+			EmitOpCode(OP_BIT_NOT, expr->tagToken);
 		else if (expr->op == L"++")
 		{
 			while (expr->right->type == AST_PREFIX && ((PrefixExpr *)expr->right)->op == L"++" || ((PrefixExpr *)expr->right)->op == L"--")
 				expr = (PrefixExpr *)expr->right;
-			EmitConstant((int64_t)1);
-			Emit(OP_ADD);
+			EmitConstant((int64_t)1, expr->tagToken);
+			EmitOpCode(OP_ADD, expr->tagToken);
 			CompileExpr(expr->right, RWState::WRITE);
 		}
 		else if (expr->op == L"--")
 		{
 			while (expr->right->type == AST_PREFIX && ((PrefixExpr *)expr->right)->op == L"++" || ((PrefixExpr *)expr->right)->op == L"--")
 				expr = (PrefixExpr *)expr->right;
-			EmitConstant((int64_t)1);
-			Emit(OP_SUB);
+			EmitConstant((int64_t)1, expr->tagToken);
+			EmitOpCode(OP_SUB, expr->tagToken);
 			CompileExpr(expr->right, RWState::WRITE);
 		}
 		else
@@ -798,15 +836,15 @@ namespace lws
 		CompileExpr(expr->left, state);
 		if (!isDelayCompile)
 		{
-			EmitConstant((int64_t)1);
+			EmitConstant((int64_t)1, expr->tagToken);
 			if (expr->op == L"++")
-				Emit(OP_ADD);
+				EmitOpCode(OP_ADD, expr->tagToken);
 			else if (expr->op == L"--")
-				Emit(OP_SUB);
+				EmitOpCode(OP_SUB, expr->tagToken);
 			else
 				Hint::Error(expr->tagToken, L"No postfix op:{}", expr->op);
 			CompileExpr(expr->left, RWState::WRITE);
-			Emit(OP_POP);
+			EmitOpCode(OP_POP, expr->tagToken);
 		}
 	}
 
@@ -814,17 +852,17 @@ namespace lws
 	{
 		CompileExpr(expr->condition);
 
-		auto jmpIfFalseAddress = EmitJump(OP_JUMP_IF_FALSE);
+		auto jmpIfFalseAddress = EmitJump(OP_JUMP_IF_FALSE, expr->condition->tagToken);
 
-		Emit(OP_POP);
+		EmitOpCode(OP_POP, expr->condition->tagToken);
 
 		CompileExpr(expr->trueBranch);
 
-		auto jmpAddress = EmitJump(OP_JUMP);
+		auto jmpAddress = EmitJump(OP_JUMP, expr->trueBranch->tagToken);
 
 		PatchJump(jmpIfFalseAddress);
 
-		Emit(OP_POP);
+		EmitOpCode(OP_POP, expr->trueBranch->tagToken);
 
 		CompileExpr(expr->falseBranch);
 
@@ -833,11 +871,11 @@ namespace lws
 
 	void Compiler::CompileStrExpr(StrExpr *expr)
 	{
-		EmitConstant(new StrObject(expr->value));
+		EmitConstant(new StrObject(expr->value), expr->tagToken);
 	}
 	void Compiler::CompileNullExpr(NullExpr *expr)
 	{
-		Emit(OP_NULL);
+		EmitOpCode(OP_NULL, expr->tagToken);
 	}
 	void Compiler::CompileGroupExpr(GroupExpr *expr)
 	{
@@ -847,7 +885,7 @@ namespace lws
 	{
 		for (int32_t i = expr->elements.size() - 1; i >= 0; --i)
 			CompileExpr(expr->elements[i]);
-		Emit(OP_ARRAY);
+		EmitOpCode(OP_ARRAY, expr->tagToken);
 
 		uint8_t pos = expr->elements.size();
 		Emit(pos);
@@ -857,7 +895,7 @@ namespace lws
 	{
 		for (int32_t i = expr->exprs.size() - 1; i >= 0; --i)
 			CompileExpr(expr->exprs[i]);
-		Emit(OP_ARRAY);
+		EmitOpCode(OP_ARRAY, expr->tagToken);
 
 		uint8_t pos = expr->exprs.size();
 		Emit(pos);
@@ -870,7 +908,7 @@ namespace lws
 			CompileExpr(expr->elements[i].second);
 			CompileExpr(expr->elements[i].first);
 		}
-		Emit(OP_DICT);
+		EmitOpCode(OP_DICT, expr->tagToken);
 		uint8_t pos = expr->elements.size();
 		Emit(pos);
 	}
@@ -880,9 +918,9 @@ namespace lws
 		CompileExpr(expr->ds);
 		CompileExpr(expr->index);
 		if (state == RWState::READ)
-			Emit(OP_GET_INDEX);
+			EmitOpCode(OP_GET_INDEX, expr->tagToken);
 		else
-			Emit(OP_SET_INDEX);
+			EmitOpCode(OP_SET_INDEX, expr->tagToken);
 	}
 
 	void Compiler::CompileNewExpr(NewExpr *expr)
@@ -891,11 +929,11 @@ namespace lws
 		{
 			auto callee = (CallExpr *)expr->callee;
 			CompileExpr(callee->callee, RWState::READ);
-			Emit(OP_CALL);
+			EmitOpCode(OP_CALL, expr->callee->tagToken);
 			Emit(0);
 			for (const auto &arg : callee->arguments)
 				CompileExpr(arg);
-			Emit(OP_CALL);
+			EmitOpCode(OP_CALL, expr->callee->tagToken);
 			Emit(callee->arguments.size());
 		}
 		else if (expr->callee->type == AST_ANONY_OBJ)
@@ -904,20 +942,24 @@ namespace lws
 
 	void Compiler::CompileThisExpr(ThisExpr *expr)
 	{
-		CompileExpr(new IdentifierExpr(L"this"));
+		auto identExpr = new IdentifierExpr(L"this");
+		identExpr->tagToken = expr->tagToken;
+		CompileExpr(identExpr);
 	}
 
 	void Compiler::CompileBaseExpr(BaseExpr *expr)
 	{
-		CompileExpr(new IdentifierExpr(L"this"));
-		EmitConstant(new StrObject(expr->callMember->Stringify()));
-		Emit(OP_GET_BASE);
+		auto identExpr = new IdentifierExpr(L"this");
+		identExpr->tagToken = expr->tagToken;
+		CompileExpr(identExpr);
+		EmitConstant(new StrObject(expr->callMember->ToString()), expr->tagToken);
+		EmitOpCode(OP_GET_BASE, expr->callMember->tagToken);
 	}
 
 	void Compiler::CompileIdentifierExpr(IdentifierExpr *expr, const RWState &state, int8_t paramCount)
 	{
 		OpCode getOp, setOp;
-		auto symbol = mSymbolTable->Resolve(expr->literal, paramCount);
+		auto symbol = mSymbolTable->Resolve(expr->tagToken, expr->literal, paramCount);
 		if (symbol.type == SymbolType::GLOBAL)
 		{
 			getOp = OP_GET_GLOBAL;
@@ -938,18 +980,18 @@ namespace lws
 		{
 			if (symbol.descType == ValueDesc::VARIABLE)
 			{
-				Emit(setOp);
+				EmitOpCode(setOp, expr->tagToken);
 				if (symbol.type == SymbolType::UPVALUE)
 					Emit(symbol.upvalue.index);
 				else
 					Emit(symbol.index);
 			}
 			else
-				Hint::Error(expr->tagToken, L"{} is a constant,which cannot be assigned!", expr->Stringify());
+				Hint::Error(expr->tagToken, L"{} is a constant,which cannot be assigned!", expr->ToString());
 		}
 		else
 		{
-			Emit(getOp);
+			EmitOpCode(getOp, expr->tagToken);
 			if (symbol.type == SymbolType::UPVALUE)
 				Emit(symbol.upvalue.index);
 			else
@@ -961,7 +1003,7 @@ namespace lws
 		mFunctionList.emplace_back(new FunctionObject());
 		mSymbolTable = new SymbolTable(mSymbolTable);
 
-		mSymbolTable->Define(ValueDesc::CONSTANT, L"");
+		mSymbolTable->Define(expr->tagToken, ValueDesc::CONSTANT, L"");
 
 		CurFunction()->arity = expr->parameters.size();
 
@@ -969,12 +1011,12 @@ namespace lws
 		{
 			auto varDescExpr = (VarDescExpr *)param;
 			if (varDescExpr->name->type == AST_IDENTIFIER)
-				mSymbolTable->Define(ValueDesc::VARIABLE, ((IdentifierExpr *)((VarDescExpr *)param)->name)->literal);
+				mSymbolTable->Define(varDescExpr->tagToken, ValueDesc::VARIABLE, ((IdentifierExpr *)((VarDescExpr *)param)->name)->literal);
 			else if (varDescExpr->name->type == AST_VAR_ARG)
 			{
 				auto varArg = ((VarArgExpr *)varDescExpr->name);
 				if (varArg->argName)
-					mSymbolTable->Define(ValueDesc::VARIABLE, varArg->argName->literal);
+					mSymbolTable->Define(varArg->tagToken, ValueDesc::VARIABLE, varArg->argName->literal);
 			}
 		}
 
@@ -985,14 +1027,14 @@ namespace lws
 		CompileScopeStmt(expr->body, breakStmtAddress, continueStmtAddress);
 
 		if (CurChunk().opCodes[CurChunk().opCodes.size() - 2] != OP_RETURN)
-			EmitReturn(0);
+			EmitReturn(0, expr->body->stmts.back()->tagToken);
 
 		mSymbolTable = mSymbolTable->enclosing;
 
 		auto function = mFunctionList.back();
 		mFunctionList.pop_back();
 
-		EmitClosure(function);
+		EmitClosure(function, expr->tagToken);
 	}
 
 	void Compiler::CompileBlockExpr(BlockExpr *expr)
@@ -1009,57 +1051,58 @@ namespace lws
 		CompileExpr(expr->callee, RWState::READ, expr->arguments.size());
 		for (const auto &arg : expr->arguments)
 			CompileExpr(arg);
-		Emit(OP_CALL);
+		EmitOpCode(OP_CALL, expr->callee->tagToken);
 		Emit(expr->arguments.size());
 	}
 	void Compiler::CompileDotExpr(DotExpr *expr, const RWState &state)
 	{
 		CompileExpr(expr->callee);
-		EmitConstant(new StrObject(expr->callMember->literal));
+		EmitConstant(new StrObject(expr->callMember->literal), expr->callee->tagToken);
 		if (state == RWState::WRITE)
-			Emit(OP_SET_PROPERTY);
+			EmitOpCode(OP_SET_PROPERTY, expr->callMember->tagToken);
 		else
-			Emit(OP_GET_PROPERTY);
+			EmitOpCode(OP_GET_PROPERTY, expr->callMember->tagToken);
 	}
 	void Compiler::CompileRefExpr(RefExpr *expr)
 	{
 		Symbol symbol;
 		if (expr->refExpr->type == AST_INDEX)
 		{
-			CompileExpr(((IndexExpr *)expr->refExpr)->index);
-			symbol = mSymbolTable->Resolve(((IndexExpr *)expr->refExpr)->ds->Stringify());
+			auto refIdxExpr = ((IndexExpr *)expr->refExpr);
+			CompileExpr(refIdxExpr->index);
+			symbol = mSymbolTable->Resolve(refIdxExpr->ds->tagToken, refIdxExpr->ds->ToString());
 			if (symbol.type == SymbolType::GLOBAL)
 			{
-				Emit(OP_REF_INDEX_GLOBAL);
+				EmitOpCode(OP_REF_INDEX_GLOBAL, symbol.relatedToken);
 				Emit(symbol.index);
 			}
 			else if (symbol.type == SymbolType::LOCAL)
 			{
-				Emit(OP_REF_INDEX_LOCAL);
+				EmitOpCode(OP_REF_INDEX_LOCAL, symbol.relatedToken);
 				Emit(symbol.index);
 			}
 			else if (symbol.type == SymbolType::UPVALUE)
 			{
-				Emit(OP_REF_INDEX_UPVALUE);
+				EmitOpCode(OP_REF_INDEX_UPVALUE, symbol.relatedToken);
 				Emit(symbol.upvalue.index);
 			}
 		}
 		else
 		{
-			symbol = mSymbolTable->Resolve(expr->refExpr->Stringify());
+			symbol = mSymbolTable->Resolve(expr->refExpr->tagToken, expr->refExpr->ToString());
 			if (symbol.type == SymbolType::GLOBAL)
 			{
-				Emit(OP_REF_GLOBAL);
+				EmitOpCode(OP_REF_GLOBAL, symbol.relatedToken);
 				Emit(symbol.index);
 			}
 			else if (symbol.type == SymbolType::LOCAL)
 			{
-				Emit(OP_REF_LOCAL);
+				EmitOpCode(OP_REF_LOCAL, symbol.relatedToken);
 				Emit(symbol.index);
 			}
 			else if (symbol.type == SymbolType::UPVALUE)
 			{
-				Emit(OP_REF_UPVALUE);
+				EmitOpCode(OP_REF_UPVALUE, symbol.relatedToken);
 				Emit(symbol.upvalue.index);
 			}
 		}
@@ -1070,9 +1113,9 @@ namespace lws
 		for (auto [k, v] : expr->elements)
 		{
 			CompileExpr(v);
-			EmitConstant(new StrObject(k));
+			EmitConstant(new StrObject(k), v->tagToken);
 		}
-		Emit(OP_ANONYMOUS_OBJ);
+		EmitOpCode(OP_ANONYMOUS_OBJ, expr->tagToken);
 		uint8_t pos = expr->elements.size();
 		Emit(pos);
 	}
@@ -1088,12 +1131,12 @@ namespace lws
 	void Compiler::CompileFactorialExpr(FactorialExpr *expr, const RWState &state)
 	{
 		CompileExpr(expr->expr, state);
-		Emit(OP_FACTORIAL);
+		EmitOpCode(OP_FACTORIAL, expr->tagToken);
 	}
 
 	Symbol Compiler::CompileFunction(FunctionStmt *stmt)
 	{
-		auto functionSymbol = mSymbolTable->Define(ValueDesc::CONSTANT, stmt->name->literal, stmt->parameters.size());
+		auto functionSymbol = mSymbolTable->Define(stmt->tagToken, ValueDesc::CONSTANT, stmt->name->literal, stmt->parameters.size());
 
 		mFunctionList.emplace_back(new FunctionObject(stmt->name->literal));
 		mSymbolTable = new SymbolTable(mSymbolTable);
@@ -1101,7 +1144,7 @@ namespace lws
 		std::wstring symbolName = L"";
 		if (stmt->type == FunctionType::CLASS_CLOSURE || stmt->type == FunctionType::CLASS_CONSTRUCTOR)
 			symbolName = L"this";
-		mSymbolTable->Define(ValueDesc::CONSTANT, symbolName);
+		mSymbolTable->Define(stmt->tagToken, ValueDesc::CONSTANT, symbolName);
 
 		CurFunction()->arity = stmt->parameters.size();
 
@@ -1109,12 +1152,12 @@ namespace lws
 		{
 			auto varDescExpr = (VarDescExpr *)param;
 			if (varDescExpr->name->type == AST_IDENTIFIER)
-				mSymbolTable->Define(ValueDesc::VARIABLE, ((IdentifierExpr *)((VarDescExpr *)param)->name)->literal);
+				mSymbolTable->Define(varDescExpr->tagToken, ValueDesc::VARIABLE, ((IdentifierExpr *)((VarDescExpr *)param)->name)->literal);
 			else if (varDescExpr->name->type == AST_VAR_ARG)
 			{
 				auto varArg = ((VarArgExpr *)varDescExpr->name);
 				if (varArg->argName)
-					mSymbolTable->Define(ValueDesc::VARIABLE, varArg->argName->literal);
+					mSymbolTable->Define(varArg->argName->tagToken, ValueDesc::VARIABLE, varArg->argName->literal);
 			}
 		}
 
@@ -1126,9 +1169,9 @@ namespace lws
 
 		if (stmt->type == FunctionType::CLASS_CONSTRUCTOR)
 		{
-			Emit(OP_GET_LOCAL);
+			EmitOpCode(OP_GET_LOCAL, stmt->tagToken);
 			Emit(0);
-			EmitReturn(1);
+			EmitReturn(1, stmt->tagToken);
 		}
 
 		mFunctionList.back()->upValueCount = mSymbolTable->mUpValueCount;
@@ -1140,7 +1183,7 @@ namespace lws
 		auto function = mFunctionList.back();
 		mFunctionList.pop_back();
 
-		EmitClosure(function);
+		EmitClosure(function, stmt->tagToken);
 
 		for (int32_t i = 0; i < function->upValueCount; ++i)
 		{
@@ -1151,46 +1194,57 @@ namespace lws
 		return functionSymbol;
 	}
 
-	uint8_t Compiler::Emit(uint8_t opcode)
+	uint64_t Compiler::EmitOpCode(OpCode opCode, Token token)
+	{
+		Emit((uint8_t)opCode);
+
+		CurChunk().opCodeRelatedTokens.emplace_back(token);
+
+		Emit(CurChunk().opCodeRelatedTokens.size() - 1);
+
+		return CurOpCodes().size() - 1;
+	}
+
+	uint64_t Compiler::Emit(uint8_t opcode)
 	{
 		CurOpCodes().emplace_back(opcode);
 		return CurOpCodes().size() - 1;
 	}
 
-	uint8_t Compiler::EmitConstant(const Value &value)
+	uint64_t Compiler::EmitConstant(const Value &value, Token token)
 	{
-		Emit(OP_CONSTANT);
+		EmitOpCode(OP_CONSTANT, token);
 		uint8_t pos = AddConstant(value);
 		Emit(pos);
 		return CurOpCodes().size() - 1;
 	}
 
-	uint8_t Compiler::EmitClosure(FunctionObject *function)
+	uint64_t Compiler::EmitClosure(FunctionObject *function, Token token)
 	{
 		uint8_t pos = AddConstant(function);
-		Emit(OP_CLOSURE);
+		EmitOpCode(OP_CLOSURE, token);
 		Emit(pos);
 		return CurOpCodes().size() - 1;
 	}
 
-	uint8_t Compiler::EmitReturn(uint8_t retCount)
+	uint64_t Compiler::EmitReturn(uint8_t retCount, Token token)
 	{
-		Emit(OP_RETURN);
+		EmitOpCode(OP_RETURN, token);
 		Emit(retCount);
 		return CurOpCodes().size() - 1;
 	}
 
-	uint8_t Compiler::EmitJump(uint8_t opcode)
+	uint64_t Compiler::EmitJump(uint8_t opcode, Token token)
 	{
-		Emit(opcode);
+		EmitOpCode((OpCode)opcode, token);
 		Emit(0xFF);
 		Emit(0xFF);
 		return CurOpCodes().size() - 2;
 	}
 
-	void Compiler::EmitLoop(uint16_t opcode)
+	void Compiler::EmitLoop(uint16_t opcode, Token token)
 	{
-		Emit(OP_LOOP);
+		EmitOpCode(OP_LOOP, token);
 		uint16_t offset = CurOpCodes().size() - opcode + 2;
 
 		Emit((offset >> 8) & 0xFF);
@@ -1220,14 +1274,15 @@ namespace lws
 
 		for (int32_t i = 0; i < mSymbolTable->mSymbols.size(); ++i)
 		{
-			if (mSymbolTable->mSymbols[i].type == SymbolType::LOCAL &&
-				mSymbolTable->mSymbols[i].scopeDepth > mSymbolTable->mScopeDepth)
+			Symbol *symbol = &mSymbolTable->mSymbols[i];
+			if (symbol->type == SymbolType::LOCAL &&
+				symbol->scopeDepth > mSymbolTable->mScopeDepth)
 			{
-				if (mSymbolTable->mSymbols[i].isCaptured)
-					Emit(OP_CLOSE_UPVALUE);
+				if (symbol->isCaptured)
+					EmitOpCode(OP_CLOSE_UPVALUE, symbol->relatedToken);
 				else
-					Emit(OP_POP);
-				mSymbolTable->mSymbols[i].type = SymbolType::GLOBAL; // mark as global to avoid second pop
+					EmitOpCode(OP_POP, symbol->relatedToken);
+				symbol->type = SymbolType::GLOBAL; // mark as global to avoid second pop
 			}
 		}
 	}

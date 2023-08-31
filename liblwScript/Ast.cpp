@@ -16,7 +16,7 @@ namespace lws
 	{
 	}
 
-	std::wstring IntNumExpr::Stringify()
+	std::wstring IntNumExpr::ToString()
 	{
 		return std::to_wstring(value);
 	}
@@ -32,7 +32,7 @@ namespace lws
 	RealNumExpr::~RealNumExpr()
 	{
 	}
-	std::wstring RealNumExpr::Stringify()
+	std::wstring RealNumExpr::ToString()
 	{
 		return std::to_wstring(value);
 	}
@@ -50,7 +50,7 @@ namespace lws
 	{
 	}
 
-	std::wstring StrExpr::Stringify()
+	std::wstring StrExpr::ToString()
 	{
 		return L"\"" + value + L"\"";
 	}
@@ -63,7 +63,7 @@ namespace lws
 	{
 	}
 
-	std::wstring NullExpr::Stringify()
+	std::wstring NullExpr::ToString()
 	{
 		return L"null";
 	}
@@ -80,7 +80,7 @@ namespace lws
 	{
 	}
 
-	std::wstring BoolExpr::Stringify()
+	std::wstring BoolExpr::ToString()
 	{
 		return value ? L"true" : L"false";
 	}
@@ -97,7 +97,7 @@ namespace lws
 	{
 	}
 
-	std::wstring IdentifierExpr::Stringify()
+	std::wstring IdentifierExpr::ToString()
 	{
 		return literal;
 	}
@@ -116,9 +116,9 @@ namespace lws
 		name = nullptr;
 	}
 
-	std::wstring VarDescExpr::Stringify()
+	std::wstring VarDescExpr::ToString()
 	{
-		return name->Stringify() + L":" + typeDesc;
+		return name->ToString() + L":" + typeDesc;
 	}
 
 	ArrayExpr::ArrayExpr()
@@ -133,14 +133,14 @@ namespace lws
 		std::vector<Expr *>().swap(elements);
 	}
 
-	std::wstring ArrayExpr::Stringify()
+	std::wstring ArrayExpr::ToString()
 	{
 		std::wstring result = L"[";
 
 		if (!elements.empty())
 		{
 			for (auto e : elements)
-				result += e->Stringify() + L",";
+				result += e->ToString() + L",";
 			result = result.substr(0, result.size() - 1);
 		}
 		result += L"]";
@@ -160,14 +160,14 @@ namespace lws
 		std::vector<std::pair<Expr *, Expr *>>().swap(elements);
 	}
 
-	std::wstring DictExpr::Stringify()
+	std::wstring DictExpr::ToString()
 	{
 		std::wstring result = L"{";
 
 		if (!elements.empty())
 		{
 			for (auto [key, value] : elements)
-				result += key->Stringify() + L":" + value->Stringify() + L",";
+				result += key->ToString() + L":" + value->ToString() + L",";
 			result = result.substr(0, result.size() - 1);
 		}
 		result += L"}";
@@ -185,9 +185,9 @@ namespace lws
 	GroupExpr::~GroupExpr()
 	{
 	}
-	std::wstring GroupExpr::Stringify()
+	std::wstring GroupExpr::ToString()
 	{
-		return L"(" + expr->Stringify() + L")";
+		return L"(" + expr->ToString() + L")";
 	}
 
 	PrefixExpr::PrefixExpr()
@@ -204,9 +204,9 @@ namespace lws
 		right = nullptr;
 	}
 
-	std::wstring PrefixExpr::Stringify()
+	std::wstring PrefixExpr::ToString()
 	{
-		return op + right->Stringify();
+		return op + right->ToString();
 	}
 
 	InfixExpr::InfixExpr()
@@ -226,9 +226,9 @@ namespace lws
 		right = nullptr;
 	}
 
-	std::wstring InfixExpr::Stringify()
+	std::wstring InfixExpr::ToString()
 	{
-		return left->Stringify() + op + right->Stringify();
+		return left->ToString() + op + right->ToString();
 	}
 
 	PostfixExpr::PostfixExpr()
@@ -244,9 +244,9 @@ namespace lws
 		delete left;
 		left = nullptr;
 	}
-	std::wstring PostfixExpr::Stringify()
+	std::wstring PostfixExpr::ToString()
 	{
-		return left->Stringify() + op;
+		return left->ToString() + op;
 	}
 
 	ConditionExpr::ConditionExpr()
@@ -269,9 +269,9 @@ namespace lws
 		trueBranch = nullptr;
 	}
 
-	std::wstring ConditionExpr::Stringify()
+	std::wstring ConditionExpr::ToString()
 	{
-		return condition->Stringify() + L"?" + trueBranch->Stringify() + L":" + falseBranch->Stringify();
+		return condition->ToString() + L"?" + trueBranch->ToString() + L":" + falseBranch->ToString();
 	}
 
 	IndexExpr::IndexExpr()
@@ -289,9 +289,9 @@ namespace lws
 		delete index;
 		index = nullptr;
 	}
-	std::wstring IndexExpr::Stringify()
+	std::wstring IndexExpr::ToString()
 	{
-		return ds->Stringify() + L"[" + index->Stringify() + L"]";
+		return ds->ToString() + L"[" + index->ToString() + L"]";
 	}
 
 	RefExpr::RefExpr()
@@ -306,9 +306,9 @@ namespace lws
 	{
 	}
 
-	std::wstring RefExpr::Stringify()
+	std::wstring RefExpr::ToString()
 	{
-		return L"&" + refExpr->Stringify();
+		return L"&" + refExpr->ToString();
 	}
 
 	LambdaExpr::LambdaExpr()
@@ -327,17 +327,17 @@ namespace lws
 		body = nullptr;
 	}
 
-	std::wstring LambdaExpr::Stringify()
+	std::wstring LambdaExpr::ToString()
 	{
 		std::wstring result = L"fn(";
 		if (!parameters.empty())
 		{
 			for (auto param : parameters)
-				result += param->Stringify() + L",";
+				result += param->ToString() + L",";
 			result = result.substr(0, result.size() - 1);
 		}
 		result += L")";
-		result += body->Stringify();
+		result += body->ToString();
 		return result;
 	}
 
@@ -352,14 +352,14 @@ namespace lws
 	CallExpr::~CallExpr()
 	{
 	}
-	std::wstring CallExpr::Stringify()
+	std::wstring CallExpr::ToString()
 	{
-		std::wstring result = callee->Stringify() + L"(";
+		std::wstring result = callee->ToString() + L"(";
 
 		if (!arguments.empty())
 		{
 			for (const auto &arg : arguments)
-				result += arg->Stringify() + L",";
+				result += arg->ToString() + L",";
 			result = result.substr(0, result.size() - 1);
 		}
 		result += L")";
@@ -378,9 +378,9 @@ namespace lws
 	{
 	}
 
-	std::wstring DotExpr::Stringify()
+	std::wstring DotExpr::ToString()
 	{
-		return callee->Stringify() + L"." + callMember->Stringify();
+		return callee->ToString() + L"." + callMember->ToString();
 	}
 
 	NewExpr::NewExpr()
@@ -395,9 +395,9 @@ namespace lws
 	{
 	}
 
-	std::wstring NewExpr::Stringify()
+	std::wstring NewExpr::ToString()
 	{
-		return L"new " + callee->Stringify();
+		return L"new " + callee->ToString();
 	}
 
 	ThisExpr::ThisExpr()
@@ -409,7 +409,7 @@ namespace lws
 	{
 	}
 
-	std::wstring ThisExpr::Stringify()
+	std::wstring ThisExpr::ToString()
 	{
 		return L"this";
 	}
@@ -422,9 +422,9 @@ namespace lws
 	{
 	}
 
-	std::wstring BaseExpr::Stringify()
+	std::wstring BaseExpr::ToString()
 	{
-		return L"base." + callMember->Stringify();
+		return L"base." + callMember->ToString();
 	}
 
 	BlockExpr::BlockExpr()
@@ -439,12 +439,12 @@ namespace lws
 	{
 	}
 
-	std::wstring BlockExpr::Stringify()
+	std::wstring BlockExpr::ToString()
 	{
 		std::wstring result = L"({";
 		for (const auto &stmt : stmts)
-			result += stmt->Stringify();
-		result += endExpr->Stringify();
+			result += stmt->ToString();
+		result += endExpr->ToString();
 		result += L"})";
 		return result;
 	}
@@ -462,13 +462,13 @@ namespace lws
 		std::vector<std::pair<std::wstring, Expr *>>().swap(elements);
 	}
 
-	std::wstring AnonyObjExpr::Stringify()
+	std::wstring AnonyObjExpr::ToString()
 	{
 		std::wstring result = L"{";
 		if (!elements.empty())
 		{
 			for (auto [key, value] : elements)
-				result += key + L":" + value->Stringify() + L",";
+				result += key + L":" + value->ToString() + L",";
 			result = result.substr(0, result.size() - 1);
 		}
 		result += L"}";
@@ -487,9 +487,9 @@ namespace lws
 		delete argName;
 	}
 
-	std::wstring VarArgExpr::Stringify()
+	std::wstring VarArgExpr::ToString()
 	{
-		return L"..." + (argName ? argName->Stringify() : L"");
+		return L"..." + (argName ? argName->ToString() : L"");
 	}
 
 	FactorialExpr::FactorialExpr()
@@ -506,9 +506,9 @@ namespace lws
 		expr = nullptr;
 	}
 
-	std::wstring FactorialExpr::Stringify()
+	std::wstring FactorialExpr::ToString()
 	{
-		return expr->Stringify() + L"!";
+		return expr->ToString() + L"!";
 	}
 
 	AppregateExpr::AppregateExpr()
@@ -524,13 +524,13 @@ namespace lws
 		std::vector<Expr *>().swap(exprs);
 	}
 
-	std::wstring AppregateExpr::Stringify()
+	std::wstring AppregateExpr::ToString()
 	{
 		std::wstring result = L"(";
 		if (!exprs.empty())
 		{
 			for (const auto &expr : exprs)
-				result += expr->Stringify() + L",";
+				result += expr->ToString() + L",";
 			result = result.substr(0, result.size() - 1);
 		}
 
@@ -553,9 +553,9 @@ namespace lws
 		expr = nullptr;
 	}
 
-	std::wstring ExprStmt::Stringify()
+	std::wstring ExprStmt::ToString()
 	{
-		return expr->Stringify() + L";";
+		return expr->ToString() + L";";
 	}
 
 	VarStmt::VarStmt()
@@ -571,7 +571,7 @@ namespace lws
 		std::vector<std::pair<Expr *, Expr *>>().swap(variables);
 	}
 
-	std::wstring VarStmt::Stringify()
+	std::wstring VarStmt::ToString()
 	{
 		std::wstring result;
 
@@ -583,7 +583,7 @@ namespace lws
 		if (!variables.empty())
 		{
 			for (auto [key, value] : variables)
-				result += key->Stringify() + L"=" + value->Stringify() + L",";
+				result += key->ToString() + L"=" + value->ToString() + L",";
 			result = result.substr(0, result.size() - 1);
 		}
 		return result + L";";
@@ -603,12 +603,12 @@ namespace lws
 		expr = nullptr;
 	}
 
-	std::wstring ReturnStmt::Stringify()
+	std::wstring ReturnStmt::ToString()
 	{
 		if (!expr)
 			return L"return;";
 		else
-			return L"return " + expr->Stringify() + L";";
+			return L"return " + expr->ToString() + L";";
 	}
 
 	IfStmt::IfStmt()
@@ -632,12 +632,12 @@ namespace lws
 		elseBranch = nullptr;
 	}
 
-	std::wstring IfStmt::Stringify()
+	std::wstring IfStmt::ToString()
 	{
 		std::wstring result;
-		result = L"if(" + condition->Stringify() + L")" + thenBranch->Stringify();
+		result = L"if(" + condition->ToString() + L")" + thenBranch->ToString();
 		if (elseBranch != nullptr)
-			result += L"else " + elseBranch->Stringify();
+			result += L"else " + elseBranch->ToString();
 		return result;
 	}
 
@@ -654,11 +654,11 @@ namespace lws
 		std::vector<Stmt *>().swap(stmts);
 	}
 
-	std::wstring ScopeStmt::Stringify()
+	std::wstring ScopeStmt::ToString()
 	{
 		std::wstring result = L"{";
 		for (const auto &stmt : stmts)
-			result += stmt->Stringify();
+			result += stmt->ToString();
 		result += L"}";
 		return result;
 	}
@@ -681,11 +681,11 @@ namespace lws
 		increment = nullptr;
 	}
 
-	std::wstring WhileStmt::Stringify()
+	std::wstring WhileStmt::ToString()
 	{
-		std::wstring result = L"while(" + condition->Stringify() + L"){" + body->Stringify();
+		std::wstring result = L"while(" + condition->ToString() + L"){" + body->ToString();
 		if (increment)
-			result += increment->Stringify();
+			result += increment->ToString();
 		return result += L"}";
 	}
 
@@ -697,7 +697,7 @@ namespace lws
 	{
 	}
 
-	std::wstring BreakStmt::Stringify()
+	std::wstring BreakStmt::ToString()
 	{
 		return L"break;";
 	}
@@ -710,7 +710,7 @@ namespace lws
 	{
 	}
 
-	std::wstring ContinueStmt::Stringify()
+	std::wstring ContinueStmt::ToString()
 	{
 		return L"continue;";
 	}
@@ -726,14 +726,14 @@ namespace lws
 	EnumStmt::~EnumStmt()
 	{
 	}
-	std::wstring EnumStmt::Stringify()
+	std::wstring EnumStmt::ToString()
 	{
-		std::wstring result = L"enum " + enumName->Stringify() + L"{";
+		std::wstring result = L"enum " + enumName->ToString() + L"{";
 
 		if (!enumItems.empty())
 		{
 			for (auto [key, value] : enumItems)
-				result += key->Stringify() + L"=" + value->Stringify() + L",";
+				result += key->ToString() + L"=" + value->ToString() + L",";
 			result = result.substr(0, result.size() - 1);
 		}
 		return result + L"}";
@@ -751,11 +751,11 @@ namespace lws
 	{
 	}
 
-	std::wstring ModuleStmt::Stringify()
+	std::wstring ModuleStmt::ToString()
 	{
-		std::wstring result = L"module " + modName->Stringify() + L"\n{\n";
+		std::wstring result = L"module " + modName->ToString() + L"\n{\n";
 		for (const auto &item : modItems)
-			result += item->Stringify() + L"\n";
+			result += item->ToString() + L"\n";
 		return result + L"}\n";
 	}
 
@@ -777,17 +777,17 @@ namespace lws
 		body = nullptr;
 	}
 
-	std::wstring FunctionStmt::Stringify()
+	std::wstring FunctionStmt::ToString()
 	{
-		std::wstring result = L"fn " + name->Stringify() + L"(";
+		std::wstring result = L"fn " + name->ToString() + L"(";
 		if (!parameters.empty())
 		{
 			for (auto param : parameters)
-				result += param->Stringify() + L",";
+				result += param->ToString() + L",";
 			result = result.substr(0, result.size() - 1);
 		}
 		result += L")";
-		result += body->Stringify();
+		result += body->ToString();
 		return result;
 	}
 
@@ -816,21 +816,21 @@ namespace lws
 		std::vector<FunctionStmt *>().swap(fnStmts);
 	}
 
-	std::wstring ClassStmt::Stringify()
+	std::wstring ClassStmt::ToString()
 	{
 		std::wstring result = L"class " + name;
 		if (!parentClasses.empty())
 		{
 			result += L":";
 			for (const auto &parentClass : parentClasses)
-				result += parentClass->Stringify() + L",";
+				result += parentClass->ToString() + L",";
 			result = result.substr(0, result.size() - 1);
 		}
 		result += L"{";
 		for (auto variableStmt : varStmts)
-			result += variableStmt->Stringify();
+			result += variableStmt->ToString();
 		for (auto fnStmt : fnStmts)
-			result += fnStmt->Stringify();
+			result += fnStmt->ToString();
 		return result + L"}";
 	}
 
@@ -848,11 +848,11 @@ namespace lws
 		std::vector<Stmt *>().swap(stmts);
 	}
 
-	std::wstring AstStmts::Stringify()
+	std::wstring AstStmts::ToString()
 	{
 		std::wstring result;
 		for (const auto &stmt : stmts)
-			result += stmt->Stringify();
+			result += stmt->ToString();
 		return result;
 	}
 }

@@ -20,7 +20,7 @@ namespace lws
         if (marked)
             return;
 #ifdef GC_DEBUG
-        std::wcout << L"0x" << (void *)this << L" mark: " << Stringify() << std::endl;
+        std::wcout << L"0x" << (void *)this << L" mark: " << ToString() << std::endl;
 #endif
         marked = true;
         vm->mGrayObjects.emplace_back(this);
@@ -30,7 +30,7 @@ namespace lws
         if (!marked)
             return;
 #ifdef GC_DEBUG
-        std::wcout << L"0x" << (void *)this << L" unMark: " << Stringify() << std::endl;
+        std::wcout << L"0x" << (void *)this << L" unMark: " << ToString() << std::endl;
 #endif
         marked = false;
     }
@@ -38,7 +38,7 @@ namespace lws
     void Object::Blacken(VM *vm)
     {
 #ifdef GC_DEBUG
-        std::wcout << L"0x" << (void *)this << L" blacken: " << Stringify() << std::endl;
+        std::wcout << L"0x" << (void *)this << L" blacken: " << ToString() << std::endl;
 #endif
     }
 
@@ -49,9 +49,9 @@ namespace lws
     StrObject::~StrObject()
     {
     }
-    std::wstring StrObject::Stringify(bool outputOpCodeIfExists) const
+    std::wstring StrObject::ToString(bool outputOpCodeIfExists) const
     {
-        return value;
+        return L"\"" + value + L"\"";
     }
 
     bool StrObject::IsEqualTo(Object *other)
@@ -78,13 +78,13 @@ namespace lws
     {
     }
 
-    std::wstring ArrayObject::Stringify(bool outputOpCodeIfExists) const
+    std::wstring ArrayObject::ToString(bool outputOpCodeIfExists) const
     {
         std::wstring result = L"[";
         if (!elements.empty())
         {
             for (const auto &e : elements)
-                result += e.Stringify(outputOpCodeIfExists) + L",";
+                result += e.ToString(outputOpCodeIfExists) + L",";
             result = result.substr(0, result.size() - 1);
         }
         result += L"]";
@@ -154,11 +154,11 @@ namespace lws
     {
     }
 
-    std::wstring DictObject::Stringify(bool outputOpCodeIfExists) const
+    std::wstring DictObject::ToString(bool outputOpCodeIfExists) const
     {
         std::wstring result = L"{";
         for (const auto &[k, v] : elements)
-            result += k.Stringify(outputOpCodeIfExists) + L":" + v.Stringify(outputOpCodeIfExists) + L",";
+            result += k.ToString(outputOpCodeIfExists) + L":" + v.ToString(outputOpCodeIfExists) + L",";
         result = result.substr(0, result.size() - 1);
         result += L"}";
         return result;
@@ -217,7 +217,7 @@ namespace lws
         : Object(OBJECT_ANONYMOUS)
     {
     }
-    AnonymousObject::AnonymousObject(const  std::unordered_map<std::wstring, Value> &elements)
+    AnonymousObject::AnonymousObject(const std::unordered_map<std::wstring, Value> &elements)
         : Object(OBJECT_ANONYMOUS), elements(elements)
     {
     }
@@ -225,11 +225,11 @@ namespace lws
     {
     }
 
-    std::wstring AnonymousObject::Stringify(bool outputOpCodeIfExists) const
+    std::wstring AnonymousObject::ToString(bool outputOpCodeIfExists) const
     {
         std::wstring result = L"{";
         for (const auto &[k, v] : elements)
-            result += k + L":" + v.Stringify(outputOpCodeIfExists) + L",";
+            result += k + L":" + v.ToString(outputOpCodeIfExists) + L",";
         result = result.substr(0, result.size() - 1);
         result += L"}";
         return result;
@@ -275,7 +275,7 @@ namespace lws
             auto kCopy = k;
             auto vCopy = v.Clone();
 
-            m[kCopy]=vCopy;
+            m[kCopy] = vCopy;
         }
 
         return new AnonymousObject(m);
@@ -293,11 +293,11 @@ namespace lws
     {
     }
 
-    std::wstring FunctionObject::Stringify(bool outputOpCodeIfExists) const
+    std::wstring FunctionObject::ToString(bool outputOpCodeIfExists) const
     {
         auto result = L"<fn " + name + L":0x" + PointerAddressToString((void *)this) + L">";
         if (outputOpCodeIfExists)
-            result += L"\n" + chunk.Stringify(outputOpCodeIfExists);
+            result += L"\n" + chunk.ToString(outputOpCodeIfExists);
         return result;
     }
 
@@ -350,9 +350,9 @@ namespace lws
     {
     }
 
-    std::wstring UpValueObject::Stringify(bool outputOpCodeIfExists) const
+    std::wstring UpValueObject::ToString(bool outputOpCodeIfExists) const
     {
-        return location->Stringify(outputOpCodeIfExists);
+        return location->ToString(outputOpCodeIfExists);
     }
 
     void UpValueObject::Blacken(VM *vm)
@@ -400,9 +400,9 @@ namespace lws
     {
     }
 
-    std::wstring ClosureObject::Stringify(bool outputOpCodeIfExists) const
+    std::wstring ClosureObject::ToString(bool outputOpCodeIfExists) const
     {
-        return function->Stringify(outputOpCodeIfExists);
+        return function->ToString(outputOpCodeIfExists);
     }
 
     void ClosureObject::Blacken(VM *vm)
@@ -452,7 +452,7 @@ namespace lws
     {
     }
 
-    std::wstring NativeFunctionObject::Stringify(bool outputOpCodeIfExists) const
+    std::wstring NativeFunctionObject::ToString(bool outputOpCodeIfExists) const
     {
         return L"<native function>";
     }
@@ -477,9 +477,9 @@ namespace lws
     {
     }
 
-    std::wstring RefObject::Stringify(bool outputOpCodeIfExists) const
+    std::wstring RefObject::ToString(bool outputOpCodeIfExists) const
     {
-        return pointer->Stringify(outputOpCodeIfExists);
+        return pointer->ToString(outputOpCodeIfExists);
     }
 
     bool RefObject::IsEqualTo(Object *other)
@@ -509,7 +509,7 @@ namespace lws
     {
     }
 
-    std::wstring ClassObject::Stringify(bool outputOpCodeIfExists) const
+    std::wstring ClassObject::ToString(bool outputOpCodeIfExists) const
     {
         std::wstring result = L"class " + name;
         if (!parents.empty())
@@ -521,7 +521,7 @@ namespace lws
         }
         result += L"\n{\n";
         for (const auto &[k, v] : members)
-            result += L"  " + k + L":" + v.Stringify(outputOpCodeIfExists) + L"\n";
+            result += L"  " + k + L":" + v.ToString(outputOpCodeIfExists) + L"\n";
 
         return result + L"}\n";
     }
@@ -623,9 +623,9 @@ namespace lws
     ClassClosureBindObject::~ClassClosureBindObject()
     {
     }
-    std::wstring ClassClosureBindObject::Stringify(bool outputOpCodeIfExists) const
+    std::wstring ClassClosureBindObject::ToString(bool outputOpCodeIfExists) const
     {
-        return closure->Stringify(outputOpCodeIfExists);
+        return closure->ToString(outputOpCodeIfExists);
     }
 
     void ClassClosureBindObject::Blacken(VM *vm)
@@ -668,13 +668,13 @@ namespace lws
     {
     }
 
-    std::wstring EnumObject::Stringify(bool outputOpCodeIfExists) const
+    std::wstring EnumObject::ToString(bool outputOpCodeIfExists) const
     {
         std::wstring result = L"enum " + name + L"{";
         if (!pairs.empty())
         {
             for (const auto &[k, v] : pairs)
-                result += k + L"=" + v.Stringify(outputOpCodeIfExists) + L",";
+                result += k + L"=" + v.ToString(outputOpCodeIfExists) + L",";
             result = result.substr(0, result.size() - 1);
         }
         return result + L"}";

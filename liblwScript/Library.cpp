@@ -26,14 +26,14 @@ namespace lws
 
                                                                   if (args.size() == 1)
                                                                   {
-                                                                      std::wcout << args[0].Stringify();
+                                                                      std::wcout << args[0].ToString();
                                                                       return Value();
                                                                   }
 
                                                                   if (!IS_STR_VALUE(args[0]))
                                                                   {
                                                                       for (const auto &arg : args)
-                                                                          std::wcout << arg.Stringify();
+                                                                          std::wcout << arg.ToString();
                                                                       return Value();
                                                                   }
 
@@ -46,7 +46,7 @@ namespace lws
                                                                       while (pos != std::wstring::npos)
                                                                       {
                                                                           if (argpos < args.size())
-                                                                              content.replace(pos, 2, args[argpos++].Stringify());
+                                                                              content.replace(pos, 2, args[argpos++].ToString());
                                                                           else
                                                                               content.replace(pos, 2, L"null");
                                                                           pos = content.find(L"{}");
@@ -87,14 +87,14 @@ namespace lws
 
                                                                     if (args.size() == 1)
                                                                     {
-                                                                        std::wcout << args[0].Stringify() << std::endl;
+                                                                        std::wcout << args[0].ToString() << std::endl;
                                                                         return Value();
                                                                     }
 
                                                                     if (!IS_STR_VALUE(args[0]))
                                                                     {
                                                                         for (const auto &arg : args)
-                                                                            std::wcout << arg.Stringify() << std::endl;
+                                                                            std::wcout << arg.ToString() << std::endl;
                                                                         return Value();
                                                                     }
 
@@ -107,7 +107,7 @@ namespace lws
                                                                         while (pos != std::wstring::npos)
                                                                         {
                                                                             if (argpos < args.size())
-                                                                                content.replace(pos, 2, args[argpos++].Stringify());
+                                                                                content.replace(pos, 2, args[argpos++].ToString());
                                                                             else
                                                                                 content.replace(pos, 2, L"null");
                                                                             pos = content.find(L"{}");
@@ -181,7 +181,7 @@ namespace lws
 
                                                                        for (auto [key, value] : dict->elements)
                                                                            if (key == args[1])
-                                                                               ERROR(L"[Native function 'insert']:Already exist value in the dict object of arg1" + args[1].Stringify())
+                                                                               ERROR(L"[Native function 'insert']:Already exist value in the dict object of arg1" + args[1].ToString())
 
                                                                        dict->elements[args[1]] = args[2];
                                                                    }
@@ -196,7 +196,7 @@ namespace lws
                                                                        if (iIndex < 0 || iIndex >= (int64_t)string.size())
                                                                            ERROR(L"[Native function 'insert']:Index out of array's range")
 
-                                                                       string.insert(iIndex, args[2].Stringify());
+                                                                       string.insert(iIndex, args[2].ToString());
                                                                    }
                                                                    else
                                                                        ERROR(L"[Native function 'insert']:Expect a array,dict ot string argument.")

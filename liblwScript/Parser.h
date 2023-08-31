@@ -141,7 +141,5 @@ namespace lws
 		static std::unordered_map<TokenType, PrefixFn> mPrefixFunctions;
 		static std::unordered_map<TokenType, InfixFn> mInfixFunctions;
 		static std::unordered_map<TokenType, PostfixFn> mPostfixFunctions;
-
-		static NullExpr *mNullExpr;
 	};
 }
