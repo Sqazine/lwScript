@@ -644,17 +644,15 @@ namespace lws
 			{
 				auto assignee = (ArrayExpr *)expr->left;
 
-				uint32_t resolveAddress = 0;
 				OpCode appregateOpCode = OP_APPREGATE_RESOLVE;
-				uint32_t appregateOpCodeAddress;
+				
 
-				//compile right value
-				{
+			
 					CompileExpr(expr->right);
 
-					appregateOpCodeAddress = EmitOpCode((OpCode)0xFF, assignee->tagToken) - 1;
-					resolveAddress = Emit((OpCode)0xFF);
-				}
+					uint32_t appregateOpCodeAddress = EmitOpCode((OpCode)0xFF, assignee->tagToken) - 1;
+					uint32_t resolveAddress = Emit((OpCode)0xFF);
+				
 
 				uint32_t resolveCount = assignee->elements.size();
 
@@ -664,6 +662,12 @@ namespace lws
 						appregateOpCode = OP_APPREGATE_RESOLVE_VAR_ARG;
 					else
 						resolveCount--;
+				}
+				else 
+				{
+					if(expr->right->type==AST_ARRAY)
+						if(assignee->elements.size()<((ArrayExpr*)expr->right)->elements.size())
+							Hint::Error(((ArrayExpr*)expr->right)->elements[assignee->elements.size()]->tagToken,L"variable less than value");
 				}
 
 				CurOpCodes()[appregateOpCodeAddress] = appregateOpCode;
@@ -1234,9 +1238,9 @@ namespace lws
 		return CurOpCodes().size() - 1;
 	}
 
-	uint64_t Compiler::EmitJump(uint8_t opcode, Token token)
+	uint64_t Compiler::EmitJump(OpCode opcode, Token token)
 	{
-		EmitOpCode((OpCode)opcode, token);
+		EmitOpCode(opcode, token);
 		Emit(0xFF);
 		Emit(0xFF);
 		return CurOpCodes().size() - 2;
@@ -1251,7 +1255,7 @@ namespace lws
 		Emit(offset & 0xFF);
 	}
 
-	void Compiler::PatchJump(uint8_t offset)
+	void Compiler::PatchJump(uint64_t offset)
 	{
 		uint16_t jumpOffset = CurOpCodes().size() - offset - 2;
 		CurOpCodes()[offset] = (jumpOffset >> 8) & 0xFF;

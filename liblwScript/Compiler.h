@@ -73,9 +73,9 @@ namespace lws
 		uint64_t EmitConstant(const Value &value,Token token);
 		uint64_t EmitClosure(FunctionObject *function,Token token);
 		uint64_t EmitReturn(uint8_t retCount,Token token);
-		uint64_t EmitJump(uint8_t opcode,Token token);
+		uint64_t EmitJump(OpCode opcode,Token token);
 		void EmitLoop(uint16_t opcode,Token token);
-		void PatchJump(uint8_t offset);
+		void PatchJump(uint64_t offset);
 		uint8_t AddConstant(const Value &value);
 
 		void EnterScope();

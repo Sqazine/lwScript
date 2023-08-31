@@ -2,6 +2,9 @@ let a=1.0;
 
 io.println(a); // 1.000000
 
-let b=2..f;
+let b=2.f;
 
 io.println(b);// 2.000000
+
+b=2..f;//The character next to '.' in a floating number must be in [0-9] range or a single 'f' character.
+

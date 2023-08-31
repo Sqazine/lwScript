@@ -62,16 +62,16 @@ namespace lws
                     auto e = arrayK->elements[i];
                     e = CheckExpr(e);
                     if (e->type != AST_VAR_DESC && e->type != AST_VAR_ARG)
-                        Hint::Error(e->tagToken,L"only variable description or variable argument is available in destructing assign expr.");
+                        Hint::Error(e->tagToken, L"only variable description or variable argument is available in destructing assign expr.");
 
                     if (e->type == AST_VAR_ARG && i != arrayK->elements.size() - 1)
-                       Hint::Error(k->tagToken, L"variable argument expr only available at the end of destructing assignment expr.");
+                        Hint::Error(k->tagToken, L"variable argument expr only available at the end of destructing assignment expr.");
                 }
             }
             else if (k->type == AST_VAR_DESC)
                 k = CheckExpr(k);
             else
-               Hint::Error(k->tagToken,L"only destructing assign expr or variable description is available in let/const stmt's binding part.");
+                Hint::Error(k->tagToken, L"only destructing assign expr or variable description is available in let/const stmt's binding part.");
 
             v = CheckExpr(v);
         }
@@ -95,18 +95,18 @@ namespace lws
     }
     Stmt *SyntaxChecker::CheckWhileStmt(WhileStmt *stmt)
     {
-        stmt->condition=CheckExpr(stmt->condition);
-        stmt->body=(ScopeStmt*)CheckScopeStmt(stmt->body);
-        if(stmt->increment)
-            stmt->increment=(ScopeStmt*)CheckScopeStmt(stmt->increment);
+        stmt->condition = CheckExpr(stmt->condition);
+        stmt->body = (ScopeStmt *)CheckScopeStmt(stmt->body);
+        if (stmt->increment)
+            stmt->increment = (ScopeStmt *)CheckScopeStmt(stmt->increment);
         return stmt;
     }
     Stmt *SyntaxChecker::CheckEnumStmt(EnumStmt *stmt)
     {
-        stmt->enumName=(IdentifierExpr*)CheckIdentifierExpr(stmt->enumName);
-        for(auto& [k,v]:stmt->enumItems)
+        stmt->enumName = (IdentifierExpr *)CheckIdentifierExpr(stmt->enumName);
+        for (auto &[k, v] : stmt->enumItems)
         {
-            v=CheckExpr(v);
+            v = CheckExpr(v);
         }
         return stmt;
     }
@@ -118,7 +118,7 @@ namespace lws
             e = (VarDescExpr *)CheckVarDescExpr(e);
 
             if (e->name->type == AST_VAR_ARG && i != stmt->parameters.size() - 1)
-               Hint::Error(e->tagToken,L"variable argument expr only available at the end of function parameter list.");
+                Hint::Error(e->tagToken, L"variable argument expr only available at the end of function parameter list.");
         }
 
         stmt->body = (ScopeStmt *)CheckScopeStmt(stmt->body);
@@ -130,7 +130,8 @@ namespace lws
     }
     Stmt *SyntaxChecker::CheckReturnStmt(ReturnStmt *stmt)
     {
-        stmt->expr = CheckExpr(stmt->expr);
+        if (stmt->expr)
+            stmt->expr = CheckExpr(stmt->expr);
         return stmt;
     }
     Stmt *SyntaxChecker::CheckBreakStmt(BreakStmt *stmt)
@@ -268,7 +269,7 @@ namespace lws
         for (auto &[k, v] : expr->elements)
         {
             if (!IsConstantLiteral(k))
-               Hint::Error(k->tagToken,L"Dict keys can only have constant literals (int num,real num,string,boolean,null or variable identifier).");
+                Hint::Error(k->tagToken, L"Dict keys can only have constant literals (int num,real num,string,boolean,null or variable identifier).");
             v = CheckExpr(v);
         }
         return expr;
@@ -282,7 +283,7 @@ namespace lws
     Expr *SyntaxChecker::CheckNewExpr(NewExpr *expr)
     {
         if (expr->callee->type != AST_CALL && expr->callee->type != AST_ANONY_OBJ)
-            Hint::Error(expr->callee->tagToken,L"Not a valid new expr,call expr or anonymous object expr is necessary followed 'new' keyword.");
+            Hint::Error(expr->callee->tagToken, L"Not a valid new expr,call expr or anonymous object expr is necessary followed 'new' keyword.");
 
         return expr;
     }
@@ -300,16 +301,16 @@ namespace lws
     }
     Expr *SyntaxChecker::CheckLambdaExpr(LambdaExpr *expr)
     {
-       for (int32_t i = 0; i < expr->parameters.size(); ++i)
+        for (int32_t i = 0; i < expr->parameters.size(); ++i)
         {
             auto e = expr->parameters[i];
             e = (VarDescExpr *)CheckVarDescExpr(e);
 
             if (e->name->type == AST_VAR_ARG && i != expr->parameters.size() - 1)
-                Hint::Error(e->tagToken,L"variable argument expr only available at the end of lambda parameter list.");
+                Hint::Error(e->tagToken, L"variable argument expr only available at the end of lambda parameter list.");
         }
 
-        expr->body=(ScopeStmt*)CheckScopeStmt(expr->body);
+        expr->body = (ScopeStmt *)CheckScopeStmt(expr->body);
         return expr;
     }
     Expr *SyntaxChecker::CheckBlockExpr(BlockExpr *expr)
@@ -326,8 +327,8 @@ namespace lws
     }
     Expr *SyntaxChecker::CheckRefExpr(RefExpr *expr)
     {
-        if (expr->refExpr->type != AST_IDENTIFIER)
-           Hint::Error(expr->tagToken,L"Only left value is available for reference.");
+        if (expr->refExpr->type != AST_IDENTIFIER && expr->refExpr->type != AST_INDEX)
+            Hint::Error(expr->tagToken, L"Only left value is available for reference.");
         return expr;
     }
     Expr *SyntaxChecker::CheckAnonymousObjExpr(AnonyObjExpr *expr)
@@ -347,7 +348,7 @@ namespace lws
     Expr *SyntaxChecker::CheckVarDescExpr(VarDescExpr *expr)
     {
         if (expr->name->type != AST_IDENTIFIER && expr->name->type != AST_VAR_ARG)
-            Hint::Error(expr->tagToken,L"Only identifier or variable argument is available at variable declaration or param declaration");
+            Hint::Error(expr->tagToken, L"Only identifier or variable argument is available at variable declaration or param declaration");
         return expr;
     }
 
