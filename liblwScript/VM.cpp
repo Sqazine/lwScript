@@ -665,7 +665,7 @@ namespace lws
 
 					mStackTop -= argCount + 1;
 
-					auto retV = TO_NATIVE_FUNCTION_VALUE(callee)->fn(args);
+					auto retV = TO_NATIVE_FUNCTION_VALUE(callee)->fn(args,relatedToken);
 					Push(retV);
 				}
 				else

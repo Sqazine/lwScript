@@ -5,6 +5,7 @@
 #include <unordered_map>
 #include <map>
 #include "Chunk.h"
+#include "Token.h"
 namespace lws
 {
 #define IS_STR_OBJ(obj) (obj->type == OBJECT_STR)
@@ -214,7 +215,7 @@ namespace lws
         std::vector<UpValueObject *> upvalues;
     };
 
-    using NativeFunction = std::function<Value(const std::vector<Value> &)>;
+    using NativeFunction = std::function<Value(const std::vector<Value> &,Token)>;
 
     struct NativeFunctionObject : public Object
     {

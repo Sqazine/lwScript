@@ -19,7 +19,7 @@ namespace lws
         auto memClass = new ClassObject(L"mem");
         auto timeClass = new ClassObject(L"time");
 
-        ioClass->members[L"print"] = new NativeFunctionObject([](const std::vector<Value> &args) -> Value
+        ioClass->members[L"print"] = new NativeFunctionObject([](const std::vector<Value> &args, Token relatedToken) -> Value
                                                               {
                                                                   if (args.empty())
                                                                       return Value();
@@ -78,9 +78,10 @@ namespace lws
                                                                   }
 
                                                                   std::wcout << content;
-                                                                  return Value(); });
+                                                                  return Value();
+                                                              });
 
-        ioClass->members[L"println"] = new NativeFunctionObject([](const std::vector<Value> &args) -> Value
+        ioClass->members[L"println"] = new NativeFunctionObject([](const std::vector<Value> &args, Token relatedToken) -> Value
                                                                 {
                                                                     if (args.empty())
                                                                         return Value();
@@ -139,12 +140,13 @@ namespace lws
                                                                     }
 
                                                                     std::wcout << content << std::endl;
-                                                                    return Value(); });
+                                                                    return Value();
+                                                                });
 
-        dsClass->members[L"sizeof"] = new NativeFunctionObject([](const std::vector<Value> &args) -> Value
+        dsClass->members[L"sizeof"] = new NativeFunctionObject([](const std::vector<Value> &args, Token relatedToken) -> Value
                                                                {
                                                                    if (args.empty() || args.size() > 1)
-                                                                       ERROR(L"[Native function 'sizeof']:Expect a argument.")
+                                                                       Hint::Error(relatedToken, L"[Native function 'sizeof']:Expect a argument.");
 
                                                                    if (IS_ARRAY_VALUE(args[0]))
                                                                        return Value((int64_t)TO_ARRAY_VALUE(args[0])->elements.size());
@@ -153,25 +155,26 @@ namespace lws
                                                                    else if (IS_STR_VALUE(args[0]))
                                                                        return Value((int64_t)TO_STR_VALUE(args[0]).size());
                                                                    else
-                                                                       ERROR(L"[Native function 'sizeof']:Expect a array,dict ot string argument.")
+                                                                       Hint::Error(relatedToken, L"[Native function 'sizeof']:Expect a array,dict ot string argument.");
 
-                                                                   return Value(); });
+                                                                   return Value();
+                                                               });
 
-        dsClass->members[L"insert"] = new NativeFunctionObject([](const std::vector<Value> &args) -> Value
+        dsClass->members[L"insert"] = new NativeFunctionObject([](const std::vector<Value> &args, Token relatedToken) -> Value
                                                                {
                                                                    if (args.empty() || args.size() != 3)
-                                                                       ERROR(L"[Native function 'insert']:Expect 3 arguments,the arg0 must be array,dict or string object.The arg1 is the index object.The arg2 is the value object.")
+                                                                       Hint::Error(relatedToken, L"[Native function 'insert']:Expect 3 arguments,the arg0 must be array,dict or string object.The arg1 is the index object.The arg2 is the value object.");
 
                                                                    if (IS_ARRAY_VALUE(args[0]))
                                                                    {
                                                                        ArrayObject *array = TO_ARRAY_VALUE(args[0]);
                                                                        if (!IS_INT_VALUE(args[1]))
-                                                                           ERROR(L"[Native function 'insert']:Arg1 must be integer type while insert to a array")
+                                                                           Hint::Error(relatedToken, L"[Native function 'insert']:Arg1 must be integer type while insert to a array");
 
                                                                        int64_t iIndex = TO_INT_VALUE(args[1]);
 
                                                                        if (iIndex < 0 || iIndex >= (int64_t)array->elements.size())
-                                                                           ERROR(L"[Native function 'insert']:Index out of array's range")
+                                                                           Hint::Error(relatedToken, L"[Native function 'insert']:Index out of array's range");
 
                                                                        array->elements.insert(array->elements.begin() + iIndex, 1, args[2]);
                                                                    }
@@ -181,7 +184,7 @@ namespace lws
 
                                                                        for (auto [key, value] : dict->elements)
                                                                            if (key == args[1])
-                                                                               ERROR(L"[Native function 'insert']:Already exist value in the dict object of arg1" + args[1].ToString())
+                                                                               Hint::Error(relatedToken, L"[Native function 'insert']:Already exist value in the dict object of arg1" + args[1].ToString());
 
                                                                        dict->elements[args[1]] = args[2];
                                                                    }
@@ -189,35 +192,36 @@ namespace lws
                                                                    {
                                                                        auto &string = TO_STR_VALUE(args[0]);
                                                                        if (!IS_INT_VALUE(args[1]))
-                                                                           ERROR(L"[Native function 'insert']:Arg1 must be integer type while insert to a array")
+                                                                           Hint::Error(relatedToken, L"[Native function 'insert']:Arg1 must be integer type while insert to a array");
 
                                                                        int64_t iIndex = TO_INT_VALUE(args[1]);
 
                                                                        if (iIndex < 0 || iIndex >= (int64_t)string.size())
-                                                                           ERROR(L"[Native function 'insert']:Index out of array's range")
+                                                                           Hint::Error(relatedToken, L"[Native function 'insert']:Index out of array's range");
 
                                                                        string.insert(iIndex, args[2].ToString());
                                                                    }
                                                                    else
-                                                                       ERROR(L"[Native function 'insert']:Expect a array,dict ot string argument.")
+                                                                       Hint::Error(relatedToken, L"[Native function 'insert']:Expect a array,dict ot string argument.");
 
-                                                                   return args[0]; });
+                                                                   return args[0];
+                                                               });
 
-        dsClass->members[L"erase"] = new NativeFunctionObject([](const std::vector<Value> &args) -> Value
+        dsClass->members[L"erase"] = new NativeFunctionObject([](const std::vector<Value> &args, Token relatedToken) -> Value
                                                               {
                                                                   if (args.empty() || args.size() != 2)
-                                                                      ERROR(L"[Native function 'erase']:Expect 2 arguments,the arg0 must be array,dict or string object.The arg1 is the corresponding index object.")
+                                                                      Hint::Error(relatedToken, L"[Native function 'erase']:Expect 2 arguments,the arg0 must be array,dict or string object.The arg1 is the corresponding index object.");
 
                                                                   if (IS_ARRAY_VALUE(args[0]))
                                                                   {
                                                                       ArrayObject *array = TO_ARRAY_VALUE(args[0]);
                                                                       if (!IS_INT_VALUE(args[1]))
-                                                                          ERROR(L"[Native function 'erase']:Arg1 must be integer type while insert to a array")
+                                                                          Hint::Error(relatedToken, L"[Native function 'erase']:Arg1 must be integer type while insert to a array");
 
                                                                       int64_t iIndex = TO_INT_VALUE(args[1]);
 
                                                                       if (iIndex < 0 || iIndex >= (int64_t)array->elements.size())
-                                                                          ERROR(L"[Native function 'erase']:Index out of array's range")
+                                                                          Hint::Error(relatedToken, L"[Native function 'erase']:Index out of array's range");
 
                                                                       array->elements.erase(array->elements.begin() + iIndex);
                                                                   }
@@ -236,36 +240,38 @@ namespace lws
                                                                           }
 
                                                                       if (!hasValue)
-                                                                          ERROR(L"[Native function 'erase']:No corresponding index in dict.")
+                                                                          Hint::Error(relatedToken, L"[Native function 'erase']:No corresponding index in dict.");
                                                                   }
                                                                   else if (IS_STR_VALUE(args[0]))
                                                                   {
                                                                       auto &string = TO_STR_VALUE(args[0]);
                                                                       if (!IS_INT_VALUE(args[1]))
-                                                                          ERROR(L"[Native function 'erase']:Arg1 must be integer type while insert to a array")
+                                                                          Hint::Error(relatedToken, L"[Native function 'erase']:Arg1 must be integer type while insert to a array");
 
                                                                       int64_t iIndex = TO_INT_VALUE(args[1]);
 
                                                                       if (iIndex < 0 || iIndex >= (int64_t)string.size())
-                                                                          ERROR(L"[Native function 'erase']:Index out of array's range")
+                                                                          Hint::Error(relatedToken, L"[Native function 'erase']:Index out of array's range");
 
                                                                       string.erase(string.begin() + iIndex);
                                                                   }
                                                                   else
-                                                                      ERROR(L"[Native function 'erase']:Expect a array,dict ot string argument.")
-                                                                  return args[0]; });
+                                                                      Hint::Error(relatedToken, L"[Native function 'erase']:Expect a array,dict ot string argument.");
+                                                                  return args[0];
+                                                              });
 
-        memClass->members[L"addressof"] = new NativeFunctionObject([](const std::vector<Value> &args) -> Value
+        memClass->members[L"addressof"] = new NativeFunctionObject([](const std::vector<Value> &args, Token relatedToken) -> Value
                                                                    {
                                                                        if (args.empty() || args.size() != 1)
-                                                                           ERROR(L"[Native function 'addressof']:Expect 1 arguments.")
+                                                                           Hint::Error(relatedToken, L"[Native function 'addressof']:Expect 1 arguments.");
 
                                                                        if (!IS_OBJECT_VALUE(args[0]))
-                                                                           ERROR(L"[Native function 'addressof']:The arg0 is a value,only object has address.")
+                                                                           Hint::Error(relatedToken, L"[Native function 'addressof']:The arg0 is a value,only object has address.");
 
-                                                                       return new StrObject(PointerAddressToString(args[0].object)); });
+                                                                       return new StrObject(PointerAddressToString(args[0].object));
+                                                                   });
 
-        timeClass->members[L"clock"] = new NativeFunctionObject([](const std::vector<Value> &args) -> Value
+        timeClass->members[L"clock"] = new NativeFunctionObject([](const std::vector<Value> &args, Token relatedToken) -> Value
                                                                 { return Value((double)clock() / CLOCKS_PER_SEC); });
 
         mStdLibraries.emplace_back(ioClass);

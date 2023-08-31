@@ -53,35 +53,6 @@ namespace lws
         Output(std::wcout, s, args...);
     }
 
-#ifdef _DEBUG
-#define ERROR(msg)                                                               \
-    {                                                                            \
-        do                                                                       \
-        {                                                                        \
-            std::wcout << "\033[31m[ERROR]:" << (msg) << "\033[0m" << std::endl; \
-            assert(0);                                                           \
-        } while (false);                                                         \
-    }
-
-#else
-#define ERROR(msg)                                                               \
-    {                                                                            \
-        do                                                                       \
-        {                                                                        \
-            std::wcout << "\033[31m[ERROR]:" << (msg) << "\033[0m" << std::endl; \
-            exit(1);                                                             \
-        } while (false);                                                         \
-    }
-#endif
-
-#define WARN(msg)                                                                  \
-    {                                                                              \
-        do                                                                         \
-        {                                                                          \
-            std::wcout << "\033[33m[WARNING]:" << (msg) << "\033[0m" << std::endl; \
-        } while (false);                                                           \
-    }
-
     namespace Hint
     {
         namespace Record
