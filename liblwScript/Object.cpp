@@ -51,7 +51,7 @@ namespace lws
     }
     std::wstring StrObject::ToString(bool outputOpCodeIfExists) const
     {
-        return L"\"" + value + L"\"";
+        return value;
     }
 
     bool StrObject::IsEqualTo(Object *other)
@@ -282,11 +282,11 @@ namespace lws
     }
 
     FunctionObject::FunctionObject()
-        : Object(OBJECT_FUNCTION), arity(0), upValueCount(0)
+        : Object(OBJECT_FUNCTION), arity(0), upValueCount(0), varArgParamType(0)
     {
     }
     FunctionObject::FunctionObject(std::wstring_view name)
-        : Object(OBJECT_FUNCTION), arity(0), upValueCount(0), name(name)
+        : Object(OBJECT_FUNCTION), arity(0), upValueCount(0), name(name), varArgParamType(0)
     {
     }
     FunctionObject::~FunctionObject()

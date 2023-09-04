@@ -38,15 +38,50 @@ io.println("{},{},{},{}",isNull,value,value2,argsOther);// false,10,null,[]
 io.println("{},{}",x2,args);//true,[]
 
 
-//TODO:not implement yet!
 fn variableParamFn(x,y,...args)
 {
     let result=x+y;
-    for(let i=0;i<sizeof(args);++i)
+    for(let i=0;i<ds.sizeof(args);++i)
         result+=args[i];
+
     return result;
 }
 
-io.println(variableParamFn(10,20));
-io.println(variableParamFn(10,20,30));
-io.println(variableParamFn(10,20,40));
+io.println(variableParamFn(10,20));// 30
+io.println(variableParamFn(10,20,30,60));// 120
+io.println(variableParamFn(10,20,40));// 70
+
+
+fn variableParamFnWithoutVarArg(x,y,...)
+{
+    let result=x+y;
+    return result;
+}
+
+io.println(variableParamFnWithoutVarArg(10,20));// 30
+io.println(variableParamFnWithoutVarArg(10,20,30,60));// 30
+io.println(variableParamFnWithoutVarArg(10,20,40));// 30
+
+let lambdaVarArg = fn(x,y,...args)
+{
+    let result=x+y;
+    for(let i=0;i<ds.sizeof(args);++i)
+        result+=args[i];
+
+    return result;
+};
+
+io.println(lambdaVarArg(10,20));// 30
+io.println(lambdaVarArg(10,20,30,60));// 120
+io.println(lambdaVarArg(10,20,40));// 70
+
+
+let lambdaWithoutVarArg = fn(x,y,...)
+{
+    let result=x+y;
+    return result;
+};
+
+io.println(lambdaWithoutVarArg(10,20));// 30
+io.println(lambdaWithoutVarArg(10,20,30,60));// 30
+io.println(lambdaWithoutVarArg(10,20,40));// 30

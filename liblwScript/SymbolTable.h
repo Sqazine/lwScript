@@ -20,6 +20,12 @@ namespace lws
         uint8_t depth = -1;
     };
 
+    struct FunctionSymbolInfo
+    {
+        int8_t paramCount = -1;
+        uint8_t varArgParamType = 0;//0:no,1:varArgWithoutName(...),2:varArgWithName(...args)
+    };
+
     struct Symbol
     {
         std::wstring name;
@@ -27,7 +33,7 @@ namespace lws
         ValueDesc descType = ValueDesc::VARIABLE;
         uint8_t index = 0;
         int8_t scopeDepth = -1;
-        int8_t paramCount = -1;
+        FunctionSymbolInfo functionSymInfo;
         UpValue upvalue; // available only while type is SymbolType::UPVALUE
         bool isCaptured = false;
         Token relatedToken;
@@ -38,9 +44,9 @@ namespace lws
         SymbolTable();
         SymbolTable(SymbolTable *enclosing);
 
-        Symbol Define(Token relatedToken, ValueDesc descType, const std::wstring &name, int8_t paramCount = -1);
+        Symbol Define(Token relatedToken, ValueDesc descType, const std::wstring &name,const FunctionSymbolInfo& functionInfo={});
 
-        Symbol Resolve(Token relatedToken,const std::wstring &name, int8_t paramCount = -1, int8_t d = 0);
+        Symbol Resolve(Token relatedToken, const std::wstring &name, int8_t paramCount = -1 , int8_t d = 0);
 
         std::array<Symbol, UINT8_COUNT> mSymbols;
         uint8_t mSymbolCount;
@@ -52,7 +58,7 @@ namespace lws
         SymbolTable *enclosing;
 
     private:
-        UpValue AddUpValue(Token relatedToken,uint8_t location, uint8_t depth);
+        UpValue AddUpValue(Token relatedToken, uint8_t location, uint8_t depth);
         uint8_t mTableDepth; // Depth of symbol table nesting(related to symboltable's enclosing)
     };
 }

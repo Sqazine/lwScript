@@ -645,14 +645,11 @@ namespace lws
 				auto assignee = (ArrayExpr *)expr->left;
 
 				OpCode appregateOpCode = OP_APPREGATE_RESOLVE;
-				
 
-			
-					CompileExpr(expr->right);
+				CompileExpr(expr->right);
 
-					uint32_t appregateOpCodeAddress = EmitOpCode((OpCode)0xFF, assignee->tagToken) - 1;
-					uint32_t resolveAddress = Emit((OpCode)0xFF);
-				
+				uint32_t appregateOpCodeAddress = EmitOpCode((OpCode)0xFF, assignee->tagToken) - 1;
+				uint32_t resolveAddress = Emit((OpCode)0xFF);
 
 				uint32_t resolveCount = assignee->elements.size();
 
@@ -663,11 +660,11 @@ namespace lws
 					else
 						resolveCount--;
 				}
-				else 
+				else
 				{
-					if(expr->right->type==AST_ARRAY)
-						if(assignee->elements.size()<((ArrayExpr*)expr->right)->elements.size())
-							Hint::Error(((ArrayExpr*)expr->right)->elements[assignee->elements.size()]->tagToken,L"variable less than value");
+					if (expr->right->type == AST_ARRAY)
+						if (assignee->elements.size() < ((ArrayExpr *)expr->right)->elements.size())
+							Hint::Error(((ArrayExpr *)expr->right)->elements[assignee->elements.size()]->tagToken, L"variable less than value");
 				}
 
 				CurOpCodes()[appregateOpCodeAddress] = appregateOpCode;
@@ -946,15 +943,13 @@ namespace lws
 
 	void Compiler::CompileThisExpr(ThisExpr *expr)
 	{
-		auto identExpr = new IdentifierExpr(L"this");
-		identExpr->tagToken = expr->tagToken;
+		auto identExpr = new IdentifierExpr(expr->tagToken, L"this");
 		CompileExpr(identExpr);
 	}
 
 	void Compiler::CompileBaseExpr(BaseExpr *expr)
 	{
-		auto identExpr = new IdentifierExpr(L"this");
-		identExpr->tagToken = expr->tagToken;
+		auto identExpr = new IdentifierExpr(expr->tagToken, L"this");
 		CompileExpr(identExpr);
 		EmitConstant(new StrObject(expr->callMember->ToString()), expr->tagToken);
 		EmitOpCode(OP_GET_BASE, expr->callMember->tagToken);
@@ -1004,12 +999,23 @@ namespace lws
 	}
 	void Compiler::CompileLambdaExpr(LambdaExpr *expr)
 	{
+		uint8_t varArgParamType = 0;
+		if (!expr->parameters.empty() && expr->parameters.back()->name->type == AST_VAR_ARG)
+		{
+			auto varArg = (VarArgExpr *)expr->parameters.back()->name;
+			if (varArg->argName)
+				varArgParamType = 2;
+			else
+				varArgParamType = 1;
+		}
+
 		mFunctionList.emplace_back(new FunctionObject());
 		mSymbolTable = new SymbolTable(mSymbolTable);
 
 		mSymbolTable->Define(expr->tagToken, ValueDesc::CONSTANT, L"");
 
 		CurFunction()->arity = expr->parameters.size();
+		CurFunction()->varArgParamType = varArgParamType;
 
 		for (const auto &param : expr->parameters)
 		{
@@ -1140,7 +1146,17 @@ namespace lws
 
 	Symbol Compiler::CompileFunction(FunctionStmt *stmt)
 	{
-		auto functionSymbol = mSymbolTable->Define(stmt->tagToken, ValueDesc::CONSTANT, stmt->name->literal, stmt->parameters.size());
+		uint8_t varArgParamType = 0;
+		if (!stmt->parameters.empty() && stmt->parameters.back()->name->type == AST_VAR_ARG)
+		{
+			auto varArg = (VarArgExpr *)stmt->parameters.back()->name;
+			if (varArg->argName)
+				varArgParamType = 2;
+			else
+				varArgParamType = 1;
+		}
+
+		auto functionSymbol = mSymbolTable->Define(stmt->tagToken, ValueDesc::CONSTANT, stmt->name->literal, FunctionSymbolInfo{.paramCount = (int8_t)stmt->parameters.size(), .varArgParamType = varArgParamType});
 
 		mFunctionList.emplace_back(new FunctionObject(stmt->name->literal));
 		mSymbolTable = new SymbolTable(mSymbolTable);
@@ -1151,6 +1167,7 @@ namespace lws
 		mSymbolTable->Define(stmt->tagToken, ValueDesc::CONSTANT, symbolName);
 
 		CurFunction()->arity = stmt->parameters.size();
+		CurFunction()->varArgParamType = varArgParamType;
 
 		for (const auto &param : stmt->parameters)
 		{

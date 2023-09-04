@@ -621,7 +621,46 @@ namespace lws
 						callee = binding->closure;
 					}
 
-					if (argCount != TO_CLOSURE_VALUE(callee)->function->arity)
+					if (TO_CLOSURE_VALUE(callee)->function->varArgParamType > 0)
+					{
+						auto arity = TO_CLOSURE_VALUE(callee)->function->arity;
+						if (argCount < arity)
+						{
+							if (argCount == arity - 1)
+							{
+								if (TO_CLOSURE_VALUE(callee)->function->varArgParamType == 2)
+								{
+									Push(new ArrayObject());
+									argCount = arity;
+								}
+								else
+
+									argCount = arity - 1;
+							}
+							else
+
+								Hint::Error(relatedToken, L"No matching argument count.");
+						}
+						else if (argCount >= arity)
+						{
+							auto diff = argCount - arity + 1;
+							if (TO_CLOSURE_VALUE(callee)->function->varArgParamType == 2)
+							{
+								std::vector<Value> varArgs;
+								for (uint32_t i = 0; i < diff; ++i)
+									varArgs.insert(varArgs.begin(), Pop());
+								Push(new ArrayObject(varArgs));
+								argCount = arity;
+							}
+							else
+							{
+								for (uint32_t i = 0; i < diff; ++i)
+									Pop();
+								argCount = arity - 1;
+							}
+						}
+					}
+					else if (argCount != TO_CLOSURE_VALUE(callee)->function->arity)
 						Hint::Error(relatedToken, L"No matching argument count.");
 					// init a new frame
 					CallFrame *newframe = &mFrames[mFrameCount++];
@@ -665,7 +704,7 @@ namespace lws
 
 					mStackTop -= argCount + 1;
 
-					auto retV = TO_NATIVE_FUNCTION_VALUE(callee)->fn(args,relatedToken);
+					auto retV = TO_NATIVE_FUNCTION_VALUE(callee)->fn(args, relatedToken);
 					Push(retV);
 				}
 				else
@@ -776,7 +815,7 @@ namespace lws
 					auto iter = anonymousObj->elements.find(propName);
 					if (iter == anonymousObj->elements.end())
 						Hint::Error(relatedToken, L"No property: {} in anonymous object:{}.", propName, anonymousObj->ToString());
-					Pop(); //pop anonymouse object
+					Pop(); // pop anonymouse object
 					Push(iter->second);
 					break;
 				}
@@ -815,7 +854,7 @@ namespace lws
 					auto iter = anonymousObj->elements.find(propName);
 					if (iter == anonymousObj->elements.end())
 						Hint::Error(relatedToken, L"No property: {} in anonymous object.", propName);
-					Pop(); //pop anonymouse object
+					Pop(); // pop anonymouse object
 					anonymousObj->elements[iter->first] = Peek();
 					break;
 				}

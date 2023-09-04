@@ -282,7 +282,7 @@ namespace lws
 	{
 		if (expr->expr->type == AST_INT)
 		{
-			auto intExpr = new IntNumExpr();
+			auto intExpr = new IntNumExpr(expr->tagToken);
 			intExpr->value = Factorial(((IntNumExpr *)expr->expr)->value);
 
 			delete expr;
@@ -322,27 +322,28 @@ namespace lws
 			if (infix->left->type == AST_REAL && infix->right->type == AST_REAL)
 			{
 				Expr *newExpr = infix;
+				auto tagToken = infix->tagToken;
 				bool needToDelete = true;
 				if (infix->op == L"+")
-					newExpr = new RealNumExpr(((RealNumExpr *)infix->left)->value + ((RealNumExpr *)infix->right)->value);
+					newExpr = new RealNumExpr(tagToken, ((RealNumExpr *)infix->left)->value + ((RealNumExpr *)infix->right)->value);
 				else if (infix->op == L"-")
-					newExpr = new RealNumExpr(((RealNumExpr *)infix->left)->value - ((RealNumExpr *)infix->right)->value);
+					newExpr = new RealNumExpr(tagToken, ((RealNumExpr *)infix->left)->value - ((RealNumExpr *)infix->right)->value);
 				else if (infix->op == L"*")
-					newExpr = new RealNumExpr(((RealNumExpr *)infix->left)->value * ((RealNumExpr *)infix->right)->value);
+					newExpr = new RealNumExpr(tagToken, ((RealNumExpr *)infix->left)->value * ((RealNumExpr *)infix->right)->value);
 				else if (infix->op == L"/")
-					newExpr = new RealNumExpr(((RealNumExpr *)infix->left)->value / ((RealNumExpr *)infix->right)->value);
+					newExpr = new RealNumExpr(tagToken, ((RealNumExpr *)infix->left)->value / ((RealNumExpr *)infix->right)->value);
 				else if (infix->op == L"==")
-					newExpr = new BoolExpr(((RealNumExpr *)infix->left)->value == ((RealNumExpr *)infix->right)->value);
+					newExpr = new BoolExpr(tagToken, ((RealNumExpr *)infix->left)->value == ((RealNumExpr *)infix->right)->value);
 				else if (infix->op == L"!=")
-					newExpr = new BoolExpr(((RealNumExpr *)infix->left)->value != ((RealNumExpr *)infix->right)->value);
+					newExpr = new BoolExpr(tagToken, ((RealNumExpr *)infix->left)->value != ((RealNumExpr *)infix->right)->value);
 				else if (infix->op == L">")
-					newExpr = new BoolExpr(((RealNumExpr *)infix->left)->value > ((RealNumExpr *)infix->right)->value);
+					newExpr = new BoolExpr(tagToken, ((RealNumExpr *)infix->left)->value > ((RealNumExpr *)infix->right)->value);
 				else if (infix->op == L">=")
-					newExpr = new BoolExpr(((RealNumExpr *)infix->left)->value >= ((RealNumExpr *)infix->right)->value);
+					newExpr = new BoolExpr(tagToken, ((RealNumExpr *)infix->left)->value >= ((RealNumExpr *)infix->right)->value);
 				else if (infix->op == L"<")
-					newExpr = new BoolExpr(((RealNumExpr *)infix->left)->value < ((RealNumExpr *)infix->right)->value);
+					newExpr = new BoolExpr(tagToken, ((RealNumExpr *)infix->left)->value < ((RealNumExpr *)infix->right)->value);
 				else if (infix->op == L"<=")
-					newExpr = new BoolExpr(((RealNumExpr *)infix->left)->value <= ((RealNumExpr *)infix->right)->value);
+					newExpr = new BoolExpr(tagToken, ((RealNumExpr *)infix->left)->value <= ((RealNumExpr *)infix->right)->value);
 				else
 					needToDelete = false;
 
@@ -356,37 +357,38 @@ namespace lws
 			else if (infix->left->type == AST_INT && infix->right->type == AST_INT)
 			{
 				Expr *newExpr = infix;
+				auto tagToken = infix->tagToken;
 				bool needToDelete = true;
 				if (infix->op == L"+")
-					newExpr = new IntNumExpr(((IntNumExpr *)infix->left)->value + ((IntNumExpr *)infix->right)->value);
+					newExpr = new IntNumExpr(tagToken, ((IntNumExpr *)infix->left)->value + ((IntNumExpr *)infix->right)->value);
 				else if (infix->op == L"-")
-					newExpr = new IntNumExpr(((IntNumExpr *)infix->left)->value - ((IntNumExpr *)infix->right)->value);
+					newExpr = new IntNumExpr(tagToken, ((IntNumExpr *)infix->left)->value - ((IntNumExpr *)infix->right)->value);
 				else if (infix->op == L"*")
-					newExpr = new IntNumExpr(((IntNumExpr *)infix->left)->value * ((IntNumExpr *)infix->right)->value);
+					newExpr = new IntNumExpr(tagToken, ((IntNumExpr *)infix->left)->value * ((IntNumExpr *)infix->right)->value);
 				else if (infix->op == L"/")
-					newExpr = new IntNumExpr(((IntNumExpr *)infix->left)->value / ((IntNumExpr *)infix->right)->value);
+					newExpr = new IntNumExpr(tagToken, ((IntNumExpr *)infix->left)->value / ((IntNumExpr *)infix->right)->value);
 				else if (infix->op == L"%")
-					newExpr = new IntNumExpr(((IntNumExpr *)infix->left)->value % ((IntNumExpr *)infix->right)->value);
+					newExpr = new IntNumExpr(tagToken, ((IntNumExpr *)infix->left)->value % ((IntNumExpr *)infix->right)->value);
 				else if (infix->op == L"&")
-					newExpr = new IntNumExpr(((IntNumExpr *)infix->left)->value & ((IntNumExpr *)infix->right)->value);
+					newExpr = new IntNumExpr(tagToken, ((IntNumExpr *)infix->left)->value & ((IntNumExpr *)infix->right)->value);
 				else if (infix->op == L"|")
-					newExpr = new IntNumExpr(((IntNumExpr *)infix->left)->value | ((IntNumExpr *)infix->right)->value);
+					newExpr = new IntNumExpr(tagToken, ((IntNumExpr *)infix->left)->value | ((IntNumExpr *)infix->right)->value);
 				else if (infix->op == L"^")
-					newExpr = new IntNumExpr(((IntNumExpr *)infix->left)->value ^ ((IntNumExpr *)infix->right)->value);
+					newExpr = new IntNumExpr(tagToken, ((IntNumExpr *)infix->left)->value ^ ((IntNumExpr *)infix->right)->value);
 				else if (infix->op == L"==")
-					newExpr = new BoolExpr(((IntNumExpr *)infix->left)->value == ((IntNumExpr *)infix->right)->value);
+					newExpr = new BoolExpr(tagToken, ((IntNumExpr *)infix->left)->value == ((IntNumExpr *)infix->right)->value);
 				else if (infix->op == L"!=")
-					newExpr = new BoolExpr(((IntNumExpr *)infix->left)->value != ((IntNumExpr *)infix->right)->value);
+					newExpr = new BoolExpr(tagToken, ((IntNumExpr *)infix->left)->value != ((IntNumExpr *)infix->right)->value);
 				else if (infix->op == L">")
-					newExpr = new BoolExpr(((IntNumExpr *)infix->left)->value > ((IntNumExpr *)infix->right)->value);
+					newExpr = new BoolExpr(tagToken, ((IntNumExpr *)infix->left)->value > ((IntNumExpr *)infix->right)->value);
 				else if (infix->op == L">=")
-					newExpr = new BoolExpr(((IntNumExpr *)infix->left)->value >= ((IntNumExpr *)infix->right)->value);
+					newExpr = new BoolExpr(tagToken, ((IntNumExpr *)infix->left)->value >= ((IntNumExpr *)infix->right)->value);
 				else if (infix->op == L"<")
-					newExpr = new BoolExpr(((IntNumExpr *)infix->left)->value < ((IntNumExpr *)infix->right)->value);
+					newExpr = new BoolExpr(tagToken, ((IntNumExpr *)infix->left)->value < ((IntNumExpr *)infix->right)->value);
 				else if (infix->op == L"<=")
-					newExpr = new BoolExpr(((IntNumExpr *)infix->left)->value <= ((IntNumExpr *)infix->right)->value);
+					newExpr = new BoolExpr(tagToken, ((IntNumExpr *)infix->left)->value <= ((IntNumExpr *)infix->right)->value);
 				else if (infix->op == L"<<")
-					newExpr = new IntNumExpr(((IntNumExpr *)infix->left)->value << ((IntNumExpr *)infix->right)->value);
+					newExpr = new IntNumExpr(tagToken, ((IntNumExpr *)infix->left)->value << ((IntNumExpr *)infix->right)->value);
 				else
 					needToDelete = false;
 
@@ -400,27 +402,28 @@ namespace lws
 			else if (infix->left->type == AST_INT && infix->right->type == AST_REAL)
 			{
 				Expr *newExpr = infix;
+				auto tagToken = newExpr->tagToken;
 				bool needToDelete = true;
 				if (infix->op == L"+")
-					newExpr = new RealNumExpr(((IntNumExpr *)infix->left)->value + ((RealNumExpr *)infix->right)->value);
+					newExpr = new RealNumExpr(tagToken, ((IntNumExpr *)infix->left)->value + ((RealNumExpr *)infix->right)->value);
 				else if (infix->op == L"-")
-					newExpr = new RealNumExpr(((IntNumExpr *)infix->left)->value - ((RealNumExpr *)infix->right)->value);
+					newExpr = new RealNumExpr(tagToken, ((IntNumExpr *)infix->left)->value - ((RealNumExpr *)infix->right)->value);
 				else if (infix->op == L"*")
-					newExpr = new RealNumExpr(((IntNumExpr *)infix->left)->value * ((RealNumExpr *)infix->right)->value);
+					newExpr = new RealNumExpr(tagToken, ((IntNumExpr *)infix->left)->value * ((RealNumExpr *)infix->right)->value);
 				else if (infix->op == L"/")
-					newExpr = new RealNumExpr(((IntNumExpr *)infix->left)->value / ((RealNumExpr *)infix->right)->value);
+					newExpr = new RealNumExpr(tagToken, ((IntNumExpr *)infix->left)->value / ((RealNumExpr *)infix->right)->value);
 				else if (infix->op == L"==")
-					newExpr = new BoolExpr(((IntNumExpr *)infix->left)->value == ((RealNumExpr *)infix->right)->value);
+					newExpr = new BoolExpr(tagToken, ((IntNumExpr *)infix->left)->value == ((RealNumExpr *)infix->right)->value);
 				else if (infix->op == L"!=")
-					newExpr = new BoolExpr(((IntNumExpr *)infix->left)->value != ((RealNumExpr *)infix->right)->value);
+					newExpr = new BoolExpr(tagToken, ((IntNumExpr *)infix->left)->value != ((RealNumExpr *)infix->right)->value);
 				else if (infix->op == L">")
-					newExpr = new BoolExpr(((IntNumExpr *)infix->left)->value > ((RealNumExpr *)infix->right)->value);
+					newExpr = new BoolExpr(tagToken, ((IntNumExpr *)infix->left)->value > ((RealNumExpr *)infix->right)->value);
 				else if (infix->op == L">=")
-					newExpr = new BoolExpr(((IntNumExpr *)infix->left)->value >= ((RealNumExpr *)infix->right)->value);
+					newExpr = new BoolExpr(tagToken, ((IntNumExpr *)infix->left)->value >= ((RealNumExpr *)infix->right)->value);
 				else if (infix->op == L"<")
-					newExpr = new BoolExpr(((IntNumExpr *)infix->left)->value < ((RealNumExpr *)infix->right)->value);
+					newExpr = new BoolExpr(tagToken, ((IntNumExpr *)infix->left)->value < ((RealNumExpr *)infix->right)->value);
 				else if (infix->op == L"<=")
-					newExpr = new BoolExpr(((IntNumExpr *)infix->left)->value <= ((RealNumExpr *)infix->right)->value);
+					newExpr = new BoolExpr(tagToken, ((IntNumExpr *)infix->left)->value <= ((RealNumExpr *)infix->right)->value);
 				else
 					needToDelete = false;
 
@@ -434,27 +437,28 @@ namespace lws
 			else if (infix->left->type == AST_REAL && infix->right->type == AST_INT)
 			{
 				Expr *newExpr = infix;
+				auto tagToken = newExpr->tagToken;
 				bool needToDelete = true;
 				if (infix->op == L"+")
-					newExpr = new RealNumExpr(((RealNumExpr *)infix->left)->value + ((IntNumExpr *)infix->right)->value);
+					newExpr = new RealNumExpr(tagToken, ((RealNumExpr *)infix->left)->value + ((IntNumExpr *)infix->right)->value);
 				else if (infix->op == L"-")
-					newExpr = new RealNumExpr(((RealNumExpr *)infix->left)->value - ((IntNumExpr *)infix->right)->value);
+					newExpr = new RealNumExpr(tagToken, ((RealNumExpr *)infix->left)->value - ((IntNumExpr *)infix->right)->value);
 				else if (infix->op == L"*")
-					newExpr = new RealNumExpr(((RealNumExpr *)infix->left)->value * ((IntNumExpr *)infix->right)->value);
+					newExpr = new RealNumExpr(tagToken, ((RealNumExpr *)infix->left)->value * ((IntNumExpr *)infix->right)->value);
 				else if (infix->op == L"/")
-					newExpr = new RealNumExpr(((RealNumExpr *)infix->left)->value / ((IntNumExpr *)infix->right)->value);
+					newExpr = new RealNumExpr(tagToken, ((RealNumExpr *)infix->left)->value / ((IntNumExpr *)infix->right)->value);
 				else if (infix->op == L"==")
-					newExpr = new BoolExpr(((RealNumExpr *)infix->left)->value == ((IntNumExpr *)infix->right)->value);
+					newExpr = new BoolExpr(tagToken, ((RealNumExpr *)infix->left)->value == ((IntNumExpr *)infix->right)->value);
 				else if (infix->op == L"!=")
-					newExpr = new BoolExpr(((RealNumExpr *)infix->left)->value != ((IntNumExpr *)infix->right)->value);
+					newExpr = new BoolExpr(tagToken, ((RealNumExpr *)infix->left)->value != ((IntNumExpr *)infix->right)->value);
 				else if (infix->op == L">")
-					newExpr = new BoolExpr(((RealNumExpr *)infix->left)->value > ((IntNumExpr *)infix->right)->value);
+					newExpr = new BoolExpr(tagToken, ((RealNumExpr *)infix->left)->value > ((IntNumExpr *)infix->right)->value);
 				else if (infix->op == L">=")
-					newExpr = new BoolExpr(((RealNumExpr *)infix->left)->value >= ((IntNumExpr *)infix->right)->value);
+					newExpr = new BoolExpr(tagToken, ((RealNumExpr *)infix->left)->value >= ((IntNumExpr *)infix->right)->value);
 				else if (infix->op == L"<")
-					newExpr = new BoolExpr(((RealNumExpr *)infix->left)->value < ((IntNumExpr *)infix->right)->value);
+					newExpr = new BoolExpr(tagToken, ((RealNumExpr *)infix->left)->value < ((IntNumExpr *)infix->right)->value);
 				else if (infix->op == L"<=")
-					newExpr = new BoolExpr(((RealNumExpr *)infix->left)->value <= ((IntNumExpr *)infix->right)->value);
+					newExpr = new BoolExpr(tagToken, ((RealNumExpr *)infix->left)->value <= ((IntNumExpr *)infix->right)->value);
 				else
 					needToDelete = false;
 
@@ -467,7 +471,7 @@ namespace lws
 			}
 			else if (infix->left->type == AST_STR && infix->right->type == AST_STR)
 			{
-				auto strExpr = new StrExpr(((StrExpr *)infix->left)->value + ((StrExpr *)infix->right)->value);
+				auto strExpr = new StrExpr(infix->tagToken, ((StrExpr *)infix->left)->value + ((StrExpr *)infix->right)->value);
 				delete infix;
 				infix = nullptr;
 				return strExpr;
@@ -478,21 +482,21 @@ namespace lws
 			auto prefix = (PrefixExpr *)expr;
 			if (prefix->right->type == AST_REAL && prefix->op == L"-")
 			{
-				auto numExpr = new RealNumExpr(-((RealNumExpr *)prefix->right)->value);
+				auto numExpr = new RealNumExpr(prefix->tagToken, -((RealNumExpr *)prefix->right)->value);
 				delete prefix;
 				prefix = nullptr;
 				return numExpr;
 			}
 			else if (prefix->right->type == AST_BOOL && prefix->op == L"!")
 			{
-				auto boolExpr = new BoolExpr(!((BoolExpr *)prefix->right)->value);
+				auto boolExpr = new BoolExpr(prefix->tagToken, !((BoolExpr *)prefix->right)->value);
 				delete prefix;
 				prefix = nullptr;
 				return boolExpr;
 			}
 			else if (prefix->right->type == AST_INT && prefix->op == L"~")
 			{
-				auto newExpr = new IntNumExpr(~((IntNumExpr *)prefix->right)->value);
+				auto newExpr = new IntNumExpr(prefix->tagToken, ~((IntNumExpr *)prefix->right)->value);
 				delete prefix;
 				prefix = nullptr;
 				return newExpr;
@@ -503,7 +507,7 @@ namespace lws
 			auto postfix = (PostfixExpr *)expr;
 			if (postfix->left->type == AST_INT && postfix->op == L"!")
 			{
-				auto numExpr = new IntNumExpr(Factorial(((IntNumExpr *)postfix->left)->value));
+				auto numExpr = new IntNumExpr(postfix->tagToken, Factorial(((IntNumExpr *)postfix->left)->value));
 				delete postfix;
 				postfix = nullptr;
 				return numExpr;

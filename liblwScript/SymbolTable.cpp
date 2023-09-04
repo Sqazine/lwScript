@@ -15,13 +15,13 @@ namespace lws
         mTableDepth = enclosing->mTableDepth + 1;
     }
 
-    Symbol SymbolTable::Define(Token relatedToken, ValueDesc descType, const std::wstring &name, int8_t paramCount)
+    Symbol SymbolTable::Define(Token relatedToken, ValueDesc descType, const std::wstring &name, const FunctionSymbolInfo &functionInfo)
     {
         if (mSymbolCount >= mSymbols.size())
             Hint::Error(relatedToken, L"Too many symbols in current scope.");
         for (int16_t i = mSymbolCount - 1; i >= 0; --i)
         {
-            auto isSameParamCount = (mSymbols[i].paramCount < 0 || paramCount < 0) ? true : mSymbols[i].paramCount == paramCount;
+            auto isSameParamCount = (mSymbols[i].functionSymInfo.paramCount < 0 || functionInfo.paramCount < 0) ? true : mSymbols[i].functionSymInfo.paramCount == functionInfo.paramCount;
             if (mSymbols[i].scopeDepth == -1 || mSymbols[i].scopeDepth < mScopeDepth)
                 break;
             if (mSymbols[i].name == name && isSameParamCount)
@@ -31,7 +31,7 @@ namespace lws
         auto *symbol = &mSymbols[mSymbolCount++];
         symbol->name = name;
         symbol->descType = descType;
-        symbol->paramCount = paramCount;
+        symbol->functionSymInfo = functionInfo;
         symbol->relatedToken = relatedToken;
 
         if (mScopeDepth == 0)
@@ -52,16 +52,20 @@ namespace lws
     {
         for (int16_t i = mSymbolCount - 1; i >= 0; --i)
         {
-            auto isSameParamCount = (mSymbols[i].paramCount < 0 || paramCount < 0) ? true : mSymbols[i].paramCount == paramCount;
-            if (mSymbols[i].name == name && isSameParamCount && mSymbols[i].scopeDepth <= mScopeDepth)
+            auto isSameParamCount = (mSymbols[i].functionSymInfo.paramCount < 0 || paramCount < 0) ? true : mSymbols[i].functionSymInfo.paramCount == paramCount;
+
+            if (mSymbols[i].name == name && mSymbols[i].scopeDepth <= mScopeDepth)
             {
-                if (mSymbols[i].scopeDepth == -1)
-                    Hint::Error(relatedToken, L"symbol not defined yet!");
+                if (isSameParamCount || mSymbols[i].functionSymInfo.varArgParamType > 0)
+                {
+                    if (mSymbols[i].scopeDepth == -1)
+                        Hint::Error(relatedToken, L"symbol not defined yet!");
 
-                if (d == 1)
-                    mSymbols[i].isCaptured = true;
+                    if (d == 1)
+                        mSymbols[i].isCaptured = true;
 
-                return mSymbols[i];
+                    return mSymbols[i];
+                }
             }
         }
 

@@ -4,12 +4,12 @@ namespace lws
 {
 	//----------------------Expressions-----------------------------
 
-	IntNumExpr::IntNumExpr()
-		: Expr(AST_INT), value(0)
+	IntNumExpr::IntNumExpr(Token tagToken)
+		: Expr(tagToken, AST_INT), value(0)
 	{
 	}
-	IntNumExpr::IntNumExpr(int64_t value)
-		: Expr(AST_INT), value(value)
+	IntNumExpr::IntNumExpr(Token tagToken, int64_t value)
+		: Expr(tagToken, AST_INT), value(value)
 	{
 	}
 	IntNumExpr::~IntNumExpr()
@@ -21,12 +21,12 @@ namespace lws
 		return std::to_wstring(value);
 	}
 
-	RealNumExpr::RealNumExpr()
-		: Expr(AST_REAL), value(0.0)
+	RealNumExpr::RealNumExpr(Token tagToken)
+		: Expr(tagToken, AST_REAL), value(0.0)
 	{
 	}
-	RealNumExpr::RealNumExpr(double value)
-		: Expr(AST_REAL), value(value)
+	RealNumExpr::RealNumExpr(Token tagToken, double value)
+		: Expr(tagToken, AST_REAL), value(value)
 	{
 	}
 	RealNumExpr::~RealNumExpr()
@@ -37,12 +37,12 @@ namespace lws
 		return std::to_wstring(value);
 	}
 
-	StrExpr::StrExpr()
-		: Expr(AST_STR)
+	StrExpr::StrExpr(Token tagToken)
+		: Expr(tagToken, AST_STR)
 	{
 	}
-	StrExpr::StrExpr(std::wstring_view str)
-		: Expr(AST_STR), value(str)
+	StrExpr::StrExpr(Token tagToken, std::wstring_view str)
+		: Expr(tagToken, AST_STR), value(str)
 	{
 	}
 
@@ -55,8 +55,8 @@ namespace lws
 		return L"\"" + value + L"\"";
 	}
 
-	NullExpr::NullExpr()
-		: Expr(AST_NULL)
+	NullExpr::NullExpr(Token tagToken)
+		: Expr(tagToken, AST_NULL)
 	{
 	}
 	NullExpr::~NullExpr()
@@ -68,12 +68,12 @@ namespace lws
 		return L"null";
 	}
 
-	BoolExpr::BoolExpr()
-		: Expr(AST_BOOL), value(false)
+	BoolExpr::BoolExpr(Token tagToken)
+		: Expr(tagToken, AST_BOOL), value(false)
 	{
 	}
-	BoolExpr::BoolExpr(bool value)
-		: Expr(AST_BOOL), value(value)
+	BoolExpr::BoolExpr(Token tagToken, bool value)
+		: Expr(tagToken, AST_BOOL), value(value)
 	{
 	}
 	BoolExpr::~BoolExpr()
@@ -85,12 +85,12 @@ namespace lws
 		return value ? L"true" : L"false";
 	}
 
-	IdentifierExpr::IdentifierExpr()
-		: Expr(AST_IDENTIFIER)
+	IdentifierExpr::IdentifierExpr(Token tagToken)
+		: Expr(tagToken, AST_IDENTIFIER)
 	{
 	}
-	IdentifierExpr::IdentifierExpr(std::wstring_view literal)
-		: Expr(AST_IDENTIFIER), literal(literal)
+	IdentifierExpr::IdentifierExpr(Token tagToken, std::wstring_view literal)
+		: Expr(tagToken, AST_IDENTIFIER), literal(literal)
 	{
 	}
 	IdentifierExpr::~IdentifierExpr()
@@ -102,12 +102,12 @@ namespace lws
 		return literal;
 	}
 
-	VarDescExpr::VarDescExpr()
-		: Expr(AST_VAR_DESC)
+	VarDescExpr::VarDescExpr(Token tagToken)
+		: Expr(tagToken, AST_VAR_DESC)
 	{
 	}
-	VarDescExpr::VarDescExpr(std::wstring_view typeDesc, Expr *name)
-		: Expr(AST_VAR_DESC), name(name), typeDesc(typeDesc)
+	VarDescExpr::VarDescExpr(Token tagToken, std::wstring_view typeDesc, Expr *name)
+		: Expr(tagToken, AST_VAR_DESC), name(name), typeDesc(typeDesc)
 	{
 	}
 	VarDescExpr::~VarDescExpr()
@@ -121,11 +121,11 @@ namespace lws
 		return name->ToString() + L":" + typeDesc;
 	}
 
-	ArrayExpr::ArrayExpr()
-		: Expr(AST_ARRAY)
+	ArrayExpr::ArrayExpr(Token tagToken)
+		: Expr(tagToken, AST_ARRAY)
 	{
 	}
-	ArrayExpr::ArrayExpr(std::vector<Expr *> elements) : Expr(AST_ARRAY), elements(elements)
+	ArrayExpr::ArrayExpr(Token tagToken, const std::vector<Expr *> &elements) : Expr(tagToken, AST_ARRAY), elements(elements)
 	{
 	}
 	ArrayExpr::~ArrayExpr()
@@ -147,12 +147,12 @@ namespace lws
 		return result;
 	}
 
-	DictExpr::DictExpr()
-		: Expr(AST_DICT)
+	DictExpr::DictExpr(Token tagToken)
+		: Expr(tagToken, AST_DICT)
 	{
 	}
-	DictExpr::DictExpr(const std::vector<std::pair<Expr *, Expr *>> &elements)
-		: Expr(AST_DICT), elements(elements)
+	DictExpr::DictExpr(Token tagToken, const std::vector<std::pair<Expr *, Expr *>> &elements)
+		: Expr(tagToken, AST_DICT), elements(elements)
 	{
 	}
 	DictExpr::~DictExpr()
@@ -174,12 +174,12 @@ namespace lws
 		return result;
 	}
 
-	GroupExpr::GroupExpr()
-		: Expr(AST_GROUP), expr(nullptr)
+	GroupExpr::GroupExpr(Token tagToken)
+		: Expr(tagToken, AST_GROUP), expr(nullptr)
 	{
 	}
-	GroupExpr::GroupExpr(Expr *expr)
-		: Expr(AST_GROUP), expr(expr)
+	GroupExpr::GroupExpr(Token tagToken, Expr *expr)
+		: Expr(tagToken, AST_GROUP), expr(expr)
 	{
 	}
 	GroupExpr::~GroupExpr()
@@ -190,12 +190,12 @@ namespace lws
 		return L"(" + expr->ToString() + L")";
 	}
 
-	PrefixExpr::PrefixExpr()
-		: Expr(AST_PREFIX), right(nullptr)
+	PrefixExpr::PrefixExpr(Token tagToken)
+		: Expr(tagToken, AST_PREFIX), right(nullptr)
 	{
 	}
-	PrefixExpr::PrefixExpr(std::wstring_view op, Expr *right)
-		: Expr(AST_PREFIX), op(op), right(right)
+	PrefixExpr::PrefixExpr(Token tagToken, std::wstring_view op, Expr *right)
+		: Expr(tagToken, AST_PREFIX), op(op), right(right)
 	{
 	}
 	PrefixExpr::~PrefixExpr()
@@ -209,12 +209,12 @@ namespace lws
 		return op + right->ToString();
 	}
 
-	InfixExpr::InfixExpr()
-		: Expr(AST_INFIX), left(nullptr), right(nullptr)
+	InfixExpr::InfixExpr(Token tagToken)
+		: Expr(tagToken, AST_INFIX), left(nullptr), right(nullptr)
 	{
 	}
-	InfixExpr::InfixExpr(std::wstring_view op, Expr *left, Expr *right)
-		: Expr(AST_INFIX), op(op), left(left), right(right)
+	InfixExpr::InfixExpr(Token tagToken, std::wstring_view op, Expr *left, Expr *right)
+		: Expr(tagToken, AST_INFIX), op(op), left(left), right(right)
 	{
 	}
 	InfixExpr::~InfixExpr()
@@ -231,12 +231,12 @@ namespace lws
 		return left->ToString() + op + right->ToString();
 	}
 
-	PostfixExpr::PostfixExpr()
-		: Expr(AST_POSTFIX), left(nullptr)
+	PostfixExpr::PostfixExpr(Token tagToken)
+		: Expr(tagToken, AST_POSTFIX), left(nullptr)
 	{
 	}
-	PostfixExpr::PostfixExpr(Expr *left, std::wstring_view op)
-		: Expr(AST_POSTFIX), left(left), op(op)
+	PostfixExpr::PostfixExpr(Token tagToken, Expr *left, std::wstring_view op)
+		: Expr(tagToken, AST_POSTFIX), left(left), op(op)
 	{
 	}
 	PostfixExpr::~PostfixExpr()
@@ -249,12 +249,12 @@ namespace lws
 		return left->ToString() + op;
 	}
 
-	ConditionExpr::ConditionExpr()
-		: Expr(AST_CONDITION), condition(nullptr), trueBranch(nullptr), falseBranch(nullptr)
+	ConditionExpr::ConditionExpr(Token tagToken)
+		: Expr(tagToken, AST_CONDITION), condition(nullptr), trueBranch(nullptr), falseBranch(nullptr)
 	{
 	}
-	ConditionExpr::ConditionExpr(Expr *condition, Expr *trueBranch, Expr *falseBranch)
-		: Expr(AST_CONDITION), condition(condition), trueBranch(trueBranch), falseBranch(falseBranch)
+	ConditionExpr::ConditionExpr(Token tagToken, Expr *condition, Expr *trueBranch, Expr *falseBranch)
+		: Expr(tagToken, AST_CONDITION), condition(condition), trueBranch(trueBranch), falseBranch(falseBranch)
 	{
 	}
 	ConditionExpr::~ConditionExpr()
@@ -274,12 +274,12 @@ namespace lws
 		return condition->ToString() + L"?" + trueBranch->ToString() + L":" + falseBranch->ToString();
 	}
 
-	IndexExpr::IndexExpr()
-		: Expr(AST_INDEX), ds(nullptr), index(nullptr)
+	IndexExpr::IndexExpr(Token tagToken)
+		: Expr(tagToken, AST_INDEX), ds(nullptr), index(nullptr)
 	{
 	}
-	IndexExpr::IndexExpr(Expr *ds, Expr *index)
-		: Expr(AST_INDEX), ds(ds), index(index)
+	IndexExpr::IndexExpr(Token tagToken, Expr *ds, Expr *index)
+		: Expr(tagToken, AST_INDEX), ds(ds), index(index)
 	{
 	}
 	IndexExpr::~IndexExpr()
@@ -294,12 +294,12 @@ namespace lws
 		return ds->ToString() + L"[" + index->ToString() + L"]";
 	}
 
-	RefExpr::RefExpr()
-		: Expr(AST_REF), refExpr(nullptr)
+	RefExpr::RefExpr(Token tagToken)
+		: Expr(tagToken, AST_REF), refExpr(nullptr)
 	{
 	}
-	RefExpr::RefExpr(Expr *refExpr)
-		: Expr(AST_REF), refExpr(refExpr)
+	RefExpr::RefExpr(Token tagToken, Expr *refExpr)
+		: Expr(tagToken, AST_REF), refExpr(refExpr)
 	{
 	}
 	RefExpr::~RefExpr()
@@ -311,12 +311,12 @@ namespace lws
 		return L"&" + refExpr->ToString();
 	}
 
-	LambdaExpr::LambdaExpr()
-		: Expr(AST_LAMBDA), body(nullptr)
+	LambdaExpr::LambdaExpr(Token tagToken)
+		: Expr(tagToken, AST_LAMBDA), body(nullptr)
 	{
 	}
-	LambdaExpr::LambdaExpr(std::vector<VarDescExpr *> parameters, ScopeStmt *body)
-		: Expr(AST_LAMBDA), parameters(parameters), body(body)
+	LambdaExpr::LambdaExpr(Token tagToken,const std::vector<VarDescExpr *>& parameters, ScopeStmt *body)
+		: Expr(tagToken, AST_LAMBDA), parameters(parameters), body(body)
 	{
 	}
 	LambdaExpr::~LambdaExpr()
@@ -341,12 +341,12 @@ namespace lws
 		return result;
 	}
 
-	CallExpr::CallExpr()
-		: Expr(AST_CALL)
+	CallExpr::CallExpr(Token tagToken)
+		: Expr(tagToken, AST_CALL)
 	{
 	}
-	CallExpr::CallExpr(Expr *callee, std::vector<Expr *> arguments)
-		: Expr(AST_CALL), callee(callee), arguments(arguments)
+	CallExpr::CallExpr(Token tagToken, Expr *callee,const std::vector<Expr *>& arguments)
+		: Expr(tagToken, AST_CALL), callee(callee), arguments(arguments)
 	{
 	}
 	CallExpr::~CallExpr()
@@ -366,12 +366,12 @@ namespace lws
 		return result;
 	}
 
-	DotExpr::DotExpr()
-		: Expr(AST_DOT), callee(nullptr), callMember(nullptr)
+	DotExpr::DotExpr(Token tagToken)
+		: Expr(tagToken, AST_DOT), callee(nullptr), callMember(nullptr)
 	{
 	}
-	DotExpr::DotExpr(Expr *callee, IdentifierExpr *callMember)
-		: Expr(AST_DOT), callee(callee), callMember(callMember)
+	DotExpr::DotExpr(Token tagToken, Expr *callee, IdentifierExpr *callMember)
+		: Expr(tagToken, AST_DOT), callee(callee), callMember(callMember)
 	{
 	}
 	DotExpr::~DotExpr()
@@ -383,12 +383,12 @@ namespace lws
 		return callee->ToString() + L"." + callMember->ToString();
 	}
 
-	NewExpr::NewExpr()
-		: Expr(AST_NEW)
+	NewExpr::NewExpr(Token tagToken)
+		: Expr(tagToken, AST_NEW)
 	{
 	}
-	NewExpr::NewExpr(Expr *callee)
-		: Expr(AST_NEW), callee(callee)
+	NewExpr::NewExpr(Token tagToken, Expr *callee)
+		: Expr(tagToken, AST_NEW), callee(callee)
 	{
 	}
 	NewExpr::~NewExpr()
@@ -400,8 +400,8 @@ namespace lws
 		return L"new " + callee->ToString();
 	}
 
-	ThisExpr::ThisExpr()
-		: Expr(AST_THIS)
+	ThisExpr::ThisExpr(Token tagToken)
+		: Expr(tagToken, AST_THIS)
 	{
 	}
 
@@ -414,8 +414,8 @@ namespace lws
 		return L"this";
 	}
 
-	BaseExpr::BaseExpr(IdentifierExpr *callMember)
-		: Expr(AST_BASE), callMember(callMember)
+	BaseExpr::BaseExpr(Token tagToken, IdentifierExpr *callMember)
+		: Expr(tagToken, AST_BASE), callMember(callMember)
 	{
 	}
 	BaseExpr::~BaseExpr()
@@ -427,12 +427,12 @@ namespace lws
 		return L"base." + callMember->ToString();
 	}
 
-	BlockExpr::BlockExpr()
-		: Expr(AST_BLOCK)
+	BlockExpr::BlockExpr(Token tagToken)
+		: Expr(tagToken, AST_BLOCK)
 	{
 	}
-	BlockExpr::BlockExpr(const std::vector<Stmt *> &stmts, Expr *endExpr)
-		: Expr(AST_BLOCK), stmts(stmts), endExpr(endExpr)
+	BlockExpr::BlockExpr(Token tagToken, const std::vector<Stmt *> &stmts, Expr *endExpr)
+		: Expr(tagToken, AST_BLOCK), stmts(stmts), endExpr(endExpr)
 	{
 	}
 	BlockExpr::~BlockExpr()
@@ -449,12 +449,12 @@ namespace lws
 		return result;
 	}
 
-	AnonyObjExpr::AnonyObjExpr()
-		: Expr(AST_ANONY_OBJ)
+	AnonyObjExpr::AnonyObjExpr(Token tagToken)
+		: Expr(tagToken, AST_ANONY_OBJ)
 	{
 	}
-	AnonyObjExpr::AnonyObjExpr(const std::vector<std::pair<std::wstring, Expr *>> &elements)
-		: Expr(AST_ANONY_OBJ), elements(elements)
+	AnonyObjExpr::AnonyObjExpr(Token tagToken, const std::vector<std::pair<std::wstring, Expr *>> &elements)
+		: Expr(tagToken, AST_ANONY_OBJ), elements(elements)
 	{
 	}
 	AnonyObjExpr::~AnonyObjExpr()
@@ -474,12 +474,12 @@ namespace lws
 		result += L"}";
 		return result;
 	}
-	VarArgExpr::VarArgExpr()
-		: Expr(AST_VAR_ARG), argName(nullptr)
+	VarArgExpr::VarArgExpr(Token tagToken)
+		: Expr(tagToken, AST_VAR_ARG), argName(nullptr)
 	{
 	}
-	VarArgExpr::VarArgExpr(IdentifierExpr *argName)
-		: Expr(AST_VAR_ARG), argName(argName)
+	VarArgExpr::VarArgExpr(Token tagToken, IdentifierExpr *argName)
+		: Expr(tagToken, AST_VAR_ARG), argName(argName)
 	{
 	}
 	VarArgExpr::~VarArgExpr()
@@ -492,12 +492,12 @@ namespace lws
 		return L"..." + (argName ? argName->ToString() : L"");
 	}
 
-	FactorialExpr::FactorialExpr()
-		: Expr(AST_FACTORIAL), expr(nullptr)
+	FactorialExpr::FactorialExpr(Token tagToken)
+		: Expr(tagToken, AST_FACTORIAL), expr(nullptr)
 	{
 	}
-	FactorialExpr::FactorialExpr(Expr *expr)
-		: Expr(AST_FACTORIAL), expr(expr)
+	FactorialExpr::FactorialExpr(Token tagToken, Expr *expr)
+		: Expr(tagToken, AST_FACTORIAL), expr(expr)
 	{
 	}
 	FactorialExpr::~FactorialExpr()
@@ -511,12 +511,12 @@ namespace lws
 		return expr->ToString() + L"!";
 	}
 
-	AppregateExpr::AppregateExpr()
-		: Expr(AST_APPREGATE)
+	AppregateExpr::AppregateExpr(Token tagToken)
+		: Expr(tagToken, AST_APPREGATE)
 	{
 	}
-	AppregateExpr::AppregateExpr(const std::vector<Expr *> &exprs)
-		: Expr(AST_APPREGATE), exprs(exprs)
+	AppregateExpr::AppregateExpr(Token tagToken, const std::vector<Expr *> &exprs)
+		: Expr(tagToken, AST_APPREGATE), exprs(exprs)
 	{
 	}
 	AppregateExpr::~AppregateExpr()
@@ -539,12 +539,12 @@ namespace lws
 
 	//----------------------Statements-----------------------------
 
-	ExprStmt::ExprStmt()
-		: Stmt(AST_EXPR), expr(nullptr)
+	ExprStmt::ExprStmt(Token tagToken)
+		: Stmt(tagToken, AST_EXPR), expr(nullptr)
 	{
 	}
-	ExprStmt::ExprStmt(Expr *expr)
-		: Stmt(AST_EXPR), expr(expr)
+	ExprStmt::ExprStmt(Token tagToken, Expr *expr)
+		: Stmt(tagToken, AST_EXPR), expr(expr)
 	{
 	}
 	ExprStmt::~ExprStmt()
@@ -558,12 +558,12 @@ namespace lws
 		return expr->ToString() + L";";
 	}
 
-	VarStmt::VarStmt()
-		: Stmt(AST_VAR)
+	VarStmt::VarStmt(Token tagToken)
+		: Stmt(tagToken, AST_VAR)
 	{
 	}
-	VarStmt::VarStmt(Privilege privilege, const std::vector<std::pair<Expr *, Expr *>> &variables)
-		: Stmt(AST_VAR), privilege(privilege), variables(variables)
+	VarStmt::VarStmt(Token tagToken, Privilege privilege, const std::vector<std::pair<Expr *, Expr *>> &variables)
+		: Stmt(tagToken, AST_VAR), privilege(privilege), variables(variables)
 	{
 	}
 	VarStmt::~VarStmt()
@@ -589,12 +589,12 @@ namespace lws
 		return result + L";";
 	}
 
-	ReturnStmt::ReturnStmt()
-		: Stmt(AST_RETURN), expr(nullptr)
+	ReturnStmt::ReturnStmt(Token tagToken)
+		: Stmt(tagToken, AST_RETURN), expr(nullptr)
 	{
 	}
-	ReturnStmt::ReturnStmt(Expr *expr)
-		: Stmt(AST_RETURN), expr(expr)
+	ReturnStmt::ReturnStmt(Token tagToken, Expr *expr)
+		: Stmt(tagToken, AST_RETURN), expr(expr)
 	{
 	}
 	ReturnStmt::~ReturnStmt()
@@ -611,12 +611,12 @@ namespace lws
 			return L"return " + expr->ToString() + L";";
 	}
 
-	IfStmt::IfStmt()
-		: Stmt(AST_IF), condition(nullptr), thenBranch(nullptr), elseBranch(nullptr)
+	IfStmt::IfStmt(Token tagToken)
+		: Stmt(tagToken, AST_IF), condition(nullptr), thenBranch(nullptr), elseBranch(nullptr)
 	{
 	}
-	IfStmt::IfStmt(Expr *condition, Stmt *thenBranch, Stmt *elseBranch)
-		: Stmt(AST_IF),
+	IfStmt::IfStmt(Token tagToken, Expr *condition, Stmt *thenBranch, Stmt *elseBranch)
+		: Stmt(tagToken, AST_IF),
 		  condition(condition),
 		  thenBranch(thenBranch),
 		  elseBranch(elseBranch)
@@ -641,12 +641,12 @@ namespace lws
 		return result;
 	}
 
-	ScopeStmt::ScopeStmt()
-		: Stmt(AST_SCOPE)
+	ScopeStmt::ScopeStmt(Token tagToken)
+		: Stmt(tagToken, AST_SCOPE)
 	{
 	}
-	ScopeStmt::ScopeStmt(std::vector<Stmt *> stmts)
-		: Stmt(AST_SCOPE), stmts(stmts)
+	ScopeStmt::ScopeStmt(Token tagToken,const std::vector<Stmt *>& stmts)
+		: Stmt(tagToken, AST_SCOPE), stmts(stmts)
 	{
 	}
 	ScopeStmt::~ScopeStmt()
@@ -663,12 +663,12 @@ namespace lws
 		return result;
 	}
 
-	WhileStmt::WhileStmt()
-		: Stmt(AST_WHILE), condition(nullptr), body(nullptr), increment(nullptr)
+	WhileStmt::WhileStmt(Token tagToken)
+		: Stmt(tagToken, AST_WHILE), condition(nullptr), body(nullptr), increment(nullptr)
 	{
 	}
-	WhileStmt::WhileStmt(Expr *condition, ScopeStmt *body, ScopeStmt *increment)
-		: Stmt(AST_WHILE), condition(condition), body(body), increment(increment)
+	WhileStmt::WhileStmt(Token tagToken, Expr *condition, ScopeStmt *body, ScopeStmt *increment)
+		: Stmt(tagToken, AST_WHILE), condition(condition), body(body), increment(increment)
 	{
 	}
 	WhileStmt::~WhileStmt()
@@ -689,8 +689,8 @@ namespace lws
 		return result += L"}";
 	}
 
-	BreakStmt::BreakStmt()
-		: Stmt(AST_BREAK)
+	BreakStmt::BreakStmt(Token tagToken)
+		: Stmt(tagToken, AST_BREAK)
 	{
 	}
 	BreakStmt::~BreakStmt()
@@ -702,8 +702,8 @@ namespace lws
 		return L"break;";
 	}
 
-	ContinueStmt::ContinueStmt()
-		: Stmt(AST_CONTINUE)
+	ContinueStmt::ContinueStmt(Token tagToken)
+		: Stmt(tagToken, AST_CONTINUE)
 	{
 	}
 	ContinueStmt::~ContinueStmt()
@@ -715,12 +715,12 @@ namespace lws
 		return L"continue;";
 	}
 
-	EnumStmt::EnumStmt()
-		: Stmt(AST_ENUM)
+	EnumStmt::EnumStmt(Token tagToken)
+		: Stmt(tagToken, AST_ENUM)
 	{
 	}
-	EnumStmt::EnumStmt(IdentifierExpr *enumName, const std::unordered_map<IdentifierExpr *, Expr *> &enumItems)
-		: Stmt(AST_ENUM), enumName(enumName), enumItems(enumItems)
+	EnumStmt::EnumStmt(Token tagToken, IdentifierExpr *enumName, const std::unordered_map<IdentifierExpr *, Expr *> &enumItems)
+		: Stmt(tagToken, AST_ENUM), enumName(enumName), enumItems(enumItems)
 	{
 	}
 	EnumStmt::~EnumStmt()
@@ -739,12 +739,12 @@ namespace lws
 		return result + L"}";
 	}
 
-	ModuleStmt::ModuleStmt()
-		: Stmt(AST_MODULE)
+	ModuleStmt::ModuleStmt(Token tagToken)
+		: Stmt(tagToken, AST_MODULE)
 	{
 	}
-	ModuleStmt::ModuleStmt(IdentifierExpr *modName, const std::vector<Stmt *> &modItems)
-		: Stmt(AST_MODULE), modName(modName), modItems(modItems)
+	ModuleStmt::ModuleStmt(Token tagToken, IdentifierExpr *modName, const std::vector<Stmt *> &modItems)
+		: Stmt(tagToken, AST_MODULE), modName(modName), modItems(modItems)
 	{
 	}
 	ModuleStmt::~ModuleStmt()
@@ -759,13 +759,13 @@ namespace lws
 		return result + L"}\n";
 	}
 
-	FunctionStmt::FunctionStmt()
-		: Stmt(AST_FUNCTION), name(nullptr), body(nullptr)
+	FunctionStmt::FunctionStmt(Token tagToken)
+		: Stmt(tagToken, AST_FUNCTION), name(nullptr), body(nullptr)
 	{
 	}
 
-	FunctionStmt::FunctionStmt(FunctionType type, IdentifierExpr *name, std::vector<VarDescExpr *> parameters, ScopeStmt *body)
-		: Stmt(AST_FUNCTION), type(type), name(name), parameters(parameters), body(body)
+	FunctionStmt::FunctionStmt(Token tagToken, FunctionType type, IdentifierExpr *name, const std::vector<VarDescExpr *>& parameters, ScopeStmt *body)
+		: Stmt(tagToken, AST_FUNCTION), type(type), name(name), parameters(parameters), body(body)
 	{
 	}
 
@@ -791,16 +791,17 @@ namespace lws
 		return result;
 	}
 
-	ClassStmt::ClassStmt()
-		: Stmt(AST_CLASS)
+	ClassStmt::ClassStmt(Token tagToken)
+		: Stmt(tagToken, AST_CLASS)
 	{
 	}
-	ClassStmt::ClassStmt(std::wstring name,
+	ClassStmt::ClassStmt(Token tagToken,
+						 std::wstring name,
 						 std::vector<VarStmt *> varStmts,
 						 std::vector<FunctionStmt *> fnStmts,
 						 std::vector<FunctionStmt *> constructors,
 						 std::vector<IdentifierExpr *> parentClasses)
-		: Stmt(AST_CLASS),
+		: Stmt(tagToken, AST_CLASS),
 		  name(name),
 		  varStmts(varStmts),
 		  fnStmts(fnStmts),
@@ -834,12 +835,12 @@ namespace lws
 		return result + L"}";
 	}
 
-	AstStmts::AstStmts()
-		: Stmt(AST_ASTSTMTS)
+	AstStmts::AstStmts(Token tagToken)
+		: Stmt(tagToken, AST_ASTSTMTS)
 	{
 	}
-	AstStmts::AstStmts(std::vector<Stmt *> stmts)
-		: Stmt(AST_ASTSTMTS), stmts(stmts)
+	AstStmts::AstStmts(Token tagToken, std::vector<Stmt *> stmts)
+		: Stmt(tagToken, AST_ASTSTMTS), stmts(stmts)
 	{
 	}
 
