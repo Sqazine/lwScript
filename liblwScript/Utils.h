@@ -66,46 +66,46 @@ namespace lws
             Record::mSourceCode = sourceCode;
         }
 
-		template <typename... Args>
-		inline void AssemblyOutputLine(const std::wstring& headerHint, const std::wstring& colorHint, int32_t lineNum, int32_t pos, const std::wstring& fmt, const Args &...args)
-		{
-			auto start = pos;
-			auto end = pos;
+        template <typename... Args>
+        inline void AssemblyOutputLine(const std::wstring &headerHint, const std::wstring &colorHint, uint64_t lineNum, uint64_t pos, const std::wstring &fmt, const Args &...args)
+        {
+            auto start = pos;
+            auto end = pos;
 
-			if (Record::mCurFilePath != L"interpreter")
-			{
-				while ((Record::mSourceCode[start - 1] != L'\n' && Record::mSourceCode[start - 1] != L'\r') && start - 1 > 0)
-					start--;
+            if (Record::mCurFilePath != L"interpreter")
+            {
+                while ((Record::mSourceCode[start - 1] != L'\n' && Record::mSourceCode[start - 1] != L'\r') && start - 1 > 0)
+                    start--;
 
-				while ((Record::mSourceCode[end] != L'\n' && Record::mSourceCode[end] != L'\r') && end < Record::mSourceCode.size())
-					end++;
-			}
-			else
-			{
-				start = 0;
-				end = Record::mSourceCode.size();
-			}
+                while ((Record::mSourceCode[end] != L'\n' && Record::mSourceCode[end] != L'\r') && end < Record::mSourceCode.size())
+                    end++;
+            }
+            else
+            {
+                start = 0;
+                end = Record::mSourceCode.size();
+            }
 
-			auto startStr = headerHint + L":" + Record::mCurFilePath + L"(line " + std::to_wstring(lineNum) + L",column " + std::to_wstring(pos) + L"): ";
+            auto startStr = headerHint + L":" + Record::mCurFilePath + L"(line " + std::to_wstring(lineNum) + L",column " + std::to_wstring(pos) + L"): ";
 
-			auto lineSrcCode = Record::mSourceCode.substr(start, end - start);
+            auto lineSrcCode = Record::mSourceCode.substr(start, end - start);
 
-			OutputToConsole(L"\033[{}m{}{}\033[0m", colorHint, startStr, lineSrcCode);
+            OutputToConsole(L"\033[{}m{}{}\033[0m", colorHint, startStr, lineSrcCode);
 
-			auto blankSize = startStr.size() + pos - start;
+            auto blankSize = startStr.size() + pos - start;
 
-			std::wstring errorHintStr;
-			errorHintStr.insert(0, blankSize, L' ');
-			errorHintStr += L"^ " + std::wstring(fmt);
+            std::wstring errorHintStr;
+            errorHintStr.insert(0, blankSize, L' ');
+            errorHintStr += L"^ " + std::wstring(fmt);
 
-			OutputToConsole(L"\033[{}m" + errorHintStr + L"\033[0m", colorHint, args...);
-		}
+            OutputToConsole(L"\033[{}m" + errorHintStr + L"\033[0m", colorHint, args...);
+        }
 
         template <typename... Args>
-        inline void Error(int32_t pos, const std::wstring &fmt, const Args &...args)
+        inline void Error(uint64_t pos, const std::wstring &fmt, const Args &...args)
         {
             auto lineNum = 1;
-            for (int32_t i = 0; i < pos; ++i)
+            for (uint64_t i = 0; i < pos; ++i)
                 if (Record::mSourceCode[i] == L'\n' || Record::mSourceCode[i] == L'\r')
                     lineNum++;
 

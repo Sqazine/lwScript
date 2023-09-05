@@ -15,7 +15,7 @@ void Repl()
 	lws::Compiler compiler;
 	lws::VM vm;
 
-	lws::OutputToConsole(L"> ");
+	std::wcout << L">> ";
 	while (getline(std::wcin, line))
 	{
 		if (line == L"clear")
@@ -39,7 +39,7 @@ void Repl()
 #endif
 			vm.Run(mainFunc);
 		}
-		lws::OutputToConsole(L"> ");
+		std::wcout << L">> ";
 	}
 }
 

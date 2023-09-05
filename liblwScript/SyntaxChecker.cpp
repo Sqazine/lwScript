@@ -38,6 +38,8 @@ namespace lws
             return CheckFunctionStmt((FunctionStmt *)stmt);
         case AST_CLASS:
             return CheckClassStmt((ClassStmt *)stmt);
+        case AST_MODULE:
+            return CheckModuleStmt((ModuleStmt *)stmt);
         default:
             return stmt;
         }
@@ -142,6 +144,12 @@ namespace lws
     {
         return stmt;
     }
+
+    Stmt *SyntaxChecker::CheckModuleStmt(ModuleStmt *stmt)
+    {
+        return stmt;
+    }
+
     Expr *SyntaxChecker::CheckExpr(Expr *expr)
     {
         switch (expr->type)

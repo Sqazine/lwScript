@@ -27,6 +27,7 @@ namespace lws
         Stmt *CheckReturnStmt(ReturnStmt *stmt);
         Stmt *CheckBreakStmt(BreakStmt *stmt);
         Stmt *CheckContinueStmt(ContinueStmt *stmt);
+        Stmt *CheckModuleStmt(ModuleStmt *stmt);
 
         Expr *CheckExpr(Expr *expr);
         Expr *CheckInfixExpr(InfixExpr *expr);

@@ -103,7 +103,7 @@ namespace lws
 	}
 
 	VarDescExpr::VarDescExpr(Token tagToken)
-		: Expr(tagToken, AST_VAR_DESC)
+		: Expr(tagToken, AST_VAR_DESC), name(nullptr)
 	{
 	}
 	VarDescExpr::VarDescExpr(Token tagToken, std::wstring_view typeDesc, Expr *name)
@@ -315,7 +315,7 @@ namespace lws
 		: Expr(tagToken, AST_LAMBDA), body(nullptr)
 	{
 	}
-	LambdaExpr::LambdaExpr(Token tagToken,const std::vector<VarDescExpr *>& parameters, ScopeStmt *body)
+	LambdaExpr::LambdaExpr(Token tagToken, const std::vector<VarDescExpr *> &parameters, ScopeStmt *body)
 		: Expr(tagToken, AST_LAMBDA), parameters(parameters), body(body)
 	{
 	}
@@ -342,10 +342,10 @@ namespace lws
 	}
 
 	CallExpr::CallExpr(Token tagToken)
-		: Expr(tagToken, AST_CALL)
+		: Expr(tagToken, AST_CALL), callee(nullptr)
 	{
 	}
-	CallExpr::CallExpr(Token tagToken, Expr *callee,const std::vector<Expr *>& arguments)
+	CallExpr::CallExpr(Token tagToken, Expr *callee, const std::vector<Expr *> &arguments)
 		: Expr(tagToken, AST_CALL), callee(callee), arguments(arguments)
 	{
 	}
@@ -384,7 +384,7 @@ namespace lws
 	}
 
 	NewExpr::NewExpr(Token tagToken)
-		: Expr(tagToken, AST_NEW)
+		: Expr(tagToken, AST_NEW), callee(nullptr)
 	{
 	}
 	NewExpr::NewExpr(Token tagToken, Expr *callee)
@@ -428,7 +428,7 @@ namespace lws
 	}
 
 	BlockExpr::BlockExpr(Token tagToken)
-		: Expr(tagToken, AST_BLOCK)
+		: Expr(tagToken, AST_BLOCK), endExpr(nullptr)
 	{
 	}
 	BlockExpr::BlockExpr(Token tagToken, const std::vector<Stmt *> &stmts, Expr *endExpr)
@@ -559,7 +559,7 @@ namespace lws
 	}
 
 	VarStmt::VarStmt(Token tagToken)
-		: Stmt(tagToken, AST_VAR)
+		: Stmt(tagToken, AST_VAR), privilege(Privilege::MUTABLE)
 	{
 	}
 	VarStmt::VarStmt(Token tagToken, Privilege privilege, const std::vector<std::pair<Expr *, Expr *>> &variables)
@@ -645,7 +645,7 @@ namespace lws
 		: Stmt(tagToken, AST_SCOPE)
 	{
 	}
-	ScopeStmt::ScopeStmt(Token tagToken,const std::vector<Stmt *>& stmts)
+	ScopeStmt::ScopeStmt(Token tagToken, const std::vector<Stmt *> &stmts)
 		: Stmt(tagToken, AST_SCOPE), stmts(stmts)
 	{
 	}
@@ -716,7 +716,7 @@ namespace lws
 	}
 
 	EnumStmt::EnumStmt(Token tagToken)
-		: Stmt(tagToken, AST_ENUM)
+		: Stmt(tagToken, AST_ENUM), enumName(nullptr)
 	{
 	}
 	EnumStmt::EnumStmt(Token tagToken, IdentifierExpr *enumName, const std::unordered_map<IdentifierExpr *, Expr *> &enumItems)
@@ -740,11 +740,22 @@ namespace lws
 	}
 
 	ModuleStmt::ModuleStmt(Token tagToken)
-		: Stmt(tagToken, AST_MODULE)
+		: Stmt(tagToken, AST_MODULE), name(nullptr)
 	{
 	}
-	ModuleStmt::ModuleStmt(Token tagToken, IdentifierExpr *modName, const std::vector<Stmt *> &modItems)
-		: Stmt(tagToken, AST_MODULE), modName(modName), modItems(modItems)
+	ModuleStmt::ModuleStmt(Token tagToken,
+						   IdentifierExpr *name,
+						   const std::vector<VarStmt *> &varItems,
+						   const std::vector<ClassStmt *> &classItems,
+						   const std::vector<ModuleStmt *> &moduleItems,
+						   const std::vector<EnumStmt *> &enumItems,
+						   const std::vector<FunctionStmt *> &functionItems)
+		: Stmt(tagToken, AST_MODULE), name(name),
+		  varItems(varItems),
+		  classItems(classItems),
+		  moduleItems(moduleItems),
+		  enumItems(enumItems),
+		  functionItems(functionItems)
 	{
 	}
 	ModuleStmt::~ModuleStmt()
@@ -753,18 +764,26 @@ namespace lws
 
 	std::wstring ModuleStmt::ToString()
 	{
-		std::wstring result = L"module " + modName->ToString() + L"\n{\n";
-		for (const auto &item : modItems)
+		std::wstring result = L"module " + name->ToString() + L"\n{\n";
+		for (const auto &item : varItems)
+			result += item->ToString() + L"\n";
+		for (const auto &item : classItems)
+			result += item->ToString() + L"\n";
+		for (const auto &item : moduleItems)
+			result += item->ToString() + L"\n";
+		for (const auto &item : enumItems)
+			result += item->ToString() + L"\n";
+		for (const auto &item : functionItems)
 			result += item->ToString() + L"\n";
 		return result + L"}\n";
 	}
 
 	FunctionStmt::FunctionStmt(Token tagToken)
-		: Stmt(tagToken, AST_FUNCTION), name(nullptr), body(nullptr)
+		: Stmt(tagToken, AST_FUNCTION), name(nullptr), body(nullptr), type(FunctionType::FUNCTION)
 	{
 	}
 
-	FunctionStmt::FunctionStmt(Token tagToken, FunctionType type, IdentifierExpr *name, const std::vector<VarDescExpr *>& parameters, ScopeStmt *body)
+	FunctionStmt::FunctionStmt(Token tagToken, FunctionType type, IdentifierExpr *name, const std::vector<VarDescExpr *> &parameters, ScopeStmt *body)
 		: Stmt(tagToken, AST_FUNCTION), type(type), name(name), parameters(parameters), body(body)
 	{
 	}

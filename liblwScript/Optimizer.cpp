@@ -37,6 +37,8 @@ namespace lws
 			return OptFunctionStmt((FunctionStmt *)stmt);
 		case AST_CLASS:
 			return OptClassStmt((ClassStmt *)stmt);
+		case AST_MODULE:
+			return OptModuleStmt((ModuleStmt *)stmt);
 		default:
 			return stmt;
 		}
@@ -107,6 +109,7 @@ namespace lws
 
 		return stmt;
 	}
+
 	Stmt *Optimizer::OptClassStmt(ClassStmt *stmt)
 	{
 		for (auto &varStmt : stmt->varStmts)
@@ -115,6 +118,11 @@ namespace lws
 		for (auto &fnStmt : stmt->fnStmts)
 			fnStmt = (FunctionStmt *)OptFunctionStmt(fnStmt);
 
+		return stmt;
+	}
+
+	Stmt *Optimizer::OptModuleStmt(ModuleStmt *stmt)
+	{
 		return stmt;
 	}
 

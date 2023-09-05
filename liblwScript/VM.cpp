@@ -819,6 +819,19 @@ namespace lws
 					Push(iter->second);
 					break;
 				}
+				else if (IS_MODULE_VALUE(peekValue))
+				{
+					auto moduleObj = TO_MODULE_VALUE(peekValue);
+					Value member;
+					if (moduleObj->GetMember(propName, member))
+					{
+						Pop(); // pop module object
+						Push(member);
+						break;
+					}
+					else
+						Hint::Error(relatedToken, L"No member: {} in module: {}", propName, moduleObj->name);
+				}
 				else
 					Hint::Error(relatedToken, L"Invalid call:not a valid class,enum or anonymous object instance: {}", peekValue.ToString());
 
@@ -982,6 +995,37 @@ namespace lws
 					Push(CreateObject<ArrayObject>());
 					Push(value);
 				}
+				break;
+			}
+			case OP_MODULE:
+			{
+				auto name = Peek();
+
+				auto varCount = READ_INS();
+				auto constCount = READ_INS();
+
+				auto moduleObj = CreateObject<ModuleObject>();
+				moduleObj->name = TO_STR_VALUE(name);
+				Pop(); // pop name strobject
+
+				for (int32_t i = 0; i < constCount; ++i)
+				{
+					name = Pop();
+					auto v = Pop();
+					v.desc = ValueDesc::CONSTANT;
+					moduleObj->values[TO_STR_VALUE(name)] = v;
+				}
+
+				for (int32_t i = 0; i < varCount; ++i)
+				{
+					name = Pop();
+					auto v = Pop();
+					v.desc = ValueDesc::VARIABLE;
+					moduleObj->values[TO_STR_VALUE(name)] = v;
+				}
+
+				Push(moduleObj);
+
 				break;
 			}
 			default:

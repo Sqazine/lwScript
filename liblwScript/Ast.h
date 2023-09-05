@@ -46,9 +46,9 @@ namespace lws
 		AST_BREAK,
 		AST_CONTINUE,
 		AST_ENUM,
-		AST_MODULE,
 		AST_FUNCTION,
 		AST_CLASS,
+		AST_MODULE,
 		AST_ASTSTMTS,
 	};
 
@@ -485,18 +485,6 @@ namespace lws
 		std::unordered_map<IdentifierExpr *, Expr *> enumItems;
 	};
 
-	struct ModuleStmt : public Stmt
-	{
-		ModuleStmt(Token tagToken);
-		ModuleStmt(Token tagToken, IdentifierExpr *modName, const std::vector<Stmt *> &modItems);
-		~ModuleStmt();
-
-		std::wstring ToString() override;
-
-		IdentifierExpr *modName;
-		std::vector<Stmt *> modItems;
-	};
-
 	enum class FunctionType
 	{
 		CLASS_CONSTRUCTOR,
@@ -538,6 +526,27 @@ namespace lws
 		std::vector<FunctionStmt *> fnStmts;
 	};
 
+	struct ModuleStmt : public Stmt
+	{
+		ModuleStmt(Token tagToken);
+		ModuleStmt(Token tagToken,
+				   IdentifierExpr *name,
+				   const std::vector<VarStmt *> &varItems,
+				   const std::vector<ClassStmt *> &classItems,
+				   const std::vector<ModuleStmt *> &moduleItems,
+				   const std::vector<EnumStmt *> &enumItems,
+				   const std::vector<FunctionStmt *> &functionItems);
+		~ModuleStmt();
+
+		std::wstring ToString() override;
+
+		IdentifierExpr *name;
+		std::vector<VarStmt *> varItems;
+		std::vector<ClassStmt *> classItems;
+		std::vector<ModuleStmt *> moduleItems;
+		std::vector<EnumStmt *> enumItems;
+		std::vector<FunctionStmt *> functionItems;
+	};
 	struct AstStmts : public Stmt
 	{
 		AstStmts(Token tagToken);

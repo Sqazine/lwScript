@@ -56,7 +56,8 @@ namespace lws
         OP_GET_BASE,
         OP_CLOSURE,
         OP_APPREGATE_RESOLVE,
-        OP_APPREGATE_RESOLVE_VAR_ARG
+        OP_APPREGATE_RESOLVE_VAR_ARG,
+        OP_MODULE,
     };
 
     using OpCodes = std::vector<uint8_t>;
@@ -74,6 +75,7 @@ namespace lws
         OpCodes opCodes;
         std::vector<Value> constants;
         std::vector<Token> opCodeRelatedTokens;
+
     private:
         std::wstring OpCodeToString(const OpCodes &opcodes) const;
         uint32_t GetBiggestTokenLength() const;

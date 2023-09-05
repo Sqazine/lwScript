@@ -40,7 +40,7 @@ namespace lws
 	case opCode:                                                                                         \
 	{                                                                                                    \
 		auto tok = opCodeRelatedTokens[opcodes[++i]];                                                    \
-		auto tokStr = tok.ToString();                                                                   \
+		auto tokStr = tok.ToString();                                                                    \
 		std::wstring tokGap(maxTokenShowSize - tokStr.size(), L' ');                                     \
 		tokStr += tokGap;                                                                                \
 		cout << tokStr << std::setfill(L'0') << std::setw(8) << i << L"    " << (L#opCode) << std::endl; \
@@ -52,7 +52,7 @@ namespace lws
 	{                                                                                                                                                      \
 		auto tok = opCodeRelatedTokens[opcodes[++i]];                                                                                                      \
 		uint16_t addressOffset = opcodes[i + 1] << 8 | opcodes[i + 2];                                                                                     \
-		auto tokStr = tok.ToString();                                                                                                                     \
+		auto tokStr = tok.ToString();                                                                                                                      \
 		std::wstring tokGap(maxTokenShowSize - tokStr.size(), L' ');                                                                                       \
 		tokStr += tokGap;                                                                                                                                  \
 		cout << tokStr << std::setfill(L'0') << std::setw(8) << i << L"    " << (L#opCode) << L"    " << i << "->" << i op addressOffset + 3 << std::endl; \
@@ -65,7 +65,7 @@ namespace lws
 	{                                                                                                                      \
 		auto tok = opCodeRelatedTokens[opcodes[++i]];                                                                      \
 		auto pos = opcodes[i + 1];                                                                                         \
-		auto tokStr = tok.ToString();                                                                                     \
+		auto tokStr = tok.ToString();                                                                                      \
 		std::wstring tokGap(maxTokenShowSize - tokStr.size(), L' ');                                                       \
 		tokStr += tokGap;                                                                                                  \
 		cout << tokStr << std::setfill(L'0') << std::setw(8) << i << L"    " << (L#opCode) << L"    " << pos << std::endl; \
@@ -162,7 +162,7 @@ namespace lws
 				auto tok = opCodeRelatedTokens[opcodes[++i]];
 				auto pos = opcodes[i + 1];
 				std::wstring funcStr = (L"<fn " + TO_FUNCTION_VALUE(constants[pos])->name + L":0x" + PointerAddressToString((void *)TO_FUNCTION_VALUE(constants[pos])) + L">");
-				
+
 				auto tokStr = tok.ToString();
 				std::wstring tokGap(maxTokenShowSize - tokStr.size(), L' ');
 				tokStr += tokGap;
@@ -174,7 +174,7 @@ namespace lws
 				auto upvalueCount = TO_FUNCTION_VALUE(constants[pos])->upValueCount;
 				if (upvalueCount > 0)
 				{
-					
+
 					cout << "        upvalues:" << std::endl;
 					for (auto j = 0; j < upvalueCount; ++j)
 					{
@@ -183,6 +183,18 @@ namespace lws
 						cout << "depth  " << opcodes[++i] << std::endl;
 					}
 				}
+				break;
+			}
+			case OP_MODULE:
+			{
+				auto tok = opCodeRelatedTokens[opcodes[++i]];
+				auto varCount = opcodes[i + 1];
+				auto constCount = opcodes[i + 2];
+				auto tokStr = tok.ToString();
+				std::wstring tokGap(maxTokenShowSize - tokStr.size(), L' ');
+				tokStr += tokGap;
+				cout << tokStr << std::setfill(L'0') << std::setw(8) << i << L"    " << L"OP_MODULE    " << varCount << L"    " << constCount << std::endl;
+				i += 2;
 				break;
 			}
 			default:

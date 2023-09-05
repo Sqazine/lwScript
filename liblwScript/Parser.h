@@ -39,8 +39,8 @@ namespace lws
 
 	struct ClassInfo
 	{
-		ClassInfo *enclosing;
-		bool hasSuperClass;
+		ClassInfo *enclosing = nullptr;
+		bool hasSuperClass = false;
 		std::wstring name;
 	};
 

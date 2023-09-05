@@ -143,6 +143,7 @@ namespace lws
 	};
 
 	Parser::Parser()
+		: mCurClassInfo(nullptr), mCurPos(0)
 	{
 	}
 
@@ -360,14 +361,35 @@ namespace lws
 
 		auto moduleDecl = new ModuleStmt(token);
 
-		moduleDecl->modName = (IdentifierExpr *)ParseIdentifierExpr();
+		moduleDecl->name = (IdentifierExpr *)ParseIdentifierExpr();
 
 		Consume(TOKEN_LBRACE, L"Expect '{' after module name.");
 
-		do
+		while (!IsMatchCurToken(TOKEN_RBRACE))
 		{
-			moduleDecl->modItems.emplace_back(ParseDecl());
-		} while (!IsMatchCurToken(TOKEN_RBRACE));
+			switch (GetCurToken().type)
+			{
+			case TOKEN_LET:
+			case TOKEN_CONST:
+				moduleDecl->varItems.emplace_back((VarStmt *)ParseVarDecl(GetCurToken().type));
+				break;
+			case TOKEN_FUNCTION:
+				GetCurTokenAndStepOnce();
+				moduleDecl->functionItems.emplace_back((FunctionStmt *)ParseFunctionDecl());
+				break;
+			case TOKEN_CLASS:
+				moduleDecl->classItems.emplace_back((ClassStmt *)ParseClassDecl());
+				break;
+			case TOKEN_ENUM:
+				moduleDecl->enumItems.emplace_back((EnumStmt *)ParseEnumDecl());
+				break;
+			case TOKEN_MODULE:
+				moduleDecl->moduleItems.emplace_back((ModuleStmt *)ParseModuleDecl());
+				break;
+			default:
+				Hint::Error(GetCurToken(), L"Only let,const,function,class,enum and module is available in module scope");
+			}
+		}
 
 		Consume(TOKEN_RBRACE, L"Expect '}'.");
 
@@ -753,7 +775,7 @@ namespace lws
 	{
 		Expr *defaultBranch = nullptr;
 
-	auto matchToken=	Consume(TOKEN_MATCH, L"Expect 'match' keyword.");
+		auto matchToken = Consume(TOKEN_MATCH, L"Expect 'match' keyword.");
 		Consume(TOKEN_LPAREN, L"Expect '(' after 'match' keyword.");
 
 		auto judgeExpr = ParseExpr();
@@ -789,7 +811,7 @@ namespace lws
 					do
 					{
 						auto valueCompareExpr = ParseExpr();
-						auto caseCondition = new InfixExpr(GetCurToken(),L"==", judgeExpr, valueCompareExpr);
+						auto caseCondition = new InfixExpr(GetCurToken(), L"==", judgeExpr, valueCompareExpr);
 						conditions.emplace_back(caseCondition);
 					} while (IsMatchCurTokenAndStepOnce(TOKEN_COMMA));
 					Consume(TOKEN_COLON, L"Expect ':' after match item's condition expr.");
@@ -814,7 +836,7 @@ namespace lws
 			{
 				Expr *fullCondition = items[i].first[0];
 				for (size_t j = 1; j < items[i].first.size(); ++j)
-					fullCondition = new InfixExpr(fullCondition->tagToken,L"||", fullCondition, items[i].first[j]);
+					fullCondition = new InfixExpr(fullCondition->tagToken, L"||", fullCondition, items[i].first[j]);
 				loopConditionExpr->condition = fullCondition;
 			}
 
@@ -834,7 +856,7 @@ namespace lws
 
 	Expr *Parser::ParseBlockExpr()
 	{
-		auto token=Consume(TOKEN_LPAREN_LBRACE, L"Expect '({'.");
+		auto token = Consume(TOKEN_LPAREN_LBRACE, L"Expect '({'.");
 
 		mSkippingConsumeTokenTypeStack.emplace_back(TOKEN_SEMICOLON);
 
@@ -1068,7 +1090,7 @@ namespace lws
 
 	Expr *Parser::ParsePostfixExpr(Expr *prefixExpr)
 	{
-		auto postfixExpr = new PostfixExpr( GetCurToken());
+		auto postfixExpr = new PostfixExpr(GetCurToken());
 		postfixExpr->op = GetCurTokenAndStepOnce().literal;
 		postfixExpr->left = prefixExpr;
 		return postfixExpr;
@@ -1117,7 +1139,7 @@ namespace lws
 
 	Expr *Parser::ParseDotExpr(Expr *prefixExpr)
 	{
-		auto dotExpr = new DotExpr( GetCurToken());
+		auto dotExpr = new DotExpr(GetCurToken());
 		Consume(TOKEN_DOT, L"Expect '.'.");
 		dotExpr->callee = prefixExpr;
 		dotExpr->callMember = (IdentifierExpr *)ParseIdentifierExpr();
@@ -1126,7 +1148,7 @@ namespace lws
 
 	Expr *Parser::ParseFactorialExpr(Expr *prefixExpr)
 	{
-		auto token=Consume(TOKEN_BANG, L"Expect '!'");
+		auto token = Consume(TOKEN_BANG, L"Expect '!'");
 		return new FactorialExpr(token, prefixExpr);
 	}
 
@@ -1146,7 +1168,7 @@ namespace lws
 			type = GetCurTokenAndStepOnce().literal;
 		}
 
-		auto varDescExpr = new VarDescExpr(expr->tagToken,type, expr);
+		auto varDescExpr = new VarDescExpr(expr->tagToken, type, expr);
 		return varDescExpr;
 	}
 
@@ -1154,7 +1176,7 @@ namespace lws
 	{
 		Consume(TOKEN_ELLIPSIS, L"Expect '...'");
 
-		auto varArgExpr = new VarArgExpr( GetCurToken());
+		auto varArgExpr = new VarArgExpr(GetCurToken());
 
 		if (IsMatchCurToken(TOKEN_IDENTIFIER))
 		{
@@ -1210,7 +1232,7 @@ namespace lws
 
 			if (value->type == AST_ARRAY)
 			{
-				int32_t grad = arrayExpr->elements.size() - ((ArrayExpr *)value)->elements.size();
+				int32_t grad = (int32_t)arrayExpr->elements.size() - (int32_t)((ArrayExpr *)value)->elements.size();
 				if (grad == 0)
 					return std::make_pair(arrayExpr, value);
 				else if (grad > 0)

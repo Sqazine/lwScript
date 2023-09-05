@@ -25,6 +25,7 @@ namespace lws
         Stmt *OptEnumStmt(EnumStmt *stmt);
         Stmt *OptFunctionStmt(FunctionStmt *stmt);
         Stmt *OptClassStmt(ClassStmt *stmt);
+        Stmt *OptModuleStmt(ModuleStmt *stmt);
 
         Expr *OptExpr(Expr *expr);
         Expr *OptIntNumExpr(IntNumExpr *expr);
@@ -48,10 +49,10 @@ namespace lws
         Expr *OptNewExpr(NewExpr *expr);
         Expr *OptThisExpr(ThisExpr *expr);
         Expr *OptBaseExpr(BaseExpr *expr);
-        Expr* OptFactorialExpr(FactorialExpr* expr);
-        Expr* OptVarDescExpr(VarDescExpr* expr);
+        Expr *OptFactorialExpr(FactorialExpr *expr);
+        Expr *OptVarDescExpr(VarDescExpr *expr);
 
-        Expr* OptFlow(Expr* expr);
+        Expr *OptFlow(Expr *expr);
 
         Expr *ConstantFold(Expr *expr);
     };

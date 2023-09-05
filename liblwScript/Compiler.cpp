@@ -74,6 +74,9 @@ namespace lws
 		case AST_ENUM:
 			CompileEnumDecl((EnumStmt *)stmt);
 			break;
+		case AST_MODULE:
+			CompileModuleDecl((ModuleStmt *)stmt);
+			break;
 		default:
 			CompileStmt((Stmt *)stmt, breakStmtAddress, continueStmtAddress);
 			break;
@@ -81,11 +84,9 @@ namespace lws
 	}
 	void Compiler::CompileVarDecl(VarStmt *stmt)
 	{
-		ValueDesc valueDesc;
+		ValueDesc valueDesc = ValueDesc::VARIABLE;
 
-		if (stmt->privilege == VarStmt::Privilege ::MUTABLE)
-			valueDesc = ValueDesc::VARIABLE;
-		else if (stmt->privilege == VarStmt::Privilege ::IMMUTABLE)
+		if (stmt->privilege == VarStmt::Privilege::IMMUTABLE)
 			valueDesc = ValueDesc::CONSTANT;
 
 		auto postfixExprs = StatsPostfixExprs(stmt);
@@ -406,6 +407,187 @@ namespace lws
 			Emit(symbol.index);
 			EmitOpCode(OP_POP, symbol.relatedToken);
 		}
+	}
+
+	void Compiler::CompileModuleDecl(ModuleStmt *stmt)
+	{
+		auto symbol = mSymbolTable->Define(stmt->tagToken, ValueDesc::CONSTANT, stmt->name->literal);
+
+		mFunctionList.emplace_back(new FunctionObject(stmt->name->literal));
+
+		mSymbolTable = new SymbolTable(mSymbolTable);
+
+		EnterScope();
+
+		uint8_t constCount = 0;
+		uint8_t varCount = 0;
+
+		for (const auto &varStmt : stmt->varItems)
+		{
+			for (const auto &[k, v] : varStmt->variables)
+			{
+				if (varStmt->privilege != VarStmt::Privilege::MUTABLE)
+					continue;
+
+				CompileExpr(v);
+
+				if (k->type == AST_ARRAY)
+				{
+					auto arrayExpr = (ArrayExpr *)k;
+
+					for (int32_t i = 0; i < arrayExpr->elements.size(); ++i)
+					{
+						std::wstring literal;
+						Token token;
+						if (((VarDescExpr *)arrayExpr->elements[i])->name->type == AST_IDENTIFIER)
+						{
+							auto identExpr = ((IdentifierExpr *)((VarDescExpr *)arrayExpr->elements[i])->name);
+							literal = identExpr->literal;
+							token = identExpr->tagToken;
+						}
+						else if (((VarDescExpr *)arrayExpr->elements[i])->name->type == AST_VAR_ARG)
+						{
+							auto varArgExpr = ((VarArgExpr *)((VarDescExpr *)arrayExpr->elements[i])->name);
+							literal = varArgExpr->argName->literal;
+							token = varArgExpr->argName->tagToken;
+						}
+
+						EmitConstant(new StrObject(literal), token);
+					}
+				}
+				else if (k->type == AST_VAR_DESC)
+				{
+					std::wstring literal;
+					Token token;
+					if (((VarDescExpr *)k)->name->type == AST_IDENTIFIER)
+					{
+						auto identExpr = ((IdentifierExpr *)(((VarDescExpr *)k)->name));
+						literal = identExpr->literal;
+						token = identExpr->tagToken;
+					}
+					else if (((VarDescExpr *)k)->name->type == AST_VAR_ARG)
+					{
+						auto varArgExpr = ((VarArgExpr *)((VarDescExpr *)k)->name);
+						literal = varArgExpr->argName->literal;
+						token = varArgExpr->tagToken;
+					}
+
+					EmitConstant(new StrObject(literal), token);
+				}
+
+				varCount++;
+			}
+		}
+
+		for (const auto &varStmt : stmt->varItems)
+		{
+			for (const auto &[k, v] : varStmt->variables)
+			{
+				if (varStmt->privilege != VarStmt::Privilege::IMMUTABLE)
+					continue;
+
+				CompileExpr(v);
+
+				if (k->type == AST_ARRAY)
+				{
+					auto arrayExpr = (ArrayExpr *)k;
+
+					for (int32_t i = 0; i < arrayExpr->elements.size(); ++i)
+					{
+						std::wstring literal;
+						Token token;
+						if (((VarDescExpr *)arrayExpr->elements[i])->name->type == AST_IDENTIFIER)
+						{
+							auto identExpr = ((IdentifierExpr *)((VarDescExpr *)arrayExpr->elements[i])->name);
+							literal = identExpr->literal;
+							token = identExpr->tagToken;
+						}
+						else if (((VarDescExpr *)arrayExpr->elements[i])->name->type == AST_VAR_ARG)
+						{
+							auto varArgExpr = ((VarArgExpr *)((VarDescExpr *)arrayExpr->elements[i])->name);
+							literal = varArgExpr->argName->literal;
+							token = varArgExpr->argName->tagToken;
+						}
+
+						EmitConstant(new StrObject(literal), token);
+					}
+				}
+				else if (k->type == AST_VAR_DESC)
+				{
+					std::wstring literal;
+					Token token;
+					if (((VarDescExpr *)k)->name->type == AST_IDENTIFIER)
+					{
+						auto identExpr = ((IdentifierExpr *)(((VarDescExpr *)k)->name));
+						literal = identExpr->literal;
+						token = identExpr->tagToken;
+					}
+					else if (((VarDescExpr *)k)->name->type == AST_VAR_ARG)
+					{
+						auto varArgExpr = ((VarArgExpr *)((VarDescExpr *)k)->name);
+						literal = varArgExpr->argName->literal;
+						token = varArgExpr->tagToken;
+					}
+
+					EmitConstant(new StrObject(literal), token);
+				}
+
+				constCount++;
+			}
+		}
+
+		for (const auto &fnStmt : stmt->functionItems)
+		{
+			CompileFunction(fnStmt);
+			EmitConstant(new StrObject(fnStmt->name->literal), fnStmt->tagToken);
+			constCount++;
+		}
+
+		for (const auto &classStmt : stmt->classItems)
+		{
+		}
+
+		for (const auto &enumStmt : stmt->enumItems)
+		{
+		}
+
+		for (const auto &moduleStmt : stmt->moduleItems)
+		{
+			CompileModuleDecl(moduleStmt);
+			EmitConstant(new StrObject(moduleStmt->name->literal), moduleStmt->tagToken);
+			constCount++;
+		}
+
+		EmitConstant(new StrObject(symbol.name), symbol.relatedToken);
+
+		EmitOpCode(OP_MODULE, stmt->tagToken);
+		Emit(varCount);
+		Emit(constCount);
+
+		EmitReturn(1, stmt->tagToken);
+
+		ExitScope();
+		mSymbolTable = mSymbolTable->enclosing;
+
+		auto function = mFunctionList.back();
+		mFunctionList.pop_back();
+
+		EmitClosure(function, stmt->tagToken);
+
+		EmitOpCode(OP_CALL, stmt->tagToken);
+		Emit(0);
+
+		if (symbol.type == SymbolType::GLOBAL)
+		{
+			EmitOpCode(OP_SET_GLOBAL, symbol.relatedToken);
+			Emit(symbol.index);
+		}
+		else if (symbol.type == SymbolType::LOCAL)
+		{
+			EmitOpCode(OP_SET_LOCAL, symbol.relatedToken);
+			Emit(symbol.index);
+		}
+		EmitOpCode(OP_POP, symbol.relatedToken);
 	}
 
 	void Compiler::CompileStmt(Stmt *stmt, int64_t &breakStmtAddress, int64_t &continueStmtAddress)
@@ -884,27 +1066,27 @@ namespace lws
 	}
 	void Compiler::CompileArrayExpr(ArrayExpr *expr)
 	{
-		for (int32_t i = expr->elements.size() - 1; i >= 0; --i)
+		for (int32_t i = (int32_t)expr->elements.size() - 1; i >= 0; --i)
 			CompileExpr(expr->elements[i]);
 		EmitOpCode(OP_ARRAY, expr->tagToken);
 
-		uint8_t pos = expr->elements.size();
+		uint8_t pos = (uint8_t)expr->elements.size();
 		Emit(pos);
 	}
 
 	void Compiler::CompileAppregateExpr(AppregateExpr *expr)
 	{
-		for (int32_t i = expr->exprs.size() - 1; i >= 0; --i)
+		for (int32_t i = (int32_t)expr->exprs.size() - 1; i >= 0; --i)
 			CompileExpr(expr->exprs[i]);
 		EmitOpCode(OP_ARRAY, expr->tagToken);
 
-		uint8_t pos = expr->exprs.size();
+		uint8_t pos = (uint8_t)expr->exprs.size();
 		Emit(pos);
 	}
 
 	void Compiler::CompileDictExpr(DictExpr *expr)
 	{
-		for (int32_t i = expr->elements.size() - 1; i >= 0; --i)
+		for (int32_t i = (int32_t)expr->elements.size() - 1; i >= 0; --i)
 		{
 			CompileExpr(expr->elements[i].second);
 			CompileExpr(expr->elements[i].first);
