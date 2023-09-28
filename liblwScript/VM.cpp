@@ -647,14 +647,14 @@ namespace lws
 							if (TO_CLOSURE_VALUE(callee)->function->varArgParamType == 2)
 							{
 								std::vector<Value> varArgs;
-								for (uint32_t i = 0; i < diff; ++i)
+								for (int32_t i = 0; i < diff; ++i)
 									varArgs.insert(varArgs.begin(), Pop());
 								Push(new ArrayObject(varArgs));
 								argCount = arity;
 							}
 							else
 							{
-								for (uint32_t i = 0; i < diff; ++i)
+								for (int32_t i = 0; i < diff; ++i)
 									Pop();
 								argCount = arity - 1;
 							}

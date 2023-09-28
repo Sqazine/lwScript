@@ -476,12 +476,12 @@ namespace lws
 	struct EnumStmt : public Stmt
 	{
 		EnumStmt(Token tagToken);
-		EnumStmt(Token tagToken, IdentifierExpr *enumName, const std::unordered_map<IdentifierExpr *, Expr *> &enumItems);
+		EnumStmt(Token tagToken, IdentifierExpr *name, const std::unordered_map<IdentifierExpr *, Expr *> &enumItems);
 		~EnumStmt();
 
 		std::wstring ToString() override;
 
-		IdentifierExpr *enumName;
+		IdentifierExpr *name;
 		std::unordered_map<IdentifierExpr *, Expr *> enumItems;
 	};
 
@@ -511,10 +511,11 @@ namespace lws
 		ClassStmt(Token tagToken);
 		ClassStmt(Token tagToken,
 				  std::wstring name,
-				  std::vector<VarStmt *> varStmts,
-				  std::vector<FunctionStmt *> fnStmts,
-				  std::vector<FunctionStmt *> constructors = {},
-				  std::vector<IdentifierExpr *> parentClasses = {});
+				  const std::vector<VarStmt *> &varStmts,
+				  const std::vector<FunctionStmt *> &fnStmts,
+				  const std::vector<EnumStmt *> &enumStmts,
+				  const std::vector<FunctionStmt *> &constructors = {},
+				  const std::vector<IdentifierExpr *> &parentClasses = {});
 		~ClassStmt();
 
 		std::wstring ToString() override;
@@ -524,6 +525,7 @@ namespace lws
 		std::vector<FunctionStmt *> constructors;
 		std::vector<VarStmt *> varStmts;
 		std::vector<FunctionStmt *> fnStmts;
+		std::vector<EnumStmt *> enumStmts;
 	};
 
 	struct ModuleStmt : public Stmt

@@ -105,11 +105,9 @@ namespace lws
     }
     Stmt *SyntaxChecker::CheckEnumStmt(EnumStmt *stmt)
     {
-        stmt->enumName = (IdentifierExpr *)CheckIdentifierExpr(stmt->enumName);
+        stmt->name = (IdentifierExpr *)CheckIdentifierExpr(stmt->name);
         for (auto &[k, v] : stmt->enumItems)
-        {
             v = CheckExpr(v);
-        }
         return stmt;
     }
     Stmt *SyntaxChecker::CheckFunctionStmt(FunctionStmt *stmt)

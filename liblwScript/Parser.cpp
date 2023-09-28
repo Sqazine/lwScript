@@ -306,6 +306,8 @@ namespace lws
 					Hint::Error(fn->name->tagToken, L"The class member function name :{} conflicts with its class:{}, only constructor function name is allowed to same with its class's name", fn->name->literal);
 				classStmt->fnStmts.emplace_back(fn);
 			}
+			else if(IsMatchCurToken(TOKEN_ENUM))
+				classStmt->enumStmts.emplace_back((EnumStmt*)ParseEnumDecl());
 			else if (GetCurToken().literal == classStmt->name) // constructor
 			{
 				auto fn = (FunctionStmt *)ParseFunctionDecl();
@@ -326,7 +328,7 @@ namespace lws
 		auto enumStmt = new EnumStmt(GetCurToken());
 
 		Consume(TOKEN_ENUM, L"Expect 'enum' keyword.");
-		enumStmt->enumName = (IdentifierExpr *)ParseIdentifierExpr();
+		enumStmt->name = (IdentifierExpr *)ParseIdentifierExpr();
 		Consume(TOKEN_LBRACE, L"Expect '{' after 'enum' keyword.");
 
 		std::unordered_map<IdentifierExpr *, Expr *> items;

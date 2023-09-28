@@ -716,11 +716,11 @@ namespace lws
 	}
 
 	EnumStmt::EnumStmt(Token tagToken)
-		: Stmt(tagToken, AST_ENUM), enumName(nullptr)
+		: Stmt(tagToken, AST_ENUM), name(nullptr)
 	{
 	}
-	EnumStmt::EnumStmt(Token tagToken, IdentifierExpr *enumName, const std::unordered_map<IdentifierExpr *, Expr *> &enumItems)
-		: Stmt(tagToken, AST_ENUM), enumName(enumName), enumItems(enumItems)
+	EnumStmt::EnumStmt(Token tagToken, IdentifierExpr *name, const std::unordered_map<IdentifierExpr *, Expr *> &enumItems)
+		: Stmt(tagToken, AST_ENUM), name(name), enumItems(enumItems)
 	{
 	}
 	EnumStmt::~EnumStmt()
@@ -728,7 +728,7 @@ namespace lws
 	}
 	std::wstring EnumStmt::ToString()
 	{
-		std::wstring result = L"enum " + enumName->ToString() + L"{";
+		std::wstring result = L"enum " + name->ToString() + L"{";
 
 		if (!enumItems.empty())
 		{
@@ -816,14 +816,16 @@ namespace lws
 	}
 	ClassStmt::ClassStmt(Token tagToken,
 						 std::wstring name,
-						 std::vector<VarStmt *> varStmts,
-						 std::vector<FunctionStmt *> fnStmts,
-						 std::vector<FunctionStmt *> constructors,
-						 std::vector<IdentifierExpr *> parentClasses)
+				  const std::vector<VarStmt *> &varStmts,
+				  const std::vector<FunctionStmt *> &fnStmts,
+				  const std::vector<EnumStmt *> &enumStmts,
+				  const std::vector<FunctionStmt *> &constructors,
+				  const std::vector<IdentifierExpr *> &parentClasses)
 		: Stmt(tagToken, AST_CLASS),
 		  name(name),
 		  varStmts(varStmts),
 		  fnStmts(fnStmts),
+		  enumStmts(enumStmts),
 		  constructors(constructors),
 		  parentClasses(parentClasses)
 	{
@@ -834,6 +836,7 @@ namespace lws
 		std::vector<FunctionStmt *>().swap(constructors);
 		std::vector<VarStmt *>().swap(varStmts);
 		std::vector<FunctionStmt *>().swap(fnStmts);
+		std::vector<EnumStmt *>().swap(enumStmts);
 	}
 
 	std::wstring ClassStmt::ToString()
@@ -847,6 +850,8 @@ namespace lws
 			result = result.substr(0, result.size() - 1);
 		}
 		result += L"{";
+		for (auto enumStmt : enumStmts)
+			result += enumStmt->ToString();
 		for (auto variableStmt : varStmts)
 			result += variableStmt->ToString();
 		for (auto fnStmt : fnStmts)

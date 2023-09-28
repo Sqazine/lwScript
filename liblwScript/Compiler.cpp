@@ -399,8 +399,8 @@ namespace lws
 			pairs[k->literal] = enumValue;
 		}
 
-		EmitConstant(new EnumObject(stmt->enumName->literal, pairs), stmt->enumName->tagToken);
-		auto symbol = mSymbolTable->Define(stmt->tagToken, ValueDesc::CONSTANT, stmt->enumName->literal);
+		EmitConstant(new EnumObject(stmt->name->literal, pairs), stmt->name->tagToken);
+		auto symbol = mSymbolTable->Define(stmt->tagToken, ValueDesc::CONSTANT, stmt->name->literal);
 		if (symbol.type == SymbolType::GLOBAL)
 		{
 			EmitOpCode(OP_SET_GLOBAL, symbol.relatedToken);

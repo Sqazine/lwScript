@@ -1,0 +1,14 @@
+class TestClass
+{
+    enum TestEnum
+    {
+        TEST_1,
+        TEST_2,
+    }
+
+    let t=TestEnum.TEST_1;
+}
+
+let testClass=new TestClass();
+
+io.println(testClass.t);
