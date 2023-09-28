@@ -866,7 +866,7 @@ namespace lws
 					auto anonymousObj = TO_ANONYMOUS_VALUE(peekValue);
 					auto iter = anonymousObj->elements.find(propName);
 					if (iter == anonymousObj->elements.end())
-						Hint::Error(relatedToken, L"No property: {} in anonymous object.", propName);
+						Hint::Error(relatedToken, L"No property: {} in anonymous object:{}", propName,anonymousObj->ToString());
 					Pop(); // pop anonymouse object
 					anonymousObj->elements[iter->first] = Peek();
 					break;

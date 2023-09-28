@@ -198,13 +198,13 @@ namespace lws
 		{
 			EmitOpCode(OP_SET_GLOBAL, symbol.relatedToken);
 			Emit(symbol.index);
+			EmitOpCode(OP_POP, symbol.relatedToken);
 		}
 		else if (symbol.type == SymbolType::LOCAL)
 		{
 			EmitOpCode(OP_SET_LOCAL, symbol.relatedToken);
 			Emit(symbol.index);
 		}
-		EmitOpCode(OP_POP, symbol.relatedToken);
 	}
 	void Compiler::CompileClassDecl(ClassStmt *stmt)
 	{
@@ -370,13 +370,13 @@ namespace lws
 		{
 			EmitOpCode(OP_SET_GLOBAL, symbol.relatedToken);
 			Emit(symbol.index);
+			EmitOpCode(OP_POP, symbol.relatedToken);
 		}
 		else if (symbol.type == SymbolType::LOCAL)
 		{
 			EmitOpCode(OP_SET_LOCAL, symbol.relatedToken);
 			Emit(symbol.index);
 		}
-		EmitOpCode(OP_POP, symbol.relatedToken);
 	}
 
 	void Compiler::CompileEnumDecl(EnumStmt *stmt)
@@ -581,13 +581,13 @@ namespace lws
 		{
 			EmitOpCode(OP_SET_GLOBAL, symbol.relatedToken);
 			Emit(symbol.index);
+			EmitOpCode(OP_POP, symbol.relatedToken);
 		}
 		else if (symbol.type == SymbolType::LOCAL)
 		{
 			EmitOpCode(OP_SET_LOCAL, symbol.relatedToken);
 			Emit(symbol.index);
 		}
-		EmitOpCode(OP_POP, symbol.relatedToken);
 	}
 
 	void Compiler::CompileStmt(Stmt *stmt, int64_t &breakStmtAddress, int64_t &continueStmtAddress)
