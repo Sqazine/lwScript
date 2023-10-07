@@ -216,13 +216,13 @@ namespace lws
 		EmitReturn(1, stmt->tagToken);
 
 		auto function = mFunctionList.back();
-		function->arity=mSymbolTable->mSymbolCount;
-		
+		function->arity = mSymbolTable->mSymbolCount;
+
 		mFunctionList.pop_back();
 
 		EmitClosure(function, stmt->tagToken);
 
-		for(int32_t i=0;i<mSymbolTable->mSymbolCount;++i)
+		for (int32_t i = 0; i < mSymbolTable->mSymbolCount; ++i)
 			EmitOpCode(OP_NULL, stmt->tagToken);
 
 		EmitOpCode(OP_CALL, stmt->tagToken);
@@ -1129,6 +1129,12 @@ namespace lws
 
 					CurOpCodes()[appregateOpCodeAddress] = appregateOpCode;
 					CurOpCodes()[resolveAddress] = resolveCount;
+
+					if (IsInClassScope)
+					{
+						EmitOpCode(OP_RESET, stmt->tagToken);
+						Emit(varCount);
+					}
 				}
 				else if (k->type == AST_VAR_DESC)
 				{
@@ -1177,7 +1183,7 @@ namespace lws
 
 	Symbol Compiler::CompileClass(ClassStmt *stmt)
 	{
-		auto symbol= mSymbolTable->Define(stmt->tagToken, ValueDesc::CONSTANT, stmt->name);
+		auto symbol = mSymbolTable->Define(stmt->tagToken, ValueDesc::CONSTANT, stmt->name);
 
 		mFunctionList.emplace_back(new FunctionObject(stmt->name));
 		mSymbolTable = new SymbolTable(mSymbolTable);

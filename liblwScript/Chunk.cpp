@@ -126,6 +126,7 @@ namespace lws
 				CASE_1(OP_ANONYMOUS_OBJ)
 				CASE_1(OP_APPREGATE_RESOLVE)
 				CASE_1(OP_APPREGATE_RESOLVE_VAR_ARG)
+				CASE_1(OP_RESET)
 			case OP_CONSTANT:
 			{
 				auto tok = opCodeRelatedTokens[opcodes[++i]];

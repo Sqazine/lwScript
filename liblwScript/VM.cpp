@@ -1028,6 +1028,22 @@ namespace lws
 
 				break;
 			}
+			case OP_RESET:
+			{
+				auto count = READ_INS();
+				std::vector<Value> values(count); 
+				std::vector<Value> keys(count); 
+				for(int32_t i=count-1;i>=0;--i)
+					keys[i]=Pop();
+				for(uint32_t i=0;i<count;++i)
+					values[i]=Pop();
+				for(uint32_t i=0;i<count;++i)
+				{
+					Push(values[i]);
+					Push(keys[i]);
+				}
+				break;
+			}
 			default:
 				break;
 			}

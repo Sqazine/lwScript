@@ -58,6 +58,7 @@ namespace lws
         OP_APPREGATE_RESOLVE,
         OP_APPREGATE_RESOLVE_VAR_ARG,
         OP_MODULE,
+        OP_RESET,
     };
 
     using OpCodes = std::vector<uint8_t>;

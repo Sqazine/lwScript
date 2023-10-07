@@ -74,12 +74,14 @@ int main(int argc, const char *argv[])
 	system("chcp 65001");
 #endif
 
-	if (argc == 2)
-		RunFile(argv[1]);
-	else if (argc == 1)
-		Repl();
-	else
-		lws::OutputToConsole(L"Usage: lwScript [filepath]");
+	// if (argc == 2)
+	// 	RunFile(argv[1]);
+	// else if (argc == 1)
+	// 	Repl();
+	// else
+	// 	lws::OutputToConsole(L"Usage: lwScript [filepath]");
+
+	RunFile("D:\\.sc\\lwScript\\examples\\variable-arguments-in-class.lws");
 
 	return 0;
 }
