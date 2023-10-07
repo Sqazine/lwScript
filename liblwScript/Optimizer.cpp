@@ -112,10 +112,10 @@ namespace lws
 
 	Stmt *Optimizer::OptClassStmt(ClassStmt *stmt)
 	{
-		for (auto &varStmt : stmt->varStmts)
+		for (auto &varStmt : stmt->varItems)
 			varStmt = (VarStmt *)OptVarStmt(varStmt);
 
-		for (auto &fnStmt : stmt->fnStmts)
+		for (auto &fnStmt : stmt->fnItems)
 			fnStmt = (FunctionStmt *)OptFunctionStmt(fnStmt);
 
 		return stmt;

@@ -15,12 +15,12 @@ namespace lws
 	{
 	}
 
-	FunctionObject* Compiler::Compile(Stmt* stmt)
+	FunctionObject *Compiler::Compile(Stmt *stmt)
 	{
 		if (stmt->type == AST_ASTSTMTS)
 		{
-			auto stmts = ((AstStmts*)stmt)->stmts;
-			for (const auto& s : stmts)
+			auto stmts = ((AstStmts *)stmt)->stmts;
+			for (const auto &s : stmts)
 				CompileDecl(s);
 		}
 		else
@@ -33,7 +33,7 @@ namespace lws
 
 	void Compiler::ResetStatus()
 	{
-		std::vector<FunctionObject*>().swap(mFunctionList);
+		std::vector<FunctionObject *>().swap(mFunctionList);
 		mFunctionList.emplace_back(new FunctionObject(L"_main_start_up"));
 
 		if (mSymbolTable)
@@ -47,151 +47,47 @@ namespace lws
 		symbol->scopeDepth = 0;
 		symbol->name = L"_main_start_up";
 
-		for (const auto& libName : LibraryManager::Instance().mStdLibraryMap)
+		for (const auto &libName : LibraryManager::Instance().mStdLibraryMap)
 			mSymbolTable->Define(Token(), ValueDesc::CONSTANT, libName);
 	}
 
-	void Compiler::CompileDecl(Stmt* stmt)
+	void Compiler::CompileDecl(Stmt *stmt)
 	{
 		int64_t breakStmtAddress = -1;	  // useless
 		int64_t contineuStmtAddress = -1; // useless
 		CompileDecl(stmt, breakStmtAddress, contineuStmtAddress);
 	}
 
-	void Compiler::CompileDecl(Stmt* stmt, int64_t& breakStmtAddress, int64_t& continueStmtAddress)
+	void Compiler::CompileDecl(Stmt *stmt, int64_t &breakStmtAddress, int64_t &continueStmtAddress)
 	{
 		switch (stmt->type)
 		{
 		case AST_VAR:
-			CompileVarDecl((VarStmt*)stmt);
+			CompileVarDecl((VarStmt *)stmt);
 			break;
 		case AST_FUNCTION:
-			CompileFunctionDecl((FunctionStmt*)stmt);
+			CompileFunctionDecl((FunctionStmt *)stmt);
 			break;
 		case AST_CLASS:
-			CompileClassDecl((ClassStmt*)stmt);
+			CompileClassDecl((ClassStmt *)stmt);
 			break;
 		case AST_ENUM:
-			CompileEnumDecl((EnumStmt*)stmt);
+			CompileEnumDecl((EnumStmt *)stmt);
 			break;
 		case AST_MODULE:
-			CompileModuleDecl((ModuleStmt*)stmt);
+			CompileModuleDecl((ModuleStmt *)stmt);
 			break;
 		default:
-			CompileStmt((Stmt*)stmt, breakStmtAddress, continueStmtAddress);
+			CompileStmt((Stmt *)stmt, breakStmtAddress, continueStmtAddress);
 			break;
 		}
 	}
-	void Compiler::CompileVarDecl(VarStmt* stmt)
+	void Compiler::CompileVarDecl(VarStmt *stmt)
 	{
-		ValueDesc valueDesc = ValueDesc::VARIABLE;
-
-		if (stmt->privilege == VarStmt::Privilege::IMMUTABLE)
-			valueDesc = ValueDesc::CONSTANT;
-
-		auto postfixExprs = StatsPostfixExprs(stmt);
-
-		{
-			for (const auto& [k, v] : stmt->variables)
-			{
-				//destructuring assignment like let [x,y,...args]=....
-				if (k->type == AST_ARRAY)
-				{
-					auto arrayExpr = (ArrayExpr*)k;
-
-					uint32_t resolveAddress = 0;
-					OpCode appregateOpCode = OP_APPREGATE_RESOLVE;
-					uint32_t appregateOpCodeAddress;
-
-					//compile right value
-					{
-						CompileExpr(v);
-
-						appregateOpCodeAddress = EmitOpCode((OpCode)0xFF, arrayExpr->tagToken) - 1;
-						resolveAddress = Emit((OpCode)0xFF);
-					}
-
-					int32_t resolveCount = 0;
-
-					if (mSymbolTable->enclosing == nullptr && mSymbolTable->mScopeDepth > 0) //local scope
-						std::reverse(arrayExpr->elements.begin(), arrayExpr->elements.end());
-
-					for (int32_t i = 0; i < arrayExpr->elements.size(); ++i)
-					{
-						Symbol symbol;
-
-						if (((VarDescExpr*)arrayExpr->elements[i])->name->type == AST_IDENTIFIER)
-						{
-							auto literal = ((IdentifierExpr*)((VarDescExpr*)arrayExpr->elements[i])->name)->literal;
-							auto token = ((IdentifierExpr*)((VarDescExpr*)arrayExpr->elements[i])->name)->tagToken;
-							symbol = mSymbolTable->Define(token, valueDesc, literal);
-							resolveCount++;
-						}
-						else if (((VarDescExpr*)arrayExpr->elements[i])->name->type == AST_VAR_ARG)
-						{
-							//varArg with name like:let [x,y,...args] (means IdentifierExpr* in VarDescExpr* not nullptr)
-							if (((VarArgExpr*)((VarDescExpr*)arrayExpr->elements[i])->name)->argName)
-							{
-								auto literal = ((VarArgExpr*)((VarDescExpr*)arrayExpr->elements[i])->name)->argName->literal;
-								auto token = ((VarArgExpr*)((VarDescExpr*)arrayExpr->elements[i])->name)->argName->tagToken;
-								symbol = mSymbolTable->Define(token, valueDesc, literal);
-								resolveCount++;
-								appregateOpCode = OP_APPREGATE_RESOLVE_VAR_ARG;
-							}
-							else // var arg without names like: let [x,y,...]
-								continue;
-						}
-
-						if (symbol.type == SymbolType::GLOBAL)
-						{
-							EmitOpCode(OP_SET_GLOBAL, symbol.relatedToken);
-							Emit(symbol.index);
-							EmitOpCode(OP_POP, symbol.relatedToken);
-						}
-					}
-
-					CurOpCodes()[appregateOpCodeAddress] = appregateOpCode;
-					CurOpCodes()[resolveAddress] = resolveCount;
-				}
-				else if (k->type == AST_VAR_DESC)
-				{
-					CompileExpr(v);
-
-					std::wstring literal;
-					Token token;
-					if (((VarDescExpr*)k)->name->type == AST_IDENTIFIER)
-					{
-						literal = ((IdentifierExpr*)(((VarDescExpr*)k)->name))->literal;
-						token = ((IdentifierExpr*)(((VarDescExpr*)k)->name))->tagToken;
-					}
-
-					else if (((VarDescExpr*)k)->name->type == AST_VAR_ARG)
-					{
-						literal = ((VarArgExpr*)((VarDescExpr*)k)->name)->argName->literal;
-						token = ((VarArgExpr*)((VarDescExpr*)k)->name)->argName->tagToken;
-					}
-
-					auto symbol = mSymbolTable->Define(token, valueDesc, literal);
-					if (symbol.type == SymbolType::GLOBAL)
-					{
-						EmitOpCode(OP_SET_GLOBAL, symbol.relatedToken);
-						Emit(symbol.index);
-						EmitOpCode(OP_POP, symbol.relatedToken);
-					}
-				}
-				else
-					Hint::Error(k->tagToken, L"Unknown variable:{}", k->ToString());
-			}
-		}
-
-		if (!postfixExprs.empty())
-		{
-			for (const auto& postfixExpr : postfixExprs)
-				CompilePostfixExpr((PostfixExpr*)postfixExpr, RWState::READ, false);
-		}
+		CompileVars(stmt, false);
 	}
 
-	void Compiler::CompileFunctionDecl(FunctionStmt* stmt)
+	void Compiler::CompileFunctionDecl(FunctionStmt *stmt)
 	{
 		auto symbol = CompileFunction(stmt);
 		if (symbol.type == SymbolType::GLOBAL)
@@ -206,173 +102,9 @@ namespace lws
 			Emit(symbol.index);
 		}
 	}
-	void Compiler::CompileClassDecl(ClassStmt* stmt)
+	void Compiler::CompileClassDecl(ClassStmt *stmt)
 	{
-		auto symbol = mSymbolTable->Define(stmt->tagToken, ValueDesc::CONSTANT, stmt->name);
-
-		mFunctionList.emplace_back(new FunctionObject(stmt->name));
-		mSymbolTable = new SymbolTable(mSymbolTable);
-
-		mSymbolTable->Define(stmt->tagToken, ValueDesc::CONSTANT, stmt->name);
-
-		int8_t varCount = 0;
-		int8_t constCount = 0;
-
-		for (const auto& enumStmt : stmt->enumStmts)
-		{
-			CompileEnumDecl(enumStmt);
-			EmitConstant(new StrObject(enumStmt->name->literal), enumStmt->tagToken);
-			constCount++;
-		}
-
-		for (const auto& fnStmt : stmt->fnStmts)
-		{
-			CompileFunction(fnStmt);
-			EmitConstant(new StrObject(fnStmt->name->literal), fnStmt->tagToken);
-			constCount++;
-		}
-
-		for (const auto& varStmt : stmt->varStmts)
-		{
-			for (const auto& [k, v] : varStmt->variables)
-			{
-				if (varStmt->privilege != VarStmt::Privilege::MUTABLE)
-					continue;
-
-				CompileExpr(v);
-
-				if (k->type == AST_ARRAY)
-				{
-					auto arrayExpr = (ArrayExpr*)k;
-
-					for (int32_t i = 0; i < arrayExpr->elements.size(); ++i)
-					{
-						std::wstring literal;
-						Token token;
-						if (((VarDescExpr*)arrayExpr->elements[i])->name->type == AST_IDENTIFIER)
-						{
-							auto identExpr = ((IdentifierExpr*)((VarDescExpr*)arrayExpr->elements[i])->name);
-							literal = identExpr->literal;
-							token = identExpr->tagToken;
-						}
-						else if (((VarDescExpr*)arrayExpr->elements[i])->name->type == AST_VAR_ARG)
-						{
-							auto varArgExpr = ((VarArgExpr*)((VarDescExpr*)arrayExpr->elements[i])->name);
-							literal = varArgExpr->argName->literal;
-							token = varArgExpr->argName->tagToken;
-						}
-
-						EmitConstant(new StrObject(literal), token);
-					}
-				}
-				else if (k->type == AST_VAR_DESC)
-				{
-					std::wstring literal;
-					Token token;
-					if (((VarDescExpr*)k)->name->type == AST_IDENTIFIER)
-					{
-						auto identExpr = ((IdentifierExpr*)(((VarDescExpr*)k)->name));
-						literal = identExpr->literal;
-						token = identExpr->tagToken;
-					}
-					else if (((VarDescExpr*)k)->name->type == AST_VAR_ARG)
-					{
-						auto varArgExpr = ((VarArgExpr*)((VarDescExpr*)k)->name);
-						literal = varArgExpr->argName->literal;
-						token = varArgExpr->tagToken;
-					}
-
-					EmitConstant(new StrObject(literal), token);
-				}
-
-				varCount++;
-			}
-		}
-
-		for (const auto& varStmt : stmt->varStmts)
-		{
-			for (const auto& [k, v] : varStmt->variables)
-			{
-				if (varStmt->privilege != VarStmt::Privilege::IMMUTABLE)
-					continue;
-
-				CompileExpr(v);
-
-				if (k->type == AST_ARRAY)
-				{
-					auto arrayExpr = (ArrayExpr*)k;
-
-					for (int32_t i = 0; i < arrayExpr->elements.size(); ++i)
-					{
-						std::wstring literal;
-						Token token;
-						if (((VarDescExpr*)arrayExpr->elements[i])->name->type == AST_IDENTIFIER)
-						{
-							auto identExpr = ((IdentifierExpr*)((VarDescExpr*)arrayExpr->elements[i])->name);
-							literal = identExpr->literal;
-							token = identExpr->tagToken;
-						}
-						else if (((VarDescExpr*)arrayExpr->elements[i])->name->type == AST_VAR_ARG)
-						{
-							auto varArgExpr = ((VarArgExpr*)((VarDescExpr*)arrayExpr->elements[i])->name);
-							literal = varArgExpr->argName->literal;
-							token = varArgExpr->argName->tagToken;
-						}
-
-						EmitConstant(new StrObject(literal), token);
-					}
-				}
-				else if (k->type == AST_VAR_DESC)
-				{
-					std::wstring literal;
-					Token token;
-					if (((VarDescExpr*)k)->name->type == AST_IDENTIFIER)
-					{
-						auto identExpr = ((IdentifierExpr*)(((VarDescExpr*)k)->name));
-						literal = identExpr->literal;
-						token = identExpr->tagToken;
-					}
-					else if (((VarDescExpr*)k)->name->type == AST_VAR_ARG)
-					{
-						auto varArgExpr = ((VarArgExpr*)((VarDescExpr*)k)->name);
-						literal = varArgExpr->argName->literal;
-						token = varArgExpr->tagToken;
-					}
-
-					EmitConstant(new StrObject(literal), token);
-				}
-
-				constCount++;
-			}
-		}
-
-		for (const auto& parentClass : stmt->parentClasses)
-		{
-			CompileIdentifierExpr(parentClass, RWState::READ);
-			EmitOpCode(OP_CALL, parentClass->tagToken);
-			Emit(0);
-			EmitConstant(new StrObject(parentClass->literal), parentClass->tagToken);
-		}
-
-		for (const auto& ctor : stmt->constructors)
-			CompileFunction(ctor);
-
-		EmitConstant(new StrObject(stmt->name), stmt->tagToken);
-		EmitOpCode(OP_CLASS, stmt->tagToken);
-		Emit(stmt->constructors.size());
-		Emit(varCount);
-		Emit(constCount);
-		Emit(stmt->parentClasses.size());
-
-
-		EmitReturn(1, stmt->tagToken);
-
-		mSymbolTable = mSymbolTable->enclosing;
-
-		auto function = mFunctionList.back();
-		mFunctionList.pop_back();
-
-		EmitClosure(function, stmt->tagToken);
+		auto symbol = CompileClass(stmt);
 
 		if (symbol.type == SymbolType::GLOBAL)
 		{
@@ -387,20 +119,20 @@ namespace lws
 		}
 	}
 
-	void Compiler::CompileEnumDecl(EnumStmt* stmt)
+	void Compiler::CompileEnumDecl(EnumStmt *stmt)
 	{
 		std::unordered_map<std::wstring, Value> pairs;
-		for (const auto& [k, v] : stmt->enumItems)
+		for (const auto &[k, v] : stmt->enumItems)
 		{
 			Value enumValue;
 			if (v->type == AST_INT)
-				enumValue = ((IntNumExpr*)v)->value;
+				enumValue = ((IntNumExpr *)v)->value;
 			else if (v->type == AST_REAL)
-				enumValue = ((RealNumExpr*)v)->value;
+				enumValue = ((RealNumExpr *)v)->value;
 			else if (v->type == AST_BOOL)
-				enumValue = ((BoolExpr*)v)->value;
+				enumValue = ((BoolExpr *)v)->value;
 			else if (v->type == AST_STR)
-				enumValue = new StrObject(((StrExpr*)v)->value);
+				enumValue = new StrObject(((StrExpr *)v)->value);
 			else
 				Hint::Error(v->tagToken, L"Enum value only integer num,floating point num,boolean or string is available.");
 
@@ -415,9 +147,14 @@ namespace lws
 			Emit(symbol.index);
 			EmitOpCode(OP_POP, symbol.relatedToken);
 		}
+		else if (symbol.type == SymbolType::LOCAL)
+		{
+			EmitOpCode(OP_SET_LOCAL, symbol.relatedToken);
+			Emit(symbol.index);
+		}
 	}
 
-	void Compiler::CompileModuleDecl(ModuleStmt* stmt)
+	void Compiler::CompileModuleDecl(ModuleStmt *stmt)
 	{
 		auto symbol = mSymbolTable->Define(stmt->tagToken, ValueDesc::CONSTANT, stmt->name->literal);
 
@@ -425,145 +162,49 @@ namespace lws
 
 		mSymbolTable = new SymbolTable(mSymbolTable);
 
-		EnterScope();
+		mSymbolTable->Define(stmt->tagToken, ValueDesc::CONSTANT, L"");
 
 		uint8_t constCount = 0;
 		uint8_t varCount = 0;
 
-		for (const auto& varStmt : stmt->varItems)
+		for (const auto &enumStmt : stmt->enumItems)
 		{
-			for (const auto& [k, v] : varStmt->variables)
-			{
-				if (varStmt->privilege != VarStmt::Privilege::MUTABLE)
-					continue;
-
-				CompileExpr(v);
-
-				if (k->type == AST_ARRAY)
-				{
-					auto arrayExpr = (ArrayExpr*)k;
-
-					for (int32_t i = 0; i < arrayExpr->elements.size(); ++i)
-					{
-						std::wstring literal;
-						Token token;
-						if (((VarDescExpr*)arrayExpr->elements[i])->name->type == AST_IDENTIFIER)
-						{
-							auto identExpr = ((IdentifierExpr*)((VarDescExpr*)arrayExpr->elements[i])->name);
-							literal = identExpr->literal;
-							token = identExpr->tagToken;
-						}
-						else if (((VarDescExpr*)arrayExpr->elements[i])->name->type == AST_VAR_ARG)
-						{
-							auto varArgExpr = ((VarArgExpr*)((VarDescExpr*)arrayExpr->elements[i])->name);
-							literal = varArgExpr->argName->literal;
-							token = varArgExpr->argName->tagToken;
-						}
-
-						EmitConstant(new StrObject(literal), token);
-					}
-				}
-				else if (k->type == AST_VAR_DESC)
-				{
-					std::wstring literal;
-					Token token;
-					if (((VarDescExpr*)k)->name->type == AST_IDENTIFIER)
-					{
-						auto identExpr = ((IdentifierExpr*)(((VarDescExpr*)k)->name));
-						literal = identExpr->literal;
-						token = identExpr->tagToken;
-					}
-					else if (((VarDescExpr*)k)->name->type == AST_VAR_ARG)
-					{
-						auto varArgExpr = ((VarArgExpr*)((VarDescExpr*)k)->name);
-						literal = varArgExpr->argName->literal;
-						token = varArgExpr->tagToken;
-					}
-
-					EmitConstant(new StrObject(literal), token);
-				}
-
-				varCount++;
-			}
+			CompileEnumDecl(enumStmt);
+			EmitConstant(new StrObject(enumStmt->name->literal), enumStmt->tagToken);
+			constCount++;
 		}
 
-		for (const auto& varStmt : stmt->varItems)
+		for (const auto &fnStmt : stmt->functionItems)
 		{
-			for (const auto& [k, v] : varStmt->variables)
-			{
-				if (varStmt->privilege != VarStmt::Privilege::IMMUTABLE)
-					continue;
-
-				CompileExpr(v);
-
-				if (k->type == AST_ARRAY)
-				{
-					auto arrayExpr = (ArrayExpr*)k;
-
-					for (int32_t i = 0; i < arrayExpr->elements.size(); ++i)
-					{
-						std::wstring literal;
-						Token token;
-						if (((VarDescExpr*)arrayExpr->elements[i])->name->type == AST_IDENTIFIER)
-						{
-							auto identExpr = ((IdentifierExpr*)((VarDescExpr*)arrayExpr->elements[i])->name);
-							literal = identExpr->literal;
-							token = identExpr->tagToken;
-						}
-						else if (((VarDescExpr*)arrayExpr->elements[i])->name->type == AST_VAR_ARG)
-						{
-							auto varArgExpr = ((VarArgExpr*)((VarDescExpr*)arrayExpr->elements[i])->name);
-							literal = varArgExpr->argName->literal;
-							token = varArgExpr->argName->tagToken;
-						}
-
-						EmitConstant(new StrObject(literal), token);
-					}
-				}
-				else if (k->type == AST_VAR_DESC)
-				{
-					std::wstring literal;
-					Token token;
-					if (((VarDescExpr*)k)->name->type == AST_IDENTIFIER)
-					{
-						auto identExpr = ((IdentifierExpr*)(((VarDescExpr*)k)->name));
-						literal = identExpr->literal;
-						token = identExpr->tagToken;
-					}
-					else if (((VarDescExpr*)k)->name->type == AST_VAR_ARG)
-					{
-						auto varArgExpr = ((VarArgExpr*)((VarDescExpr*)k)->name);
-						literal = varArgExpr->argName->literal;
-						token = varArgExpr->tagToken;
-					}
-
-					EmitConstant(new StrObject(literal), token);
-				}
-
-				constCount++;
-			}
-		}
-
-		for (const auto& fnStmt : stmt->functionItems)
-		{
-			CompileFunction(fnStmt);
+			CompileFunctionDecl(fnStmt);
 			EmitConstant(new StrObject(fnStmt->name->literal), fnStmt->tagToken);
 			constCount++;
 		}
 
-		for (const auto& classStmt : stmt->classItems)
+		for (const auto &classStmt : stmt->classItems)
 		{
+			CompileClassDecl(classStmt);
+			EmitConstant(new StrObject(classStmt->name), classStmt->tagToken);
+			constCount++;
 		}
 
-		for (const auto& enumStmt : stmt->enumItems)
-		{
-		}
-
-		for (const auto& moduleStmt : stmt->moduleItems)
+		for (const auto &moduleStmt : stmt->moduleItems)
 		{
 			CompileModuleDecl(moduleStmt);
 			EmitConstant(new StrObject(moduleStmt->name->literal), moduleStmt->tagToken);
 			constCount++;
+		}
+
+		for (const auto &varStmt : stmt->varItems)
+		{
+			if (varStmt->privilege == VarStmt::Privilege::IMMUTABLE)
+				constCount += CompileVars(varStmt, true);
+		}
+
+		for (const auto &varStmt : stmt->varItems)
+		{
+			if (varStmt->privilege == VarStmt::Privilege::MUTABLE)
+				varCount += CompileVars(varStmt, true);
 		}
 
 		EmitConstant(new StrObject(symbol.name), symbol.relatedToken);
@@ -574,16 +215,20 @@ namespace lws
 
 		EmitReturn(1, stmt->tagToken);
 
-		ExitScope();
-		mSymbolTable = mSymbolTable->enclosing;
-
 		auto function = mFunctionList.back();
+		function->arity=mSymbolTable->mSymbolCount;
+		
 		mFunctionList.pop_back();
 
 		EmitClosure(function, stmt->tagToken);
 
+		for(int32_t i=0;i<mSymbolTable->mSymbolCount;++i)
+			EmitOpCode(OP_NULL, stmt->tagToken);
+
 		EmitOpCode(OP_CALL, stmt->tagToken);
-		Emit(0);
+		Emit(mSymbolTable->mSymbolCount);
+
+		mSymbolTable = mSymbolTable->enclosing;
 
 		if (symbol.type == SymbolType::GLOBAL)
 		{
@@ -598,38 +243,38 @@ namespace lws
 		}
 	}
 
-	void Compiler::CompileStmt(Stmt* stmt, int64_t& breakStmtAddress, int64_t& continueStmtAddress)
+	void Compiler::CompileStmt(Stmt *stmt, int64_t &breakStmtAddress, int64_t &continueStmtAddress)
 	{
 		switch (stmt->type)
 		{
 		case AST_IF:
-			CompileIfStmt((IfStmt*)stmt, breakStmtAddress, continueStmtAddress);
+			CompileIfStmt((IfStmt *)stmt, breakStmtAddress, continueStmtAddress);
 			break;
 		case AST_SCOPE:
 		{
 			EnterScope();
-			CompileScopeStmt((ScopeStmt*)stmt, breakStmtAddress, continueStmtAddress);
+			CompileScopeStmt((ScopeStmt *)stmt, breakStmtAddress, continueStmtAddress);
 			ExitScope();
 			break;
 		}
 		case AST_WHILE:
-			CompileWhileStmt((WhileStmt*)stmt);
+			CompileWhileStmt((WhileStmt *)stmt);
 			break;
 		case AST_RETURN:
-			CompileReturnStmt((ReturnStmt*)stmt);
+			CompileReturnStmt((ReturnStmt *)stmt);
 			break;
 		case AST_BREAK:
-			CompileBreakStmt((BreakStmt*)stmt, breakStmtAddress);
+			CompileBreakStmt((BreakStmt *)stmt, breakStmtAddress);
 			break;
 		case AST_CONTINUE:
-			CompileContinueStmt((ContinueStmt*)stmt, continueStmtAddress);
+			CompileContinueStmt((ContinueStmt *)stmt, continueStmtAddress);
 			break;
 		default:
-			CompileExprStmt((ExprStmt*)stmt);
+			CompileExprStmt((ExprStmt *)stmt);
 			break;
 		}
 	}
-	void Compiler::CompileExprStmt(ExprStmt* stmt)
+	void Compiler::CompileExprStmt(ExprStmt *stmt)
 	{
 		auto postfixExprs = StatsPostfixExprs(stmt->expr);
 
@@ -639,12 +284,12 @@ namespace lws
 
 		if (!postfixExprs.empty())
 		{
-			for (const auto& postfixExpr : postfixExprs)
-				CompilePostfixExpr((PostfixExpr*)postfixExpr, RWState::READ, false);
+			for (const auto &postfixExpr : postfixExprs)
+				CompilePostfixExpr((PostfixExpr *)postfixExpr, RWState::READ, false);
 		}
 	}
 
-	void Compiler::CompileIfStmt(IfStmt* stmt, int64_t& breakStmtAddress, int64_t& continueStmtAddress)
+	void Compiler::CompileIfStmt(IfStmt *stmt, int64_t &breakStmtAddress, int64_t &continueStmtAddress)
 	{
 		auto conditionPostfixExprs = StatsPostfixExprs(stmt->condition);
 
@@ -652,8 +297,8 @@ namespace lws
 
 		if (!conditionPostfixExprs.empty())
 		{
-			for (const auto& postfixExpr : conditionPostfixExprs)
-				CompilePostfixExpr((PostfixExpr*)postfixExpr, RWState::READ, false);
+			for (const auto &postfixExpr : conditionPostfixExprs)
+				CompilePostfixExpr((PostfixExpr *)postfixExpr, RWState::READ, false);
 		}
 
 		auto jmpIfFalseAddress = EmitJump(OP_JUMP_IF_FALSE, stmt->condition->tagToken);
@@ -673,12 +318,12 @@ namespace lws
 
 		PatchJump(jmpAddress);
 	}
-	void Compiler::CompileScopeStmt(ScopeStmt* stmt, int64_t& breakStmtAddress, int64_t& continueStmtAddress)
+	void Compiler::CompileScopeStmt(ScopeStmt *stmt, int64_t &breakStmtAddress, int64_t &continueStmtAddress)
 	{
-		for (const auto& s : stmt->stmts)
+		for (const auto &s : stmt->stmts)
 			CompileDecl(s, breakStmtAddress, continueStmtAddress);
 	}
-	void Compiler::CompileWhileStmt(WhileStmt* stmt)
+	void Compiler::CompileWhileStmt(WhileStmt *stmt)
 	{
 		uint16_t jmpAddress = CurOpCodes().size();
 
@@ -688,8 +333,8 @@ namespace lws
 
 		if (!conditionPostfixExprs.empty())
 		{
-			for (const auto& postfixExpr : conditionPostfixExprs)
-				CompilePostfixExpr((PostfixExpr*)postfixExpr, RWState::READ, false);
+			for (const auto &postfixExpr : conditionPostfixExprs)
+				CompilePostfixExpr((PostfixExpr *)postfixExpr, RWState::READ, false);
 		}
 
 		auto jmpIfFalseAddress = EmitJump(OP_JUMP_IF_FALSE, stmt->condition->tagToken);
@@ -715,7 +360,7 @@ namespace lws
 		if (breakStmtAddress != -1)
 			PatchJump(breakStmtAddress);
 	}
-	void Compiler::CompileReturnStmt(ReturnStmt* stmt)
+	void Compiler::CompileReturnStmt(ReturnStmt *stmt)
 	{
 		auto postfixExprs = StatsPostfixExprs(stmt);
 
@@ -729,110 +374,110 @@ namespace lws
 
 		if (!postfixExprs.empty())
 		{
-			for (const auto& postfixExpr : postfixExprs)
-				CompilePostfixExpr((PostfixExpr*)postfixExpr, RWState::READ, false);
+			for (const auto &postfixExpr : postfixExprs)
+				CompilePostfixExpr((PostfixExpr *)postfixExpr, RWState::READ, false);
 		}
 	}
 
-	void Compiler::CompileBreakStmt(BreakStmt* stmt, int64_t& stmtAddress)
+	void Compiler::CompileBreakStmt(BreakStmt *stmt, int64_t &stmtAddress)
 	{
 		stmtAddress = EmitJump(OP_JUMP, stmt->tagToken);
 	}
-	void Compiler::CompileContinueStmt(ContinueStmt* stmt, int64_t& stmtAddress)
+	void Compiler::CompileContinueStmt(ContinueStmt *stmt, int64_t &stmtAddress)
 	{
 		stmtAddress = EmitJump(OP_JUMP, stmt->tagToken);
 	}
 
-	void Compiler::CompileExpr(Expr* expr, const RWState& state, int8_t paramCount)
+	void Compiler::CompileExpr(Expr *expr, const RWState &state, int8_t paramCount)
 	{
 		switch (expr->type)
 		{
 		case AST_INFIX:
-			CompileInfixExpr((InfixExpr*)expr);
+			CompileInfixExpr((InfixExpr *)expr);
 			break;
 		case AST_INT:
-			CompileIntNumExpr((IntNumExpr*)expr);
+			CompileIntNumExpr((IntNumExpr *)expr);
 			break;
 		case AST_REAL:
-			CompileRealNumExpr((RealNumExpr*)expr);
+			CompileRealNumExpr((RealNumExpr *)expr);
 			break;
 		case AST_BOOL:
-			CompileBoolExpr((BoolExpr*)expr);
+			CompileBoolExpr((BoolExpr *)expr);
 			break;
 		case AST_PREFIX:
-			CompilePrefixExpr((PrefixExpr*)expr);
+			CompilePrefixExpr((PrefixExpr *)expr);
 			break;
 		case AST_POSTFIX:
-			CompilePostfixExpr((PostfixExpr*)expr, state);
+			CompilePostfixExpr((PostfixExpr *)expr, state);
 			break;
 		case AST_CONDITION:
-			CompileConditionExpr((ConditionExpr*)expr);
+			CompileConditionExpr((ConditionExpr *)expr);
 			break;
 		case AST_STR:
-			CompileStrExpr((StrExpr*)expr);
+			CompileStrExpr((StrExpr *)expr);
 			break;
 		case AST_NULL:
-			CompileNullExpr((NullExpr*)expr);
+			CompileNullExpr((NullExpr *)expr);
 			break;
 		case AST_GROUP:
-			CompileGroupExpr((GroupExpr*)expr);
+			CompileGroupExpr((GroupExpr *)expr);
 			break;
 		case AST_ARRAY:
-			CompileArrayExpr((ArrayExpr*)expr);
+			CompileArrayExpr((ArrayExpr *)expr);
 			break;
 		case AST_APPREGATE:
-			CompileAppregateExpr((AppregateExpr*)expr);
+			CompileAppregateExpr((AppregateExpr *)expr);
 			break;
 		case AST_DICT:
-			CompileDictExpr((DictExpr*)expr);
+			CompileDictExpr((DictExpr *)expr);
 			break;
 		case AST_INDEX:
-			CompileIndexExpr((IndexExpr*)expr, state);
+			CompileIndexExpr((IndexExpr *)expr, state);
 			break;
 		case AST_IDENTIFIER:
-			CompileIdentifierExpr((IdentifierExpr*)expr, state, paramCount);
+			CompileIdentifierExpr((IdentifierExpr *)expr, state, paramCount);
 			break;
 		case AST_LAMBDA:
-			CompileLambdaExpr((LambdaExpr*)expr);
+			CompileLambdaExpr((LambdaExpr *)expr);
 			break;
 		case AST_BLOCK:
-			CompileBlockExpr((BlockExpr*)expr);
+			CompileBlockExpr((BlockExpr *)expr);
 			break;
 		case AST_CALL:
-			CompileCallExpr((CallExpr*)expr);
+			CompileCallExpr((CallExpr *)expr);
 			break;
 		case AST_DOT:
-			CompileDotExpr((DotExpr*)expr, state);
+			CompileDotExpr((DotExpr *)expr, state);
 			break;
 		case AST_REF:
-			CompileRefExpr((RefExpr*)expr);
+			CompileRefExpr((RefExpr *)expr);
 			break;
 		case AST_NEW:
-			CompileNewExpr((NewExpr*)expr);
+			CompileNewExpr((NewExpr *)expr);
 			break;
 		case AST_THIS:
-			CompileThisExpr((ThisExpr*)expr);
+			CompileThisExpr((ThisExpr *)expr);
 			break;
 		case AST_BASE:
-			CompileBaseExpr((BaseExpr*)expr);
+			CompileBaseExpr((BaseExpr *)expr);
 			break;
 		case AST_VAR_ARG:
-			CompileVarArgExpr((VarArgExpr*)expr, state);
+			CompileVarArgExpr((VarArgExpr *)expr, state);
 			break;
 		case AST_FACTORIAL:
-			CompileFactorialExpr((FactorialExpr*)expr);
+			CompileFactorialExpr((FactorialExpr *)expr);
 			break;
 		default:
 			break;
 		}
 	}
-	void Compiler::CompileInfixExpr(InfixExpr* expr)
+	void Compiler::CompileInfixExpr(InfixExpr *expr)
 	{
 		if (expr->op == L"=")
 		{
 			if (expr->left->type == AST_ARRAY)
 			{
-				auto assignee = (ArrayExpr*)expr->left;
+				auto assignee = (ArrayExpr *)expr->left;
 
 				OpCode appregateOpCode = OP_APPREGATE_RESOLVE;
 
@@ -845,7 +490,7 @@ namespace lws
 
 				if (assignee->elements.back()->type == AST_VAR_ARG)
 				{
-					if (((VarArgExpr*)assignee->elements.back())->argName)
+					if (((VarArgExpr *)assignee->elements.back())->argName)
 						appregateOpCode = OP_APPREGATE_RESOLVE_VAR_ARG;
 					else
 						resolveCount--;
@@ -853,8 +498,8 @@ namespace lws
 				else
 				{
 					if (expr->right->type == AST_ARRAY)
-						if (assignee->elements.size() < ((ArrayExpr*)expr->right)->elements.size())
-							Hint::Error(((ArrayExpr*)expr->right)->elements[assignee->elements.size()]->tagToken, L"variable less than value");
+						if (assignee->elements.size() < ((ArrayExpr *)expr->right)->elements.size())
+							Hint::Error(((ArrayExpr *)expr->right)->elements[assignee->elements.size()]->tagToken, L"variable less than value");
 				}
 
 				CurOpCodes()[appregateOpCodeAddress] = appregateOpCode;
@@ -982,19 +627,19 @@ namespace lws
 			}
 		}
 	}
-	void Compiler::CompileIntNumExpr(IntNumExpr* expr)
+	void Compiler::CompileIntNumExpr(IntNumExpr *expr)
 	{
 		EmitConstant(expr->value, expr->tagToken);
 	}
-	void Compiler::CompileRealNumExpr(RealNumExpr* expr)
+	void Compiler::CompileRealNumExpr(RealNumExpr *expr)
 	{
 		EmitConstant(expr->value, expr->tagToken);
 	}
-	void Compiler::CompileBoolExpr(BoolExpr* expr)
+	void Compiler::CompileBoolExpr(BoolExpr *expr)
 	{
 		EmitConstant(expr->value, expr->tagToken);
 	}
-	void Compiler::CompilePrefixExpr(PrefixExpr* expr)
+	void Compiler::CompilePrefixExpr(PrefixExpr *expr)
 	{
 		CompileExpr(expr->right);
 		if (expr->op == L"!")
@@ -1005,16 +650,16 @@ namespace lws
 			EmitOpCode(OP_BIT_NOT, expr->tagToken);
 		else if (expr->op == L"++")
 		{
-			while (expr->right->type == AST_PREFIX && ((PrefixExpr*)expr->right)->op == L"++" || ((PrefixExpr*)expr->right)->op == L"--")
-				expr = (PrefixExpr*)expr->right;
+			while (expr->right->type == AST_PREFIX && ((PrefixExpr *)expr->right)->op == L"++" || ((PrefixExpr *)expr->right)->op == L"--")
+				expr = (PrefixExpr *)expr->right;
 			EmitConstant((int64_t)1, expr->tagToken);
 			EmitOpCode(OP_ADD, expr->tagToken);
 			CompileExpr(expr->right, RWState::WRITE);
 		}
 		else if (expr->op == L"--")
 		{
-			while (expr->right->type == AST_PREFIX && ((PrefixExpr*)expr->right)->op == L"++" || ((PrefixExpr*)expr->right)->op == L"--")
-				expr = (PrefixExpr*)expr->right;
+			while (expr->right->type == AST_PREFIX && ((PrefixExpr *)expr->right)->op == L"++" || ((PrefixExpr *)expr->right)->op == L"--")
+				expr = (PrefixExpr *)expr->right;
 			EmitConstant((int64_t)1, expr->tagToken);
 			EmitOpCode(OP_SUB, expr->tagToken);
 			CompileExpr(expr->right, RWState::WRITE);
@@ -1022,7 +667,7 @@ namespace lws
 		else
 			Hint::Error(expr->tagToken, L"No prefix op:{}", expr->op);
 	}
-	void Compiler::CompilePostfixExpr(PostfixExpr* expr, const RWState& state, bool isDelayCompile)
+	void Compiler::CompilePostfixExpr(PostfixExpr *expr, const RWState &state, bool isDelayCompile)
 	{
 		CompileExpr(expr->left, state);
 		if (!isDelayCompile)
@@ -1039,7 +684,7 @@ namespace lws
 		}
 	}
 
-	void Compiler::CompileConditionExpr(ConditionExpr* expr)
+	void Compiler::CompileConditionExpr(ConditionExpr *expr)
 	{
 		CompileExpr(expr->condition);
 
@@ -1060,19 +705,19 @@ namespace lws
 		PatchJump(jmpAddress);
 	}
 
-	void Compiler::CompileStrExpr(StrExpr* expr)
+	void Compiler::CompileStrExpr(StrExpr *expr)
 	{
 		EmitConstant(new StrObject(expr->value), expr->tagToken);
 	}
-	void Compiler::CompileNullExpr(NullExpr* expr)
+	void Compiler::CompileNullExpr(NullExpr *expr)
 	{
 		EmitOpCode(OP_NULL, expr->tagToken);
 	}
-	void Compiler::CompileGroupExpr(GroupExpr* expr)
+	void Compiler::CompileGroupExpr(GroupExpr *expr)
 	{
 		CompileExpr(expr->expr);
 	}
-	void Compiler::CompileArrayExpr(ArrayExpr* expr)
+	void Compiler::CompileArrayExpr(ArrayExpr *expr)
 	{
 		for (int32_t i = (int32_t)expr->elements.size() - 1; i >= 0; --i)
 			CompileExpr(expr->elements[i]);
@@ -1082,7 +727,7 @@ namespace lws
 		Emit(pos);
 	}
 
-	void Compiler::CompileAppregateExpr(AppregateExpr* expr)
+	void Compiler::CompileAppregateExpr(AppregateExpr *expr)
 	{
 		for (int32_t i = (int32_t)expr->exprs.size() - 1; i >= 0; --i)
 			CompileExpr(expr->exprs[i]);
@@ -1092,7 +737,7 @@ namespace lws
 		Emit(pos);
 	}
 
-	void Compiler::CompileDictExpr(DictExpr* expr)
+	void Compiler::CompileDictExpr(DictExpr *expr)
 	{
 		for (int32_t i = (int32_t)expr->elements.size() - 1; i >= 0; --i)
 		{
@@ -1104,7 +749,7 @@ namespace lws
 		Emit(pos);
 	}
 
-	void Compiler::CompileIndexExpr(IndexExpr* expr, const RWState& state)
+	void Compiler::CompileIndexExpr(IndexExpr *expr, const RWState &state)
 	{
 		CompileExpr(expr->ds);
 		CompileExpr(expr->index);
@@ -1114,30 +759,30 @@ namespace lws
 			EmitOpCode(OP_SET_INDEX, expr->tagToken);
 	}
 
-	void Compiler::CompileNewExpr(NewExpr* expr)
+	void Compiler::CompileNewExpr(NewExpr *expr)
 	{
 		if (expr->callee->type == AST_CALL)
 		{
-			auto callee = (CallExpr*)expr->callee;
+			auto callee = (CallExpr *)expr->callee;
 			CompileExpr(callee->callee, RWState::READ);
 			EmitOpCode(OP_CALL, expr->callee->tagToken);
 			Emit(0);
-			for (const auto& arg : callee->arguments)
+			for (const auto &arg : callee->arguments)
 				CompileExpr(arg);
 			EmitOpCode(OP_CALL, expr->callee->tagToken);
 			Emit(callee->arguments.size());
 		}
 		else if (expr->callee->type == AST_ANONY_OBJ)
-			CompileAnonymousObjExpr((AnonyObjExpr*)(expr->callee));
+			CompileAnonymousObjExpr((AnonyObjExpr *)(expr->callee));
 	}
 
-	void Compiler::CompileThisExpr(ThisExpr* expr)
+	void Compiler::CompileThisExpr(ThisExpr *expr)
 	{
 		auto identExpr = new IdentifierExpr(expr->tagToken, L"this");
 		CompileExpr(identExpr);
 	}
 
-	void Compiler::CompileBaseExpr(BaseExpr* expr)
+	void Compiler::CompileBaseExpr(BaseExpr *expr)
 	{
 		auto identExpr = new IdentifierExpr(expr->tagToken, L"this");
 		CompileExpr(identExpr);
@@ -1145,7 +790,7 @@ namespace lws
 		EmitOpCode(OP_GET_BASE, expr->callMember->tagToken);
 	}
 
-	void Compiler::CompileIdentifierExpr(IdentifierExpr* expr, const RWState& state, int8_t paramCount)
+	void Compiler::CompileIdentifierExpr(IdentifierExpr *expr, const RWState &state, int8_t paramCount)
 	{
 		OpCode getOp, setOp;
 		auto symbol = mSymbolTable->Resolve(expr->tagToken, expr->literal, paramCount);
@@ -1187,12 +832,12 @@ namespace lws
 				Emit(symbol.index);
 		}
 	}
-	void Compiler::CompileLambdaExpr(LambdaExpr* expr)
+	void Compiler::CompileLambdaExpr(LambdaExpr *expr)
 	{
 		uint8_t varArgParamType = 0;
 		if (!expr->parameters.empty() && expr->parameters.back()->name->type == AST_VAR_ARG)
 		{
-			auto varArg = (VarArgExpr*)expr->parameters.back()->name;
+			auto varArg = (VarArgExpr *)expr->parameters.back()->name;
 			if (varArg->argName)
 				varArgParamType = 2;
 			else
@@ -1207,14 +852,14 @@ namespace lws
 		CurFunction()->arity = expr->parameters.size();
 		CurFunction()->varArgParamType = varArgParamType;
 
-		for (const auto& param : expr->parameters)
+		for (const auto &param : expr->parameters)
 		{
-			auto varDescExpr = (VarDescExpr*)param;
+			auto varDescExpr = (VarDescExpr *)param;
 			if (varDescExpr->name->type == AST_IDENTIFIER)
-				mSymbolTable->Define(varDescExpr->tagToken, ValueDesc::VARIABLE, ((IdentifierExpr*)((VarDescExpr*)param)->name)->literal);
+				mSymbolTable->Define(varDescExpr->tagToken, ValueDesc::VARIABLE, ((IdentifierExpr *)((VarDescExpr *)param)->name)->literal);
 			else if (varDescExpr->name->type == AST_VAR_ARG)
 			{
-				auto varArg = ((VarArgExpr*)varDescExpr->name);
+				auto varArg = ((VarArgExpr *)varDescExpr->name);
 				if (varArg->argName)
 					mSymbolTable->Define(varArg->tagToken, ValueDesc::VARIABLE, varArg->argName->literal);
 			}
@@ -1237,24 +882,24 @@ namespace lws
 		EmitClosure(function, expr->tagToken);
 	}
 
-	void Compiler::CompileBlockExpr(BlockExpr* expr)
+	void Compiler::CompileBlockExpr(BlockExpr *expr)
 	{
 		EnterScope();
-		for (const auto& s : expr->stmts)
+		for (const auto &s : expr->stmts)
 			CompileDecl(s);
 		CompileExpr(expr->endExpr);
 		ExitScope();
 	}
 
-	void Compiler::CompileCallExpr(CallExpr* expr)
+	void Compiler::CompileCallExpr(CallExpr *expr)
 	{
 		CompileExpr(expr->callee, RWState::READ, expr->arguments.size());
-		for (const auto& arg : expr->arguments)
+		for (const auto &arg : expr->arguments)
 			CompileExpr(arg);
 		EmitOpCode(OP_CALL, expr->callee->tagToken);
 		Emit(expr->arguments.size());
 	}
-	void Compiler::CompileDotExpr(DotExpr* expr, const RWState& state)
+	void Compiler::CompileDotExpr(DotExpr *expr, const RWState &state)
 	{
 		CompileExpr(expr->callee);
 		EmitConstant(new StrObject(expr->callMember->literal), expr->callee->tagToken);
@@ -1263,12 +908,12 @@ namespace lws
 		else
 			EmitOpCode(OP_GET_PROPERTY, expr->callMember->tagToken);
 	}
-	void Compiler::CompileRefExpr(RefExpr* expr)
+	void Compiler::CompileRefExpr(RefExpr *expr)
 	{
 		Symbol symbol;
 		if (expr->refExpr->type == AST_INDEX)
 		{
-			auto refIdxExpr = ((IndexExpr*)expr->refExpr);
+			auto refIdxExpr = ((IndexExpr *)expr->refExpr);
 			CompileExpr(refIdxExpr->index);
 			symbol = mSymbolTable->Resolve(refIdxExpr->ds->tagToken, refIdxExpr->ds->ToString());
 			if (symbol.type == SymbolType::GLOBAL)
@@ -1308,7 +953,7 @@ namespace lws
 		}
 	}
 
-	void Compiler::CompileAnonymousObjExpr(AnonyObjExpr* expr)
+	void Compiler::CompileAnonymousObjExpr(AnonyObjExpr *expr)
 	{
 		for (auto [k, v] : expr->elements)
 		{
@@ -1320,7 +965,7 @@ namespace lws
 		Emit(pos);
 	}
 
-	void Compiler::CompileVarArgExpr(VarArgExpr* expr, const RWState& state)
+	void Compiler::CompileVarArgExpr(VarArgExpr *expr, const RWState &state)
 	{
 		if (expr->argName)
 		{
@@ -1328,25 +973,25 @@ namespace lws
 		}
 	}
 
-	void Compiler::CompileFactorialExpr(FactorialExpr* expr, const RWState& state)
+	void Compiler::CompileFactorialExpr(FactorialExpr *expr, const RWState &state)
 	{
 		CompileExpr(expr->expr, state);
 		EmitOpCode(OP_FACTORIAL, expr->tagToken);
 	}
 
-	Symbol Compiler::CompileFunction(FunctionStmt* stmt)
+	Symbol Compiler::CompileFunction(FunctionStmt *stmt)
 	{
 		uint8_t varArgParamType = 0;
 		if (!stmt->parameters.empty() && stmt->parameters.back()->name->type == AST_VAR_ARG)
 		{
-			auto varArg = (VarArgExpr*)stmt->parameters.back()->name;
+			auto varArg = (VarArgExpr *)stmt->parameters.back()->name;
 			if (varArg->argName)
 				varArgParamType = 2;
 			else
 				varArgParamType = 1;
 		}
 
-		auto functionSymbol = mSymbolTable->Define(stmt->tagToken, ValueDesc::CONSTANT, stmt->name->literal, FunctionSymbolInfo{ .paramCount = (int8_t)stmt->parameters.size(), .varArgParamType = varArgParamType });
+		auto functionSymbol = mSymbolTable->Define(stmt->tagToken, ValueDesc::CONSTANT, stmt->name->literal, FunctionSymbolInfo{.paramCount = (int8_t)stmt->parameters.size(), .varArgParamType = varArgParamType});
 
 		mFunctionList.emplace_back(new FunctionObject(stmt->name->literal));
 		mSymbolTable = new SymbolTable(mSymbolTable);
@@ -1359,14 +1004,14 @@ namespace lws
 		CurFunction()->arity = stmt->parameters.size();
 		CurFunction()->varArgParamType = varArgParamType;
 
-		for (const auto& param : stmt->parameters)
+		for (const auto &param : stmt->parameters)
 		{
-			auto varDescExpr = (VarDescExpr*)param;
+			auto varDescExpr = (VarDescExpr *)param;
 			if (varDescExpr->name->type == AST_IDENTIFIER)
-				mSymbolTable->Define(varDescExpr->tagToken, ValueDesc::VARIABLE, ((IdentifierExpr*)((VarDescExpr*)param)->name)->literal);
+				mSymbolTable->Define(varDescExpr->tagToken, ValueDesc::VARIABLE, ((IdentifierExpr *)((VarDescExpr *)param)->name)->literal);
 			else if (varDescExpr->name->type == AST_VAR_ARG)
 			{
-				auto varArg = ((VarArgExpr*)varDescExpr->name);
+				auto varArg = ((VarArgExpr *)varDescExpr->name);
 				if (varArg->argName)
 					mSymbolTable->Define(varArg->argName->tagToken, ValueDesc::VARIABLE, varArg->argName->literal);
 			}
@@ -1405,6 +1050,199 @@ namespace lws
 		return functionSymbol;
 	}
 
+	uint32_t Compiler::CompileVars(VarStmt *stmt, bool IsInClassScope)
+	{
+		uint32_t varCount = 0;
+
+		ValueDesc valueDesc = ValueDesc::VARIABLE;
+
+		if (stmt->privilege == VarStmt::Privilege::IMMUTABLE)
+			valueDesc = ValueDesc::CONSTANT;
+
+		auto postfixExprs = StatsPostfixExprs(stmt);
+
+		{
+			for (const auto &[k, v] : stmt->variables)
+			{
+				// destructuring assignment like let [x,y,...args]=....
+				if (k->type == AST_ARRAY)
+				{
+					auto arrayExpr = (ArrayExpr *)k;
+
+					uint32_t resolveAddress = 0;
+					OpCode appregateOpCode = OP_APPREGATE_RESOLVE;
+					uint32_t appregateOpCodeAddress;
+
+					// compile right value
+					{
+						CompileExpr(v);
+
+						appregateOpCodeAddress = EmitOpCode((OpCode)0xFF, arrayExpr->tagToken) - 1;
+						resolveAddress = Emit((OpCode)0xFF);
+					}
+
+					int32_t resolveCount = 0;
+
+					if (mSymbolTable->enclosing == nullptr && mSymbolTable->mScopeDepth > 0) // local scope
+						std::reverse(arrayExpr->elements.begin(), arrayExpr->elements.end());
+
+					for (int32_t i = 0; i < arrayExpr->elements.size(); ++i)
+					{
+						Symbol symbol;
+						std::wstring literal;
+						Token token;
+
+						if (((VarDescExpr *)arrayExpr->elements[i])->name->type == AST_IDENTIFIER)
+						{
+							literal = ((IdentifierExpr *)((VarDescExpr *)arrayExpr->elements[i])->name)->literal;
+							token = ((IdentifierExpr *)((VarDescExpr *)arrayExpr->elements[i])->name)->tagToken;
+							symbol = mSymbolTable->Define(token, valueDesc, literal);
+							resolveCount++;
+						}
+						else if (((VarDescExpr *)arrayExpr->elements[i])->name->type == AST_VAR_ARG)
+						{
+							// varArg with name like:let [x,y,...args] (means IdentifierExpr* in VarDescExpr* not nullptr)
+							if (((VarArgExpr *)((VarDescExpr *)arrayExpr->elements[i])->name)->argName)
+							{
+								literal = ((VarArgExpr *)((VarDescExpr *)arrayExpr->elements[i])->name)->argName->literal;
+								token = ((VarArgExpr *)((VarDescExpr *)arrayExpr->elements[i])->name)->argName->tagToken;
+								symbol = mSymbolTable->Define(token, valueDesc, literal);
+								resolveCount++;
+								appregateOpCode = OP_APPREGATE_RESOLVE_VAR_ARG;
+							}
+							else // var arg without names like: let [x,y,...]
+								continue;
+						}
+
+						if (symbol.type == SymbolType::GLOBAL)
+						{
+							EmitOpCode(OP_SET_GLOBAL, symbol.relatedToken);
+							Emit(symbol.index);
+							EmitOpCode(OP_POP, symbol.relatedToken);
+						}
+						else if (IsInClassScope)
+						{
+							EmitConstant(new StrObject(literal), token);
+						}
+						varCount++;
+					}
+
+					CurOpCodes()[appregateOpCodeAddress] = appregateOpCode;
+					CurOpCodes()[resolveAddress] = resolveCount;
+				}
+				else if (k->type == AST_VAR_DESC)
+				{
+					CompileExpr(v);
+
+					std::wstring literal;
+					Token token;
+					if (((VarDescExpr *)k)->name->type == AST_IDENTIFIER)
+					{
+						literal = ((IdentifierExpr *)(((VarDescExpr *)k)->name))->literal;
+						token = ((IdentifierExpr *)(((VarDescExpr *)k)->name))->tagToken;
+					}
+
+					else if (((VarDescExpr *)k)->name->type == AST_VAR_ARG)
+					{
+						literal = ((VarArgExpr *)((VarDescExpr *)k)->name)->argName->literal;
+						token = ((VarArgExpr *)((VarDescExpr *)k)->name)->argName->tagToken;
+					}
+
+					auto symbol = mSymbolTable->Define(token, valueDesc, literal);
+					if (symbol.type == SymbolType::GLOBAL)
+					{
+						EmitOpCode(OP_SET_GLOBAL, symbol.relatedToken);
+						Emit(symbol.index);
+						EmitOpCode(OP_POP, symbol.relatedToken);
+					}
+					else if (IsInClassScope)
+					{
+						EmitConstant(new StrObject(literal), token);
+					}
+					varCount++;
+				}
+				else
+					Hint::Error(k->tagToken, L"Unknown variable:{}", k->ToString());
+			}
+		}
+
+		if (!postfixExprs.empty())
+		{
+			for (const auto &postfixExpr : postfixExprs)
+				CompilePostfixExpr((PostfixExpr *)postfixExpr, RWState::READ, false);
+		}
+
+		return varCount;
+	}
+
+	Symbol Compiler::CompileClass(ClassStmt *stmt)
+	{
+		auto symbol= mSymbolTable->Define(stmt->tagToken, ValueDesc::CONSTANT, stmt->name);
+
+		mFunctionList.emplace_back(new FunctionObject(stmt->name));
+		mSymbolTable = new SymbolTable(mSymbolTable);
+
+		mSymbolTable->Define(stmt->tagToken, ValueDesc::CONSTANT, L"");
+
+		int8_t varCount = 0;
+		int8_t constCount = 0;
+
+		for (const auto &enumStmt : stmt->enumItems)
+		{
+			CompileEnumDecl(enumStmt);
+			EmitConstant(new StrObject(enumStmt->name->literal), enumStmt->tagToken);
+			constCount++;
+		}
+
+		for (const auto &fnStmt : stmt->fnItems)
+		{
+			CompileFunction(fnStmt);
+			EmitConstant(new StrObject(fnStmt->name->literal), fnStmt->tagToken);
+			constCount++;
+		}
+
+		for (const auto &varStmt : stmt->varItems)
+		{
+			if (varStmt->privilege == VarStmt::Privilege::IMMUTABLE)
+				constCount += CompileVars(varStmt, true);
+		}
+
+		for (const auto &varStmt : stmt->varItems)
+		{
+			if (varStmt->privilege == VarStmt::Privilege::MUTABLE)
+				varCount += CompileVars(varStmt, true);
+		}
+
+		for (const auto &parentClass : stmt->parentClasses)
+		{
+			CompileIdentifierExpr(parentClass, RWState::READ);
+			EmitOpCode(OP_CALL, parentClass->tagToken);
+			Emit(0);
+			EmitConstant(new StrObject(parentClass->literal), parentClass->tagToken);
+		}
+
+		for (const auto &ctor : stmt->constructors)
+			CompileFunction(ctor);
+
+		EmitConstant(new StrObject(stmt->name), stmt->tagToken);
+		EmitOpCode(OP_CLASS, stmt->tagToken);
+		Emit(stmt->constructors.size());
+		Emit(varCount);
+		Emit(constCount);
+		Emit(stmt->parentClasses.size());
+
+		EmitReturn(1, stmt->tagToken);
+
+		mSymbolTable = mSymbolTable->enclosing;
+
+		auto function = mFunctionList.back();
+		mFunctionList.pop_back();
+
+		EmitClosure(function, stmt->tagToken);
+
+		return symbol;
+	}
+
 	uint64_t Compiler::EmitOpCode(OpCode opCode, Token token)
 	{
 		Emit((uint8_t)opCode);
@@ -1422,7 +1260,7 @@ namespace lws
 		return CurOpCodes().size() - 1;
 	}
 
-	uint64_t Compiler::EmitConstant(const Value& value, Token token)
+	uint64_t Compiler::EmitConstant(const Value &value, Token token)
 	{
 		EmitOpCode(OP_CONSTANT, token);
 		uint8_t pos = AddConstant(value);
@@ -1430,7 +1268,7 @@ namespace lws
 		return CurOpCodes().size() - 1;
 	}
 
-	uint64_t Compiler::EmitClosure(FunctionObject* function, Token token)
+	uint64_t Compiler::EmitClosure(FunctionObject *function, Token token)
 	{
 		uint8_t pos = AddConstant(function);
 		EmitOpCode(OP_CLOSURE, token);
@@ -1466,10 +1304,10 @@ namespace lws
 	{
 		uint16_t jumpOffset = CurOpCodes().size() - offset - 2;
 		CurOpCodes()[offset] = (jumpOffset >> 8) & 0xFF;
-		CurOpCodes()[offset + 1] = (jumpOffset) & 0xFF;
+		CurOpCodes()[offset + 1] = (jumpOffset)&0xFF;
 	}
 
-	uint8_t Compiler::AddConstant(const Value& value)
+	uint8_t Compiler::AddConstant(const Value &value)
 	{
 		CurChunk().constants.emplace_back(value);
 		return CurChunk().constants.size() - 1;
@@ -1485,7 +1323,7 @@ namespace lws
 
 		for (int32_t i = 0; i < mSymbolTable->mSymbols.size(); ++i)
 		{
-			Symbol* symbol = &mSymbolTable->mSymbols[i];
+			Symbol *symbol = &mSymbolTable->mSymbols[i];
 			if (symbol->type == SymbolType::LOCAL &&
 				symbol->scopeDepth > mSymbolTable->mScopeDepth)
 			{
@@ -1498,22 +1336,22 @@ namespace lws
 		}
 	}
 
-	Chunk& Compiler::CurChunk()
+	Chunk &Compiler::CurChunk()
 	{
 		return CurFunction()->chunk;
 	}
 
-	FunctionObject* Compiler::CurFunction()
+	FunctionObject *Compiler::CurFunction()
 	{
 		return mFunctionList.back();
 	}
 
-	OpCodes& Compiler::CurOpCodes()
+	OpCodes &Compiler::CurOpCodes()
 	{
 		return CurChunk().opCodes;
 	}
 
-	std::vector<Expr*> Compiler::StatsPostfixExprs(AstNode* astNode)
+	std::vector<Expr *> Compiler::StatsPostfixExprs(AstNode *astNode)
 	{
 		if (!astNode) // check astnode is nullptr
 			return {};
@@ -1531,8 +1369,8 @@ namespace lws
 			return {};
 		case AST_ASTSTMTS:
 		{
-			std::vector<Expr*> result;
-			for (const auto& stmt : ((AstStmts*)astNode)->stmts)
+			std::vector<Expr *> result;
+			for (const auto &stmt : ((AstStmts *)astNode)->stmts)
 			{
 				auto stmtResult = StatsPostfixExprs(stmt);
 				result.insert(result.end(), stmtResult.begin(), stmtResult.end());
@@ -1540,13 +1378,13 @@ namespace lws
 			return result;
 		}
 		case AST_RETURN:
-			return StatsPostfixExprs(((ReturnStmt*)astNode)->expr);
+			return StatsPostfixExprs(((ReturnStmt *)astNode)->expr);
 		case AST_EXPR:
-			return StatsPostfixExprs(((ExprStmt*)astNode)->expr);
+			return StatsPostfixExprs(((ExprStmt *)astNode)->expr);
 		case AST_VAR:
 		{
-			std::vector<Expr*> result;
-			for (const auto& [k, v] : ((VarStmt*)astNode)->variables)
+			std::vector<Expr *> result;
+			for (const auto &[k, v] : ((VarStmt *)astNode)->variables)
 			{
 				auto varResult = StatsPostfixExprs(v);
 				result.insert(result.end(), varResult.begin(), varResult.end());
@@ -1555,8 +1393,8 @@ namespace lws
 		}
 		case AST_SCOPE:
 		{
-			std::vector<Expr*> result;
-			for (const auto& stmt : ((ScopeStmt*)astNode)->stmts)
+			std::vector<Expr *> result;
+			for (const auto &stmt : ((ScopeStmt *)astNode)->stmts)
 			{
 				auto stmtResult = StatsPostfixExprs(stmt);
 				result.insert(result.end(), stmtResult.begin(), stmtResult.end());
@@ -1565,31 +1403,31 @@ namespace lws
 		}
 		case AST_IF:
 		{
-			std::vector<Expr*> result;
-			auto conditionResult = StatsPostfixExprs(((IfStmt*)astNode)->condition);
+			std::vector<Expr *> result;
+			auto conditionResult = StatsPostfixExprs(((IfStmt *)astNode)->condition);
 			result.insert(result.end(), conditionResult.begin(), conditionResult.end());
-			auto thenBranchResult = StatsPostfixExprs(((IfStmt*)astNode)->thenBranch);
+			auto thenBranchResult = StatsPostfixExprs(((IfStmt *)astNode)->thenBranch);
 			result.insert(result.end(), thenBranchResult.begin(), thenBranchResult.end());
-			auto elseBranchResult = StatsPostfixExprs(((IfStmt*)astNode)->elseBranch);
+			auto elseBranchResult = StatsPostfixExprs(((IfStmt *)astNode)->elseBranch);
 			result.insert(result.end(), elseBranchResult.begin(), elseBranchResult.end());
 			return result;
 		}
 		case AST_WHILE:
 		{
-			std::vector<Expr*> result = StatsPostfixExprs(((WhileStmt*)astNode)->condition);
-			auto bodyResult = StatsPostfixExprs(((WhileStmt*)astNode)->body);
+			std::vector<Expr *> result = StatsPostfixExprs(((WhileStmt *)astNode)->condition);
+			auto bodyResult = StatsPostfixExprs(((WhileStmt *)astNode)->body);
 			result.insert(result.end(), bodyResult.begin(), bodyResult.end());
-			if (((WhileStmt*)astNode)->increment)
+			if (((WhileStmt *)astNode)->increment)
 			{
-				auto incrementResult = StatsPostfixExprs(((WhileStmt*)astNode)->increment);
+				auto incrementResult = StatsPostfixExprs(((WhileStmt *)astNode)->increment);
 				result.insert(result.end(), incrementResult.begin(), incrementResult.end());
 			}
 			return result;
 		}
 		case AST_ENUM:
 		{
-			std::vector<Expr*> result;
-			for (const auto& [k, v] : ((EnumStmt*)astNode)->enumItems)
+			std::vector<Expr *> result;
+			for (const auto &[k, v] : ((EnumStmt *)astNode)->enumItems)
 			{
 				auto kResult = StatsPostfixExprs(k);
 				auto vResult = StatsPostfixExprs(v);
@@ -1600,22 +1438,22 @@ namespace lws
 		}
 		case AST_FUNCTION:
 		{
-			std::vector<Expr*> result;
-			auto bodyResult = StatsPostfixExprs(((FunctionStmt*)astNode)->body);
+			std::vector<Expr *> result;
+			auto bodyResult = StatsPostfixExprs(((FunctionStmt *)astNode)->body);
 			result.insert(result.end(), bodyResult.begin(), bodyResult.end());
 			return result;
 		}
 		case AST_CLASS:
 		{
-			std::vector<Expr*> result;
+			std::vector<Expr *> result;
 
-			for (const auto& varStmt : ((ClassStmt*)astNode)->varStmts)
+			for (const auto &varStmt : ((ClassStmt *)astNode)->varItems)
 			{
 				auto letStmtResult = StatsPostfixExprs(varStmt);
 				result.insert(result.end(), letStmtResult.begin(), letStmtResult.end());
 			}
 
-			for (const auto& fnStmt : ((ClassStmt*)astNode)->fnStmts)
+			for (const auto &fnStmt : ((ClassStmt *)astNode)->fnItems)
 			{
 				auto fnStmtResult = StatsPostfixExprs(fnStmt);
 				result.insert(result.end(), fnStmtResult.begin(), fnStmtResult.end());
@@ -1623,11 +1461,11 @@ namespace lws
 			return result;
 		}
 		case AST_GROUP:
-			return StatsPostfixExprs(((GroupExpr*)astNode)->expr);
+			return StatsPostfixExprs(((GroupExpr *)astNode)->expr);
 		case AST_ARRAY:
 		{
-			std::vector<Expr*> result;
-			for (const auto& e : ((ArrayExpr*)astNode)->elements)
+			std::vector<Expr *> result;
+			for (const auto &e : ((ArrayExpr *)astNode)->elements)
 			{
 				auto eResult = StatsPostfixExprs(e);
 				result.insert(result.end(), eResult.begin(), eResult.end());
@@ -1636,8 +1474,8 @@ namespace lws
 		}
 		case AST_DICT:
 		{
-			std::vector<Expr*> result;
-			for (const auto& [k, v] : ((DictExpr*)astNode)->elements)
+			std::vector<Expr *> result;
+			for (const auto &[k, v] : ((DictExpr *)astNode)->elements)
 			{
 				auto kResult = StatsPostfixExprs(k);
 				auto vResult = StatsPostfixExprs(v);
@@ -1648,20 +1486,20 @@ namespace lws
 		}
 		case AST_INDEX:
 		{
-			std::vector<Expr*> result;
-			auto dsResult = StatsPostfixExprs(((IndexExpr*)astNode)->ds);
+			std::vector<Expr *> result;
+			auto dsResult = StatsPostfixExprs(((IndexExpr *)astNode)->ds);
 			result.insert(result.end(), dsResult.begin(), dsResult.end());
-			auto indexResult = StatsPostfixExprs(((IndexExpr*)astNode)->index);
+			auto indexResult = StatsPostfixExprs(((IndexExpr *)astNode)->index);
 			result.insert(result.end(), indexResult.begin(), indexResult.end());
 			return result;
 		}
 		case AST_PREFIX:
-			return StatsPostfixExprs(((PrefixExpr*)astNode)->right);
+			return StatsPostfixExprs(((PrefixExpr *)astNode)->right);
 		case AST_INFIX:
 		{
-			std::vector<Expr*> result;
-			auto leftResult = StatsPostfixExprs(((InfixExpr*)astNode)->left);
-			auto rightResult = StatsPostfixExprs(((InfixExpr*)astNode)->right);
+			std::vector<Expr *> result;
+			auto leftResult = StatsPostfixExprs(((InfixExpr *)astNode)->left);
+			auto rightResult = StatsPostfixExprs(((InfixExpr *)astNode)->right);
 
 			result.insert(result.end(), leftResult.begin(), leftResult.end());
 			result.insert(result.end(), rightResult.begin(), rightResult.end());
@@ -1669,41 +1507,41 @@ namespace lws
 		}
 		case AST_POSTFIX:
 		{
-			std::vector<Expr*> result;
-			auto leftResult = StatsPostfixExprs(((PostfixExpr*)astNode)->left);
+			std::vector<Expr *> result;
+			auto leftResult = StatsPostfixExprs(((PostfixExpr *)astNode)->left);
 			result.insert(result.end(), leftResult.begin(), leftResult.end());
-			result.emplace_back((PostfixExpr*)astNode);
+			result.emplace_back((PostfixExpr *)astNode);
 			return result;
 		}
 		case AST_CONDITION:
 		{
-			std::vector<Expr*> result;
-			auto conditionResult = StatsPostfixExprs(((ConditionExpr*)astNode)->condition);
+			std::vector<Expr *> result;
+			auto conditionResult = StatsPostfixExprs(((ConditionExpr *)astNode)->condition);
 			result.insert(result.end(), conditionResult.begin(), conditionResult.end());
-			auto trueBranchResult = StatsPostfixExprs(((ConditionExpr*)astNode)->trueBranch);
+			auto trueBranchResult = StatsPostfixExprs(((ConditionExpr *)astNode)->trueBranch);
 			result.insert(result.end(), trueBranchResult.begin(), trueBranchResult.end());
-			auto falseBranchResult = StatsPostfixExprs(((ConditionExpr*)astNode)->falseBranch);
+			auto falseBranchResult = StatsPostfixExprs(((ConditionExpr *)astNode)->falseBranch);
 			result.insert(result.end(), falseBranchResult.begin(), falseBranchResult.end());
 			return result;
 		}
 		case AST_LAMBDA:
 		{
-			std::vector<Expr*> result;
-			for (const auto& param : ((LambdaExpr*)astNode)->parameters)
+			std::vector<Expr *> result;
+			for (const auto &param : ((LambdaExpr *)astNode)->parameters)
 			{
 				auto paramResult = StatsPostfixExprs(param);
 				result.insert(result.end(), paramResult.begin(), paramResult.end());
 			}
-			auto bodyResult = StatsPostfixExprs(((LambdaExpr*)astNode)->body);
+			auto bodyResult = StatsPostfixExprs(((LambdaExpr *)astNode)->body);
 			result.insert(result.end(), bodyResult.begin(), bodyResult.end());
 			return result;
 		}
 		case AST_CALL:
 		{
-			std::vector<Expr*> result;
-			auto calleeResult = StatsPostfixExprs(((CallExpr*)astNode)->callee);
+			std::vector<Expr *> result;
+			auto calleeResult = StatsPostfixExprs(((CallExpr *)astNode)->callee);
 			result.insert(result.end(), calleeResult.begin(), calleeResult.end());
-			for (const auto& argument : ((CallExpr*)astNode)->arguments)
+			for (const auto &argument : ((CallExpr *)astNode)->arguments)
 			{
 				auto argumentResult = StatsPostfixExprs(argument);
 				result.insert(result.end(), argumentResult.begin(), argumentResult.end());
@@ -1711,7 +1549,7 @@ namespace lws
 			return result;
 		}
 		case AST_REF:
-			return StatsPostfixExprs(((RefExpr*)astNode)->refExpr);
+			return StatsPostfixExprs(((RefExpr *)astNode)->refExpr);
 		default:
 			return {};
 		}

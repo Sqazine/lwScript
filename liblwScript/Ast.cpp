@@ -816,16 +816,16 @@ namespace lws
 	}
 	ClassStmt::ClassStmt(Token tagToken,
 						 std::wstring name,
-				  const std::vector<VarStmt *> &varStmts,
-				  const std::vector<FunctionStmt *> &fnStmts,
-				  const std::vector<EnumStmt *> &enumStmts,
+				  const std::vector<VarStmt *> &varItems,
+				  const std::vector<FunctionStmt *> &fnItems,
+				  const std::vector<EnumStmt *> &enumItems,
 				  const std::vector<FunctionStmt *> &constructors,
 				  const std::vector<IdentifierExpr *> &parentClasses)
 		: Stmt(tagToken, AST_CLASS),
 		  name(name),
-		  varStmts(varStmts),
-		  fnStmts(fnStmts),
-		  enumStmts(enumStmts),
+		  varItems(varItems),
+		  fnItems(fnItems),
+		  enumItems(enumItems),
 		  constructors(constructors),
 		  parentClasses(parentClasses)
 	{
@@ -834,9 +834,9 @@ namespace lws
 	{
 		std::vector<IdentifierExpr *>().swap(parentClasses);
 		std::vector<FunctionStmt *>().swap(constructors);
-		std::vector<VarStmt *>().swap(varStmts);
-		std::vector<FunctionStmt *>().swap(fnStmts);
-		std::vector<EnumStmt *>().swap(enumStmts);
+		std::vector<VarStmt *>().swap(varItems);
+		std::vector<FunctionStmt *>().swap(fnItems);
+		std::vector<EnumStmt *>().swap(enumItems);
 	}
 
 	std::wstring ClassStmt::ToString()
@@ -850,11 +850,11 @@ namespace lws
 			result = result.substr(0, result.size() - 1);
 		}
 		result += L"{";
-		for (auto enumStmt : enumStmts)
+		for (auto enumStmt : enumItems)
 			result += enumStmt->ToString();
-		for (auto variableStmt : varStmts)
+		for (auto variableStmt : varItems)
 			result += variableStmt->ToString();
-		for (auto fnStmt : fnStmts)
+		for (auto fnStmt : fnItems)
 			result += fnStmt->ToString();
 		return result + L"}";
 	}

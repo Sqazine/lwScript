@@ -296,18 +296,18 @@ namespace lws
 		while (!IsMatchCurToken(TOKEN_RBRACE))
 		{
 			if (IsMatchCurToken(TOKEN_LET))
-				classStmt->varStmts.emplace_back((VarStmt *)ParseVarDecl(TOKEN_LET));
+				classStmt->varItems.emplace_back((VarStmt *)ParseVarDecl(TOKEN_LET));
 			else if (IsMatchCurToken(TOKEN_CONST))
-				classStmt->varStmts.emplace_back((VarStmt *)ParseVarDecl(TOKEN_CONST));
+				classStmt->varItems.emplace_back((VarStmt *)ParseVarDecl(TOKEN_CONST));
 			else if (IsMatchCurTokenAndStepOnce(TOKEN_FUNCTION))
 			{
 				auto fn = (FunctionStmt *)ParseFunctionDecl();
 				if (fn->name->literal == classStmt->name)
 					Hint::Error(fn->name->tagToken, L"The class member function name :{} conflicts with its class:{}, only constructor function name is allowed to same with its class's name", fn->name->literal);
-				classStmt->fnStmts.emplace_back(fn);
+				classStmt->fnItems.emplace_back(fn);
 			}
 			else if(IsMatchCurToken(TOKEN_ENUM))
-				classStmt->enumStmts.emplace_back((EnumStmt*)ParseEnumDecl());
+				classStmt->enumItems.emplace_back((EnumStmt*)ParseEnumDecl());
 			else if (GetCurToken().literal == classStmt->name) // constructor
 			{
 				auto fn = (FunctionStmt *)ParseFunctionDecl();

@@ -68,6 +68,8 @@ namespace lws
 		void CompileFactorialExpr(FactorialExpr *expr, const RWState &state = RWState::READ);
 
 		Symbol CompileFunction(FunctionStmt *stmt);
+		uint32_t CompileVars(VarStmt *stmt, bool IsInClassScope);
+		Symbol CompileClass(ClassStmt* stmt);
 
 		uint64_t EmitOpCode(OpCode opCode, Token token);
 		uint64_t Emit(uint8_t opcode);

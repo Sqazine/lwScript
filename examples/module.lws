@@ -1,18 +1,29 @@
-//TODO:not implement yet!
-//module A
-//{
-//    class Vec2
-//    {
-//        Vec2(x,y)
-//        {
-//            this.x=x;
-//            this.y=y;
-//        }
-//        let x=0;
-//        let y=0;
-//    }
-//
-//    let vec2=new Vec2();
-//}
-//
-//io.println(A.vec2);
+module A
+{
+    enum Test
+    {
+        PASS,
+        NOT_PASS
+    }
+
+    module B
+    {
+        let x=100;
+    }
+
+    class Vec2
+    {
+        Vec2(x,y)
+        {
+            this.x=x;
+            this.y=y;
+        }
+        let x=0;
+        let y=0;
+    }
+
+    let vec2=new Vec2(10,20);
+}
+
+io.println(A.vec2);
+io.println(A.Test.PASS);// PASS

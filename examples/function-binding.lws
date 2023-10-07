@@ -5,4 +5,4 @@ fn add(x,y)
 
 let a=add;
 
-io.println(a(10,20));
+io.println(a(10,20));// 30

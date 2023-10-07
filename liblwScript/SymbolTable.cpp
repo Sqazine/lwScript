@@ -80,7 +80,7 @@ namespace lws
             return result;
         }
 
-        Hint::Error(relatedToken, L"No symbol:{} in current scope.", name);
+        Hint::Error(relatedToken, L"No symbol: \"{}\" in current scope.", name);
     }
 
     UpValue SymbolTable::AddUpValue(Token relatedToken, uint8_t location, uint8_t depth)

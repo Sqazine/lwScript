@@ -736,19 +736,19 @@ namespace lws
 					classObj->parents[TO_STR_VALUE(name)] = TO_CLASS_VALUE(parentClass);
 				}
 
-				for (int32_t i = 0; i < constCount; ++i)
-				{
-					name = Pop();
-					auto v = Pop();
-					v.desc = ValueDesc::CONSTANT;
-					classObj->members[TO_STR_VALUE(name)] = v;
-				}
-
 				for (int32_t i = 0; i < varCount; ++i)
 				{
 					name = Pop();
 					auto v = Pop();
 					v.desc = ValueDesc::VARIABLE;
+					classObj->members[TO_STR_VALUE(name)] = v;
+				}
+
+				for (int32_t i = 0; i < constCount; ++i)
+				{
+					name = Pop();
+					auto v = Pop();
+					v.desc = ValueDesc::CONSTANT;
 					classObj->members[TO_STR_VALUE(name)] = v;
 				}
 
