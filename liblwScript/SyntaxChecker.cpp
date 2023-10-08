@@ -4,7 +4,7 @@
 namespace lws
 {
     SyntaxChecker::SyntaxChecker()
-        : mLoopDepth(0), mVarArgScopeDepth(false)
+        : mLoopDepth(0), mVarArgScopeDepth(false),mClassScopeDepth(0)
     {
     }
     SyntaxChecker::~SyntaxChecker()

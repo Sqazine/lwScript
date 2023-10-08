@@ -221,7 +221,7 @@ namespace lws
         std::vector<UpValueObject *> upvalues;
     };
 
-    using NativeFunction = std::function<Value(const std::vector<Value> &, Token)>;
+    using NativeFunction = std::function<Value(const std::vector<Value> &, const Token*)>;
 
     struct NativeFunctionObject : public Object
     {

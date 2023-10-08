@@ -56,7 +56,7 @@ namespace lws
 		Parser();
 		~Parser();
 
-		Stmt *Parse(const std::vector<Token> &tokens);
+		Stmt *Parse(const std::vector<Token*> &tokens);
 
 	private:
 		void ResetStatus();
@@ -109,13 +109,13 @@ namespace lws
 		Expr *ParseVarArgExpr();
 		std::pair<Expr *, Expr *> ParseDestructuringAssignmentExpr();
 
-		Token GetCurToken();
-		Token GetCurTokenAndStepOnce();
+		Token* GetCurToken();
+		Token* GetCurTokenAndStepOnce();
 		Precedence GetCurTokenPrecedence();
 		Associativity GetCurTokenAssociativity();
 
-		Token GetNextToken();
-		Token GetNextTokenAndStepOnce();
+		Token* GetNextToken();
+		Token* GetNextTokenAndStepOnce();
 		Precedence GetNextTokenPrecedence();
 
 		bool IsMatchCurToken(TokenType type);
@@ -123,8 +123,8 @@ namespace lws
 		bool IsMatchNextToken(TokenType type);
 		bool IsMatchNextTokenAndStepOnce(TokenType type);
 
-		Token Consume(TokenType type, std::wstring_view errMsg);
-		Token Consume(const std::vector<TokenType> &types, std::wstring_view errMsg);
+		Token* Consume(TokenType type, std::wstring_view errMsg);
+		Token* Consume(const std::vector<TokenType>& types, std::wstring_view errMsg);
 
 		bool IsAtEnd();
 
@@ -136,7 +136,7 @@ namespace lws
 		std::vector<TokenType> mSkippingConsumeTokenTypeStack; //skip token while call consume function
 
 		int64_t mCurPos;
-		std::vector<Token> mTokens;
+		std::vector<Token*> mTokens;
 
 		static std::unordered_map<TokenType, PrefixFn> mPrefixFunctions;
 		static std::unordered_map<TokenType, InfixFn> mInfixFunctions;

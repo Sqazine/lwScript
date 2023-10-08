@@ -339,11 +339,11 @@ namespace lws
 	}
 
 	UpValueObject::UpValueObject()
-		: Object(OBJECT_UPVALUE)
+		: Object(OBJECT_UPVALUE),location(nullptr),nextUpValue(nullptr)
 	{
 	}
 	UpValueObject::UpValueObject(Value *location)
-		: Object(OBJECT_UPVALUE), location(location)
+		: Object(OBJECT_UPVALUE), location(location), nextUpValue(nullptr)
 	{
 	}
 	UpValueObject::~UpValueObject()
@@ -613,7 +613,7 @@ namespace lws
 	}
 
 	ClassClosureBindObject::ClassClosureBindObject()
-		: Object(OBJECT_CLASS_CLOSURE_BIND)
+		: Object(OBJECT_CLASS_CLOSURE_BIND),closure(nullptr)
 	{
 	}
 	ClassClosureBindObject::ClassClosureBindObject(const Value &receiver, ClosureObject *cl)

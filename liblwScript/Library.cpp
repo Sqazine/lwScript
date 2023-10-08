@@ -19,7 +19,7 @@ namespace lws
         auto memClass = new ClassObject(L"mem");
         auto timeClass = new ClassObject(L"time");
 
-        ioClass->members[L"print"] = new NativeFunctionObject([](const std::vector<Value> &args, Token relatedToken) -> Value
+        ioClass->members[L"print"] = new NativeFunctionObject([](const std::vector<Value> &args, const Token* relatedToken) -> Value
                                                               {
                                                                   if (args.empty())
                                                                       return Value();
@@ -81,7 +81,7 @@ namespace lws
                                                                   return Value();
                                                               });
 
-        ioClass->members[L"println"] = new NativeFunctionObject([](const std::vector<Value> &args, Token relatedToken) -> Value
+        ioClass->members[L"println"] = new NativeFunctionObject([](const std::vector<Value> &args, const Token* relatedToken) -> Value
                                                                 {
                                                                     if (args.empty())
                                                                         return Value();
@@ -143,7 +143,7 @@ namespace lws
                                                                     return Value();
                                                                 });
 
-        dsClass->members[L"sizeof"] = new NativeFunctionObject([](const std::vector<Value> &args, Token relatedToken) -> Value
+        dsClass->members[L"sizeof"] = new NativeFunctionObject([](const std::vector<Value> &args, const Token* relatedToken) -> Value
                                                                {
                                                                    if (args.empty() || args.size() > 1)
                                                                        Hint::Error(relatedToken, L"[Native function 'sizeof']:Expect a argument.");
@@ -160,7 +160,7 @@ namespace lws
                                                                    return Value();
                                                                });
 
-        dsClass->members[L"insert"] = new NativeFunctionObject([](const std::vector<Value> &args, Token relatedToken) -> Value
+        dsClass->members[L"insert"] = new NativeFunctionObject([](const std::vector<Value> &args,const Token* relatedToken) -> Value
                                                                {
                                                                    if (args.empty() || args.size() != 3)
                                                                        Hint::Error(relatedToken, L"[Native function 'insert']:Expect 3 arguments,the arg0 must be array,dict or string object.The arg1 is the index object.The arg2 is the value object.");
@@ -207,7 +207,7 @@ namespace lws
                                                                    return args[0];
                                                                });
 
-        dsClass->members[L"erase"] = new NativeFunctionObject([](const std::vector<Value> &args, Token relatedToken) -> Value
+        dsClass->members[L"erase"] = new NativeFunctionObject([](const std::vector<Value> &args, const Token* relatedToken) -> Value
                                                               {
                                                                   if (args.empty() || args.size() != 2)
                                                                       Hint::Error(relatedToken, L"[Native function 'erase']:Expect 2 arguments,the arg0 must be array,dict or string object.The arg1 is the corresponding index object.");
@@ -260,7 +260,7 @@ namespace lws
                                                                   return args[0];
                                                               });
 
-        memClass->members[L"addressof"] = new NativeFunctionObject([](const std::vector<Value> &args, Token relatedToken) -> Value
+        memClass->members[L"addressof"] = new NativeFunctionObject([](const std::vector<Value> &args, const Token* relatedToken) -> Value
                                                                    {
                                                                        if (args.empty() || args.size() != 1)
                                                                            Hint::Error(relatedToken, L"[Native function 'addressof']:Expect 1 arguments.");
@@ -271,7 +271,7 @@ namespace lws
                                                                        return new StrObject(PointerAddressToString(args[0].object));
                                                                    });
 
-        timeClass->members[L"clock"] = new NativeFunctionObject([](const std::vector<Value> &args, Token relatedToken) -> Value
+        timeClass->members[L"clock"] = new NativeFunctionObject([](const std::vector<Value> &args, const Token* relatedToken) -> Value
                                                                 { return Value((double)clock() / CLOCKS_PER_SEC); });
 
         mStdLibraries.emplace_back(ioClass);

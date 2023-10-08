@@ -15,7 +15,7 @@ namespace lws
         mTableDepth = enclosing->mTableDepth + 1;
     }
 
-    Symbol SymbolTable::Define(Token relatedToken, ValueDesc descType, const std::wstring &name, const FunctionSymbolInfo &functionInfo)
+    Symbol SymbolTable::Define(const Token* relatedToken, ValueDesc descType, const std::wstring &name, const FunctionSymbolInfo &functionInfo)
     {
         if (mSymbolCount >= mSymbols.size())
             Hint::Error(relatedToken, L"Too many symbols in current scope.");
@@ -48,7 +48,7 @@ namespace lws
         return *symbol;
     }
 
-    Symbol SymbolTable::Resolve(Token relatedToken, const std::wstring &name, int8_t paramCount, int8_t d)
+    Symbol SymbolTable::Resolve(const Token* relatedToken, const std::wstring &name, int8_t paramCount, int8_t d)
     {
         for (int16_t i = mSymbolCount - 1; i >= 0; --i)
         {
@@ -83,7 +83,7 @@ namespace lws
         Hint::Error(relatedToken, L"No symbol: \"{}\" in current scope.", name);
     }
 
-    UpValue SymbolTable::AddUpValue(Token relatedToken, uint8_t location, uint8_t depth)
+    UpValue SymbolTable::AddUpValue(const Token* relatedToken, uint8_t location, uint8_t depth)
     {
         for (int32_t i = 0; i < mUpValueCount; ++i)
         {

@@ -54,7 +54,7 @@ namespace lws
 	{
 	}
 
-	const std::vector<Token> &Lexer::ScanTokens(std::wstring_view src)
+	const std::vector<Token*> &Lexer::ScanTokens(std::wstring_view src)
 	{
 		Hint::RecordSource(src);
 
@@ -291,7 +291,7 @@ namespace lws
 	{
 		mStartPos = mCurPos = 0;
 		mLine = 1;
-		std::vector<Token>().swap(mTokens);
+		std::vector<Token*>().swap(mTokens);
 	}
 
 	bool Lexer::IsMatchCurChar(wchar_t c)
@@ -347,11 +347,11 @@ namespace lws
 	void Lexer::AddToken(TokenType type)
 	{
 		auto literal = mSource.substr(mStartPos, mCurPos - mStartPos);
-		mTokens.emplace_back(type, literal, mLine, mStartPos + 1, mCurPos - literal.size()); //+1 means that the column beginning front 1
+		mTokens.push_back(new Token(type, literal, mLine, mStartPos + 1, mCurPos - literal.size())); //+1 means that the column beginning front 1
 	}
 	void Lexer::AddToken(TokenType type, std::wstring_view literal)
 	{
-		mTokens.emplace_back(type, literal, mLine, mStartPos + 1, mCurPos - literal.size());
+		mTokens.push_back(new Token(type, literal, mLine, mStartPos + 1, mCurPos - literal.size()));
 	}
 
 	bool Lexer::IsAtEnd()

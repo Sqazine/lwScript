@@ -15,7 +15,7 @@ namespace lws
 		Lexer();
 		~Lexer();
 
-		const std::vector<Token> &ScanTokens(std::wstring_view src);
+		const std::vector<Token*> &ScanTokens(std::wstring_view src);
 
 	private:
 		void ResetStatus();
@@ -49,6 +49,6 @@ namespace lws
 		uint64_t mCurPos;
 		uint64_t mLine;
 		std::wstring mSource;
-		std::vector<Token> mTokens;
+		std::vector<Token*> mTokens;
 	};
 }

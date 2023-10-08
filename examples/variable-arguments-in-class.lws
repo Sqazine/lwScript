@@ -11,7 +11,12 @@ class VarArgClass
 let varArgClass=new VarArgClass();
 
 io.println("{},{},{}",varArgClass.x1,varArgClass.y1,varArgClass.args);//100,200,[300,400,500]
-io.println("{},{},{},{},{}",varArgClass.varArgTest(1,2,3,4,5,6,7,8,9,0));//1,2,3,4,[5,6,7,8,9,0]
+
+io.println("{},{},{},{},{}",varArgClass.varArgTest(1,2,3,4,5,6,7,8,9,0));// [1,2,3,4,[5,6,7,8,9,0]],null,null,null,null
+
+let [a,b,c,d,e]=varArgClass.varArgTest(1,2,3,4,5,6,7,8,9,0);
+io.println("{},{},{},{},{}",a,b,c,d,e);// 1,2,3,4,[5,6,7,8,9,0]
+
 
 module VarArgModule
 {

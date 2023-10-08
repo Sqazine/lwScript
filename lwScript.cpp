@@ -27,7 +27,7 @@ void Repl()
 			auto tokens = lexer.ScanTokens(line);
 #ifdef _DEBUG
 			for (const auto &token : tokens)
-				lws::OutputToConsole(L"{}", token);
+				lws::OutputToConsole(L"{}", *token);
 #endif
 			auto stmt = parser.Parse(tokens);
 #ifdef _DEBUG
@@ -54,7 +54,7 @@ void RunFile(std::string_view path)
 	auto tokens = lexer.ScanTokens(content);
 #ifdef _DEBUG
 	for (const auto &token : tokens)
-		lws::OutputToConsole(L"{}", token);
+		lws::OutputToConsole(L"{}", *token);
 #endif
 	auto stmt = parser.Parse(tokens);
 #ifdef _DEBUG
@@ -74,14 +74,12 @@ int main(int argc, const char *argv[])
 	system("chcp 65001");
 #endif
 
-	// if (argc == 2)
-	// 	RunFile(argv[1]);
-	// else if (argc == 1)
-	// 	Repl();
-	// else
-	// 	lws::OutputToConsole(L"Usage: lwScript [filepath]");
-
-	RunFile("D:\\.sc\\lwScript\\examples\\variable-arguments-in-class.lws");
+	 if (argc == 2)
+	 	RunFile(argv[1]);
+	 else if (argc == 1)
+	 	Repl();
+	 else
+	 	lws::OutputToConsole(L"Usage: lwScript [filepath]");
 
 	return 0;
 }

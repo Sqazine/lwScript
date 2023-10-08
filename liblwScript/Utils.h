@@ -117,9 +117,9 @@ namespace lws
 #endif
         }
         template <typename... Args>
-        inline void Error(Token tok, const std::wstring &fmt, const Args &...args)
+        inline void Error(const Token* tok, const std::wstring &fmt, const Args &...args)
         {
-            AssemblyOutputLine(L"[ERROR]", L"31", tok.line, tok.pos, fmt, args...);
+            AssemblyOutputLine(L"[ERROR]", L"31", tok->line, tok->pos, fmt, args...);
 #ifdef _DEBUG
             assert(0);
 #else

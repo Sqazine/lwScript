@@ -48,7 +48,7 @@ namespace lws
 		symbol->name = L"_main_start_up";
 
 		for (const auto &libName : LibraryManager::Instance().mStdLibraryMap)
-			mSymbolTable->Define(Token(), ValueDesc::CONSTANT, libName);
+			mSymbolTable->Define(new Token(), ValueDesc::CONSTANT, libName);
 	}
 
 	void Compiler::CompileDecl(Stmt *stmt)
@@ -325,7 +325,7 @@ namespace lws
 	}
 	void Compiler::CompileWhileStmt(WhileStmt *stmt)
 	{
-		uint16_t jmpAddress = CurOpCodes().size();
+		auto jmpAddress =(uint32_t)CurOpCodes().size();
 
 		auto conditionPostfixExprs = StatsPostfixExprs(stmt->condition);
 
@@ -1050,7 +1050,7 @@ namespace lws
 		return functionSymbol;
 	}
 
-	uint32_t Compiler::CompileVars(VarStmt *stmt, bool IsInClassScope)
+	uint32_t Compiler::CompileVars(VarStmt *stmt, bool IsInClassOrModuleScope)
 	{
 		uint32_t varCount = 0;
 
@@ -1090,7 +1090,7 @@ namespace lws
 					{
 						Symbol symbol;
 						std::wstring literal;
-						Token token;
+						Token* token=nullptr;
 
 						if (((VarDescExpr *)arrayExpr->elements[i])->name->type == AST_IDENTIFIER)
 						{
@@ -1120,7 +1120,7 @@ namespace lws
 							Emit(symbol.index);
 							EmitOpCode(OP_POP, symbol.relatedToken);
 						}
-						else if (IsInClassScope)
+						else if (IsInClassOrModuleScope)
 						{
 							EmitConstant(new StrObject(literal), token);
 						}
@@ -1130,7 +1130,7 @@ namespace lws
 					CurOpCodes()[appregateOpCodeAddress] = appregateOpCode;
 					CurOpCodes()[resolveAddress] = resolveCount;
 
-					if (IsInClassScope)
+					if (IsInClassOrModuleScope)
 					{
 						EmitOpCode(OP_RESET, stmt->tagToken);
 						Emit(varCount);
@@ -1141,7 +1141,8 @@ namespace lws
 					CompileExpr(v);
 
 					std::wstring literal;
-					Token token;
+					Token* token=nullptr;
+
 					if (((VarDescExpr *)k)->name->type == AST_IDENTIFIER)
 					{
 						literal = ((IdentifierExpr *)(((VarDescExpr *)k)->name))->literal;
@@ -1161,7 +1162,7 @@ namespace lws
 						Emit(symbol.index);
 						EmitOpCode(OP_POP, symbol.relatedToken);
 					}
-					else if (IsInClassScope)
+					else if (IsInClassOrModuleScope)
 					{
 						EmitConstant(new StrObject(literal), token);
 					}
@@ -1249,7 +1250,7 @@ namespace lws
 		return symbol;
 	}
 
-	uint64_t Compiler::EmitOpCode(OpCode opCode, Token token)
+	uint64_t Compiler::EmitOpCode(OpCode opCode, const Token* token)
 	{
 		Emit((uint8_t)opCode);
 
@@ -1266,7 +1267,7 @@ namespace lws
 		return CurOpCodes().size() - 1;
 	}
 
-	uint64_t Compiler::EmitConstant(const Value &value, Token token)
+	uint64_t Compiler::EmitConstant(const Value &value,const Token* token)
 	{
 		EmitOpCode(OP_CONSTANT, token);
 		uint8_t pos = AddConstant(value);
@@ -1274,7 +1275,7 @@ namespace lws
 		return CurOpCodes().size() - 1;
 	}
 
-	uint64_t Compiler::EmitClosure(FunctionObject *function, Token token)
+	uint64_t Compiler::EmitClosure(FunctionObject *function, const Token* token)
 	{
 		uint8_t pos = AddConstant(function);
 		EmitOpCode(OP_CLOSURE, token);
@@ -1282,14 +1283,14 @@ namespace lws
 		return CurOpCodes().size() - 1;
 	}
 
-	uint64_t Compiler::EmitReturn(uint8_t retCount, Token token)
+	uint64_t Compiler::EmitReturn(uint8_t retCount, const Token* token)
 	{
 		EmitOpCode(OP_RETURN, token);
 		Emit(retCount);
 		return CurOpCodes().size() - 1;
 	}
 
-	uint64_t Compiler::EmitJump(OpCode opcode, Token token)
+	uint64_t Compiler::EmitJump(OpCode opcode, const Token* token)
 	{
 		EmitOpCode(opcode, token);
 		Emit(0xFF);
@@ -1297,7 +1298,7 @@ namespace lws
 		return CurOpCodes().size() - 2;
 	}
 
-	void Compiler::EmitLoop(uint16_t opcode, Token token)
+	void Compiler::EmitLoop(uint16_t opcode, const Token* token)
 	{
 		EmitOpCode(OP_LOOP, token);
 		uint16_t offset = CurOpCodes().size() - opcode + 2;

@@ -153,7 +153,7 @@ namespace lws
 		std::unordered_map<TokenType, InfixFn>().swap(mInfixFunctions);
 	}
 
-	Stmt *Parser::Parse(const std::vector<Token> &tokens)
+	Stmt *Parser::Parse(const std::vector<Token*> &tokens)
 	{
 		ResetStatus();
 		mTokens = tokens;
@@ -178,11 +178,11 @@ namespace lws
 
 	Stmt *Parser::ParseDecl()
 	{
-		switch (GetCurToken().type)
+		switch (GetCurToken()->type)
 		{
 		case TOKEN_LET:
 		case TOKEN_CONST:
-			return ParseVarDecl(GetCurToken().type);
+			return ParseVarDecl(GetCurToken()->type);
 		case TOKEN_FUNCTION:
 			GetCurTokenAndStepOnce();
 			return ParseFunctionDecl();
@@ -308,13 +308,13 @@ namespace lws
 			}
 			else if(IsMatchCurToken(TOKEN_ENUM))
 				classStmt->enumItems.emplace_back((EnumStmt*)ParseEnumDecl());
-			else if (GetCurToken().literal == classStmt->name) // constructor
+			else if (GetCurToken()->literal == classStmt->name) // constructor
 			{
 				auto fn = (FunctionStmt *)ParseFunctionDecl();
 				classStmt->constructors.emplace_back(fn);
 			}
 			else
-				Consume({TOKEN_LET, TOKEN_FUNCTION, TOKEN_CONST}, L"UnExpect identifier '" + GetCurToken().literal + L"'.");
+				Consume({TOKEN_LET, TOKEN_FUNCTION, TOKEN_CONST}, L"UnExpect identifier '" + GetCurToken()->literal + L"'.");
 		}
 
 		Consume(TOKEN_RBRACE, L"Expect '}' after class stmt's '{'");
@@ -369,11 +369,11 @@ namespace lws
 
 		while (!IsMatchCurToken(TOKEN_RBRACE))
 		{
-			switch (GetCurToken().type)
+			switch (GetCurToken()->type)
 			{
 			case TOKEN_LET:
 			case TOKEN_CONST:
-				moduleDecl->varItems.emplace_back((VarStmt *)ParseVarDecl(GetCurToken().type));
+				moduleDecl->varItems.emplace_back((VarStmt *)ParseVarDecl(GetCurToken()->type));
 				break;
 			case TOKEN_FUNCTION:
 				GetCurTokenAndStepOnce();
@@ -400,7 +400,7 @@ namespace lws
 
 	Stmt *Parser::ParseStmt()
 	{
-		switch (GetCurToken().type)
+		switch (GetCurToken()->type)
 		{
 		case TOKEN_RETURN:
 			return ParseReturnStmt();
@@ -890,30 +890,30 @@ namespace lws
 
 	Expr *Parser::ParseExpr(Precedence precedence)
 	{
-		if (mPrefixFunctions.find(GetCurToken().type) == mPrefixFunctions.end())
+		if (mPrefixFunctions.find(GetCurToken()->type) == mPrefixFunctions.end())
 		{
 			auto token = GetCurTokenAndStepOnce();
-			Hint::Error(token, L"no prefix definition for:{}", token.literal);
+			Hint::Error(token, L"no prefix definition for:{}", token->literal);
 
 			auto nullExpr = new NullExpr(token);
 
 			return nullExpr;
 		}
 
-		auto prefixFn = mPrefixFunctions[GetCurToken().type];
+		auto prefixFn = mPrefixFunctions[GetCurToken()->type];
 
 		auto leftExpr = (this->*prefixFn)();
 
 		while (!IsMatchCurToken(TOKEN_SEMICOLON) && (GetCurTokenAssociativity() == Associativity::L2R ? precedence < GetCurTokenPrecedence() : precedence <= GetCurTokenPrecedence()))
 		{
-			if (mPostfixFunctions.find(GetCurToken().type) != mPostfixFunctions.end())
+			if (mPostfixFunctions.find(GetCurToken()->type) != mPostfixFunctions.end())
 			{
-				auto postfixFn = mPostfixFunctions[GetCurToken().type];
+				auto postfixFn = mPostfixFunctions[GetCurToken()->type];
 				leftExpr = (this->*postfixFn)(leftExpr);
 			}
-			else if (mInfixFunctions.find(GetCurToken().type) != mInfixFunctions.end())
+			else if (mInfixFunctions.find(GetCurToken()->type) != mInfixFunctions.end())
 			{
-				auto infixFn = mInfixFunctions[GetCurToken().type];
+				auto infixFn = mInfixFunctions[GetCurToken()->type];
 				leftExpr = (this->*infixFn)(leftExpr);
 			}
 			else
@@ -925,16 +925,16 @@ namespace lws
 
 	Expr *Parser::ParseIdentifierExpr()
 	{
-		auto token = Consume(TOKEN_IDENTIFIER, L"Unexpect Identifier'" + GetCurToken().literal + L"'.");
+		auto token = Consume(TOKEN_IDENTIFIER, L"Unexpect Identifier'" + GetCurToken()->literal + L"'.");
 		auto identifierExpr = new IdentifierExpr(token);
-		identifierExpr->literal = token.literal;
+		identifierExpr->literal = token->literal;
 		return identifierExpr;
 	}
 
 	Expr *Parser::ParseNumExpr()
 	{
 		auto token = GetCurToken();
-		std::wstring numLiteral = Consume(TOKEN_NUMBER, L"Expexct a number literal.").literal;
+		std::wstring numLiteral = Consume(TOKEN_NUMBER, L"Expexct a number literal.")->literal;
 		if (numLiteral.find('.') != std::wstring::npos)
 		{
 			auto realNumExpr = new RealNumExpr(token, std::stod(numLiteral));
@@ -952,7 +952,7 @@ namespace lws
 		auto token = Consume(TOKEN_STRING, L"Expect a string literal.");
 		auto strExpr = new StrExpr(token);
 
-		strExpr->value = token.literal;
+		strExpr->value = token->literal;
 		return strExpr;
 	}
 
@@ -1066,7 +1066,7 @@ namespace lws
 	{
 		auto prefixExpr = new PrefixExpr(GetCurToken());
 
-		prefixExpr->op = GetCurTokenAndStepOnce().literal;
+		prefixExpr->op = GetCurTokenAndStepOnce()->literal;
 		prefixExpr->right = ParseExpr(Precedence::PREFIX);
 		return prefixExpr;
 	}
@@ -1085,7 +1085,7 @@ namespace lws
 		auto infixExpr = new InfixExpr(GetCurToken());
 		infixExpr->left = prefixExpr;
 		Precedence opPrece = GetCurTokenPrecedence();
-		infixExpr->op = GetCurTokenAndStepOnce().literal;
+		infixExpr->op = GetCurTokenAndStepOnce()->literal;
 		infixExpr->right = ParseExpr(opPrece);
 		return infixExpr;
 	}
@@ -1093,7 +1093,7 @@ namespace lws
 	Expr *Parser::ParsePostfixExpr(Expr *prefixExpr)
 	{
 		auto postfixExpr = new PostfixExpr(GetCurToken());
-		postfixExpr->op = GetCurTokenAndStepOnce().literal;
+		postfixExpr->op = GetCurTokenAndStepOnce()->literal;
 		postfixExpr->left = prefixExpr;
 		return postfixExpr;
 	}
@@ -1167,7 +1167,7 @@ namespace lws
 		if (IsMatchCurToken(TOKEN_COLON))
 		{
 			GetCurTokenAndStepOnce();
-			type = GetCurTokenAndStepOnce().literal;
+			type = GetCurTokenAndStepOnce()->literal;
 		}
 
 		auto varDescExpr = new VarDescExpr(expr->tagToken, type, expr);
@@ -1262,13 +1262,13 @@ namespace lws
 		return std::make_pair(arrayExpr, initializeList);
 	}
 
-	Token Parser::GetCurToken()
+	Token* Parser::GetCurToken()
 	{
 		if (!IsAtEnd())
 			return mTokens[mCurPos];
 		return mTokens.back();
 	}
-	Token Parser::GetCurTokenAndStepOnce()
+	Token* Parser::GetCurTokenAndStepOnce()
 	{
 		if (!IsAtEnd())
 			return mTokens[mCurPos++];
@@ -1278,7 +1278,7 @@ namespace lws
 	Precedence Parser::GetCurTokenPrecedence()
 	{
 		for (const auto &precedenceBinding : precedenceDict)
-			if (precedenceBinding.type == GetCurToken().type)
+			if (precedenceBinding.type == GetCurToken()->type)
 				return precedenceBinding.precedence;
 		return Precedence::LOWEST;
 	}
@@ -1291,13 +1291,13 @@ namespace lws
 		return Associativity::L2R;
 	}
 
-	Token Parser::GetNextToken()
+	Token* Parser::GetNextToken()
 	{
 		if (mCurPos + 1 < (int32_t)mTokens.size())
 			return mTokens[mCurPos + 1];
 		return mTokens.back();
 	}
-	Token Parser::GetNextTokenAndStepOnce()
+	Token* Parser::GetNextTokenAndStepOnce()
 	{
 		if (mCurPos + 1 < (int32_t)mTokens.size())
 			return mTokens[++mCurPos];
@@ -1307,14 +1307,14 @@ namespace lws
 	Precedence Parser::GetNextTokenPrecedence()
 	{
 		for (const auto &precedenceBinding : precedenceDict)
-			if (precedenceBinding.type == GetNextToken().type)
+			if (precedenceBinding.type == GetNextToken()->type)
 				return precedenceBinding.precedence;
 		return Precedence::LOWEST;
 	}
 
 	bool Parser::IsMatchCurToken(TokenType type)
 	{
-		return GetCurToken().type == type;
+		return GetCurToken()->type == type;
 	}
 
 	bool Parser::IsMatchCurTokenAndStepOnce(TokenType type)
@@ -1329,7 +1329,7 @@ namespace lws
 
 	bool Parser::IsMatchNextToken(TokenType type)
 	{
-		return GetNextToken().type == type;
+		return GetNextToken()->type == type;
 	}
 
 	bool Parser::IsMatchNextTokenAndStepOnce(TokenType type)
@@ -1342,29 +1342,29 @@ namespace lws
 		return false;
 	}
 
-	Token Parser::Consume(TokenType type, std::wstring_view errMsg)
+	Token* Parser::Consume(TokenType type, std::wstring_view errMsg)
 	{
 		if (mSkippingConsumeTokenTypeStack.empty() || type != mSkippingConsumeTokenTypeStack.back())
 		{
 			if (IsMatchCurToken(type))
 				return GetCurTokenAndStepOnce();
-			Token token = GetCurToken();
+			Token* token = GetCurToken();
 			Hint::Error(token, L"{}", errMsg);
 		}
-		return Token();
+		return nullptr;
 	}
 
-	Token Parser::Consume(const std::vector<TokenType> &types, std::wstring_view errMsg)
+	Token* Parser::Consume(const std::vector<TokenType> &types, std::wstring_view errMsg)
 	{
 		if (!mSkippingConsumeTokenTypeStack.empty())
 			for (const auto &type : types)
 				if (type == mSkippingConsumeTokenTypeStack.back())
-					return Token();
+					return nullptr;
 
 		for (const auto &type : types)
 			if (IsMatchCurToken(type))
 				return GetCurTokenAndStepOnce();
-		Token token = GetCurToken();
+		Token* token = GetCurToken();
 		Hint::Error(token, L"{}", errMsg);
 	}
 

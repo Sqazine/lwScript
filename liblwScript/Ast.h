@@ -54,19 +54,19 @@ namespace lws
 
 	struct AstNode
 	{
-		AstNode(Token tagToken, AstType type) : tagToken(tagToken), type(type) {}
+		AstNode(Token* tagToken, AstType type) : tagToken(tagToken), type(type) {}
 		virtual ~AstNode() {}
 
 		virtual std::wstring ToString() = 0;
 
 		const AstType type;
 
-		Token tagToken;
+		Token* tagToken;
 	};
 
 	struct Expr : public AstNode
 	{
-		Expr(Token tagToken, AstType type) : AstNode(tagToken, type) {}
+		Expr(Token* tagToken, AstType type) : AstNode(tagToken, type) {}
 		virtual ~Expr() {}
 
 		virtual std::wstring ToString() = 0;
@@ -74,8 +74,8 @@ namespace lws
 
 	struct IntNumExpr : public Expr
 	{
-		IntNumExpr(Token tagToken);
-		IntNumExpr(Token tagToken, int64_t value);
+		IntNumExpr(Token* tagToken);
+		IntNumExpr(Token* tagToken, int64_t value);
 		~IntNumExpr();
 
 		std::wstring ToString() override;
@@ -85,8 +85,8 @@ namespace lws
 
 	struct RealNumExpr : public Expr
 	{
-		RealNumExpr(Token tagToken);
-		RealNumExpr(Token tagToken, double value);
+		RealNumExpr(Token* tagToken);
+		RealNumExpr(Token* tagToken, double value);
 		~RealNumExpr();
 
 		std::wstring ToString() override;
@@ -96,8 +96,8 @@ namespace lws
 
 	struct StrExpr : public Expr
 	{
-		StrExpr(Token tagToken);
-		StrExpr(Token tagToken, std::wstring_view str);
+		StrExpr(Token* tagToken);
+		StrExpr(Token* tagToken, std::wstring_view str);
 		~StrExpr();
 
 		std::wstring ToString() override;
@@ -107,7 +107,7 @@ namespace lws
 
 	struct NullExpr : public Expr
 	{
-		NullExpr(Token tagToken);
+		NullExpr(Token* tagToken);
 		~NullExpr();
 
 		std::wstring ToString() override;
@@ -115,8 +115,8 @@ namespace lws
 
 	struct BoolExpr : public Expr
 	{
-		BoolExpr(Token tagToken);
-		BoolExpr(Token tagToken, bool value);
+		BoolExpr(Token* tagToken);
+		BoolExpr(Token* tagToken, bool value);
 		~BoolExpr();
 
 		std::wstring ToString() override;
@@ -126,8 +126,8 @@ namespace lws
 
 	struct IdentifierExpr : public Expr
 	{
-		IdentifierExpr(Token tagToken);
-		IdentifierExpr(Token tagToken, std::wstring_view literal);
+		IdentifierExpr(Token* tagToken);
+		IdentifierExpr(Token* tagToken, std::wstring_view literal);
 		~IdentifierExpr();
 
 		std::wstring ToString() override;
@@ -137,8 +137,8 @@ namespace lws
 
 	struct VarDescExpr : public Expr
 	{
-		VarDescExpr(Token tagToken);
-		VarDescExpr(Token tagToken, std::wstring_view typeDesc, Expr *name);
+		VarDescExpr(Token* tagToken);
+		VarDescExpr(Token* tagToken, std::wstring_view typeDesc, Expr *name);
 		~VarDescExpr();
 
 		std::wstring ToString() override;
@@ -149,8 +149,8 @@ namespace lws
 
 	struct ArrayExpr : public Expr
 	{
-		ArrayExpr(Token tagToken);
-		ArrayExpr(Token tagToken, const std::vector<Expr *> &elements);
+		ArrayExpr(Token* tagToken);
+		ArrayExpr(Token* tagToken, const std::vector<Expr *> &elements);
 		~ArrayExpr();
 
 		std::wstring ToString() override;
@@ -160,8 +160,8 @@ namespace lws
 
 	struct DictExpr : public Expr
 	{
-		DictExpr(Token tagToken);
-		DictExpr(Token tagToken, const std::vector<std::pair<Expr *, Expr *>> &elements);
+		DictExpr(Token* tagToken);
+		DictExpr(Token* tagToken, const std::vector<std::pair<Expr *, Expr *>> &elements);
 		~DictExpr();
 
 		std::wstring ToString() override;
@@ -171,8 +171,8 @@ namespace lws
 
 	struct GroupExpr : public Expr
 	{
-		GroupExpr(Token tagToken);
-		GroupExpr(Token tagToken, Expr *expr);
+		GroupExpr(Token* tagToken);
+		GroupExpr(Token* tagToken, Expr *expr);
 		~GroupExpr();
 
 		std::wstring ToString() override;
@@ -182,8 +182,8 @@ namespace lws
 
 	struct PrefixExpr : public Expr
 	{
-		PrefixExpr(Token tagToken);
-		PrefixExpr(Token tagToken, std::wstring_view op, Expr *right);
+		PrefixExpr(Token* tagToken);
+		PrefixExpr(Token* tagToken, std::wstring_view op, Expr *right);
 		~PrefixExpr();
 
 		std::wstring ToString() override;
@@ -194,8 +194,8 @@ namespace lws
 
 	struct InfixExpr : public Expr
 	{
-		InfixExpr(Token tagToken);
-		InfixExpr(Token tagToken, std::wstring_view op, Expr *left, Expr *right);
+		InfixExpr(Token* tagToken);
+		InfixExpr(Token* tagToken, std::wstring_view op, Expr *left, Expr *right);
 		~InfixExpr();
 
 		std::wstring ToString() override;
@@ -207,8 +207,8 @@ namespace lws
 
 	struct PostfixExpr : public Expr
 	{
-		PostfixExpr(Token tagToken);
-		PostfixExpr(Token tagToken, Expr *left, std::wstring_view op);
+		PostfixExpr(Token* tagToken);
+		PostfixExpr(Token* tagToken, Expr *left, std::wstring_view op);
 		~PostfixExpr();
 
 		std::wstring ToString() override;
@@ -219,8 +219,8 @@ namespace lws
 
 	struct ConditionExpr : public Expr
 	{
-		ConditionExpr(Token tagToken);
-		ConditionExpr(Token tagToken, Expr *condition, Expr *trueBranch, Expr *falseBranch);
+		ConditionExpr(Token* tagToken);
+		ConditionExpr(Token* tagToken, Expr *condition, Expr *trueBranch, Expr *falseBranch);
 		~ConditionExpr();
 
 		std::wstring ToString() override;
@@ -232,8 +232,8 @@ namespace lws
 
 	struct IndexExpr : public Expr
 	{
-		IndexExpr(Token tagToken);
-		IndexExpr(Token tagToken, Expr *ds, Expr *index);
+		IndexExpr(Token* tagToken);
+		IndexExpr(Token* tagToken, Expr *ds, Expr *index);
 		~IndexExpr();
 
 		std::wstring ToString() override;
@@ -244,8 +244,8 @@ namespace lws
 
 	struct RefExpr : public Expr
 	{
-		RefExpr(Token tagToken);
-		RefExpr(Token tagToken, Expr *refExpr);
+		RefExpr(Token* tagToken);
+		RefExpr(Token* tagToken, Expr *refExpr);
 		~RefExpr();
 
 		std::wstring ToString() override;
@@ -255,8 +255,8 @@ namespace lws
 
 	struct LambdaExpr : public Expr
 	{
-		LambdaExpr(Token tagToken);
-		LambdaExpr(Token tagToken, const std::vector<VarDescExpr *> &parameters, struct ScopeStmt *body);
+		LambdaExpr(Token* tagToken);
+		LambdaExpr(Token* tagToken, const std::vector<VarDescExpr *> &parameters, struct ScopeStmt *body);
 		~LambdaExpr();
 
 		std::wstring ToString() override;
@@ -267,8 +267,8 @@ namespace lws
 
 	struct CallExpr : public Expr
 	{
-		CallExpr(Token tagToken);
-		CallExpr(Token tagToken, Expr *callee, const std::vector<Expr *> &arguments);
+		CallExpr(Token* tagToken);
+		CallExpr(Token* tagToken, Expr *callee, const std::vector<Expr *> &arguments);
 		~CallExpr();
 
 		std::wstring ToString() override;
@@ -279,8 +279,8 @@ namespace lws
 
 	struct DotExpr : public Expr
 	{
-		DotExpr(Token tagToken);
-		DotExpr(Token tagToken, Expr *callee, IdentifierExpr *callMember);
+		DotExpr(Token* tagToken);
+		DotExpr(Token* tagToken, Expr *callee, IdentifierExpr *callMember);
 		~DotExpr();
 
 		std::wstring ToString() override;
@@ -291,8 +291,8 @@ namespace lws
 
 	struct NewExpr : public Expr
 	{
-		NewExpr(Token tagToken);
-		NewExpr(Token tagToken, Expr *callee);
+		NewExpr(Token* tagToken);
+		NewExpr(Token* tagToken, Expr *callee);
 		~NewExpr();
 
 		std::wstring ToString() override;
@@ -302,7 +302,7 @@ namespace lws
 
 	struct ThisExpr : public Expr
 	{
-		ThisExpr(Token tagToken);
+		ThisExpr(Token* tagToken);
 		~ThisExpr();
 
 		std::wstring ToString() override;
@@ -310,7 +310,7 @@ namespace lws
 
 	struct BaseExpr : public Expr
 	{
-		BaseExpr(Token tagToken, IdentifierExpr *callMember);
+		BaseExpr(Token* tagToken, IdentifierExpr *callMember);
 		~BaseExpr();
 
 		std::wstring ToString() override;
@@ -320,8 +320,8 @@ namespace lws
 
 	struct BlockExpr : public Expr
 	{
-		BlockExpr(Token tagToken);
-		BlockExpr(Token tagToken, const std::vector<struct Stmt *> &stmts, Expr *endExpr);
+		BlockExpr(Token* tagToken);
+		BlockExpr(Token* tagToken, const std::vector<struct Stmt *> &stmts, Expr *endExpr);
 		~BlockExpr();
 
 		std::wstring ToString() override;
@@ -332,8 +332,8 @@ namespace lws
 
 	struct AnonyObjExpr : public Expr
 	{
-		AnonyObjExpr(Token tagToken);
-		AnonyObjExpr(Token tagToken, const std::vector<std::pair<std::wstring, Expr *>> &elements);
+		AnonyObjExpr(Token* tagToken);
+		AnonyObjExpr(Token* tagToken, const std::vector<std::pair<std::wstring, Expr *>> &elements);
 		~AnonyObjExpr();
 
 		std::wstring ToString() override;
@@ -343,8 +343,8 @@ namespace lws
 
 	struct VarArgExpr : public Expr
 	{
-		VarArgExpr(Token tagToken);
-		VarArgExpr(Token tagToken, IdentifierExpr *argName);
+		VarArgExpr(Token* tagToken);
+		VarArgExpr(Token* tagToken, IdentifierExpr *argName);
 		~VarArgExpr();
 
 		std::wstring ToString() override;
@@ -353,8 +353,8 @@ namespace lws
 
 	struct FactorialExpr : public Expr
 	{
-		FactorialExpr(Token tagToken);
-		FactorialExpr(Token tagToken, Expr *expr);
+		FactorialExpr(Token* tagToken);
+		FactorialExpr(Token* tagToken, Expr *expr);
 		~FactorialExpr();
 
 		std::wstring ToString() override;
@@ -364,8 +364,8 @@ namespace lws
 
 	struct AppregateExpr : public Expr
 	{
-		AppregateExpr(Token tagToken);
-		AppregateExpr(Token tagToken, const std::vector<Expr *> &exprs);
+		AppregateExpr(Token* tagToken);
+		AppregateExpr(Token* tagToken, const std::vector<Expr *> &exprs);
 		~AppregateExpr();
 
 		std::wstring ToString() override;
@@ -375,7 +375,7 @@ namespace lws
 
 	struct Stmt : public AstNode
 	{
-		Stmt(Token tagToken, AstType type) : AstNode(tagToken, type) {}
+		Stmt(Token* tagToken, AstType type) : AstNode(tagToken, type) {}
 		virtual ~Stmt() {}
 
 		virtual std::wstring ToString() = 0;
@@ -383,8 +383,8 @@ namespace lws
 
 	struct ExprStmt : public Stmt
 	{
-		ExprStmt(Token tagToken);
-		ExprStmt(Token tagToken, Expr *expr);
+		ExprStmt(Token* tagToken);
+		ExprStmt(Token* tagToken, Expr *expr);
 		~ExprStmt();
 		std::wstring ToString() override;
 
@@ -399,8 +399,8 @@ namespace lws
 			IMMUTABLE,
 		};
 
-		VarStmt(Token tagToken);
-		VarStmt(Token tagToken, Privilege privilege, const std::vector<std::pair<Expr *, Expr *>> &variables);
+		VarStmt(Token* tagToken);
+		VarStmt(Token* tagToken, Privilege privilege, const std::vector<std::pair<Expr *, Expr *>> &variables);
 		~VarStmt();
 
 		std::wstring ToString() override;
@@ -411,8 +411,8 @@ namespace lws
 
 	struct ReturnStmt : public Stmt
 	{
-		ReturnStmt(Token tagToken);
-		ReturnStmt(Token tagToken, Expr *expr);
+		ReturnStmt(Token* tagToken);
+		ReturnStmt(Token* tagToken, Expr *expr);
 		~ReturnStmt();
 
 		std::wstring ToString() override;
@@ -422,8 +422,8 @@ namespace lws
 
 	struct IfStmt : public Stmt
 	{
-		IfStmt(Token tagToken);
-		IfStmt(Token tagToken, Expr *condition, Stmt *thenBranch, Stmt *elseBranch);
+		IfStmt(Token* tagToken);
+		IfStmt(Token* tagToken, Expr *condition, Stmt *thenBranch, Stmt *elseBranch);
 		~IfStmt();
 
 		std::wstring ToString() override;
@@ -435,8 +435,8 @@ namespace lws
 
 	struct ScopeStmt : public Stmt
 	{
-		ScopeStmt(Token tagToken);
-		ScopeStmt(Token tagToken, const std::vector<Stmt *> &stmts);
+		ScopeStmt(Token* tagToken);
+		ScopeStmt(Token* tagToken, const std::vector<Stmt *> &stmts);
 		~ScopeStmt();
 
 		std::wstring ToString() override;
@@ -446,8 +446,8 @@ namespace lws
 
 	struct WhileStmt : public Stmt
 	{
-		WhileStmt(Token tagToken);
-		WhileStmt(Token tagToken, Expr *condition, ScopeStmt *body, ScopeStmt *increment = nullptr);
+		WhileStmt(Token* tagToken);
+		WhileStmt(Token* tagToken, Expr *condition, ScopeStmt *body, ScopeStmt *increment = nullptr);
 		~WhileStmt();
 
 		std::wstring ToString() override;
@@ -459,7 +459,7 @@ namespace lws
 
 	struct BreakStmt : public Stmt
 	{
-		BreakStmt(Token tagToken);
+		BreakStmt(Token* tagToken);
 		~BreakStmt();
 
 		std::wstring ToString() override;
@@ -467,7 +467,7 @@ namespace lws
 
 	struct ContinueStmt : public Stmt
 	{
-		ContinueStmt(Token tagToken);
+		ContinueStmt(Token* tagToken);
 		~ContinueStmt();
 
 		std::wstring ToString() override;
@@ -475,8 +475,8 @@ namespace lws
 
 	struct EnumStmt : public Stmt
 	{
-		EnumStmt(Token tagToken);
-		EnumStmt(Token tagToken, IdentifierExpr *name, const std::unordered_map<IdentifierExpr *, Expr *> &enumItems);
+		EnumStmt(Token* tagToken);
+		EnumStmt(Token* tagToken, IdentifierExpr *name, const std::unordered_map<IdentifierExpr *, Expr *> &enumItems);
 		~EnumStmt();
 
 		std::wstring ToString() override;
@@ -494,8 +494,8 @@ namespace lws
 
 	struct FunctionStmt : public Stmt
 	{
-		FunctionStmt(Token tagToken);
-		FunctionStmt(Token tagToken, FunctionType type, IdentifierExpr *name, const std::vector<VarDescExpr *> &parameters, ScopeStmt *body);
+		FunctionStmt(Token* tagToken);
+		FunctionStmt(Token* tagToken, FunctionType type, IdentifierExpr *name, const std::vector<VarDescExpr *> &parameters, ScopeStmt *body);
 		~FunctionStmt();
 
 		std::wstring ToString() override;
@@ -508,8 +508,8 @@ namespace lws
 
 	struct ClassStmt : public Stmt
 	{
-		ClassStmt(Token tagToken);
-		ClassStmt(Token tagToken,
+		ClassStmt(Token* tagToken);
+		ClassStmt(Token* tagToken,
 				  std::wstring name,
 				  const std::vector<VarStmt *> &varItems,
 				  const std::vector<FunctionStmt *> &fnItems,
@@ -530,8 +530,8 @@ namespace lws
 
 	struct ModuleStmt : public Stmt
 	{
-		ModuleStmt(Token tagToken);
-		ModuleStmt(Token tagToken,
+		ModuleStmt(Token* tagToken);
+		ModuleStmt(Token* tagToken,
 				   IdentifierExpr *name,
 				   const std::vector<VarStmt *> &varItems,
 				   const std::vector<ClassStmt *> &classItems,
@@ -551,8 +551,8 @@ namespace lws
 	};
 	struct AstStmts : public Stmt
 	{
-		AstStmts(Token tagToken);
-		AstStmts(Token tagToken, std::vector<Stmt *> stmts);
+		AstStmts(Token* tagToken);
+		AstStmts(Token* tagToken, std::vector<Stmt *> stmts);
 		~AstStmts();
 
 		std::wstring ToString() override;

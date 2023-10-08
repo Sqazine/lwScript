@@ -75,7 +75,7 @@ namespace lws
 
         OpCodes opCodes;
         std::vector<Value> constants;
-        std::vector<Token> opCodeRelatedTokens;
+        std::vector<const Token*> opCodeRelatedTokens;
 
     private:
         std::wstring OpCodeToString(const OpCodes &opcodes) const;

@@ -53,7 +53,7 @@ namespace lws
 		std::vector<Value> returnValues;
 #ifdef _DEBUG
 		if (mStackTop != mValueStack + 1)
-			Hint::Error(Token(), L"Stack occupancy exception.");
+			Hint::Error(new Token(), L"Stack occupancy exception.");
 #endif
 
 		while (mStackTop != mValueStack + 1)
@@ -984,7 +984,6 @@ namespace lws
 				}
 				else
 				{
-
 					auto diff = count - 2;
 					while (diff > 0)
 					{

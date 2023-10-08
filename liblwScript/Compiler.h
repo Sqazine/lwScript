@@ -68,16 +68,16 @@ namespace lws
 		void CompileFactorialExpr(FactorialExpr *expr, const RWState &state = RWState::READ);
 
 		Symbol CompileFunction(FunctionStmt *stmt);
-		uint32_t CompileVars(VarStmt *stmt, bool IsInClassScope);
+		uint32_t CompileVars(VarStmt *stmt, bool IsInClassOrModuleScope);
 		Symbol CompileClass(ClassStmt* stmt);
 
-		uint64_t EmitOpCode(OpCode opCode, Token token);
+		uint64_t EmitOpCode(OpCode opCode,const Token* token);
 		uint64_t Emit(uint8_t opcode);
-		uint64_t EmitConstant(const Value &value, Token token);
-		uint64_t EmitClosure(FunctionObject *function, Token token);
-		uint64_t EmitReturn(uint8_t retCount, Token token);
-		uint64_t EmitJump(OpCode opcode, Token token);
-		void EmitLoop(uint16_t opcode, Token token);
+		uint64_t EmitConstant(const Value &value, const Token* token);
+		uint64_t EmitClosure(FunctionObject *function, const Token* token);
+		uint64_t EmitReturn(uint8_t retCount, const Token* token);
+		uint64_t EmitJump(OpCode opcode, const Token* token);
+		void EmitLoop(uint16_t opcode, const Token* token);
 		void PatchJump(uint64_t offset);
 		uint8_t AddConstant(const Value &value);
 

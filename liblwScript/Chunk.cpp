@@ -40,7 +40,7 @@ namespace lws
 	case opCode:                                                                                         \
 	{                                                                                                    \
 		auto tok = opCodeRelatedTokens[opcodes[++i]];                                                    \
-		auto tokStr = tok.ToString();                                                                    \
+		auto tokStr = tok->ToString();                                                                    \
 		std::wstring tokGap(maxTokenShowSize - tokStr.size(), L' ');                                     \
 		tokStr += tokGap;                                                                                \
 		cout << tokStr << std::setfill(L'0') << std::setw(8) << i << L"    " << (L#opCode) << std::endl; \
@@ -52,7 +52,7 @@ namespace lws
 	{                                                                                                                                                      \
 		auto tok = opCodeRelatedTokens[opcodes[++i]];                                                                                                      \
 		uint16_t addressOffset = opcodes[i + 1] << 8 | opcodes[i + 2];                                                                                     \
-		auto tokStr = tok.ToString();                                                                                                                      \
+		auto tokStr = tok->ToString();                                                                                                                      \
 		std::wstring tokGap(maxTokenShowSize - tokStr.size(), L' ');                                                                                       \
 		tokStr += tokGap;                                                                                                                                  \
 		cout << tokStr << std::setfill(L'0') << std::setw(8) << i << L"    " << (L#opCode) << L"    " << i << "->" << i op addressOffset + 3 << std::endl; \
@@ -65,7 +65,7 @@ namespace lws
 	{                                                                                                                      \
 		auto tok = opCodeRelatedTokens[opcodes[++i]];                                                                      \
 		auto pos = opcodes[i + 1];                                                                                         \
-		auto tokStr = tok.ToString();                                                                                      \
+		auto tokStr = tok->ToString();                                                                                      \
 		std::wstring tokGap(maxTokenShowSize - tokStr.size(), L' ');                                                       \
 		tokStr += tokGap;                                                                                                  \
 		cout << tokStr << std::setfill(L'0') << std::setw(8) << i << L"    " << (L#opCode) << L"    " << pos << std::endl; \
@@ -137,7 +137,7 @@ namespace lws
 				else
 					constantStr = constants[pos].ToString();
 
-				auto tokStr = tok.ToString();
+				auto tokStr = tok->ToString();
 				std::wstring tokGap(maxTokenShowSize - tokStr.size(), L' ');
 				tokStr += tokGap;
 				cout << tokStr << std::setfill(L'0') << std::setw(8) << i << L"    " << L"OP_CONSTANT    " << pos << L"    '" << constantStr << L"'" << std::endl;
@@ -151,7 +151,7 @@ namespace lws
 				auto varCount = opcodes[i + 2];
 				auto constCount = opcodes[i + 3];
 				auto parentClassCount = opcodes[i + 4];
-				auto tokStr = tok.ToString();
+				auto tokStr = tok->ToString();
 				std::wstring tokGap(maxTokenShowSize - tokStr.size(), L' ');
 				tokStr += tokGap;
 				cout << tokStr << std::setfill(L'0') << std::setw(8) << i << L"    " << L"OP_CLASS    " << ctorCount << "    " << varCount << L"    " << constCount << L"    " << parentClassCount << std::endl;
@@ -164,7 +164,7 @@ namespace lws
 				auto pos = opcodes[i + 1];
 				std::wstring funcStr = (L"<fn " + TO_FUNCTION_VALUE(constants[pos])->name + L":0x" + PointerAddressToString((void *)TO_FUNCTION_VALUE(constants[pos])) + L">");
 
-				auto tokStr = tok.ToString();
+				auto tokStr = tok->ToString();
 				std::wstring tokGap(maxTokenShowSize - tokStr.size(), L' ');
 				tokStr += tokGap;
 
@@ -191,7 +191,7 @@ namespace lws
 				auto tok = opCodeRelatedTokens[opcodes[++i]];
 				auto varCount = opcodes[i + 1];
 				auto constCount = opcodes[i + 2];
-				auto tokStr = tok.ToString();
+				auto tokStr = tok->ToString();
 				std::wstring tokGap(maxTokenShowSize - tokStr.size(), L' ');
 				tokStr += tokGap;
 				cout << tokStr << std::setfill(L'0') << std::setw(8) << i << L"    " << L"OP_MODULE    " << varCount << L"    " << constCount << std::endl;
@@ -208,10 +208,10 @@ namespace lws
 
 	uint32_t Chunk::GetBiggestTokenLength() const
 	{
-		auto length = 0;
+		uint32_t length = 0;
 		for (const auto &t : opCodeRelatedTokens)
 		{
-			auto l = t.ToString().size();
+			auto l = (uint32_t)t->ToString().size();
 			if (length < l)
 				length = l;
 		}
