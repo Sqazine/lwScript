@@ -11,7 +11,7 @@ namespace lws
 		WRITE,
 	};
 
-	class Compiler
+	class LWSCRIPT_API Compiler
 	{
 	public:
 		Compiler();

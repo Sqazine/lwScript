@@ -63,7 +63,7 @@ namespace lws
 
     using OpCodes = std::vector<uint8_t>;
 
-    class Chunk
+    class LWSCRIPT_API Chunk
     {
     public:
         Chunk();

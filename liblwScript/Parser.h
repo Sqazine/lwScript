@@ -50,7 +50,7 @@ namespace lws
 	typedef Expr *(Parser::*InfixFn)(Expr *);
 	typedef Expr *(Parser::*PostfixFn)(Expr *);
 
-	class Parser
+	class LWSCRIPT_API Parser
 	{
 	public:
 		Parser();

@@ -4,7 +4,7 @@
 
 namespace lws
 {
-    class Optimizer
+    class LWSCRIPT_API Optimizer
     {
     public:
         Optimizer();

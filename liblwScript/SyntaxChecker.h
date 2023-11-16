@@ -5,7 +5,7 @@
 namespace lws
 {
 
-    class SyntaxChecker
+    class LWSCRIPT_API SyntaxChecker
     {
     public:
         SyntaxChecker();

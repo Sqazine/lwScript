@@ -1,6 +1,7 @@
 #pragma once
 #include <string>
 #include <unordered_map>
+#include "Config.h"
 namespace lws
 {
     enum ValueType
@@ -18,7 +19,7 @@ namespace lws
         CONSTANT
     };
 
-    struct Value
+    struct LWSCRIPT_API Value
     {
         Value();
         Value(int64_t integer);

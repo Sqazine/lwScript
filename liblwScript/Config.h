@@ -12,3 +12,25 @@
 // #define GC_STRESS
 
 #define OUTPUT_OPCODE
+
+#if defined(_WIN32) || defined(_WIN64)
+#ifdef LWSCRIPT_BUILD_DLL
+#define LWSCRIPT_API __declspec(dllexport)
+#else
+#define LWSCRIPT_API __declspec(dllimport)
+#endif
+#else
+#ifdef LWSCRIPT_BUILD_DLL
+#define LWSCRIPT_API
+#else
+#define LWSCRIPT_API
+#endif
+
+#endif
+
+#define SAFE_DELETE(x) \
+    do                 \
+    {                  \
+        delete x;      \
+        x = nullptr;   \
+    } while (false);

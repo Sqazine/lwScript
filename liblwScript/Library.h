@@ -5,7 +5,7 @@
 #include "Object.h"
 namespace lws
 {
-    class LibraryManager
+    class LWSCRIPT_API LibraryManager
     {
     public:
         static LibraryManager &Instance() noexcept;

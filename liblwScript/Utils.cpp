@@ -3,7 +3,7 @@
 #include <codecvt>
 namespace lws
 {
-    std::wstring ReadFile(std::string_view path)
+    std::wstring LWSCRIPT_API ReadFile(std::string_view path)
     {
         Hint::Record::mCurFilePath = StringToWString(path.data());
 

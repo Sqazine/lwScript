@@ -9,7 +9,7 @@
 
 namespace lws
 {
-	class Lexer
+	class LWSCRIPT_API Lexer
 	{
 	public:
 		Lexer();

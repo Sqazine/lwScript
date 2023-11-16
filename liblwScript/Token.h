@@ -3,6 +3,7 @@
 #include <string>
 #include <string_view>
 #include <ostream>
+#include "Config.h"
 namespace lws
 {
 	enum TokenType
@@ -99,7 +100,7 @@ namespace lws
 		TOKEN_EOF,
 	};
 
-	struct Token
+	struct LWSCRIPT_API Token
 	{
 		Token() : type(TOKEN_EOF), literal(L""), line(-1), column(-1), pos(-1) {}
 		Token(TokenType type, std::wstring_view literal, uint64_t line, uint64_t column, uint64_t pos) : type(type), literal(literal), line(line), column(column), pos(pos) {}

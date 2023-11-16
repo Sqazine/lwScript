@@ -13,7 +13,7 @@ namespace lws
         Value *slots = nullptr;
     };
 
-    class VM
+    class LWSCRIPT_API VM
     {
     public:
         VM();
