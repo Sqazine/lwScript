@@ -35,7 +35,7 @@ void Repl()
 #endif
 			auto mainFunc = compiler.Compile(stmt);
 #ifdef _DEBUG
-			lws::OutputToConsole(L"{}", mainFunc->ToString(true));
+			lws::OutputToConsole(L"{}", mainFunc->ToString());
 #endif
 			vm.Run(mainFunc);
 		}
@@ -62,7 +62,7 @@ void RunFile(std::string_view path)
 #endif
 	auto mainFunc = compiler.Compile(stmt);
 #ifdef _DEBUG
-	lws::OutputToConsole(L"{}", mainFunc->ToString(true));
+	lws::OutputToConsole(L"{}", mainFunc->ToString());
 #endif
 
 	vm.Run(mainFunc);

@@ -10,3 +10,5 @@
 
 // #define GC_DEBUG
 // #define GC_STRESS
+
+#define OUTPUT_OPCODE

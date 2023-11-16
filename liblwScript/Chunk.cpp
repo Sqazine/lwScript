@@ -18,14 +18,14 @@ namespace lws
 	{
 	}
 
-	std::wstring Chunk::ToString(bool outputOpCodeIfExists) const
+	std::wstring Chunk::ToString() const
 	{
 		std::wstring result;
 		result += OpCodeToString(opCodes);
 		for (const auto &c : constants)
 		{
 			if (IS_FUNCTION_VALUE(c))
-				result += TO_FUNCTION_VALUE(c)->ToString(outputOpCodeIfExists);
+				result += TO_FUNCTION_VALUE(c)->ToString();
 		}
 		return result;
 	}

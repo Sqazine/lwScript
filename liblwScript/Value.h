@@ -27,7 +27,7 @@ namespace lws
         Value(struct Object *object);
         ~Value();
 
-        std::wstring ToString(bool outputOpCodeIfExists = false) const;
+        std::wstring ToString() const;
         void Mark(class VM *vm) const;
         void UnMark() const;
         Value Clone() const;

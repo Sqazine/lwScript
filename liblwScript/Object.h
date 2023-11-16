@@ -95,7 +95,7 @@ namespace lws
         Object(ObjectType type);
         virtual ~Object();
 
-        virtual std::wstring ToString(bool outputOpCodeIfExists = false) const = 0;
+        virtual std::wstring ToString() const = 0;
         void Mark(class VM *vm);
         void UnMark();
         virtual void Blacken(class VM *vm);
@@ -112,7 +112,7 @@ namespace lws
         StrObject(std::wstring_view value);
         ~StrObject();
 
-        std::wstring ToString(bool outputOpCodeIfExists = false) const override;
+        std::wstring ToString() const override;
         bool IsEqualTo(Object *other) override;
         Object *Clone() const override;
 
@@ -125,7 +125,7 @@ namespace lws
         ArrayObject(const std::vector<struct Value> &elements);
         ~ArrayObject();
 
-        std::wstring ToString(bool outputOpCodeIfExists = false) const override;
+        std::wstring ToString() const override;
         void Blacken(class VM *vm) override;
         bool IsEqualTo(Object *other) override;
         Object *Clone() const override;
@@ -145,7 +145,7 @@ namespace lws
         DictObject(const ValueUnorderedMap &elements);
         ~DictObject();
 
-        std::wstring ToString(bool outputOpCodeIfExists = false) const override;
+        std::wstring ToString() const override;
 
         void Blacken(class VM *vm) override;
         bool IsEqualTo(Object *other) override;
@@ -160,7 +160,7 @@ namespace lws
         AnonymousObject(const std::unordered_map<std::wstring, Value> &elements);
         ~AnonymousObject();
 
-        std::wstring ToString(bool outputOpCodeIfExists = false) const override;
+        std::wstring ToString() const override;
 
         void Blacken(class VM *vm) override;
         bool IsEqualTo(Object *other) override;
@@ -175,7 +175,7 @@ namespace lws
         FunctionObject(std::wstring_view name);
         ~FunctionObject();
 
-        std::wstring ToString(bool outputOpCodeIfExists = false) const override;
+        std::wstring ToString() const override;
 
         void Blacken(class VM *vm) override;
         bool IsEqualTo(Object *other) override;
@@ -194,7 +194,7 @@ namespace lws
         UpValueObject(Value *location);
         ~UpValueObject();
 
-        std::wstring ToString(bool outputOpCodeIfExists = false) const override;
+        std::wstring ToString() const override;
 
         void Blacken(class VM *vm) override;
         bool IsEqualTo(Object *other) override;
@@ -211,7 +211,7 @@ namespace lws
         ClosureObject(FunctionObject *function);
         ~ClosureObject();
 
-        std::wstring ToString(bool outputOpCodeIfExists = false) const override;
+        std::wstring ToString() const override;
 
         void Blacken(class VM *vm) override;
         bool IsEqualTo(Object *other) override;
@@ -229,7 +229,7 @@ namespace lws
         NativeFunctionObject(NativeFunction f);
         ~NativeFunctionObject();
 
-        std::wstring ToString(bool outputOpCodeIfExists = false) const override;
+        std::wstring ToString() const override;
 
         bool IsEqualTo(Object *other) override;
         Object *Clone() const override;
@@ -242,7 +242,7 @@ namespace lws
         RefObject(Value *pointer);
         ~RefObject();
 
-        std::wstring ToString(bool outputOpCodeIfExists = false) const override;
+        std::wstring ToString() const override;
 
         bool IsEqualTo(Object *other) override;
         Object *Clone() const override;
@@ -256,7 +256,7 @@ namespace lws
         ClassObject(std::wstring_view name);
         ~ClassObject();
 
-        std::wstring ToString(bool outputOpCodeIfExists = false) const override;
+        std::wstring ToString() const override;
 
         void Blacken(class VM *vm) override;
         bool IsEqualTo(Object *other) override;
@@ -277,7 +277,7 @@ namespace lws
         ClassClosureBindObject(const Value &receiver, ClosureObject *cl);
         ~ClassClosureBindObject();
 
-        std::wstring ToString(bool outputOpCodeIfExists = false) const override;
+        std::wstring ToString() const override;
 
         void Blacken(class VM *vm) override;
         bool IsEqualTo(Object *other) override;
@@ -293,7 +293,7 @@ namespace lws
         EnumObject(const std::wstring &name, const std::unordered_map<std::wstring, Value> &pairs);
         ~EnumObject();
 
-        std::wstring ToString(bool outputOpCodeIfExists = false) const override;
+        std::wstring ToString() const override;
 
         void Blacken(class VM *vm) override;
         bool IsEqualTo(Object *other) override;
@@ -311,7 +311,7 @@ namespace lws
         ModuleObject(const std::wstring &name, const std::unordered_map<std::wstring, Value> &values);
         ~ModuleObject();
 
-        std::wstring ToString(bool outputOpCodeIfExists = false) const override;
+        std::wstring ToString() const override;
 
         void Blacken(class VM *vm) override;
         bool IsEqualTo(Object *other) override;

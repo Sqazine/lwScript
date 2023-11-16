@@ -49,7 +49,7 @@ namespace lws
 	StrObject::~StrObject()
 	{
 	}
-	std::wstring StrObject::ToString(bool outputOpCodeIfExists) const
+	std::wstring StrObject::ToString() const
 	{
 		return value;
 	}
@@ -78,13 +78,13 @@ namespace lws
 	{
 	}
 
-	std::wstring ArrayObject::ToString(bool outputOpCodeIfExists) const
+	std::wstring ArrayObject::ToString() const
 	{
 		std::wstring result = L"[";
 		if (!elements.empty())
 		{
 			for (const auto &e : elements)
-				result += e.ToString(outputOpCodeIfExists) + L",";
+				result += e.ToString() + L",";
 			result = result.substr(0, result.size() - 1);
 		}
 		result += L"]";
@@ -154,11 +154,11 @@ namespace lws
 	{
 	}
 
-	std::wstring DictObject::ToString(bool outputOpCodeIfExists) const
+	std::wstring DictObject::ToString() const
 	{
 		std::wstring result = L"{";
 		for (const auto &[k, v] : elements)
-			result += k.ToString(outputOpCodeIfExists) + L":" + v.ToString(outputOpCodeIfExists) + L",";
+			result += k.ToString() + L":" + v.ToString() + L",";
 		result = result.substr(0, result.size() - 1);
 		result += L"}";
 		return result;
@@ -225,11 +225,11 @@ namespace lws
 	{
 	}
 
-	std::wstring AnonymousObject::ToString(bool outputOpCodeIfExists) const
+	std::wstring AnonymousObject::ToString() const
 	{
 		std::wstring result = L"{";
 		for (const auto &[k, v] : elements)
-			result += k + L":" + v.ToString(outputOpCodeIfExists) + L",";
+			result += k + L":" + v.ToString() + L",";
 		result = result.substr(0, result.size() - 1);
 		result += L"}";
 		return result;
@@ -293,11 +293,12 @@ namespace lws
 	{
 	}
 
-	std::wstring FunctionObject::ToString(bool outputOpCodeIfExists) const
+	std::wstring FunctionObject::ToString() const
 	{
 		auto result = L"<fn " + name + L":0x" + PointerAddressToString((void *)this) + L">";
-		if (outputOpCodeIfExists)
-			result += L"\n" + chunk.ToString(outputOpCodeIfExists);
+		#ifdef OUTPUT_OPCODE
+			result += L"\n" + chunk.ToString();
+		#endif
 		return result;
 	}
 
@@ -350,9 +351,9 @@ namespace lws
 	{
 	}
 
-	std::wstring UpValueObject::ToString(bool outputOpCodeIfExists) const
+	std::wstring UpValueObject::ToString() const
 	{
-		return location->ToString(outputOpCodeIfExists);
+		return location->ToString();
 	}
 
 	void UpValueObject::Blacken(VM *vm)
@@ -400,9 +401,9 @@ namespace lws
 	{
 	}
 
-	std::wstring ClosureObject::ToString(bool outputOpCodeIfExists) const
+	std::wstring ClosureObject::ToString() const
 	{
-		return function->ToString(outputOpCodeIfExists);
+		return function->ToString();
 	}
 
 	void ClosureObject::Blacken(VM *vm)
@@ -452,7 +453,7 @@ namespace lws
 	{
 	}
 
-	std::wstring NativeFunctionObject::ToString(bool outputOpCodeIfExists) const
+	std::wstring NativeFunctionObject::ToString() const
 	{
 		return L"<native function>";
 	}
@@ -477,9 +478,9 @@ namespace lws
 	{
 	}
 
-	std::wstring RefObject::ToString(bool outputOpCodeIfExists) const
+	std::wstring RefObject::ToString() const
 	{
-		return pointer->ToString(outputOpCodeIfExists);
+		return pointer->ToString();
 	}
 
 	bool RefObject::IsEqualTo(Object *other)
@@ -509,7 +510,7 @@ namespace lws
 	{
 	}
 
-	std::wstring ClassObject::ToString(bool outputOpCodeIfExists) const
+	std::wstring ClassObject::ToString() const
 	{
 		std::wstring result = L"class " + name;
 		if (!parents.empty())
@@ -521,7 +522,7 @@ namespace lws
 		}
 		result += L"\n{\n";
 		for (const auto &[k, v] : members)
-			result += L"  " + k + L":" + v.ToString(outputOpCodeIfExists) + L"\n";
+			result += L"  " + k + L":" + v.ToString() + L"\n";
 
 		return result + L"}\n";
 	}
@@ -623,9 +624,9 @@ namespace lws
 	ClassClosureBindObject::~ClassClosureBindObject()
 	{
 	}
-	std::wstring ClassClosureBindObject::ToString(bool outputOpCodeIfExists) const
+	std::wstring ClassClosureBindObject::ToString() const
 	{
-		return closure->ToString(outputOpCodeIfExists);
+		return closure->ToString();
 	}
 
 	void ClassClosureBindObject::Blacken(VM *vm)
@@ -668,13 +669,13 @@ namespace lws
 	{
 	}
 
-	std::wstring EnumObject::ToString(bool outputOpCodeIfExists) const
+	std::wstring EnumObject::ToString() const
 	{
 		std::wstring result = L"enum " + name + L"{";
 		if (!pairs.empty())
 		{
 			for (const auto &[k, v] : pairs)
-				result += k + L"=" + v.ToString(outputOpCodeIfExists) + L",";
+				result += k + L"=" + v.ToString() + L",";
 			result = result.substr(0, result.size() - 1);
 		}
 		return result + L"}";
@@ -733,13 +734,13 @@ namespace lws
 	{
 	}
 
-	std::wstring ModuleObject::ToString(bool outputOpCodeIfExists) const
+	std::wstring ModuleObject::ToString() const
 	{
 		std::wstring result = L"module " + name + L"{";
 		if (!values.empty())
 		{
 			for (const auto &[k, v] : values)
-				result += k + L"=" + v.ToString(outputOpCodeIfExists) + L",";
+				result += k + L"=" + v.ToString() + L",";
 			result = result.substr(0, result.size() - 1);
 		}
 		return result + L"}";
