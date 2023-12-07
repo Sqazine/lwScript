@@ -1,7 +1,7 @@
 #include "SyntaxChecker.h"
 #include "Utils.h"
 
-namespace lws
+namespace lwscript
 {
     SyntaxChecker::SyntaxChecker()
         : mLoopDepth(0), mVarArgScopeDepth(false),mClassScopeDepth(0)

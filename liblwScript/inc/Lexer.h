@@ -7,7 +7,7 @@
 #include "Token.h"
 #include "Utils.h"
 
-namespace lws
+namespace lwscript
 {
 	class LWSCRIPT_API Lexer
 	{

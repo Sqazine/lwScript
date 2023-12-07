@@ -1,7 +1,7 @@
 #include "Optimizer.h"
 #include "Utils.h"
 
-namespace lws
+namespace lwscript
 {
 	Optimizer::Optimizer()
 	{

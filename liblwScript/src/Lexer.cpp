@@ -1,5 +1,5 @@
 #include "Lexer.h"
-namespace lws
+namespace lwscript
 {
 	struct Keyword
 	{

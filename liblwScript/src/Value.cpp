@@ -1,7 +1,7 @@
 #include "Value.h"
 #include "Object.h"
 #include "VM.h"
-namespace lws
+namespace lwscript
 {
     Value::Value()
         : type(VALUE_NULL), object(nullptr)

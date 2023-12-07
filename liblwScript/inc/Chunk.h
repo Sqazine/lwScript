@@ -3,7 +3,7 @@
 #include "Config.h"
 #include "Value.h"
 #include "Token.h"
-namespace lws
+namespace lwscript
 {
     enum OpCode
     {

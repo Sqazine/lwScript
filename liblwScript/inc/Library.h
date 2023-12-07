@@ -3,7 +3,7 @@
 #include <functional>
 #include "Value.h"
 #include "Object.h"
-namespace lws
+namespace lwscript
 {
     class LWSCRIPT_API LibraryManager
     {

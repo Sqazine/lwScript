@@ -1,6 +1,6 @@
 #include "Parser.h"
 #include "Library.h"
-namespace lws
+namespace lwscript
 {
 	struct PrecedenceBinding
 	{
@@ -295,10 +295,8 @@ namespace lws
 
 		while (!IsMatchCurToken(TOKEN_RBRACE))
 		{
-			if (IsMatchCurToken(TOKEN_LET))
-				classStmt->varItems.emplace_back((VarStmt *)ParseVarDecl(TOKEN_LET));
-			else if (IsMatchCurToken(TOKEN_CONST))
-				classStmt->varItems.emplace_back((VarStmt *)ParseVarDecl(TOKEN_CONST));
+			if (IsMatchCurToken(TOKEN_LET)||IsMatchCurToken(TOKEN_CONST))
+				classStmt->varItems.emplace_back((VarStmt *)ParseVarDecl(GetCurToken()->type));
 			else if (IsMatchCurTokenAndStepOnce(TOKEN_FUNCTION))
 			{
 				auto fn = (FunctionStmt *)ParseFunctionDecl();
@@ -545,10 +543,8 @@ namespace lws
 		Consume(TOKEN_LPAREN, L"Expect '(' after 'for'.");
 
 		// initializer
-		if (IsMatchCurToken(TOKEN_LET))
-			scopeStmt->stmts.emplace_back(ParseVarDecl(TOKEN_LET));
-		else if (IsMatchCurToken(TOKEN_CONST))
-			scopeStmt->stmts.emplace_back(ParseVarDecl(TOKEN_CONST));
+		if (IsMatchCurToken(TOKEN_LET)||IsMatchCurToken(TOKEN_CONST))
+			scopeStmt->stmts.emplace_back(ParseVarDecl(GetCurToken()->type));
 		else
 		{
 			if (!IsMatchCurToken(TOKEN_SEMICOLON))

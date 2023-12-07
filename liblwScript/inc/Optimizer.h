@@ -2,7 +2,7 @@
 #include <vector>
 #include "Ast.h"
 
-namespace lws
+namespace lwscript
 {
     class LWSCRIPT_API Optimizer
     {

@@ -4,7 +4,7 @@
 #include <vector>
 #include <memory>
 #include "Token.h"
-namespace lws
+namespace lwscript
 {
 	enum AstType
 	{

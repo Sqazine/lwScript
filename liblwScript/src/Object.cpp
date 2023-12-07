@@ -4,7 +4,7 @@
 #include "Utils.h"
 
 #include "VM.h"
-namespace lws
+namespace lwscript
 {
 
 	Object::Object(ObjectType type)

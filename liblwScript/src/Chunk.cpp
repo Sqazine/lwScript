@@ -4,7 +4,7 @@
 
 #include "Utils.h"
 #include "Object.h"
-namespace lws
+namespace lwscript
 {
 	Chunk::Chunk()
 	{

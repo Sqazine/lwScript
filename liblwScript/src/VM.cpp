@@ -3,7 +3,7 @@
 #include "Utils.h"
 #include "Object.h"
 #include "Token.h"
-namespace lws
+namespace lwscript
 {
 	Value VM::sNullValue = Value();
 

@@ -1,11 +1,11 @@
 #include "Utils.h"
 #include <locale>
 #include <codecvt>
-namespace lws
+namespace lwscript
 {
-    std::wstring LWSCRIPT_API ReadFile(std::string_view path)
+    std::wstring ReadFile(std::string_view path)
     {
-        Hint::Record::mCurFilePath = StringToWString(path.data());
+        Hint::Record::mCurFilePath = Utf8Decode(path.data());
 
         std::wifstream file;
         file.open(path.data(), std::ios::in | std::ios::binary);
@@ -39,13 +39,13 @@ namespace lws
         return Factorial(v - 1, v * tmp);
     }
 
-    std::string WStringToString(const std::wstring &str)
+    std::string Utf8Encode(const std::wstring &str)
     {
         std::wstring_convert<std::codecvt_utf8<wchar_t>> converter;
         return converter.to_bytes(str);
     }
 
-    std::wstring StringToWString(const std::string &str)
+    std::wstring Utf8Decode(const std::string &str)
     {
         std::wstring_convert<std::codecvt_utf8<wchar_t>> converter;
         return converter.from_bytes(str);

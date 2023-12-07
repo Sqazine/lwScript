@@ -3,7 +3,7 @@
 #include "Ast.h"
 #include "SymbolTable.h"
 #include "Object.h"
-namespace lws
+namespace lwscript
 {
 	enum class RWState // read write state
 	{

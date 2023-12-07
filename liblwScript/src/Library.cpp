@@ -4,7 +4,7 @@
 #include <stdio.h>
 #include <ctime>
 #include <iostream>
-namespace lws
+namespace lwscript
 {
     LibraryManager &LibraryManager::Instance() noexcept
     {

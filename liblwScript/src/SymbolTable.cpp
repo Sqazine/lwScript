@@ -1,7 +1,7 @@
 #include "SymbolTable.h"
 #include "Utils.h"
 
-namespace lws
+namespace lwscript
 {
     SymbolTable::SymbolTable()
         : mSymbolCount(0), mGlobalSymbolCount(0), mLocalSymbolCount(0), mUpValueCount(0), enclosing(nullptr), mScopeDepth(0), mTableDepth(0)

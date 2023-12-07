@@ -2,7 +2,7 @@
 #include <string>
 #include <unordered_map>
 #include "Config.h"
-namespace lws
+namespace lwscript
 {
     enum ValueType
     {

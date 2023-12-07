@@ -6,7 +6,7 @@
 #include <map>
 #include "Chunk.h"
 #include "Token.h"
-namespace lws
+namespace lwscript
 {
 #define IS_STR_OBJ(obj) (obj->type == OBJECT_STR)
 #define IS_ARRAY_OBJ(obj) (obj->type == OBJECT_ARRAY)
@@ -22,19 +22,19 @@ namespace lws
 #define IS_ENUM_OBJ(obj) (obj->type == OBJECT_ENUM)
 #define IS_MODULE_OBJ(obj) (obj->type == OBJECT_MODULE)
 
-#define TO_STR_OBJ(obj) ((lws::StrObject *)obj)
-#define TO_ARRAY_OBJ(obj) ((lws::ArrayObject *)obj)
-#define TO_TABLE_OBJ(obj) ((lws::DictObject *)obj)
-#define TO_ANONYMOUS_OBJ(obj) ((lws::AnonymousObject *)obj)
-#define TO_FUNCTION_OBJ(obj) ((lws::FunctionObject *)obj)
-#define TO_UPVALUE_OBJ(obj) ((lws::UpValueObject *)obj)
-#define TO_CLOSURE_OBJ(obj) ((lws::ClosureObject *)obj)
-#define TO_NATIVE_FUNCTION_OBJ(obj) ((lws::NativeFunctionObject *)obj)
-#define TO_REF_OBJ(obj) ((lws::RefObject *)obj)
-#define TO_CLASS_OBJ(obj) ((lws::ClassObject *)obj)
-#define TO_CLASS_CLOSURE_BIND_OBJ(obj) ((lws::ClassClosureBindObject *)obj)
-#define TO_ENUM_OBJ(obj) ((lws::EnumObject *)obj)
-#define TO_MODULE_OBJ(obj) ((lws::ModuleObject *)obj)
+#define TO_STR_OBJ(obj) ((lwscript::StrObject *)obj)
+#define TO_ARRAY_OBJ(obj) ((lwscript::ArrayObject *)obj)
+#define TO_TABLE_OBJ(obj) ((lwscript::DictObject *)obj)
+#define TO_ANONYMOUS_OBJ(obj) ((lwscript::AnonymousObject *)obj)
+#define TO_FUNCTION_OBJ(obj) ((lwscript::FunctionObject *)obj)
+#define TO_UPVALUE_OBJ(obj) ((lwscript::UpValueObject *)obj)
+#define TO_CLOSURE_OBJ(obj) ((lwscript::ClosureObject *)obj)
+#define TO_NATIVE_FUNCTION_OBJ(obj) ((lwscript::NativeFunctionObject *)obj)
+#define TO_REF_OBJ(obj) ((lwscript::RefObject *)obj)
+#define TO_CLASS_OBJ(obj) ((lwscript::ClassObject *)obj)
+#define TO_CLASS_CLOSURE_BIND_OBJ(obj) ((lwscript::ClassClosureBindObject *)obj)
+#define TO_ENUM_OBJ(obj) ((lwscript::EnumObject *)obj)
+#define TO_MODULE_OBJ(obj) ((lwscript::ModuleObject *)obj)
 
 #define IS_NULL_VALUE(v) (v.type == VALUE_NULL)
 #define IS_INT_VALUE(v) (v.type == VALUE_INT)

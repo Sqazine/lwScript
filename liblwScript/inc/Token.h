@@ -4,7 +4,7 @@
 #include <string_view>
 #include <ostream>
 #include "Config.h"
-namespace lws
+namespace lwscript
 {
 	enum TokenType
 	{

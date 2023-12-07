@@ -4,7 +4,7 @@
 #include "Chunk.h"
 #include "Object.h"
 #include "Library.h"
-namespace lws
+namespace lwscript
 {
     struct CallFrame
     {

@@ -9,7 +9,7 @@
 
 #include "Optimizer.h"
 #include "SyntaxChecker.h"
-namespace lws
+namespace lwscript
 {
 	enum class Precedence
 	{

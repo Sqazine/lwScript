@@ -1,6 +1,6 @@
 #include "Ast.h"
 
-namespace lws
+namespace lwscript
 {
 	//----------------------Expressions-----------------------------
 

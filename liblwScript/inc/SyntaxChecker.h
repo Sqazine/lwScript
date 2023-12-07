@@ -2,7 +2,7 @@
 #include <cstdint>
 #include "Ast.h"
 
-namespace lws
+namespace lwscript
 {
 
     class LWSCRIPT_API SyntaxChecker

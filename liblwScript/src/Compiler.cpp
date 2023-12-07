@@ -3,7 +3,7 @@
 #include "Utils.h"
 #include "Object.h"
 #include "Library.h"
-namespace lws
+namespace lwscript
 {
 	Compiler::Compiler()
 		: mSymbolTable(nullptr)
@@ -325,7 +325,7 @@ namespace lws
 	}
 	void Compiler::CompileWhileStmt(WhileStmt *stmt)
 	{
-		auto jmpAddress =(uint32_t)CurOpCodes().size();
+		auto jmpAddress = (uint32_t)CurOpCodes().size();
 
 		auto conditionPostfixExprs = StatsPostfixExprs(stmt->condition);
 
@@ -991,7 +991,7 @@ namespace lws
 				varArgParamType = 1;
 		}
 
-		auto functionSymbol = mSymbolTable->Define(stmt->tagToken, ValueDesc::CONSTANT, stmt->name->literal, FunctionSymbolInfo{.paramCount = (int8_t)stmt->parameters.size(), .varArgParamType = varArgParamType});
+		auto functionSymbol = mSymbolTable->Define(stmt->tagToken, ValueDesc::CONSTANT, stmt->name->literal, FunctionSymbolInfo{(int8_t)stmt->parameters.size(), varArgParamType});
 
 		mFunctionList.emplace_back(new FunctionObject(stmt->name->literal));
 		mSymbolTable = new SymbolTable(mSymbolTable);
@@ -1090,7 +1090,7 @@ namespace lws
 					{
 						Symbol symbol;
 						std::wstring literal;
-						Token* token=nullptr;
+						Token *token = nullptr;
 
 						if (((VarDescExpr *)arrayExpr->elements[i])->name->type == AST_IDENTIFIER)
 						{
@@ -1141,7 +1141,7 @@ namespace lws
 					CompileExpr(v);
 
 					std::wstring literal;
-					Token* token=nullptr;
+					Token *token = nullptr;
 
 					if (((VarDescExpr *)k)->name->type == AST_IDENTIFIER)
 					{
@@ -1250,7 +1250,7 @@ namespace lws
 		return symbol;
 	}
 
-	uint64_t Compiler::EmitOpCode(OpCode opCode, const Token* token)
+	uint64_t Compiler::EmitOpCode(OpCode opCode, const Token *token)
 	{
 		Emit((uint8_t)opCode);
 
@@ -1267,7 +1267,7 @@ namespace lws
 		return CurOpCodes().size() - 1;
 	}
 
-	uint64_t Compiler::EmitConstant(const Value &value,const Token* token)
+	uint64_t Compiler::EmitConstant(const Value &value, const Token *token)
 	{
 		EmitOpCode(OP_CONSTANT, token);
 		uint8_t pos = AddConstant(value);
@@ -1275,7 +1275,7 @@ namespace lws
 		return CurOpCodes().size() - 1;
 	}
 
-	uint64_t Compiler::EmitClosure(FunctionObject *function, const Token* token)
+	uint64_t Compiler::EmitClosure(FunctionObject *function, const Token *token)
 	{
 		uint8_t pos = AddConstant(function);
 		EmitOpCode(OP_CLOSURE, token);
@@ -1283,14 +1283,14 @@ namespace lws
 		return CurOpCodes().size() - 1;
 	}
 
-	uint64_t Compiler::EmitReturn(uint8_t retCount, const Token* token)
+	uint64_t Compiler::EmitReturn(uint8_t retCount, const Token *token)
 	{
 		EmitOpCode(OP_RETURN, token);
 		Emit(retCount);
 		return CurOpCodes().size() - 1;
 	}
 
-	uint64_t Compiler::EmitJump(OpCode opcode, const Token* token)
+	uint64_t Compiler::EmitJump(OpCode opcode, const Token *token)
 	{
 		EmitOpCode(opcode, token);
 		Emit(0xFF);
@@ -1298,7 +1298,7 @@ namespace lws
 		return CurOpCodes().size() - 2;
 	}
 
-	void Compiler::EmitLoop(uint16_t opcode, const Token* token)
+	void Compiler::EmitLoop(uint16_t opcode, const Token *token)
 	{
 		EmitOpCode(OP_LOOP, token);
 		uint16_t offset = CurOpCodes().size() - opcode + 2;
@@ -1311,7 +1311,7 @@ namespace lws
 	{
 		uint16_t jumpOffset = CurOpCodes().size() - offset - 2;
 		CurOpCodes()[offset] = (jumpOffset >> 8) & 0xFF;
-		CurOpCodes()[offset + 1] = (jumpOffset)&0xFF;
+		CurOpCodes()[offset + 1] = (jumpOffset) & 0xFF;
 	}
 
 	uint8_t Compiler::AddConstant(const Value &value)
