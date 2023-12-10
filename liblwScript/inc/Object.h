@@ -6,6 +6,7 @@
 #include <map>
 #include "Chunk.h"
 #include "Token.h"
+#include "Value.h"
 namespace lwscript
 {
 #define IS_STR_OBJ(obj) (obj->type == OBJECT_STR)
@@ -135,12 +136,6 @@ namespace lwscript
 
     struct DictObject : public Object
     {
-        struct ValueHash
-        {
-            size_t operator()(const Value &v) const;
-        };
-
-        typedef std::unordered_map<Value, Value, ValueHash> ValueUnorderedMap;
         DictObject();
         DictObject(const ValueUnorderedMap &elements);
         ~DictObject();
@@ -182,7 +177,7 @@ namespace lwscript
         Object *Clone() const override;
 
         int8_t arity;
-        uint8_t varArgParamType; //0:no,1:varArgWithoutName(...),2:varArgWithName(...args)
+        uint8_t varArgParamType; // 0:no,1:varArgWithoutName(...),2:varArgWithName(...args)
         int8_t upValueCount;
         Chunk chunk;
         std::wstring name;
@@ -221,7 +216,7 @@ namespace lwscript
         std::vector<UpValueObject *> upvalues;
     };
 
-    using NativeFunction = std::function<Value(const std::vector<Value> &, const Token*)>;
+    using NativeFunction = std::function<Value(const std::vector<Value> &, const Token *)>;
 
     struct NativeFunctionObject : public Object
     {
@@ -266,7 +261,7 @@ namespace lwscript
         bool GetParentMember(const std::wstring &name, Value &retV);
 
         std::wstring name;
-        std::map<int32_t, ClosureObject *> constructors; //argument count as key
+        std::map<int32_t, ClosureObject *> constructors; // argument count as key
         std::unordered_map<std::wstring, Value> members;
         std::map<std::wstring, ClassObject *> parents;
     };

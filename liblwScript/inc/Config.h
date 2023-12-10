@@ -8,10 +8,14 @@
 
 #define GC_HEAP_GROW_FACTOR 2
 
-// #define GC_DEBUG
-// #define GC_STRESS
+#define USE_FUNCTION_CACHE
 
+#ifdef _DEBUG
+#define GC_DEBUG
+#define GC_STRESS
 #define OUTPUT_OPCODE
+#define PRINT_FUNCTION_CACHE
+#endif
 
 #if defined(_WIN32) || defined(_WIN64)
 #ifdef LWSCRIPT_BUILD_DLL

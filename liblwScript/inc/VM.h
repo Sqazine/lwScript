@@ -1,5 +1,6 @@
 #pragma once
 #include <iostream>
+#include <vector>
 #include "Config.h"
 #include "Chunk.h"
 #include "Object.h"
@@ -11,7 +12,24 @@ namespace lwscript
         ClosureObject *closure = nullptr;
         uint8_t *ip = nullptr;
         Value *slots = nullptr;
+#ifdef USE_FUNCTION_CACHE
+        std::vector<Value> arguments;
+#endif
     };
+
+#ifdef USE_FUNCTION_CACHE
+    class FunctionReturnResultCache
+    {
+    public:
+        void Set(const std::wstring& name, const std::vector<Value>& arguments, const std::vector<Value>& result);
+		bool Get(const std::wstring& name, const std::vector<Value>& arguments, std::vector<Value>& result) const;
+#ifdef PRINT_FUNCTION_CACHE
+        void Print();
+#endif
+    private:
+        std::unordered_map<std::wstring, ValueVecUnorderedMap> mCaches;
+    };
+#endif
 
     class LWSCRIPT_API VM
     {
@@ -59,6 +77,10 @@ namespace lwscript
 
         CallFrame mFrames[STACK_MAX];
         int32_t mFrameCount;
+
+#ifdef USE_FUNCTION_CACHE
+        FunctionReturnResultCache mFunctionCache;
+#endif
 
         friend struct Object;
 

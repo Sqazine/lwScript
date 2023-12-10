@@ -1,8 +1,6 @@
 #include "Object.h"
-#include "Value.h"
 #include "Chunk.h"
 #include "Utils.h"
-
 #include "VM.h"
 namespace lwscript
 {
@@ -123,24 +121,6 @@ namespace lwscript
 		return new ArrayObject(eles);
 	}
 
-	size_t DictObject::ValueHash::operator()(const Value &v) const
-	{
-		switch (v.type)
-		{
-		case VALUE_NULL:
-			return std::hash<ValueType>()(v.type);
-		case VALUE_INT:
-			return std::hash<ValueType>()(v.type) ^ std::hash<int64_t>()(v.integer);
-		case VALUE_REAL:
-			return std::hash<ValueType>()(v.type) ^ std::hash<double>()(v.realnum);
-		case VALUE_BOOL:
-			return std::hash<ValueType>()(v.type) ^ std::hash<bool>()(v.boolean);
-		case VALUE_OBJECT:
-			return std::hash<ValueType>()(v.type) ^ std::hash<Object *>()(v.object);
-		default:
-			return std::hash<ValueType>()(v.type);
-		}
-	}
 
 	DictObject::DictObject()
 		: Object(OBJECT_DICT)

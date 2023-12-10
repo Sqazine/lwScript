@@ -5,6 +5,42 @@
 #include "Token.h"
 namespace lwscript
 {
+#ifdef USE_FUNCTION_CACHE
+	void FunctionReturnResultCache::Set(const std::wstring& name, const std::vector<Value>& arguments, const std::vector<Value>& result)
+	{
+		mCaches[name][arguments] = result;
+	}
+	bool FunctionReturnResultCache::Get(const std::wstring& name, const std::vector<Value>& arguments, std::vector<Value>& result) const
+	{
+		auto iter = mCaches.find(name);
+		if (iter != mCaches.end())
+		{
+			auto iter2 = iter->second.find(arguments);
+			if (iter2 != iter->second.end())
+			{
+				result = iter2->second;
+				return true;
+			}
+		}
+
+		result = {};
+		return false;
+	}
+#ifdef PRINT_FUNCTION_CACHE
+	void FunctionReturnResultCache::Print()
+	{
+		for (const auto& [k, v] : mCaches)
+		{
+			LogToConsole(L"{}:",k);
+			for (const auto& [k1, v1] : v)
+			{
+				LogToConsole(L"\t{}:{}", k1[0].ToString(), v1[0].ToString());
+			}
+		}
+	}
+#endif
+#endif
+
 	Value VM::sNullValue = Value();
 
 	VM::VM()
@@ -49,6 +85,10 @@ namespace lwscript
 		mainCallFrame->slots = mStackTop - 1;
 
 		Execute();
+
+#ifdef PRINT_FUNCTION_CACHE
+		mFunctionCache.Print();
+#endif
 
 		std::vector<Value> returnValues;
 #ifdef _DEBUG
@@ -167,9 +207,21 @@ namespace lwscript
 				mStackTop = frame->slots;
 
 				if (retCount == 0)
+				{
+#ifdef USE_FUNCTION_CACHE
+					auto fnName = mFrames[mFrameCount].closure->function->name;
+					mFunctionCache.Set(fnName, mFrames[mFrameCount].arguments, {sNullValue});
+#endif
 					Push(sNullValue);
+				}
 				else
 				{
+#ifdef USE_FUNCTION_CACHE
+					auto fnName = mFrames[mFrameCount].closure->function->name;
+					std::vector<Value> rets(retValues, retValues+retCount);
+					mFunctionCache.Set(fnName, mFrames[mFrameCount].arguments, rets);
+#endif
+
 					uint8_t i = 0;
 					while (i < retCount)
 					{
@@ -381,7 +433,7 @@ namespace lwscript
 			case OP_DICT:
 			{
 				auto eCount = READ_INS();
-				DictObject::ValueUnorderedMap elements;
+				ValueUnorderedMap elements;
 				for (int64_t i = 0; i < (int64_t)eCount; ++i)
 				{
 					auto key = Pop();
@@ -662,13 +714,31 @@ namespace lwscript
 					}
 					else if (argCount != TO_CLOSURE_VALUE(callee)->function->arity)
 						Hint::Error(relatedToken, L"No matching argument count.");
-					// init a new frame
-					CallFrame *newframe = &mFrames[mFrameCount++];
-					newframe->closure = TO_CLOSURE_VALUE(callee);
-					newframe->ip = newframe->closure->function->chunk.opCodes.data();
-					newframe->slots = mStackTop - argCount - 1;
 
-					frame = &mFrames[mFrameCount - 1];
+#ifdef USE_FUNCTION_CACHE
+					std::vector<Value> args(mStackTop - argCount,mStackTop);
+					std::vector<Value> rets;
+					if (mFunctionCache.Get(TO_CLOSURE_VALUE(callee)->function->name, args, rets))
+					{
+						mStackTop = mStackTop - argCount - 1;
+						for (int32_t i = 0; i < rets.size(); ++i)
+							Push(rets[i]);
+					}
+					else
+#endif
+					{
+
+						// init a new frame
+						CallFrame *newframe = &mFrames[mFrameCount++];
+						newframe->closure = TO_CLOSURE_VALUE(callee);
+						newframe->ip = newframe->closure->function->chunk.opCodes.data();
+						newframe->slots = mStackTop - argCount - 1;
+#ifdef USE_FUNCTION_CACHE
+						newframe->arguments = args;
+#endif
+
+						frame = &mFrames[mFrameCount - 1];
+					}
 				}
 				else if (IS_CLASS_VALUE(callee)) // class constructor
 				{
@@ -866,7 +936,7 @@ namespace lwscript
 					auto anonymousObj = TO_ANONYMOUS_VALUE(peekValue);
 					auto iter = anonymousObj->elements.find(propName);
 					if (iter == anonymousObj->elements.end())
-						Hint::Error(relatedToken, L"No property: {} in anonymous object:{}", propName,anonymousObj->ToString());
+						Hint::Error(relatedToken, L"No property: {} in anonymous object:{}", propName, anonymousObj->ToString());
 					Pop(); // pop anonymouse object
 					anonymousObj->elements[iter->first] = Peek();
 					break;
@@ -1030,13 +1100,13 @@ namespace lwscript
 			case OP_RESET:
 			{
 				auto count = READ_INS();
-				std::vector<Value> values(count); 
-				std::vector<Value> keys(count); 
-				for(int32_t i=count-1;i>=0;--i)
-					keys[i]=Pop();
-				for(uint32_t i=0;i<count;++i)
-					values[i]=Pop();
-				for(uint32_t i=0;i<count;++i)
+				std::vector<Value> values(count);
+				std::vector<Value> keys(count);
+				for (int32_t i = count - 1; i >= 0; --i)
+					keys[i] = Pop();
+				for (uint32_t i = 0; i < count; ++i)
+					values[i] = Pop();
+				for (uint32_t i = 0; i < count; ++i)
 				{
 					Push(values[i]);
 					Push(keys[i]);
