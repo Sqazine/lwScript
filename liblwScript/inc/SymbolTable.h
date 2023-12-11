@@ -30,7 +30,7 @@ namespace lwscript
     {
         std::wstring name;
         SymbolType type = SymbolType::GLOBAL;
-        ValueDesc descType = ValueDesc::VARIABLE;
+        Privilege privilege = Privilege::MUTABLE;
         uint8_t index = 0;
         int8_t scopeDepth = -1;
         FunctionSymbolInfo functionSymInfo;
@@ -44,7 +44,7 @@ namespace lwscript
         SymbolTable();
         SymbolTable(SymbolTable *enclosing);
 
-        Symbol Define(const Token* relatedToken, ValueDesc descType, const std::wstring &name,const FunctionSymbolInfo& functionInfo={});
+        Symbol Define(const Token* relatedToken, Privilege privilege, const std::wstring &name,const FunctionSymbolInfo& functionInfo={});
 
         Symbol Resolve(const Token* relatedToken, const std::wstring &name, int8_t paramCount = -1 , int8_t d = 0);
 

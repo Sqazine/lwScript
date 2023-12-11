@@ -81,6 +81,8 @@ namespace lwscript
 		void PatchJump(uint64_t offset);
 		uint8_t AddConstant(const Value &value);
 
+		void EmitSymbol(const Symbol& symbol);
+
 		void EnterScope();
 		void ExitScope();
 

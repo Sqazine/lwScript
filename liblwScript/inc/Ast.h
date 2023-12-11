@@ -4,6 +4,7 @@
 #include <vector>
 #include <memory>
 #include "Token.h"
+#include "Utils.h"
 namespace lwscript
 {
 	enum AstType
@@ -393,12 +394,6 @@ namespace lwscript
 
 	struct VarStmt : public Stmt
 	{
-		enum class Privilege
-		{
-			MUTABLE,
-			IMMUTABLE,
-		};
-
 		VarStmt(Token *tagToken);
 		VarStmt(Token *tagToken, Privilege privilege, const std::vector<std::pair<Expr *, Expr *>> &variables);
 		~VarStmt();

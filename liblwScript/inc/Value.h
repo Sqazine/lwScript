@@ -2,6 +2,7 @@
 #include <string>
 #include <unordered_map>
 #include "Config.h"
+#include "Utils.h"
 namespace lwscript
 {
 	enum ValueType
@@ -11,12 +12,6 @@ namespace lwscript
 		VALUE_REAL,
 		VALUE_BOOL,
 		VALUE_OBJECT,
-	};
-
-	enum class ValueDesc
-	{
-		VARIABLE,
-		CONSTANT
 	};
 
 	struct LWSCRIPT_API Value
@@ -34,7 +29,7 @@ namespace lwscript
 		Value Clone() const;
 
 		ValueType type;
-		ValueDesc desc = ValueDesc::VARIABLE;
+		Privilege privilege = Privilege::MUTABLE;
 
 		union
 		{

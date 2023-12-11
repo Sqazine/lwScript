@@ -11,6 +11,12 @@
 #include "Token.h"
 namespace lwscript
 {
+    enum class Privilege
+    {
+        MUTABLE,
+        IMMUTABLE,
+    };
+
     std::wstring LWSCRIPT_API ReadFile(std::string_view path);
 
     std::wstring PointerAddressToString(void *pointer);
@@ -117,7 +123,7 @@ namespace lwscript
 #endif
         }
         template <typename... Args>
-        inline void Error(const Token* tok, const std::wstring &fmt, const Args &...args)
+        inline void Error(const Token *tok, const std::wstring &fmt, const Args &...args)
         {
             AssemblyLogInfo(L"[ERROR]", L"31", tok->line, tok->pos, fmt, args...);
 #ifdef _DEBUG

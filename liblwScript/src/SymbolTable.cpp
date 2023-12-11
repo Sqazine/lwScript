@@ -15,7 +15,7 @@ namespace lwscript
         mTableDepth = enclosing->mTableDepth + 1;
     }
 
-    Symbol SymbolTable::Define(const Token* relatedToken, ValueDesc descType, const std::wstring &name, const FunctionSymbolInfo &functionInfo)
+    Symbol SymbolTable::Define(const Token* relatedToken, Privilege privilege, const std::wstring &name, const FunctionSymbolInfo &functionInfo)
     {
         if (mSymbolCount >= mSymbols.size())
             Hint::Error(relatedToken, L"Too many symbols in current scope.");
@@ -30,7 +30,7 @@ namespace lwscript
 
         auto *symbol = &mSymbols[mSymbolCount++];
         symbol->name = name;
-        symbol->descType = descType;
+        symbol->privilege = privilege;
         symbol->functionSymInfo = functionInfo;
         symbol->relatedToken = relatedToken;
 

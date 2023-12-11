@@ -1,5 +1,6 @@
 #include "Parser.h"
 #include "Library.h"
+#include "Utils.h"
 namespace lwscript
 {
 	struct PrecedenceBinding
@@ -202,9 +203,9 @@ namespace lwscript
 		auto varStmt = new VarStmt(GetCurToken());
 
 		if (tType == TOKEN_LET)
-			varStmt->privilege = VarStmt::Privilege::MUTABLE;
+			varStmt->privilege = Privilege::MUTABLE;
 		else if (tType == TOKEN_CONST)
-			varStmt->privilege = VarStmt::Privilege::IMMUTABLE;
+			varStmt->privilege = Privilege::IMMUTABLE;
 
 		Consume(tType, L"Expect 'let' or 'const' key word");
 

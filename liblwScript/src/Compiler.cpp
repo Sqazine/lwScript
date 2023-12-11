@@ -45,12 +45,12 @@ namespace lwscript
 		auto symbol = &mSymbolTable->mSymbols[mSymbolTable->mSymbolCount++];
 		symbol->type = SymbolType::LOCAL;
 		symbol->index = mSymbolTable->mLocalSymbolCount++;
-		symbol->descType = ValueDesc::CONSTANT;
+		symbol->privilege = Privilege::IMMUTABLE;
 		symbol->scopeDepth = 0;
 		symbol->name = L"_main_start_up";
 
 		for (const auto &libName : LibraryManager::Instance().mStdLibraryMap)
-			mSymbolTable->Define(new Token(), ValueDesc::CONSTANT, libName);
+			mSymbolTable->Define(new Token(), Privilege::IMMUTABLE, libName);
 	}
 
 	void Compiler::CompileDecl(Stmt *stmt)
@@ -92,33 +92,12 @@ namespace lwscript
 	void Compiler::CompileFunctionDecl(FunctionStmt *stmt)
 	{
 		auto symbol = CompileFunction(stmt);
-		if (symbol.type == SymbolType::GLOBAL)
-		{
-			EmitOpCode(OP_SET_GLOBAL, symbol.relatedToken);
-			Emit(symbol.index);
-			EmitOpCode(OP_POP, symbol.relatedToken);
-		}
-		else if (symbol.type == SymbolType::LOCAL)
-		{
-			EmitOpCode(OP_SET_LOCAL, symbol.relatedToken);
-			Emit(symbol.index);
-		}
+		EmitSymbol(symbol);
 	}
 	void Compiler::CompileClassDecl(ClassStmt *stmt)
 	{
 		auto symbol = CompileClass(stmt);
-
-		if (symbol.type == SymbolType::GLOBAL)
-		{
-			EmitOpCode(OP_SET_GLOBAL, symbol.relatedToken);
-			Emit(symbol.index);
-			EmitOpCode(OP_POP, symbol.relatedToken);
-		}
-		else if (symbol.type == SymbolType::LOCAL)
-		{
-			EmitOpCode(OP_SET_LOCAL, symbol.relatedToken);
-			Emit(symbol.index);
-		}
+		EmitSymbol(symbol);
 	}
 
 	void Compiler::CompileEnumDecl(EnumStmt *stmt)
@@ -142,29 +121,19 @@ namespace lwscript
 		}
 
 		EmitConstant(new EnumObject(stmt->name->literal, pairs), stmt->name->tagToken);
-		auto symbol = mSymbolTable->Define(stmt->tagToken, ValueDesc::CONSTANT, stmt->name->literal);
-		if (symbol.type == SymbolType::GLOBAL)
-		{
-			EmitOpCode(OP_SET_GLOBAL, symbol.relatedToken);
-			Emit(symbol.index);
-			EmitOpCode(OP_POP, symbol.relatedToken);
-		}
-		else if (symbol.type == SymbolType::LOCAL)
-		{
-			EmitOpCode(OP_SET_LOCAL, symbol.relatedToken);
-			Emit(symbol.index);
-		}
+		auto symbol = mSymbolTable->Define(stmt->tagToken, Privilege::IMMUTABLE, stmt->name->literal);
+		EmitSymbol(symbol);
 	}
 
 	void Compiler::CompileModuleDecl(ModuleStmt *stmt)
 	{
-		auto symbol = mSymbolTable->Define(stmt->tagToken, ValueDesc::CONSTANT, stmt->name->literal);
+		auto symbol = mSymbolTable->Define(stmt->tagToken, Privilege::IMMUTABLE, stmt->name->literal);
 
 		mFunctionList.emplace_back(new FunctionObject(stmt->name->literal));
 
 		mSymbolTable = new SymbolTable(mSymbolTable);
 
-		mSymbolTable->Define(stmt->tagToken, ValueDesc::CONSTANT, L"");
+		mSymbolTable->Define(stmt->tagToken, Privilege::IMMUTABLE, L"");
 
 		uint8_t constCount = 0;
 		uint8_t varCount = 0;
@@ -199,13 +168,13 @@ namespace lwscript
 
 		for (const auto &varStmt : stmt->varItems)
 		{
-			if (varStmt->privilege == VarStmt::Privilege::IMMUTABLE)
+			if (varStmt->privilege == Privilege::IMMUTABLE)
 				constCount += CompileVars(varStmt, true);
 		}
 
 		for (const auto &varStmt : stmt->varItems)
 		{
-			if (varStmt->privilege == VarStmt::Privilege::MUTABLE)
+			if (varStmt->privilege == Privilege::MUTABLE)
 				varCount += CompileVars(varStmt, true);
 		}
 
@@ -232,17 +201,7 @@ namespace lwscript
 
 		mSymbolTable = mSymbolTable->enclosing;
 
-		if (symbol.type == SymbolType::GLOBAL)
-		{
-			EmitOpCode(OP_SET_GLOBAL, symbol.relatedToken);
-			Emit(symbol.index);
-			EmitOpCode(OP_POP, symbol.relatedToken);
-		}
-		else if (symbol.type == SymbolType::LOCAL)
-		{
-			EmitOpCode(OP_SET_LOCAL, symbol.relatedToken);
-			Emit(symbol.index);
-		}
+		EmitSymbol(symbol);
 	}
 
 	void Compiler::CompileStmt(Stmt *stmt, int64_t &breakStmtAddress, int64_t &continueStmtAddress)
@@ -814,7 +773,7 @@ namespace lwscript
 
 		if (state == RWState::WRITE)
 		{
-			if (symbol.descType == ValueDesc::VARIABLE)
+			if (symbol.privilege == Privilege::MUTABLE)
 			{
 				EmitOpCode(setOp, expr->tagToken);
 				if (symbol.type == SymbolType::UPVALUE)
@@ -849,7 +808,7 @@ namespace lwscript
 		mFunctionList.emplace_back(new FunctionObject());
 		mSymbolTable = new SymbolTable(mSymbolTable);
 
-		mSymbolTable->Define(expr->tagToken, ValueDesc::CONSTANT, L"");
+		mSymbolTable->Define(expr->tagToken, Privilege::IMMUTABLE, L"");
 
 		CurFunction()->arity = static_cast<uint8_t>(expr->parameters.size());
 		CurFunction()->varArgParamType = varArgParamType;
@@ -858,12 +817,12 @@ namespace lwscript
 		{
 			auto varDescExpr = (VarDescExpr *)param;
 			if (varDescExpr->name->type == AST_IDENTIFIER)
-				mSymbolTable->Define(varDescExpr->tagToken, ValueDesc::VARIABLE, ((IdentifierExpr *)((VarDescExpr *)param)->name)->literal);
+				mSymbolTable->Define(varDescExpr->tagToken, Privilege::MUTABLE, ((IdentifierExpr *)((VarDescExpr *)param)->name)->literal);
 			else if (varDescExpr->name->type == AST_VAR_ARG)
 			{
 				auto varArg = ((VarArgExpr *)varDescExpr->name);
 				if (varArg->argName)
-					mSymbolTable->Define(varArg->tagToken, ValueDesc::VARIABLE, varArg->argName->literal);
+					mSymbolTable->Define(varArg->tagToken, Privilege::MUTABLE, varArg->argName->literal);
 			}
 		}
 
@@ -993,7 +952,7 @@ namespace lwscript
 				varArgParamType = 1;
 		}
 
-		auto functionSymbol = mSymbolTable->Define(stmt->tagToken, ValueDesc::CONSTANT, stmt->name->literal, FunctionSymbolInfo{(int8_t)stmt->parameters.size(), varArgParamType});
+		auto functionSymbol = mSymbolTable->Define(stmt->tagToken, Privilege::IMMUTABLE, stmt->name->literal, FunctionSymbolInfo{(int8_t)stmt->parameters.size(), varArgParamType});
 
 		mFunctionList.emplace_back(new FunctionObject(stmt->name->literal));
 		mSymbolTable = new SymbolTable(mSymbolTable);
@@ -1001,7 +960,7 @@ namespace lwscript
 		std::wstring symbolName = stmt->name->literal;
 		if (stmt->type == FunctionType::CLASS_CLOSURE || stmt->type == FunctionType::CLASS_CONSTRUCTOR)
 			symbolName = L"this";
-		mSymbolTable->Define(stmt->tagToken, ValueDesc::CONSTANT, symbolName);
+		mSymbolTable->Define(stmt->tagToken, Privilege::IMMUTABLE, symbolName);
 
 		CurFunction()->arity = static_cast<uint8_t>(stmt->parameters.size());
 		CurFunction()->varArgParamType = varArgParamType;
@@ -1010,12 +969,12 @@ namespace lwscript
 		{
 			auto varDescExpr = (VarDescExpr *)param;
 			if (varDescExpr->name->type == AST_IDENTIFIER)
-				mSymbolTable->Define(varDescExpr->tagToken, ValueDesc::VARIABLE, ((IdentifierExpr *)((VarDescExpr *)param)->name)->literal);
+				mSymbolTable->Define(varDescExpr->tagToken, Privilege::MUTABLE, ((IdentifierExpr *)((VarDescExpr *)param)->name)->literal);
 			else if (varDescExpr->name->type == AST_VAR_ARG)
 			{
 				auto varArg = ((VarArgExpr *)varDescExpr->name);
 				if (varArg->argName)
-					mSymbolTable->Define(varArg->argName->tagToken, ValueDesc::VARIABLE, varArg->argName->literal);
+					mSymbolTable->Define(varArg->argName->tagToken, Privilege::MUTABLE, varArg->argName->literal);
 			}
 		}
 
@@ -1056,11 +1015,6 @@ namespace lwscript
 	{
 		uint32_t varCount = 0;
 
-		ValueDesc valueDesc = ValueDesc::VARIABLE;
-
-		if (stmt->privilege == VarStmt::Privilege::IMMUTABLE)
-			valueDesc = ValueDesc::CONSTANT;
-
 		auto postfixExprs = StatsPostfixExprs(stmt);
 
 		{
@@ -1098,7 +1052,7 @@ namespace lwscript
 						{
 							literal = ((IdentifierExpr *)((VarDescExpr *)arrayExpr->elements[i])->name)->literal;
 							token = ((IdentifierExpr *)((VarDescExpr *)arrayExpr->elements[i])->name)->tagToken;
-							symbol = mSymbolTable->Define(token, valueDesc, literal);
+							symbol = mSymbolTable->Define(token, stmt->privilege, literal);
 							resolveCount++;
 						}
 						else if (((VarDescExpr *)arrayExpr->elements[i])->name->type == AST_VAR_ARG)
@@ -1108,7 +1062,7 @@ namespace lwscript
 							{
 								literal = ((VarArgExpr *)((VarDescExpr *)arrayExpr->elements[i])->name)->argName->literal;
 								token = ((VarArgExpr *)((VarDescExpr *)arrayExpr->elements[i])->name)->argName->tagToken;
-								symbol = mSymbolTable->Define(token, valueDesc, literal);
+								symbol = mSymbolTable->Define(token, stmt->privilege, literal);
 								resolveCount++;
 								appregateOpCode = OP_APPREGATE_RESOLVE_VAR_ARG;
 							}
@@ -1157,7 +1111,7 @@ namespace lwscript
 						token = ((VarArgExpr *)((VarDescExpr *)k)->name)->argName->tagToken;
 					}
 
-					auto symbol = mSymbolTable->Define(token, valueDesc, literal);
+					auto symbol = mSymbolTable->Define(token, stmt->privilege, literal);
 					if (symbol.type == SymbolType::GLOBAL)
 					{
 						EmitOpCode(OP_SET_GLOBAL, symbol.relatedToken);
@@ -1186,12 +1140,12 @@ namespace lwscript
 
 	Symbol Compiler::CompileClass(ClassStmt *stmt)
 	{
-		auto symbol = mSymbolTable->Define(stmt->tagToken, ValueDesc::CONSTANT, stmt->name);
+		auto symbol = mSymbolTable->Define(stmt->tagToken, Privilege::IMMUTABLE, stmt->name);
 
 		mFunctionList.emplace_back(new FunctionObject(stmt->name));
 		mSymbolTable = new SymbolTable(mSymbolTable);
 
-		mSymbolTable->Define(stmt->tagToken, ValueDesc::CONSTANT, L"");
+		mSymbolTable->Define(stmt->tagToken, Privilege::IMMUTABLE, L"");
 
 		int8_t varCount = 0;
 		int8_t constCount = 0;
@@ -1212,13 +1166,13 @@ namespace lwscript
 
 		for (const auto &varStmt : stmt->varItems)
 		{
-			if (varStmt->privilege == VarStmt::Privilege::IMMUTABLE)
+			if (varStmt->privilege == Privilege::IMMUTABLE)
 				constCount += CompileVars(varStmt, true);
 		}
 
 		for (const auto &varStmt : stmt->varItems)
 		{
-			if (varStmt->privilege == VarStmt::Privilege::MUTABLE)
+			if (varStmt->privilege == Privilege::MUTABLE)
 				varCount += CompileVars(varStmt, true);
 		}
 
@@ -1320,6 +1274,21 @@ namespace lwscript
 	{
 		CurChunk().constants.emplace_back(value);
 		return static_cast<uint8_t>(CurChunk().constants.size()) - 1;
+	}
+
+	void Compiler::EmitSymbol(const Symbol& symbol)
+	{
+		if (symbol.type == SymbolType::GLOBAL)
+		{
+			EmitOpCode(OP_SET_GLOBAL, symbol.relatedToken);
+			Emit(symbol.index);
+			EmitOpCode(OP_POP, symbol.relatedToken);
+		}
+		else if (symbol.type == SymbolType::LOCAL)
+		{
+			EmitOpCode(OP_SET_LOCAL, symbol.relatedToken);
+			Emit(symbol.index);
+		}
 	}
 
 	void Compiler::EnterScope()

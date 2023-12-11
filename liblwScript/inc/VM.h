@@ -18,7 +18,7 @@ namespace lwscript
     };
 
 #ifdef USE_FUNCTION_CACHE
-    class FunctionReturnResultCache
+    class FunctionCache
     {
     public:
         void Set(const std::wstring& name, const std::vector<Value>& arguments, const std::vector<Value>& result);
@@ -79,7 +79,7 @@ namespace lwscript
         int32_t mFrameCount;
 
 #ifdef USE_FUNCTION_CACHE
-        FunctionReturnResultCache mFunctionCache;
+        FunctionCache mFunctionCache;
 #endif
 
         friend struct Object;

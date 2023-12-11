@@ -6,11 +6,11 @@
 namespace lwscript
 {
 #ifdef USE_FUNCTION_CACHE
-	void FunctionReturnResultCache::Set(const std::wstring& name, const std::vector<Value>& arguments, const std::vector<Value>& result)
+	void FunctionCache::Set(const std::wstring& name, const std::vector<Value>& arguments, const std::vector<Value>& result)
 	{
 		mCaches[name][arguments] = result;
 	}
-	bool FunctionReturnResultCache::Get(const std::wstring& name, const std::vector<Value>& arguments, std::vector<Value>& result) const
+	bool FunctionCache::Get(const std::wstring& name, const std::vector<Value>& arguments, std::vector<Value>& result) const
 	{
 		auto iter = mCaches.find(name);
 		if (iter != mCaches.end())
@@ -27,7 +27,7 @@ namespace lwscript
 		return false;
 	}
 #ifdef PRINT_FUNCTION_CACHE
-	void FunctionReturnResultCache::Print()
+	void FunctionCache::Print()
 	{
 		for (const auto& [k, v] : mCaches)
 		{
@@ -810,7 +810,7 @@ namespace lwscript
 				{
 					name = Pop();
 					auto v = Pop();
-					v.desc = ValueDesc::VARIABLE;
+					v.privilege = Privilege::MUTABLE;
 					classObj->members[TO_STR_VALUE(name)] = v;
 				}
 
@@ -818,7 +818,7 @@ namespace lwscript
 				{
 					name = Pop();
 					auto v = Pop();
-					v.desc = ValueDesc::CONSTANT;
+					v.privilege = Privilege::IMMUTABLE;
 					classObj->members[TO_STR_VALUE(name)] = v;
 				}
 
@@ -923,7 +923,7 @@ namespace lwscript
 					Value member;
 					if (klass->GetMember(propName, member))
 					{
-						if (member.desc == ValueDesc::CONSTANT)
+						if (member.privilege == Privilege::IMMUTABLE)
 							Hint::Error(relatedToken, L"Constant cannot be assigned twice: {}'s member: {} is a constant value", klass->name, propName);
 						else
 							klass->members[propName] = Peek();
@@ -1081,7 +1081,7 @@ namespace lwscript
 				{
 					name = Pop();
 					auto v = Pop();
-					v.desc = ValueDesc::CONSTANT;
+					v.privilege = Privilege::IMMUTABLE;
 					moduleObj->values[TO_STR_VALUE(name)] = v;
 				}
 
@@ -1089,7 +1089,7 @@ namespace lwscript
 				{
 					name = Pop();
 					auto v = Pop();
-					v.desc = ValueDesc::VARIABLE;
+					v.privilege = Privilege::MUTABLE;
 					moduleObj->values[TO_STR_VALUE(name)] = v;
 				}
 
