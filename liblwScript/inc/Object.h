@@ -176,7 +176,7 @@ namespace lwscript
         bool IsEqualTo(Object *other) override;
         Object *Clone() const override;
 
-        int8_t arity;
+        uint8_t arity;
         uint8_t varArgParamType; // 0:no,1:varArgWithoutName(...),2:varArgWithName(...args)
         int8_t upValueCount;
         Chunk chunk;

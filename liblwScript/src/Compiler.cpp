@@ -17,6 +17,8 @@ namespace lwscript
 
 	FunctionObject *Compiler::Compile(Stmt *stmt)
 	{
+		ResetStatus();
+
 		if (stmt->type == AST_ASTSTMTS)
 		{
 			auto stmts = ((AstStmts *)stmt)->stmts;
@@ -483,10 +485,10 @@ namespace lwscript
 
 				CompileExpr(expr->right);
 
-				uint32_t appregateOpCodeAddress = EmitOpCode((OpCode)0xFF, assignee->tagToken) - 1;
-				uint32_t resolveAddress = Emit((OpCode)0xFF);
+				uint64_t appregateOpCodeAddress = EmitOpCode((OpCode)0xFF, assignee->tagToken) - 1;
+				uint64_t resolveAddress = Emit((OpCode)0xFF);
 
-				uint32_t resolveCount = assignee->elements.size();
+				uint8_t resolveCount = static_cast<uint8_t>(assignee->elements.size());
 
 				if (assignee->elements.back()->type == AST_VAR_ARG)
 				{
@@ -505,7 +507,7 @@ namespace lwscript
 				CurOpCodes()[appregateOpCodeAddress] = appregateOpCode;
 				CurOpCodes()[resolveAddress] = resolveCount;
 
-				for (int32_t i = 0; i < resolveCount; ++i)
+				for (uint8_t i = 0; i < resolveCount; ++i)
 				{
 					CompileExpr(assignee->elements[i], RWState::WRITE);
 					if (i < resolveCount - 1)
@@ -522,7 +524,7 @@ namespace lwscript
 		{
 			// Short circuit calculation
 			CompileExpr(expr->left);
-			uint8_t address = EmitJump(OP_JUMP_IF_FALSE, expr->left->tagToken);
+			uint64_t address = EmitJump(OP_JUMP_IF_FALSE, expr->left->tagToken);
 			EmitOpCode(OP_POP, expr->left->tagToken);
 			CompileExpr(expr->right);
 			PatchJump(address);
@@ -530,8 +532,8 @@ namespace lwscript
 		else if (expr->op == L"||")
 		{
 			CompileExpr(expr->left);
-			uint8_t elseJumpAddress = EmitJump(OP_JUMP_IF_FALSE, expr->left->tagToken);
-			uint8_t jumpAddress = EmitJump(OP_JUMP, expr->left->tagToken);
+			uint64_t elseJumpAddress = EmitJump(OP_JUMP_IF_FALSE, expr->left->tagToken);
+			uint64_t jumpAddress = EmitJump(OP_JUMP, expr->left->tagToken);
 			PatchJump(elseJumpAddress);
 			EmitOpCode(OP_POP, expr->left->tagToken);
 			CompileExpr(expr->right);
@@ -745,7 +747,7 @@ namespace lwscript
 			CompileExpr(expr->elements[i].first);
 		}
 		EmitOpCode(OP_DICT, expr->tagToken);
-		uint8_t pos = expr->elements.size();
+		uint8_t pos = static_cast<uint8_t>(expr->elements.size());
 		Emit(pos);
 	}
 
@@ -770,7 +772,7 @@ namespace lwscript
 			for (const auto &arg : callee->arguments)
 				CompileExpr(arg);
 			EmitOpCode(OP_CALL, expr->callee->tagToken);
-			Emit(callee->arguments.size());
+			Emit(static_cast<uint8_t>(callee->arguments.size()));
 		}
 		else if (expr->callee->type == AST_ANONY_OBJ)
 			CompileAnonymousObjExpr((AnonyObjExpr *)(expr->callee));
@@ -849,7 +851,7 @@ namespace lwscript
 
 		mSymbolTable->Define(expr->tagToken, ValueDesc::CONSTANT, L"");
 
-		CurFunction()->arity = expr->parameters.size();
+		CurFunction()->arity = static_cast<uint8_t>(expr->parameters.size());
 		CurFunction()->varArgParamType = varArgParamType;
 
 		for (const auto &param : expr->parameters)
@@ -893,11 +895,11 @@ namespace lwscript
 
 	void Compiler::CompileCallExpr(CallExpr *expr)
 	{
-		CompileExpr(expr->callee, RWState::READ, expr->arguments.size());
+		CompileExpr(expr->callee, RWState::READ, static_cast<int8_t>(expr->arguments.size()));
 		for (const auto &arg : expr->arguments)
 			CompileExpr(arg);
 		EmitOpCode(OP_CALL, expr->callee->tagToken);
-		Emit(expr->arguments.size());
+		Emit(static_cast<uint8_t>(expr->arguments.size()));
 	}
 	void Compiler::CompileDotExpr(DotExpr *expr, const RWState &state)
 	{
@@ -961,7 +963,7 @@ namespace lwscript
 			EmitConstant(new StrObject(k), v->tagToken);
 		}
 		EmitOpCode(OP_ANONYMOUS_OBJ, expr->tagToken);
-		uint8_t pos = expr->elements.size();
+		uint8_t pos = static_cast<uint8_t>(expr->elements.size());
 		Emit(pos);
 	}
 
@@ -1001,7 +1003,7 @@ namespace lwscript
 			symbolName = L"this";
 		mSymbolTable->Define(stmt->tagToken, ValueDesc::CONSTANT, symbolName);
 
-		CurFunction()->arity = stmt->parameters.size();
+		CurFunction()->arity = static_cast<uint8_t>(stmt->parameters.size());
 		CurFunction()->varArgParamType = varArgParamType;
 
 		for (const auto &param : stmt->parameters)
@@ -1069,15 +1071,15 @@ namespace lwscript
 				{
 					auto arrayExpr = (ArrayExpr *)k;
 
-					uint32_t resolveAddress = 0;
+					uint64_t resolveAddress = 0;
 					OpCode appregateOpCode = OP_APPREGATE_RESOLVE;
-					uint32_t appregateOpCodeAddress;
+					uint64_t appregateOpCodeAddress;
 
 					// compile right value
 					{
 						CompileExpr(v);
 
-						appregateOpCodeAddress = EmitOpCode((OpCode)0xFF, arrayExpr->tagToken) - 1;
+						appregateOpCodeAddress = EmitOpCode((OpCode)0xFF, arrayExpr->tagToken) - static_cast<uint64_t>(1);
 						resolveAddress = Emit((OpCode)0xFF);
 					}
 
@@ -1233,10 +1235,10 @@ namespace lwscript
 
 		EmitConstant(new StrObject(stmt->name), stmt->tagToken);
 		EmitOpCode(OP_CLASS, stmt->tagToken);
-		Emit(stmt->constructors.size());
+		Emit(static_cast<uint8_t>(stmt->constructors.size()));
 		Emit(varCount);
 		Emit(constCount);
-		Emit(stmt->parentClasses.size());
+		Emit(static_cast<uint8_t>(stmt->parentClasses.size()));
 
 		EmitReturn(1, stmt->tagToken);
 
@@ -1256,7 +1258,7 @@ namespace lwscript
 
 		CurChunk().opCodeRelatedTokens.emplace_back(token);
 
-		Emit(CurChunk().opCodeRelatedTokens.size() - 1);
+		Emit(static_cast<uint8_t>(CurChunk().opCodeRelatedTokens.size() - 1));
 
 		return CurOpCodes().size() - 1;
 	}
@@ -1301,7 +1303,7 @@ namespace lwscript
 	void Compiler::EmitLoop(uint16_t opcode, const Token *token)
 	{
 		EmitOpCode(OP_LOOP, token);
-		uint16_t offset = CurOpCodes().size() - opcode + 2;
+		uint16_t offset = static_cast<uint16_t>(CurOpCodes().size()) - opcode + 2;
 
 		Emit((offset >> 8) & 0xFF);
 		Emit(offset & 0xFF);
@@ -1309,15 +1311,15 @@ namespace lwscript
 
 	void Compiler::PatchJump(uint64_t offset)
 	{
-		uint16_t jumpOffset = CurOpCodes().size() - offset - 2;
+		uint16_t jumpOffset = static_cast<uint16_t>(CurOpCodes().size() - offset - 2);
 		CurOpCodes()[offset] = (jumpOffset >> 8) & 0xFF;
-		CurOpCodes()[offset + 1] = (jumpOffset) & 0xFF;
+		CurOpCodes()[offset + 1] = (jumpOffset)&0xFF;
 	}
 
 	uint8_t Compiler::AddConstant(const Value &value)
 	{
 		CurChunk().constants.emplace_back(value);
-		return CurChunk().constants.size() - 1;
+		return static_cast<uint8_t>(CurChunk().constants.size()) - 1;
 	}
 
 	void Compiler::EnterScope()

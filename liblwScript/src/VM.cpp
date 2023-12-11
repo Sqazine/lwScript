@@ -596,7 +596,7 @@ namespace lwscript
 					if (intIdx < 0)
 						intIdx = (int64_t)array->elements.size() + intIdx;
 
-					if (intIdx < 0 || intIdx >= array->elements.size())
+					if (intIdx < 0 || intIdx >= static_cast<int64_t>(array->elements.size()))
 						Hint::Error(relatedToken, L"Idx out of range.");
 
 					Push(CreateObject<RefObject>(&(array->elements[intIdx])));
@@ -625,7 +625,7 @@ namespace lwscript
 					if (intIdx < 0)
 						intIdx = (int64_t)array->elements.size() + intIdx;
 
-					if (intIdx < 0 || intIdx >= array->elements.size())
+					if (intIdx < 0 || intIdx >= static_cast<int64_t>(array->elements.size()))
 						Hint::Error(relatedToken, L"Idx out of range.");
 					Push(CreateObject<RefObject>(&array->elements[intIdx]));
 				}
@@ -652,7 +652,7 @@ namespace lwscript
 					if (intIdx < 0)
 						intIdx = (int64_t)array->elements.size() + intIdx;
 
-					if (intIdx < 0 || intIdx >= array->elements.size())
+					if (intIdx < 0 || intIdx >= static_cast<int64_t>(array->elements.size()))
 						Hint::Error(relatedToken, L"Idx out of range.");
 					Push(CreateObject<RefObject>(&array->elements[intIdx]));
 				}
@@ -997,7 +997,7 @@ namespace lwscript
 							Push(sNullValue);
 							diff--;
 						}
-						for (int32_t i = arrayObj->elements.size() - 1; i >= 0; --i)
+						for (int32_t i = static_cast<int32_t>(arrayObj->elements.size() - 1); i >= 0; --i)
 							Push(arrayObj->elements[i]);
 					}
 					else
@@ -1030,7 +1030,7 @@ namespace lwscript
 					{
 						auto diff = count - arrayObj->elements.size();
 
-						for (int32_t i = diff; i > 0; --i)
+						for (int32_t i = static_cast<int32_t>(diff); i > 0; --i)
 						{
 							if (i == diff)
 								Push(CreateObject<ArrayObject>());
@@ -1038,7 +1038,7 @@ namespace lwscript
 								Push(sNullValue);
 						}
 
-						for (int32_t i = arrayObj->elements.size() - 1; i >= 0; --i)
+						for (int32_t i = static_cast<int32_t>(arrayObj->elements.size() - 1); i >= 0; --i)
 							Push(arrayObj->elements[i]);
 					}
 					else

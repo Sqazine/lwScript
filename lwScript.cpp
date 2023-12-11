@@ -10,6 +10,7 @@
 void Repl()
 {
 	std::wstring line;
+	std::wstring allLines;
 	lwscript::Lexer lexer;
 	lwscript::Parser parser;
 	lwscript::Compiler compiler;
@@ -18,13 +19,14 @@ void Repl()
 	std::wcout << L">> ";
 	while (getline(std::wcin, line))
 	{
+		allLines+=line;
 		if (line == L"clear")
 		{
-			compiler.ResetStatus();
+			allLines=L"";
 		}
 		else
 		{
-			auto tokens = lexer.ScanTokens(line);
+			auto tokens = lexer.ScanTokens(allLines);
 #ifdef _DEBUG
 			for (const auto &token : tokens)
 				lwscript::LogToConsole(L"{}", *token);

@@ -75,7 +75,7 @@ namespace lwscript
 
         OpCodes opCodes;
         std::vector<Value> constants;
-        std::vector<const Token*> opCodeRelatedTokens;
+        std::vector<const Token *> opCodeRelatedTokens;
 
     private:
         std::wstring OpCodeToString(const OpCodes &opcodes) const;
