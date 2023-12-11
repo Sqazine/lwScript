@@ -6,11 +6,11 @@
 namespace lwscript
 {
 #ifdef USE_FUNCTION_CACHE
-	void FunctionCache::Set(const std::wstring& name, const std::vector<Value>& arguments, const std::vector<Value>& result)
+	void FunctionCache::Set(const std::wstring &name, const std::vector<Value> &arguments, const std::vector<Value> &result)
 	{
 		mCaches[name][arguments] = result;
 	}
-	bool FunctionCache::Get(const std::wstring& name, const std::vector<Value>& arguments, std::vector<Value>& result) const
+	bool FunctionCache::Get(const std::wstring &name, const std::vector<Value> &arguments, std::vector<Value> &result) const
 	{
 		auto iter = mCaches.find(name);
 		if (iter != mCaches.end())
@@ -29,10 +29,10 @@ namespace lwscript
 #ifdef PRINT_FUNCTION_CACHE
 	void FunctionCache::Print()
 	{
-		for (const auto& [k, v] : mCaches)
+		for (const auto &[k, v] : mCaches)
 		{
-			LogToConsole(L"{}:",k);
-			for (const auto& [k1, v1] : v)
+			LogToConsole(L"{}:", k);
+			for (const auto &[k1, v1] : v)
 			{
 				LogToConsole(L"\t{}:{}", k1[0].ToString(), v1[0].ToString());
 			}
@@ -44,25 +44,31 @@ namespace lwscript
 	Value VM::sNullValue = Value();
 
 	VM::VM()
-		: mObjectChain(nullptr), mOpenUpValues(nullptr), mStackTop(nullptr)
+		: mOpenUpValues(nullptr), mStackTop(nullptr)
 	{
 		ResetStatus();
 	}
 	VM::~VM()
 	{
-		FreeObjects();
+		if(mAllocator)
+		{
+			delete mAllocator;
+			mAllocator=nullptr;
+		}
 	}
 
 	void VM::ResetStatus()
 	{
-		if (!mObjectChain)
-			FreeObjects();
+		if(mAllocator)
+		{
+			delete mAllocator;
+			mAllocator=nullptr;
+		}
 
-		mFrameCount = 0;
-		mBytesAllocated = 0;
-		mNextGCByteSize = 256;
+		mAllocator=new Allocator(this);
+		
+        mFrameCount = 0;
 		mStackTop = mValueStack;
-		mObjectChain = nullptr;
 		mOpenUpValues = nullptr;
 
 		for (int32_t i = 0; i < LibraryManager::Instance().mStdLibraries.size(); ++i)
@@ -73,9 +79,9 @@ namespace lwscript
 	{
 		ResetStatus();
 
-		RegisterToGCRecordChain(mainFunc);
+		mAllocator->RegisterToGCRecordChain(mainFunc);
 
-		auto closure = CreateObject<ClosureObject>(mainFunc);
+		auto closure = mAllocator->CreateObject<ClosureObject>(mainFunc);
 
 		Push(closure);
 
@@ -218,7 +224,7 @@ namespace lwscript
 				{
 #ifdef USE_FUNCTION_CACHE
 					auto fnName = mFrames[mFrameCount].closure->function->name;
-					std::vector<Value> rets(retValues, retValues+retCount);
+					std::vector<Value> rets(retValues, retValues + retCount);
 					mFunctionCache.Set(fnName, mFrames[mFrameCount].arguments, rets);
 #endif
 
@@ -239,7 +245,7 @@ namespace lwscript
 				auto pos = READ_INS();
 				auto v = frame->closure->function->chunk.constants[pos];
 				auto vClone = v.Clone();
-				RegisterToGCRecordChain(vClone);
+				mAllocator->RegisterToGCRecordChain(vClone);
 				Push(vClone);
 				break;
 			}
@@ -319,7 +325,7 @@ namespace lwscript
 				else if (IS_REAL_VALUE(left) && IS_INT_VALUE(right))
 					Push(TO_REAL_VALUE(left) + TO_INT_VALUE(right));
 				else if (IS_STR_VALUE(left) && IS_STR_VALUE(right))
-					Push(CreateObject<StrObject>(TO_STR_VALUE(left) + TO_STR_VALUE(right)));
+					Push(mAllocator->CreateObject<StrObject>(TO_STR_VALUE(left) + TO_STR_VALUE(right)));
 				else
 					Hint::Error(relatedToken, L"Invalid binary op:{}+{},only (&)int-(&)int,(&)real-(&)real,(&)int-(&)real or (&)real-(&)int type pair is available.", left.ToString(), right.ToString());
 				break;
@@ -426,7 +432,7 @@ namespace lwscript
 				std::vector<Value> elements(count);
 				for (auto i = 0; i < count; ++i)
 					elements[i] = (*--mStackTop);
-				auto arrayObject = CreateObject<ArrayObject>(elements);
+				auto arrayObject = mAllocator->CreateObject<ArrayObject>(elements);
 				Push(arrayObject);
 				break;
 			}
@@ -440,7 +446,7 @@ namespace lwscript
 					auto value = Pop();
 					elements[key] = value;
 				}
-				Push(CreateObject<DictObject>(elements));
+				Push(mAllocator->CreateObject<DictObject>(elements));
 				break;
 			}
 			case OP_GET_INDEX:
@@ -477,7 +483,7 @@ namespace lwscript
 					if (intIdx < 0 || intIdx >= (int64_t)str.size())
 						Hint::Error(relatedToken, L"Idx out of range.string size is {}", (int64_t)str.size());
 
-					Push(CreateObject<StrObject>(str.substr(intIdx, 1)));
+					Push(mAllocator->CreateObject<StrObject>(str.substr(intIdx, 1)));
 				}
 				else if (IS_DICT_VALUE(dsValue))
 				{
@@ -561,19 +567,19 @@ namespace lwscript
 			case OP_REF_GLOBAL:
 			{
 				auto index = READ_INS();
-				Push(CreateObject<RefObject>(&mGlobalVariables[index]));
+				Push(mAllocator->CreateObject<RefObject>(&mGlobalVariables[index]));
 				break;
 			}
 			case OP_REF_LOCAL:
 			{
 				auto index = READ_INS();
-				Push(CreateObject<RefObject>(frame->slots + index));
+				Push(mAllocator->CreateObject<RefObject>(frame->slots + index));
 				break;
 			}
 			case OP_REF_UPVALUE:
 			{
 				auto index = READ_INS();
-				Push(CreateObject<RefObject>(frame->closure->upvalues[index]->location));
+				Push(mAllocator->CreateObject<RefObject>(frame->closure->upvalues[index]->location));
 				break;
 			}
 			case OP_REF_INDEX_GLOBAL:
@@ -582,7 +588,7 @@ namespace lwscript
 				auto idxValue = Pop();
 				if (IS_DICT_VALUE(mGlobalVariables[index]))
 				{
-					Push(CreateObject<RefObject>(&TO_DICT_VALUE(mGlobalVariables[index])->elements[idxValue]));
+					Push(mAllocator->CreateObject<RefObject>(&TO_DICT_VALUE(mGlobalVariables[index])->elements[idxValue]));
 				}
 				else if (IS_ARRAY_VALUE(mGlobalVariables[index]))
 				{
@@ -599,7 +605,7 @@ namespace lwscript
 					if (intIdx < 0 || intIdx >= static_cast<int64_t>(array->elements.size()))
 						Hint::Error(relatedToken, L"Idx out of range.");
 
-					Push(CreateObject<RefObject>(&(array->elements[intIdx])));
+					Push(mAllocator->CreateObject<RefObject>(&(array->elements[intIdx])));
 				}
 				else
 					Hint::Error(relatedToken, L"Invalid indexed reference type:{} not a dict or array value.", mGlobalVariables[index].ToString());
@@ -612,7 +618,7 @@ namespace lwscript
 				Value *v = frame->slots + index;
 				if (IS_DICT_VALUE((*v)))
 				{
-					Push(CreateObject<RefObject>(&TO_DICT_VALUE((*v))->elements[idxValue]));
+					Push(mAllocator->CreateObject<RefObject>(&TO_DICT_VALUE((*v))->elements[idxValue]));
 				}
 				else if (IS_ARRAY_VALUE((*v)))
 				{
@@ -627,7 +633,7 @@ namespace lwscript
 
 					if (intIdx < 0 || intIdx >= static_cast<int64_t>(array->elements.size()))
 						Hint::Error(relatedToken, L"Idx out of range.");
-					Push(CreateObject<RefObject>(&array->elements[intIdx]));
+					Push(mAllocator->CreateObject<RefObject>(&array->elements[intIdx]));
 				}
 				else
 					Hint::Error(relatedToken, L"Invalid indexed reference type:{} not a dict or array value.", v->ToString());
@@ -640,7 +646,7 @@ namespace lwscript
 				Value *v = frame->closure->upvalues[index]->location;
 				if (IS_DICT_VALUE((*v)))
 				{
-					Push(CreateObject<RefObject>(&TO_DICT_VALUE((*v))->elements[idxValue]));
+					Push(mAllocator->CreateObject<RefObject>(&TO_DICT_VALUE((*v))->elements[idxValue]));
 				}
 				else if (IS_ARRAY_VALUE((*v)))
 				{
@@ -654,7 +660,7 @@ namespace lwscript
 
 					if (intIdx < 0 || intIdx >= static_cast<int64_t>(array->elements.size()))
 						Hint::Error(relatedToken, L"Idx out of range.");
-					Push(CreateObject<RefObject>(&array->elements[intIdx]));
+					Push(mAllocator->CreateObject<RefObject>(&array->elements[intIdx]));
 				}
 				else
 					Hint::Error(relatedToken, L"Invalid indexed reference type: {}  not a dict or array value.", v->ToString());
@@ -716,7 +722,7 @@ namespace lwscript
 						Hint::Error(relatedToken, L"No matching argument count.");
 
 #ifdef USE_FUNCTION_CACHE
-					std::vector<Value> args(mStackTop - argCount,mStackTop);
+					std::vector<Value> args(mStackTop - argCount, mStackTop);
 					std::vector<Value> rets;
 					if (mFunctionCache.Get(TO_CLOSURE_VALUE(callee)->function->name, args, rets))
 					{
@@ -789,7 +795,7 @@ namespace lwscript
 				auto constCount = READ_INS();
 				auto parentClassCount = READ_INS();
 
-				auto classObj = CreateObject<ClassObject>();
+				auto classObj = mAllocator->CreateObject<ClassObject>();
 				classObj->name = TO_STR_VALUE(name);
 				Pop(); // pop name strobject
 
@@ -835,7 +841,7 @@ namespace lwscript
 					auto value = Pop();
 					elements[key] = value;
 				}
-				Push(CreateObject<AnonymousObject>(elements));
+				Push(mAllocator->CreateObject<AnonymousObject>(elements));
 				break;
 			}
 			case OP_GET_PROPERTY:
@@ -856,7 +862,7 @@ namespace lwscript
 						Pop(); // pop class object
 						if (IS_CLOSURE_VALUE(member))
 						{
-							ClassClosureBindObject *binding = CreateObject<ClassClosureBindObject>(klass, TO_CLOSURE_VALUE(member));
+							ClassClosureBindObject *binding = mAllocator->CreateObject<ClassClosureBindObject>(klass, TO_CLOSURE_VALUE(member));
 							member = Value(binding);
 						}
 						Push(member);
@@ -964,7 +970,7 @@ namespace lwscript
 			{
 				auto pos = READ_INS();
 				auto func = TO_FUNCTION_VALUE(frame->closure->function->chunk.constants[pos]);
-				auto closure = CreateObject<ClosureObject>(func);
+				auto closure = mAllocator->CreateObject<ClosureObject>(func);
 
 				for (int32_t i = 0; i < closure->upvalues.size(); ++i)
 				{
@@ -1033,7 +1039,7 @@ namespace lwscript
 						for (int32_t i = static_cast<int32_t>(diff); i > 0; --i)
 						{
 							if (i == diff)
-								Push(CreateObject<ArrayObject>());
+								Push(mAllocator->CreateObject<ArrayObject>());
 							else
 								Push(sNullValue);
 						}
@@ -1043,7 +1049,7 @@ namespace lwscript
 					}
 					else
 					{
-						ArrayObject *varArgArray = CreateObject<ArrayObject>();
+						ArrayObject *varArgArray = mAllocator->CreateObject<ArrayObject>();
 						for (int32_t i = count - 1; i < arrayObj->elements.size(); ++i)
 							varArgArray->elements.emplace_back(arrayObj->elements[i]);
 						Push(varArgArray);
@@ -1061,7 +1067,7 @@ namespace lwscript
 						diff--;
 					}
 
-					Push(CreateObject<ArrayObject>());
+					Push(mAllocator->CreateObject<ArrayObject>());
 					Push(value);
 				}
 				break;
@@ -1073,7 +1079,7 @@ namespace lwscript
 				auto varCount = READ_INS();
 				auto constCount = READ_INS();
 
-				auto moduleObj = CreateObject<ModuleObject>();
+				auto moduleObj = mAllocator->CreateObject<ModuleObject>();
 				moduleObj->name = TO_STR_VALUE(name);
 				Pop(); // pop name strobject
 
@@ -1152,7 +1158,7 @@ namespace lwscript
 		if (upValue != nullptr && upValue->location == location)
 			return upValue;
 
-		auto createdUpValue = CreateObject<UpValueObject>(location);
+		auto createdUpValue = mAllocator->CreateObject<UpValueObject>(location);
 		createdUpValue->nextUpValue = upValue;
 
 		if (prevUpValue == nullptr)
@@ -1170,106 +1176,6 @@ namespace lwscript
 			upvalue->closed = *upvalue->location;
 			upvalue->location = &upvalue->closed;
 			mOpenUpValues = upvalue->nextUpValue;
-		}
-	}
-
-	void VM::FreeObjects()
-	{
-		auto bytes = mBytesAllocated;
-		Object *object = mObjectChain;
-		while (object != nullptr)
-		{
-			Object *next = object->next;
-			mBytesAllocated -= sizeof(object);
-			delete object;
-			object = next;
-		}
-
-#ifdef GC_DEBUG
-		std::wcout << "collected " << bytes - mBytesAllocated << " bytes (from " << bytes << " to " << mBytesAllocated << ") next gc bytes " << mNextGCByteSize << std::endl;
-#endif
-	}
-
-	void VM::RegisterToGCRecordChain(const Value &value)
-	{
-		if (IS_OBJECT_VALUE(value) && value.object->next == nullptr) // check is null to judge if is a unique object
-		{
-			size_t objBytes = sizeof(value.object);
-			mBytesAllocated += objBytes;
-#ifdef GC_STRESS
-			GC();
-#endif
-			if (mBytesAllocated > mNextGCByteSize)
-				GC();
-			value.object->marked = false;
-			value.object->next = mObjectChain;
-			mObjectChain = value.object;
-#ifdef GC_DEBUG
-			std::cout << (void *)value.object << " has been add to gc record chain " << objBytes << " for " << value.object->type << std::endl;
-#endif
-		}
-	}
-
-	void VM::GC()
-	{
-#ifdef GC_DEBUG
-		std::wcout << "begin gc" << std::endl;
-		size_t bytes = mBytesAllocated;
-#endif
-		MarkRootObjects();
-		MarkGrayObjects();
-		Sweep();
-		mNextGCByteSize = mBytesAllocated * GC_HEAP_GROW_FACTOR;
-#ifdef GC_DEBUG
-		std::wcout << "end gc" << std::endl;
-		std::wcout << "    collected " << bytes - mBytesAllocated << " bytes (from " << bytes << " to " << mBytesAllocated << ") next gc bytes " << mNextGCByteSize << std::endl;
-#endif
-	}
-	void VM::MarkRootObjects()
-	{
-		for (Value *slot = mValueStack; slot < mStackTop; ++slot)
-			slot->Mark(this);
-		for (int32_t i = 0; i < mFrameCount; ++i)
-			mFrames[i].closure->Mark(this);
-		for (UpValueObject *upvalue = mOpenUpValues; upvalue != nullptr; upvalue = upvalue->nextUpValue)
-			upvalue->Mark(this);
-
-		for (int32_t i = 0; i < GLOBAL_VARIABLE_MAX; ++i)
-			if (mGlobalVariables[i] != sNullValue)
-				mGlobalVariables[i].Mark(this);
-	}
-	void VM::MarkGrayObjects()
-	{
-		while (mGrayObjects.size() > 0)
-		{
-			auto object = mGrayObjects.back();
-			mGrayObjects.pop_back();
-			object->Blacken(this);
-		}
-	}
-	void VM::Sweep()
-	{
-		Object *previous = nullptr;
-		Object *object = mObjectChain;
-		while (object)
-		{
-			if (object->marked)
-			{
-				object->UnMark();
-				previous = object;
-				object = object->next;
-			}
-			else
-			{
-				Object *unreached = object;
-				object = object->next;
-				if (previous != nullptr)
-					previous->next = object;
-				else
-					mObjectChain = object;
-
-				FreeObject(unreached);
-			}
 		}
 	}
 }

@@ -49,10 +49,10 @@ namespace lwscript
         }
         return L"null";
     }
-    void Value::Mark(VM *vm) const
+    void Value::Mark(Allocator *allocator) const
     {
         if (type == VALUE_OBJECT)
-            object->Mark(vm);
+            object->Mark(allocator);
     }
     void Value::UnMark() const
     {

@@ -13,7 +13,7 @@ namespace lwscript
 	{
 	}
 
-	void Object::Mark(VM *vm)
+	void Object::Mark(Allocator *allocator)
 	{
 		if (marked)
 			return;
@@ -21,7 +21,7 @@ namespace lwscript
 		std::wcout << L"0x" << (void *)this << L" mark: " << ToString() << std::endl;
 #endif
 		marked = true;
-		vm->mGrayObjects.emplace_back(this);
+		allocator->mGrayObjects.emplace_back(this);
 	}
 	void Object::UnMark()
 	{
@@ -33,7 +33,7 @@ namespace lwscript
 		marked = false;
 	}
 
-	void Object::Blacken(VM *vm)
+	void Object::Blacken(Allocator *allocator)
 	{
 #ifdef GC_DEBUG
 		std::wcout << L"0x" << (void *)this << L" blacken: " << ToString() << std::endl;
@@ -89,11 +89,11 @@ namespace lwscript
 		return result;
 	}
 
-	void ArrayObject::Blacken(VM *vm)
+	void ArrayObject::Blacken(Allocator *allocator)
 	{
-		Object::Blacken(vm);
+		Object::Blacken(allocator);
 		for (auto &e : elements)
-			e.Mark(vm);
+			e.Mark(allocator);
 	}
 
 	bool ArrayObject::IsEqualTo(Object *other)
@@ -144,13 +144,13 @@ namespace lwscript
 		return result;
 	}
 
-	void DictObject::Blacken(VM *vm)
+	void DictObject::Blacken(Allocator *allocator)
 	{
-		Object::Blacken(vm);
+		Object::Blacken(allocator);
 		for (auto &[k, v] : elements)
 		{
-			k.Mark(vm);
-			v.Mark(vm);
+			k.Mark(allocator);
+			v.Mark(allocator);
 		}
 	}
 
@@ -215,12 +215,12 @@ namespace lwscript
 		return result;
 	}
 
-	void AnonymousObject::Blacken(VM *vm)
+	void AnonymousObject::Blacken(Allocator *allocator)
 	{
-		Object::Blacken(vm);
+		Object::Blacken(allocator);
 		for (auto &[k, v] : elements)
 		{
-			v.Mark(vm);
+			v.Mark(allocator);
 		}
 	}
 	bool AnonymousObject::IsEqualTo(Object *other)
@@ -282,11 +282,11 @@ namespace lwscript
 		return result;
 	}
 
-	void FunctionObject::Blacken(VM *vm)
+	void FunctionObject::Blacken(Allocator *allocator)
 	{
-		Object::Blacken(vm);
+		Object::Blacken(allocator);
 		for (auto &c : chunk.constants)
-			c.Mark(vm);
+			c.Mark(allocator);
 	}
 
 	bool FunctionObject::IsEqualTo(Object *other)
@@ -336,10 +336,10 @@ namespace lwscript
 		return location->ToString();
 	}
 
-	void UpValueObject::Blacken(VM *vm)
+	void UpValueObject::Blacken(Allocator *allocator)
 	{
-		Object::Blacken(vm);
-		closed.Mark(vm);
+		Object::Blacken(allocator);
+		closed.Mark(allocator);
 	}
 
 	bool UpValueObject::IsEqualTo(Object *other)
@@ -386,13 +386,13 @@ namespace lwscript
 		return function->ToString();
 	}
 
-	void ClosureObject::Blacken(VM *vm)
+	void ClosureObject::Blacken(Allocator *allocator)
 	{
-		Object::Blacken(vm);
-		function->Mark(vm);
+		Object::Blacken(allocator);
+		function->Mark(allocator);
 		for (int32_t i = 0; i < upvalues.size(); ++i)
 			if (upvalues[i])
-				upvalues[i]->Mark(vm);
+				upvalues[i]->Mark(allocator);
 	}
 
 	bool ClosureObject::IsEqualTo(Object *other)
@@ -507,15 +507,15 @@ namespace lwscript
 		return result + L"}\n";
 	}
 
-	void ClassObject::Blacken(VM *vm)
+	void ClassObject::Blacken(Allocator *allocator)
 	{
-		Object::Blacken(vm);
+		Object::Blacken(allocator);
 		for (auto &[k, v] : members)
-			v.Mark(vm);
+			v.Mark(allocator);
 		for (auto &[k, v] : parents)
-			v->Mark(vm);
+			v->Mark(allocator);
 		for (auto &[k, v] : constructors)
-			v->Mark(vm);
+			v->Mark(allocator);
 	}
 
 	bool ClassObject::IsEqualTo(Object *other)
@@ -609,11 +609,11 @@ namespace lwscript
 		return closure->ToString();
 	}
 
-	void ClassClosureBindObject::Blacken(VM *vm)
+	void ClassClosureBindObject::Blacken(Allocator *allocator)
 	{
-		Object::Blacken(vm);
-		receiver.Mark(vm);
-		closure->Mark(vm);
+		Object::Blacken(allocator);
+		receiver.Mark(allocator);
+		closure->Mark(allocator);
 	}
 
 	bool ClassClosureBindObject::IsEqualTo(Object *other)
@@ -661,11 +661,11 @@ namespace lwscript
 		return result + L"}";
 	}
 
-	void EnumObject::Blacken(VM *vm)
+	void EnumObject::Blacken(Allocator *allocator)
 	{
-		Object::Blacken(vm);
+		Object::Blacken(allocator);
 		for (auto &[k, v] : pairs)
-			v.Mark(vm);
+			v.Mark(allocator);
 	}
 
 	bool EnumObject::GetMember(const std::wstring &name, Value &retV)
@@ -726,11 +726,11 @@ namespace lwscript
 		return result + L"}";
 	}
 
-	void ModuleObject::Blacken(VM *vm)
+	void ModuleObject::Blacken(Allocator *allocator)
 	{
-		Object::Blacken(vm);
+		Object::Blacken(allocator);
 		for (auto &[k, v] : values)
-			v.Mark(vm);
+			v.Mark(allocator);
 	}
 
 	bool ModuleObject::IsEqualTo(Object *other)

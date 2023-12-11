@@ -24,7 +24,7 @@ namespace lwscript
 		~Value();
 
 		std::wstring ToString() const;
-		void Mark(class VM *vm) const;
+		void Mark(class Allocator *allocator) const;
 		void UnMark() const;
 		Value Clone() const;
 
