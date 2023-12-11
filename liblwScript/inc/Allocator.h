@@ -8,7 +8,7 @@ namespace lwscript
     class LWSCRIPT_API Allocator
     {
     public:
-        Allocator(class VM* vm);
+        Allocator(class VM *vm);
         ~Allocator();
 
         void ResetStatus();
@@ -16,19 +16,19 @@ namespace lwscript
         template <class T, typename... Args>
         T *CreateObject(Args &&...params);
 
+        void RegisterToGCRecordChain(const Value &value);
+
+    private:
         template <class T>
         void FreeObject(T *object);
         void FreeObjects();
+        void GC();
 
-        void RegisterToGCRecordChain(const Value &value);
         void MarkRootObjects();
         void MarkGrayObjects();
         void Sweep();
 
-    private:
-        void GC();
-
-        class VM* mVM;
+        class VM *mVM;
 
         friend struct Object;
 
@@ -42,11 +42,20 @@ namespace lwscript
     inline T *Allocator::CreateObject(Args &&...params)
     {
         T *object = new T(std::forward<Args>(params)...);
+        size_t objBytes = sizeof(object);
+        mBytesAllocated += objBytes;
+#ifdef GC_STRESS
+        GC();
+#endif
+        if (mBytesAllocated > mNextGCByteSize)
+            GC();
+
         object->next = mObjectChain;
         object->marked = false;
         mObjectChain = object;
-
-        mBytesAllocated += sizeof(object);
+#ifdef GC_DEBUG
+        std::cout << (void *)object << " has been add to gc record chain " << objBytes << " for " << object->type << std::endl;
+#endif
 
         return object;
     }
@@ -58,6 +67,6 @@ namespace lwscript
         std::wcout << L"delete object(0x" << (void *)object << L")" << std::endl;
 #endif
         mBytesAllocated -= sizeof(object);
-        delete object;
+        SAFE_DELETE(object);
     }
 }

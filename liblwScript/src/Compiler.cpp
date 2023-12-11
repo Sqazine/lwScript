@@ -38,8 +38,7 @@ namespace lwscript
 		std::vector<FunctionObject *>().swap(mFunctionList);
 		mFunctionList.emplace_back(new FunctionObject(L"_main_start_up"));
 
-		if (mSymbolTable)
-			delete mSymbolTable;
+		SAFE_DELETE(mSymbolTable);
 		mSymbolTable = new SymbolTable();
 
 		auto symbol = &mSymbolTable->mSymbols[mSymbolTable->mSymbolCount++];

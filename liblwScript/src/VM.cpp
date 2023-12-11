@@ -44,30 +44,23 @@ namespace lwscript
 	Value VM::sNullValue = Value();
 
 	VM::VM()
-		: mOpenUpValues(nullptr), mStackTop(nullptr)
+		: mOpenUpValues(nullptr), mStackTop(nullptr), mAllocator(nullptr)
 	{
 		ResetStatus();
 	}
 	VM::~VM()
 	{
-		if(mAllocator)
-		{
-			delete mAllocator;
-			mAllocator=nullptr;
-		}
+		SAFE_DELETE(mAllocator);
 	}
 
 	void VM::ResetStatus()
 	{
-		if(mAllocator)
-		{
-			delete mAllocator;
-			mAllocator=nullptr;
-		}
 
-		mAllocator=new Allocator(this);
-		
-        mFrameCount = 0;
+		SAFE_DELETE(mAllocator);
+
+		mAllocator = new Allocator(this);
+
+		mFrameCount = 0;
 		mStackTop = mValueStack;
 		mOpenUpValues = nullptr;
 

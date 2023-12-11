@@ -293,8 +293,7 @@ namespace lwscript
 			auto intExpr = new IntNumExpr(expr->tagToken);
 			intExpr->value = Factorial(((IntNumExpr *)expr->expr)->value);
 
-			delete expr;
-			expr = nullptr;
+			SAFE_DELETE(expr);
 
 			return intExpr;
 		}
@@ -356,10 +355,7 @@ namespace lwscript
 					needToDelete = false;
 
 				if (needToDelete)
-				{
-					delete infix;
-					infix = nullptr;
-				}
+					SAFE_DELETE(infix);
 				return newExpr;
 			}
 			else if (infix->left->type == AST_INT && infix->right->type == AST_INT)
@@ -401,10 +397,7 @@ namespace lwscript
 					needToDelete = false;
 
 				if (needToDelete)
-				{
-					delete infix;
-					infix = nullptr;
-				}
+					SAFE_DELETE(infix);
 				return newExpr;
 			}
 			else if (infix->left->type == AST_INT && infix->right->type == AST_REAL)
@@ -436,10 +429,7 @@ namespace lwscript
 					needToDelete = false;
 
 				if (needToDelete)
-				{
-					delete infix;
-					infix = nullptr;
-				}
+					SAFE_DELETE(infix);
 				return newExpr;
 			}
 			else if (infix->left->type == AST_REAL && infix->right->type == AST_INT)
@@ -471,17 +461,13 @@ namespace lwscript
 					needToDelete = false;
 
 				if (needToDelete)
-				{
-					delete infix;
-					infix = nullptr;
-				}
+					SAFE_DELETE(infix);
 				return newExpr;
 			}
 			else if (infix->left->type == AST_STR && infix->right->type == AST_STR)
 			{
+				SAFE_DELETE(infix);
 				auto strExpr = new StrExpr(infix->tagToken, ((StrExpr *)infix->left)->value + ((StrExpr *)infix->right)->value);
-				delete infix;
-				infix = nullptr;
 				return strExpr;
 			}
 		}
@@ -490,23 +476,20 @@ namespace lwscript
 			auto prefix = (PrefixExpr *)expr;
 			if (prefix->right->type == AST_REAL && prefix->op == L"-")
 			{
+				SAFE_DELETE(prefix);
 				auto numExpr = new RealNumExpr(prefix->tagToken, -((RealNumExpr *)prefix->right)->value);
-				delete prefix;
-				prefix = nullptr;
 				return numExpr;
 			}
 			else if (prefix->right->type == AST_BOOL && prefix->op == L"!")
 			{
+				SAFE_DELETE(prefix);
 				auto boolExpr = new BoolExpr(prefix->tagToken, !((BoolExpr *)prefix->right)->value);
-				delete prefix;
-				prefix = nullptr;
 				return boolExpr;
 			}
 			else if (prefix->right->type == AST_INT && prefix->op == L"~")
 			{
+				SAFE_DELETE(prefix);
 				auto newExpr = new IntNumExpr(prefix->tagToken, ~((IntNumExpr *)prefix->right)->value);
-				delete prefix;
-				prefix = nullptr;
 				return newExpr;
 			}
 		}
@@ -515,9 +498,8 @@ namespace lwscript
 			auto postfix = (PostfixExpr *)expr;
 			if (postfix->left->type == AST_INT && postfix->op == L"!")
 			{
+				SAFE_DELETE(postfix)
 				auto numExpr = new IntNumExpr(postfix->tagToken, Factorial(((IntNumExpr *)postfix->left)->value));
-				delete postfix;
-				postfix = nullptr;
 				return numExpr;
 			}
 		}

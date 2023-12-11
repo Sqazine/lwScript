@@ -338,8 +338,7 @@ namespace lwscript
 			Expr *value = new StrExpr(name->tagToken, name->literal);
 			if (IsMatchCurTokenAndStepOnce(TOKEN_EQUAL))
 			{
-				delete value;
-				value = nullptr;
+				SAFE_DELETE(value);
 				value = ParseExpr();
 			}
 

@@ -3,7 +3,7 @@
 namespace lwscript
 {
 
-    Allocator::Allocator(class VM* vm)
+    Allocator::Allocator(VM* vm)
         : mVM(vm), mObjectChain(nullptr)
     {
         ResetStatus();
@@ -31,7 +31,7 @@ namespace lwscript
         {
             Object *next = object->next;
             mBytesAllocated -= sizeof(object);
-            delete object;
+            SAFE_DELETE(object);
             object = next;
         }
 

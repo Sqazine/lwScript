@@ -112,8 +112,7 @@ namespace lwscript
 	}
 	VarDescExpr::~VarDescExpr()
 	{
-		delete name;
-		name = nullptr;
+		SAFE_DELETE(name);
 	}
 
 	std::wstring VarDescExpr::ToString()
@@ -200,8 +199,7 @@ namespace lwscript
 	}
 	PrefixExpr::~PrefixExpr()
 	{
-		delete right;
-		right = nullptr;
+		SAFE_DELETE(right);
 	}
 
 	std::wstring PrefixExpr::ToString()
@@ -219,11 +217,8 @@ namespace lwscript
 	}
 	InfixExpr::~InfixExpr()
 	{
-		delete left;
-		left = nullptr;
-
-		delete right;
-		right = nullptr;
+		SAFE_DELETE(left);
+		SAFE_DELETE(right);
 	}
 
 	std::wstring InfixExpr::ToString()
@@ -241,8 +236,7 @@ namespace lwscript
 	}
 	PostfixExpr::~PostfixExpr()
 	{
-		delete left;
-		left = nullptr;
+		SAFE_DELETE(left);
 	}
 	std::wstring PostfixExpr::ToString()
 	{
@@ -259,14 +253,9 @@ namespace lwscript
 	}
 	ConditionExpr::~ConditionExpr()
 	{
-		delete condition;
-		condition = nullptr;
-
-		delete trueBranch;
-		trueBranch = nullptr;
-
-		delete falseBranch;
-		trueBranch = nullptr;
+		SAFE_DELETE(condition);
+		SAFE_DELETE(trueBranch);
+		SAFE_DELETE(falseBranch);
 	}
 
 	std::wstring ConditionExpr::ToString()
@@ -284,10 +273,8 @@ namespace lwscript
 	}
 	IndexExpr::~IndexExpr()
 	{
-		delete ds;
-		ds = nullptr;
-		delete index;
-		index = nullptr;
+		SAFE_DELETE(ds);
+		SAFE_DELETE(index);
 	}
 	std::wstring IndexExpr::ToString()
 	{
@@ -322,9 +309,7 @@ namespace lwscript
 	LambdaExpr::~LambdaExpr()
 	{
 		std::vector<VarDescExpr *>().swap(parameters);
-
-		delete body;
-		body = nullptr;
+		SAFE_DELETE(body);
 	}
 
 	std::wstring LambdaExpr::ToString()
@@ -484,7 +469,7 @@ namespace lwscript
 	}
 	VarArgExpr::~VarArgExpr()
 	{
-		delete argName;
+		SAFE_DELETE(argName);
 	}
 
 	std::wstring VarArgExpr::ToString()
@@ -502,8 +487,7 @@ namespace lwscript
 	}
 	FactorialExpr::~FactorialExpr()
 	{
-		delete expr;
-		expr = nullptr;
+		SAFE_DELETE(expr);
 	}
 
 	std::wstring FactorialExpr::ToString()
@@ -549,8 +533,7 @@ namespace lwscript
 	}
 	ExprStmt::~ExprStmt()
 	{
-		delete expr;
-		expr = nullptr;
+		SAFE_DELETE(expr);
 	}
 
 	std::wstring ExprStmt::ToString()
@@ -599,8 +582,7 @@ namespace lwscript
 	}
 	ReturnStmt::~ReturnStmt()
 	{
-		delete expr;
-		expr = nullptr;
+		SAFE_DELETE(expr);
 	}
 
 	std::wstring ReturnStmt::ToString()
@@ -624,12 +606,9 @@ namespace lwscript
 	}
 	IfStmt::~IfStmt()
 	{
-		delete condition;
-		condition = nullptr;
-		delete thenBranch;
-		thenBranch = nullptr;
-		delete elseBranch;
-		elseBranch = nullptr;
+		SAFE_DELETE(condition);
+		SAFE_DELETE(thenBranch);
+		SAFE_DELETE(elseBranch);
 	}
 
 	std::wstring IfStmt::ToString()
@@ -673,12 +652,9 @@ namespace lwscript
 	}
 	WhileStmt::~WhileStmt()
 	{
-		delete condition;
-		condition = nullptr;
-		delete body;
-		body = nullptr;
-		delete increment;
-		increment = nullptr;
+		SAFE_DELETE(condition);
+		SAFE_DELETE(body);
+		SAFE_DELETE(increment);
 	}
 
 	std::wstring WhileStmt::ToString()
@@ -791,9 +767,7 @@ namespace lwscript
 	FunctionStmt::~FunctionStmt()
 	{
 		std::vector<VarDescExpr *>().swap(parameters);
-
-		delete body;
-		body = nullptr;
+		SAFE_DELETE(body);
 	}
 
 	std::wstring FunctionStmt::ToString()
