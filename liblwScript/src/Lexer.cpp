@@ -182,7 +182,7 @@ namespace lwscript
 				{
 					if (IsMatchCurChar(L'\n'))
 						mLine++;
-					std::wcout << GetCurChar() << std::endl;
+					Println(L"{}",GetCurChar());
 					GetCurCharAndStepOnce();
 					if (IsMatchCurChar(L'*'))
 					{
@@ -429,7 +429,7 @@ namespace lwscript
 		}
 
 		if (IsAtEnd())
-			std::wcout << "[line " << mLine << "]:Uniterminated string." << std::endl;
+			Println(L"[line {}]:Uniterminated string.",mLine);
 
 		GetCurCharAndStepOnce(); // eat the second '\"'
 

@@ -28,7 +28,7 @@ namespace lwscript
 
     inline void Log(std::wostream &os, std::wstring_view s)
     {
-        os << s << std::endl;
+        os << s;
     }
 
     template <typename... Args>
@@ -54,10 +54,17 @@ namespace lwscript
     }
 
     template <typename... Args>
-    inline void LogToConsole(std::wstring_view s, const Args &...args)
+    inline void Println(std::wstring_view s, const Args &...args)
     {
-        Log(std::wcout, s, args...);
+        auto withLn = std::wstring(s) + L"\n";
+        Log(std::wcout, withLn, args...);
     }
+
+	template <typename... Args>
+	inline void Print(std::wstring_view s, const Args &...args)
+	{
+		Log(std::wcout, s, args...);
+	}
 
     namespace Hint
     {
@@ -96,7 +103,7 @@ namespace lwscript
 
             auto lineSrcCode = Record::mSourceCode.substr(start, end - start);
 
-            LogToConsole(L"\033[{}m{}{}\033[0m", colorHint, startStr, lineSrcCode);
+            Println(L"\033[{}m{}{}\033[0m", colorHint, startStr, lineSrcCode);
 
             auto blankSize = startStr.size() + pos - start;
 
@@ -104,7 +111,7 @@ namespace lwscript
             errorHintStr.insert(0, blankSize, L' ');
             errorHintStr += L"^ " + std::wstring(fmt);
 
-            LogToConsole(L"\033[{}m" + errorHintStr + L"\033[0m", colorHint, args...);
+            Println(L"\033[{}m" + errorHintStr + L"\033[0m", colorHint, args...);
         }
 
         template <typename... Args>

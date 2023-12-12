@@ -15,7 +15,7 @@ namespace lwscript
 
     void Allocator::ResetStatus()
     {
-        if (!mObjectChain)
+        if (mObjectChain)
             FreeObjects();
 
         mBytesAllocated = 0;
@@ -36,7 +36,7 @@ namespace lwscript
         }
 
 #ifdef GC_DEBUG
-        std::wcout << "collected " << bytes - mBytesAllocated << " bytes (from " << bytes << " to " << mBytesAllocated << ") next gc bytes " << mNextGCByteSize << std::endl;
+        Println(L"collected {} bytes (from {} to {}) next gc bytes {}", bytes - mBytesAllocated,bytes,mNextGCByteSize);
 #endif
     }
 
@@ -62,16 +62,18 @@ namespace lwscript
     void Allocator::GC()
     {
 #ifdef GC_DEBUG
-        std::wcout << "begin gc" << std::endl;
+        Println(L"begin gc");
         size_t bytes = mBytesAllocated;
 #endif
+        
         MarkRootObjects();
         MarkGrayObjects();
         Sweep();
         mNextGCByteSize = mBytesAllocated * GC_HEAP_GROW_FACTOR;
+
 #ifdef GC_DEBUG
-        std::wcout << "end gc" << std::endl;
-        std::wcout << "    collected " << bytes - mBytesAllocated << " bytes (from " << bytes << " to " << mBytesAllocated << ") next gc bytes " << mNextGCByteSize << std::endl;
+        Println(L"end gc");
+        Println(L"    collected {} bytes (from {} to {}) next gc bytes {}", bytes - mBytesAllocated, bytes, mNextGCByteSize);
 #endif
     }
     void Allocator::MarkRootObjects()

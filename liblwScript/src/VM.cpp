@@ -3,6 +3,7 @@
 #include "Utils.h"
 #include "Object.h"
 #include "Token.h"
+
 namespace lwscript
 {
 #ifdef USE_FUNCTION_CACHE
@@ -31,10 +32,10 @@ namespace lwscript
 	{
 		for (const auto &[k, v] : mCaches)
 		{
-			LogToConsole(L"{}:", k);
+			Println(L"{}:", k);
 			for (const auto &[k1, v1] : v)
 			{
-				LogToConsole(L"\t{}:{}", k1[0].ToString(), v1[0].ToString());
+				Println(L"\t{}:{}", k1[0].ToString(), v1[0].ToString());
 			}
 		}
 	}
@@ -55,14 +56,17 @@ namespace lwscript
 
 	void VM::ResetStatus()
 	{
-
-		SAFE_DELETE(mAllocator);
+		if (mAllocator)
+			SAFE_DELETE(mAllocator);
 
 		mAllocator = new Allocator(this);
 
 		mFrameCount = 0;
 		mStackTop = mValueStack;
 		mOpenUpValues = nullptr;
+
+		for (auto &gVar : mGlobalVariables)
+			gVar = sNullValue;
 
 		for (int32_t i = 0; i < LibraryManager::Instance().mStdLibraries.size(); ++i)
 			mGlobalVariables[i] = LibraryManager::Instance().mStdLibraries[i]->Clone();
@@ -74,7 +78,9 @@ namespace lwscript
 
 		mAllocator->RegisterToGCRecordChain(mainFunc);
 
+		Push(mainFunc);
 		auto closure = mAllocator->CreateObject<ClosureObject>(mainFunc);
+		Pop();
 
 		Push(closure);
 
@@ -182,6 +188,14 @@ namespace lwscript
 	} while (0);
 
 #define READ_INS() (*frame->ip++)
+
+#define CHECK_IDX_RANGE(v, idx)                 \
+	if (idx < 0 || idx >= (uint64_t)(v).size()) \
+		Hint::Error(relatedToken, L"Idx out of range.");
+
+#define CHECK_IDX_VALID(idxValue) \
+	if (!IS_INT_VALUE(idxValue))  \
+		Hint::Error(relatedToken, L"Invalid idx type for array or string,only integer is available.");
 
 		CallFrame *frame = &mFrames[mFrameCount - 1];
 
@@ -318,7 +332,7 @@ namespace lwscript
 				else if (IS_REAL_VALUE(left) && IS_INT_VALUE(right))
 					Push(TO_REAL_VALUE(left) + TO_INT_VALUE(right));
 				else if (IS_STR_VALUE(left) && IS_STR_VALUE(right))
-					Push(mAllocator->CreateObject<StrObject>(TO_STR_VALUE(left) + TO_STR_VALUE(right)));
+					Push(mAllocator->CreateObject<StrObject>(TO_STR_VALUE(left)->value + TO_STR_VALUE(right)->value));
 				else
 					Hint::Error(relatedToken, L"Invalid binary op:{}+{},only (&)int-(&)int,(&)real-(&)real,(&)int-(&)real or (&)real-(&)int type pair is available.", left.ToString(), right.ToString());
 				break;
@@ -449,34 +463,20 @@ namespace lwscript
 				if (IS_ARRAY_VALUE(dsValue))
 				{
 					auto array = TO_ARRAY_VALUE(dsValue);
-					if (!IS_INT_VALUE(idxValue))
-						Hint::Error(relatedToken, L"Invalid idx for array,only integer is available.");
+					CHECK_IDX_VALID(idxValue);
 
-					auto intIdx = TO_INT_VALUE(idxValue);
-
-					if (intIdx < 0)
-						intIdx = (int64_t)array->elements.size() + intIdx;
-
-					if (intIdx < 0 || intIdx >= (int64_t)array->elements.size())
-						Hint::Error(relatedToken, L"Idx out of range.array size is {}", (int64_t)array->elements.size());
+					auto intIdx = array->NormalizeIdx(TO_INT_VALUE(idxValue));
+					CHECK_IDX_RANGE(array->elements, intIdx);
 
 					Push(array->elements[intIdx]);
 				}
 				else if (IS_STR_VALUE(dsValue))
 				{
-					auto str = TO_STR_VALUE(dsValue);
-					if (!IS_INT_VALUE(idxValue))
-						Hint::Error(relatedToken, L"Invalid idx for array,only integer is available.");
-
-					auto intIdx = TO_INT_VALUE(idxValue);
-
-					if (intIdx < 0)
-						intIdx = (int64_t)str.size() + intIdx;
-
-					if (intIdx < 0 || intIdx >= (int64_t)str.size())
-						Hint::Error(relatedToken, L"Idx out of range.string size is {}", (int64_t)str.size());
-
-					Push(mAllocator->CreateObject<StrObject>(str.substr(intIdx, 1)));
+					auto strObj = TO_STR_VALUE(dsValue);
+					CHECK_IDX_VALID(idxValue)
+					auto intIdx = strObj->NormalizeIdx(TO_INT_VALUE(idxValue));
+					CHECK_IDX_RANGE(strObj->value, intIdx);
+					Push(mAllocator->CreateObject<StrObject>(strObj->value.substr(intIdx, 1)));
 				}
 				else if (IS_DICT_VALUE(dsValue))
 				{
@@ -499,32 +499,22 @@ namespace lwscript
 				if (IS_ARRAY_VALUE(dsValue))
 				{
 					auto array = TO_ARRAY_VALUE(dsValue);
-					if (!IS_INT_VALUE(idxValue))
-						Hint::Error(relatedToken, L"Invalid idx for array,only integer is available.");
-					auto intIdx = TO_INT_VALUE(idxValue);
-
-					if (intIdx < 0 || intIdx >= (int64_t)array->elements.size())
-						Hint::Error(relatedToken, L"Idx out of range.");
-
-					if (intIdx < 0 || intIdx >= (int64_t)array->elements.size())
-						Hint::Error(relatedToken, L"Idx out of range.");
-
+					CHECK_IDX_VALID(idxValue);
+					auto intIdx = array->NormalizeIdx(TO_INT_VALUE(idxValue));
+					CHECK_IDX_RANGE(array->elements, intIdx);
 					array->elements[intIdx] = newValue;
 				}
 				else if (IS_STR_VALUE(dsValue))
 				{
-					auto str = TO_STR_VALUE(dsValue);
-					if (!IS_INT_VALUE(idxValue))
-						Hint::Error(relatedToken, L"Invalid idx for array,only integer is available.");
-
-					auto intIdx = TO_INT_VALUE(idxValue);
-					if (intIdx < 0 || intIdx >= (int64_t)str.size())
-						Hint::Error(relatedToken, L"Idx out of range.");
+					auto strObj = TO_STR_VALUE(dsValue);
+					CHECK_IDX_VALID(idxValue)
+					auto intIdx = strObj->NormalizeIdx(TO_INT_VALUE(idxValue));
+					CHECK_IDX_RANGE(strObj->value, intIdx)
 
 					if (!IS_STR_VALUE(newValue))
-						Hint::Error(relatedToken, L"Cannot insert a non string clip:{} to string:{}", newValue.ToString(), str);
+						Hint::Error(relatedToken, L"Cannot insert a non string clip:{} to string:{}", newValue.ToString(), strObj->value);
 
-					str.append(TO_STR_VALUE(newValue), intIdx, TO_STR_VALUE(newValue).size());
+					strObj->value.append(TO_STR_VALUE(newValue)->value, intIdx, TO_STR_VALUE(newValue)->value.size());
 				}
 				else if (IS_DICT_VALUE(dsValue))
 				{
@@ -580,24 +570,13 @@ namespace lwscript
 				auto index = READ_INS();
 				auto idxValue = Pop();
 				if (IS_DICT_VALUE(mGlobalVariables[index]))
-				{
 					Push(mAllocator->CreateObject<RefObject>(&TO_DICT_VALUE(mGlobalVariables[index])->elements[idxValue]));
-				}
 				else if (IS_ARRAY_VALUE(mGlobalVariables[index]))
 				{
 					auto array = TO_ARRAY_VALUE(mGlobalVariables[index]);
-
-					if (!IS_INT_VALUE(idxValue))
-						Hint::Error(relatedToken, L"Invalid idx for array,only integer is available.");
-
-					auto intIdx = TO_INT_VALUE(idxValue);
-
-					if (intIdx < 0)
-						intIdx = (int64_t)array->elements.size() + intIdx;
-
-					if (intIdx < 0 || intIdx >= static_cast<int64_t>(array->elements.size()))
-						Hint::Error(relatedToken, L"Idx out of range.");
-
+					CHECK_IDX_VALID(idxValue)
+					auto intIdx = array->NormalizeIdx(TO_INT_VALUE(idxValue));
+					CHECK_IDX_RANGE(array->elements, intIdx);
 					Push(mAllocator->CreateObject<RefObject>(&(array->elements[intIdx])));
 				}
 				else
@@ -610,22 +589,13 @@ namespace lwscript
 				auto idxValue = Pop();
 				Value *v = frame->slots + index;
 				if (IS_DICT_VALUE((*v)))
-				{
 					Push(mAllocator->CreateObject<RefObject>(&TO_DICT_VALUE((*v))->elements[idxValue]));
-				}
 				else if (IS_ARRAY_VALUE((*v)))
 				{
 					auto array = TO_ARRAY_VALUE((*v));
-
-					if (!IS_INT_VALUE(idxValue))
-						Hint::Error(relatedToken, L"Invalid idx for array,only integer is available.");
-					auto intIdx = TO_INT_VALUE(idxValue);
-
-					if (intIdx < 0)
-						intIdx = (int64_t)array->elements.size() + intIdx;
-
-					if (intIdx < 0 || intIdx >= static_cast<int64_t>(array->elements.size()))
-						Hint::Error(relatedToken, L"Idx out of range.");
+					CHECK_IDX_VALID(idxValue)
+					auto intIdx = array->NormalizeIdx(TO_INT_VALUE(idxValue));
+					CHECK_IDX_RANGE(array->elements, intIdx);
 					Push(mAllocator->CreateObject<RefObject>(&array->elements[intIdx]));
 				}
 				else
@@ -638,21 +608,13 @@ namespace lwscript
 				auto idxValue = Pop();
 				Value *v = frame->closure->upvalues[index]->location;
 				if (IS_DICT_VALUE((*v)))
-				{
 					Push(mAllocator->CreateObject<RefObject>(&TO_DICT_VALUE((*v))->elements[idxValue]));
-				}
 				else if (IS_ARRAY_VALUE((*v)))
 				{
 					auto array = TO_ARRAY_VALUE((*v));
-					if (!IS_INT_VALUE(idxValue))
-						Hint::Error(relatedToken, L"Invalid idx for array,only integer is available.");
-					auto intIdx = TO_INT_VALUE(idxValue);
-
-					if (intIdx < 0)
-						intIdx = (int64_t)array->elements.size() + intIdx;
-
-					if (intIdx < 0 || intIdx >= static_cast<int64_t>(array->elements.size()))
-						Hint::Error(relatedToken, L"Idx out of range.");
+					CHECK_IDX_VALID(idxValue)
+					auto intIdx = array->NormalizeIdx(TO_INT_VALUE(idxValue));
+					CHECK_IDX_RANGE(array->elements, intIdx)
 					Push(mAllocator->CreateObject<RefObject>(&array->elements[intIdx]));
 				}
 				else
@@ -685,11 +647,9 @@ namespace lwscript
 									argCount = arity;
 								}
 								else
-
 									argCount = arity - 1;
 							}
 							else
-
 								Hint::Error(relatedToken, L"No matching argument count.");
 						}
 						else if (argCount >= arity)
@@ -765,16 +725,16 @@ namespace lwscript
 				}
 				else if (IS_NATIVE_FUNCTION_VALUE(callee)) // native function
 				{
-					std::vector<Value> args(argCount);
 
-					int32_t j = 0;
-					for (Value *slot = mStackTop - argCount; slot < mStackTop && j < argCount; ++slot, ++j)
-						args[j] = *slot;
-
+					Value result;
+					auto hasRetV = TO_NATIVE_FUNCTION_VALUE(callee)->fn(mStackTop - argCount,argCount, relatedToken, result);
+					
 					mStackTop -= argCount + 1;
-
-					auto retV = TO_NATIVE_FUNCTION_VALUE(callee)->fn(args, relatedToken);
-					Push(retV);
+					
+					if (hasRetV)
+						Push(result);
+					else
+						Push(sNullValue);
 				}
 				else
 					Hint::Error(relatedToken, L"Invalid callee,Only function is available: {}", callee.ToString());
@@ -789,7 +749,7 @@ namespace lwscript
 				auto parentClassCount = READ_INS();
 
 				auto classObj = mAllocator->CreateObject<ClassObject>();
-				classObj->name = TO_STR_VALUE(name);
+				classObj->name = TO_STR_VALUE(name)->value;
 				Pop(); // pop name strobject
 
 				for (int32_t i = 0; i < ctorCount; ++i)
@@ -802,7 +762,7 @@ namespace lwscript
 				{
 					name = Pop();
 					auto parentClass = Pop();
-					classObj->parents[TO_STR_VALUE(name)] = TO_CLASS_VALUE(parentClass);
+					classObj->parents[TO_STR_VALUE(name)->value] = TO_CLASS_VALUE(parentClass);
 				}
 
 				for (int32_t i = 0; i < varCount; ++i)
@@ -810,7 +770,7 @@ namespace lwscript
 					name = Pop();
 					auto v = Pop();
 					v.privilege = Privilege::MUTABLE;
-					classObj->members[TO_STR_VALUE(name)] = v;
+					classObj->members[TO_STR_VALUE(name)->value] = v;
 				}
 
 				for (int32_t i = 0; i < constCount; ++i)
@@ -818,7 +778,7 @@ namespace lwscript
 					name = Pop();
 					auto v = Pop();
 					v.privilege = Privilege::IMMUTABLE;
-					classObj->members[TO_STR_VALUE(name)] = v;
+					classObj->members[TO_STR_VALUE(name)->value] = v;
 				}
 
 				Push(classObj);
@@ -830,7 +790,7 @@ namespace lwscript
 				std::unordered_map<std::wstring, Value> elements;
 				for (int64_t i = 0; i < (int64_t)eCount; ++i)
 				{
-					auto key = TO_STR_VALUE(Pop());
+					auto key = TO_STR_VALUE(Pop())->value;
 					auto value = Pop();
 					elements[key] = value;
 				}
@@ -844,7 +804,7 @@ namespace lwscript
 				if (IS_REF_VALUE(peekValue))
 					peekValue = *(TO_REF_VALUE(peekValue)->pointer);
 
-				auto propName = TO_STR_VALUE(Pop());
+				auto propName = TO_STR_VALUE(Pop())->value;
 				if (IS_CLASS_VALUE(peekValue))
 				{
 					ClassObject *klass = TO_CLASS_VALUE(peekValue);
@@ -913,7 +873,7 @@ namespace lwscript
 				if (IS_REF_VALUE(peekValue))
 					peekValue = *(TO_REF_VALUE(peekValue)->pointer);
 
-				auto propName = TO_STR_VALUE(Pop());
+				auto propName = TO_STR_VALUE(Pop())->value;
 				if (IS_CLASS_VALUE(peekValue))
 				{
 					auto klass = TO_CLASS_VALUE(peekValue);
@@ -950,7 +910,7 @@ namespace lwscript
 			{
 				if (!IS_CLASS_VALUE(Peek(1)))
 					Hint::Error(relatedToken, L"Invalid class call:not a valid class instance.");
-				auto propName = TO_STR_VALUE(Pop());
+				auto propName = TO_STR_VALUE(Pop())->value;
 				auto klass = TO_CLASS_VALUE(Pop());
 				Value member;
 				bool hasValue = klass->GetParentMember(propName, member);
@@ -1068,12 +1028,13 @@ namespace lwscript
 			case OP_MODULE:
 			{
 				auto name = Peek();
+				auto nameStr = TO_STR_VALUE(name)->value;
 
 				auto varCount = READ_INS();
 				auto constCount = READ_INS();
 
 				auto moduleObj = mAllocator->CreateObject<ModuleObject>();
-				moduleObj->name = TO_STR_VALUE(name);
+				moduleObj->name = nameStr;
 				Pop(); // pop name strobject
 
 				for (int32_t i = 0; i < constCount; ++i)
@@ -1081,7 +1042,7 @@ namespace lwscript
 					name = Pop();
 					auto v = Pop();
 					v.privilege = Privilege::IMMUTABLE;
-					moduleObj->values[TO_STR_VALUE(name)] = v;
+					moduleObj->values[nameStr] = v;
 				}
 
 				for (int32_t i = 0; i < varCount; ++i)
@@ -1089,7 +1050,7 @@ namespace lwscript
 					name = Pop();
 					auto v = Pop();
 					v.privilege = Privilege::MUTABLE;
-					moduleObj->values[TO_STR_VALUE(name)] = v;
+					moduleObj->values[nameStr] = v;
 				}
 
 				Push(moduleObj);

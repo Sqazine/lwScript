@@ -42,7 +42,7 @@ namespace lwscript
     inline T *Allocator::CreateObject(Args &&...params)
     {
         T *object = new T(std::forward<Args>(params)...);
-        size_t objBytes = sizeof(object);
+        size_t objBytes = sizeof(*object);
         mBytesAllocated += objBytes;
 #ifdef GC_STRESS
         GC();
@@ -64,7 +64,7 @@ namespace lwscript
     inline void Allocator::FreeObject(T *object)
     {
 #ifdef GC_DEBUG
-        std::wcout << L"delete object(0x" << (void *)object << L")" << std::endl;
+        Println(L"delete object(0x{})",(void*)object);
 #endif
         mBytesAllocated -= sizeof(object);
         SAFE_DELETE(object);

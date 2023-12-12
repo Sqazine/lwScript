@@ -60,7 +60,7 @@ namespace lwscript
 #define TO_REAL_VALUE(v) (v.realnum)
 #define TO_BOOL_VALUE(v) (v.boolean)
 #define TO_OBJECT_VALUE(v) (v.object)
-#define TO_STR_VALUE(v) (TO_STR_OBJ(v.object)->value)
+#define TO_STR_VALUE(v) (TO_STR_OBJ(v.object))
 #define TO_ARRAY_VALUE(v) (TO_ARRAY_OBJ(v.object))
 #define TO_DICT_VALUE(v) (TO_TABLE_OBJ(v.object))
 #define TO_ANONYMOUS_VALUE(v) (TO_ANONYMOUS_OBJ(v.object))
@@ -117,6 +117,8 @@ namespace lwscript
         bool IsEqualTo(Object *other) override;
         Object *Clone() const override;
 
+        uint64_t NormalizeIdx(int64_t idx);
+
         std::wstring value;
     };
 
@@ -130,6 +132,8 @@ namespace lwscript
         void Blacken(class Allocator *allocator) override;
         bool IsEqualTo(Object *other) override;
         Object *Clone() const override;
+
+        uint64_t NormalizeIdx(int64_t idx);
 
         std::vector<struct Value> elements;
     };
@@ -216,7 +220,7 @@ namespace lwscript
         std::vector<UpValueObject *> upvalues;
     };
 
-    using NativeFunction = std::function<Value(const std::vector<Value> &, const Token *)>;
+    using NativeFunction = std::function<bool(Value*,uint32_t, const Token *, Value&)>;
 
     struct NativeFunctionObject : public Object
     {

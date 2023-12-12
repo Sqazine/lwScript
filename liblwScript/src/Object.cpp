@@ -18,7 +18,7 @@ namespace lwscript
 		if (marked)
 			return;
 #ifdef GC_DEBUG
-		std::wcout << L"0x" << (void *)this << L" mark: " << ToString() << std::endl;
+		Println(L"(0x{}) mark: {}", (void*)this, ToString());
 #endif
 		marked = true;
 		allocator->mGrayObjects.emplace_back(this);
@@ -28,7 +28,7 @@ namespace lwscript
 		if (!marked)
 			return;
 #ifdef GC_DEBUG
-		std::wcout << L"0x" << (void *)this << L" unMark: " << ToString() << std::endl;
+		Println(L"(0x{}) unMark: {}", (void*)this, ToString());
 #endif
 		marked = false;
 	}
@@ -36,7 +36,7 @@ namespace lwscript
 	void Object::Blacken(Allocator *allocator)
 	{
 #ifdef GC_DEBUG
-		std::wcout << L"0x" << (void *)this << L" blacken: " << ToString() << std::endl;
+		Println(L"(0x{}) blacken: {}", (void*)this, ToString());
 #endif
 	}
 
@@ -63,6 +63,14 @@ namespace lwscript
 	{
 		return new StrObject(value);
 	}
+
+	 uint64_t StrObject::NormalizeIdx(int64_t idx)
+	 {
+
+					if (idx < 0)
+						idx = (int64_t)value.size() + idx;
+						return idx;
+	 }
 
 	ArrayObject::ArrayObject()
 		: Object(OBJECT_ARRAY)
@@ -121,6 +129,12 @@ namespace lwscript
 		return new ArrayObject(eles);
 	}
 
+	uint64_t ArrayObject::NormalizeIdx(int64_t idx)
+	{
+		if (idx < 0)
+			idx = (int64_t)elements.size() + idx;
+		return idx;
+	}
 
 	DictObject::DictObject()
 		: Object(OBJECT_DICT)
