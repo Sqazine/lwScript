@@ -29,19 +29,19 @@ void Repl()
 			auto tokens = lexer.ScanTokens(allLines);
 #ifdef _DEBUG
 			for (const auto &token : tokens)
-				lwscript::Print(L"{}", *token);
+				lwscript::Println(L"{}", *token);
 #endif
 			auto stmt = parser.Parse(tokens);
 #ifdef _DEBUG
-			lwscript::Print(L"{}", stmt->ToString());
+			lwscript::Println(L"{}", stmt->ToString());
 #endif
 			auto mainFunc = compiler.Compile(stmt);
 #ifdef _DEBUG
-			lwscript::Print(L"{}", mainFunc->ToString());
+			lwscript::Println(L"{}", mainFunc->ToString());
 #endif
 			vm.Run(mainFunc);
 		}
-		lwscript::Print(L">> ");
+		lwscript::Println(L">> ");
 	}
 }
 
@@ -56,15 +56,15 @@ void RunFile(std::string_view path)
 	auto tokens = lexer.ScanTokens(content);
 #ifdef _DEBUG
 	for (const auto &token : tokens)
-		lwscript::Print(L"{}", *token);
+		lwscript::Println(L"{}", *token);
 #endif
 	auto stmt = parser.Parse(tokens);
 #ifdef _DEBUG
-	lwscript::Print(L"{}", stmt->ToString());
+	lwscript::Println(L"{}", stmt->ToString());
 #endif
 	auto mainFunc = compiler.Compile(stmt);
 #ifdef _DEBUG
-	lwscript::Print(L"{}", mainFunc->ToString());
+	lwscript::Println(L"{}", mainFunc->ToString());
 #endif
 
 	vm.Run(mainFunc);
@@ -81,7 +81,7 @@ int main(int argc, const char *argv[])
 	 else if (argc == 1)
 	 	Repl();
 	 else
-	 	lwscript::Print(L"Usage: lwScript [filepath]");
+	 	lwscript::Println(L"Usage: lwScript [filepath]");
 
 	return 0;
 }

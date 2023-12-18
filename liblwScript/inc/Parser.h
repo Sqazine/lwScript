@@ -81,11 +81,7 @@ namespace lwscript
 
 		Expr *ParseExpr(Precedence precedence = Precedence::LOWEST);
 		Expr *ParseIdentifierExpr();
-		Expr *ParseNumExpr();
-		Expr *ParseStrExpr();
-		Expr *ParseNullExpr();
-		Expr *ParseTrueExpr();
-		Expr *ParseFalseExpr();
+		Expr* ParseLiteralExpr();
 		Expr *ParseGroupExpr();
 		Expr *ParseArrayExpr();
 		Expr *ParseDictExpr();

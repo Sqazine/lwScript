@@ -28,11 +28,7 @@ namespace lwscript
         Stmt *OptModuleStmt(ModuleStmt *stmt);
 
         Expr *OptExpr(Expr *expr);
-        Expr *OptIntNumExpr(IntNumExpr *expr);
-        Expr *OptRealNumExpr(RealNumExpr *expr);
-        Expr *OptStrExpr(StrExpr *expr);
-        Expr *OptNullExpr(NullExpr *expr);
-        Expr *OptBoolExpr(BoolExpr *expr);
+        Expr *OptLiteralExpr(LiteralExpr *expr);
         Expr *OptIdentifierExpr(IdentifierExpr *expr);
         Expr *OptGroupExpr(GroupExpr *expr);
         Expr *OptArrayExpr(ArrayExpr *expr);

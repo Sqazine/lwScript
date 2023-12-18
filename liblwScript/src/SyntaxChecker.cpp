@@ -152,16 +152,8 @@ namespace lwscript
     {
         switch (expr->type)
         {
-        case AST_INT:
-            return CheckIntNumExpr((IntNumExpr *)expr);
-        case AST_REAL:
-            return CheckRealNumExpr((RealNumExpr *)expr);
-        case AST_STR:
-            return CheckStrExpr((StrExpr *)expr);
-        case AST_NULL:
-            return CheckNullExpr((NullExpr *)expr);
-        case AST_BOOL:
-            return CheckBoolExpr((BoolExpr *)expr);
+        case AST_LITERAL:
+            return CheckLiteralExpr((LiteralExpr *)expr);
         case AST_IDENTIFIER:
             return CheckIdentifierExpr((IdentifierExpr *)expr);
         case AST_VAR_DESC:
@@ -216,15 +208,7 @@ namespace lwscript
         expr->right = CheckExpr(expr->right);
         return expr;
     }
-    Expr *SyntaxChecker::CheckIntNumExpr(IntNumExpr *expr)
-    {
-        return expr;
-    }
-    Expr *SyntaxChecker::CheckRealNumExpr(RealNumExpr *expr)
-    {
-        return expr;
-    }
-    Expr *SyntaxChecker::CheckBoolExpr(BoolExpr *expr)
+    Expr *SyntaxChecker::CheckLiteralExpr(LiteralExpr *expr)
     {
         return expr;
     }
@@ -243,14 +227,6 @@ namespace lwscript
         expr->condition = CheckExpr(expr->condition);
         expr->trueBranch = CheckExpr(expr->trueBranch);
         expr->falseBranch = CheckExpr(expr->falseBranch);
-        return expr;
-    }
-    Expr *SyntaxChecker::CheckStrExpr(StrExpr *expr)
-    {
-        return expr;
-    }
-    Expr *SyntaxChecker::CheckNullExpr(NullExpr *expr)
-    {
         return expr;
     }
     Expr *SyntaxChecker::CheckGroupExpr(GroupExpr *expr)
@@ -362,11 +338,7 @@ namespace lwscript
     {
         switch (expr->type)
         {
-        case AST_INT:
-        case AST_REAL:
-        case AST_STR:
-        case AST_BOOL:
-        case AST_NULL:
+        case AST_LITERAL:
         case AST_IDENTIFIER:
             return true;
         default:

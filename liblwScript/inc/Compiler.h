@@ -41,14 +41,10 @@ namespace lwscript
 
 		void CompileExpr(Expr *expr, const RWState &state = RWState::READ, int8_t paramCount = -1);
 		void CompileInfixExpr(InfixExpr *expr);
-		void CompileIntNumExpr(IntNumExpr *expr);
-		void CompileRealNumExpr(RealNumExpr *expr);
-		void CompileBoolExpr(BoolExpr *expr);
+		void CompileLiteralExpr(LiteralExpr* expr);
 		void CompilePrefixExpr(PrefixExpr *expr);
 		void CompilePostfixExpr(PostfixExpr *expr, const RWState &state = RWState::READ, bool isDelayCompile = true);
 		void CompileConditionExpr(ConditionExpr *expr);
-		void CompileStrExpr(StrExpr *expr);
-		void CompileNullExpr(NullExpr *expr);
 		void CompileGroupExpr(GroupExpr *expr);
 		void CompileArrayExpr(ArrayExpr *expr);
 		void CompileAppregateExpr(AppregateExpr *expr);

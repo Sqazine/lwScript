@@ -76,11 +76,12 @@ namespace lwscript
 	std::unordered_map<TokenType, PrefixFn> Parser::mPrefixFunctions =
 		{
 			{TOKEN_IDENTIFIER, &Parser::ParseIdentifierExpr},
-			{TOKEN_NUMBER, &Parser::ParseNumExpr},
-			{TOKEN_STRING, &Parser::ParseStrExpr},
-			{TOKEN_NULL, &Parser::ParseNullExpr},
-			{TOKEN_TRUE, &Parser::ParseTrueExpr},
-			{TOKEN_FALSE, &Parser::ParseFalseExpr},
+			{TOKEN_NUMBER, &Parser::ParseLiteralExpr},
+			{TOKEN_STRING, &Parser::ParseLiteralExpr},
+			{TOKEN_NULL, &Parser::ParseLiteralExpr},
+			{TOKEN_TRUE, &Parser::ParseLiteralExpr},
+			{TOKEN_FALSE, &Parser::ParseLiteralExpr},
+			{TOKEN_CHAR, &Parser::ParseLiteralExpr},
 			{TOKEN_MINUS, &Parser::ParsePrefixExpr},
 			{TOKEN_TILDE, &Parser::ParsePrefixExpr},
 			{TOKEN_BANG, &Parser::ParsePrefixExpr},
@@ -154,7 +155,7 @@ namespace lwscript
 		std::unordered_map<TokenType, InfixFn>().swap(mInfixFunctions);
 	}
 
-	Stmt *Parser::Parse(const std::vector<Token*> &tokens)
+	Stmt *Parser::Parse(const std::vector<Token *> &tokens)
 	{
 		ResetStatus();
 		mTokens = tokens;
@@ -217,7 +218,7 @@ namespace lwscript
 			{
 				auto varDescExpr = ParseVarDescExpr();
 
-				Expr *value = new NullExpr(varDescExpr->tagToken);
+				Expr *value = new LiteralExpr(varDescExpr->tagToken);
 				if (IsMatchCurTokenAndStepOnce(TOKEN_EQUAL))
 					value = ParseExpr();
 				varStmt->variables.emplace_back(varDescExpr, value);
@@ -296,7 +297,7 @@ namespace lwscript
 
 		while (!IsMatchCurToken(TOKEN_RBRACE))
 		{
-			if (IsMatchCurToken(TOKEN_LET)||IsMatchCurToken(TOKEN_CONST))
+			if (IsMatchCurToken(TOKEN_LET) || IsMatchCurToken(TOKEN_CONST))
 				classStmt->varItems.emplace_back((VarStmt *)ParseVarDecl(GetCurToken()->type));
 			else if (IsMatchCurTokenAndStepOnce(TOKEN_FUNCTION))
 			{
@@ -305,8 +306,8 @@ namespace lwscript
 					Hint::Error(fn->name->tagToken, L"The class member function name :{} conflicts with its class:{}, only constructor function name is allowed to same with its class's name", fn->name->literal);
 				classStmt->fnItems.emplace_back(fn);
 			}
-			else if(IsMatchCurToken(TOKEN_ENUM))
-				classStmt->enumItems.emplace_back((EnumStmt*)ParseEnumDecl());
+			else if (IsMatchCurToken(TOKEN_ENUM))
+				classStmt->enumItems.emplace_back((EnumStmt *)ParseEnumDecl());
 			else if (GetCurToken()->literal == classStmt->name) // constructor
 			{
 				auto fn = (FunctionStmt *)ParseFunctionDecl();
@@ -335,7 +336,7 @@ namespace lwscript
 		while (!IsMatchCurToken(TOKEN_RBRACE))
 		{
 			auto name = (IdentifierExpr *)ParseIdentifierExpr();
-			Expr *value = new StrExpr(name->tagToken, name->literal);
+			Expr *value = new LiteralExpr(name->tagToken, name->literal);
 			if (IsMatchCurTokenAndStepOnce(TOKEN_EQUAL))
 			{
 				SAFE_DELETE(value);
@@ -543,7 +544,7 @@ namespace lwscript
 		Consume(TOKEN_LPAREN, L"Expect '(' after 'for'.");
 
 		// initializer
-		if (IsMatchCurToken(TOKEN_LET)||IsMatchCurToken(TOKEN_CONST))
+		if (IsMatchCurToken(TOKEN_LET) || IsMatchCurToken(TOKEN_CONST))
 			scopeStmt->stmts.emplace_back(ParseVarDecl(GetCurToken()->type));
 		else
 		{
@@ -891,7 +892,7 @@ namespace lwscript
 			auto token = GetCurTokenAndStepOnce();
 			Hint::Error(token, L"no prefix definition for:{}", token->literal);
 
-			auto nullExpr = new NullExpr(token);
+			auto nullExpr = new LiteralExpr(token);
 
 			return nullExpr;
 		}
@@ -927,48 +928,43 @@ namespace lwscript
 		return identifierExpr;
 	}
 
-	Expr *Parser::ParseNumExpr()
+	Expr *Parser::ParseLiteralExpr()
 	{
 		auto token = GetCurToken();
-		std::wstring numLiteral = Consume(TOKEN_NUMBER, L"Expexct a number literal.")->literal;
-		if (numLiteral.find('.') != std::wstring::npos)
+		if (token->type == TOKEN_NUMBER)
 		{
-			auto realNumExpr = new RealNumExpr(token, std::stod(numLiteral));
-			return realNumExpr;
+			std::wstring numLiteral = Consume(TOKEN_NUMBER, L"Expexct a number literal.")->literal;
+			Expr *numExpr = nullptr;
+			if (numLiteral.find('.') != std::wstring::npos)
+				numExpr = new LiteralExpr(token, std::stod(numLiteral));
+			else
+				numExpr = new LiteralExpr(token, std::stoll(numLiteral));
+			return numExpr;
 		}
-		else
+		else if (token->type == TOKEN_STRING)
 		{
-			auto intNumExpr = new IntNumExpr(token, std::stoll(numLiteral));
-			return intNumExpr;
+			auto token = Consume(TOKEN_STRING, L"Expect a string literal.");
+			auto strExpr = new LiteralExpr(token, token->literal);
+
+			return strExpr;
 		}
-	}
+		else if (token->type == TOKEN_NULL)
+		{
+			auto token = Consume(TOKEN_NULL, L"Expect 'null' keyword");
+			return new LiteralExpr(token);
+		}
+		else if (token->type == TOKEN_TRUE)
+		{
+			auto token = Consume(TOKEN_TRUE, L"Expect 'true' keyword");
+			return new LiteralExpr(token, true);
+		}
+		else if (token->type == TOKEN_FALSE)
+		{
+			auto token = Consume(TOKEN_FALSE, L"Expect 'false' keyword");
+			return new LiteralExpr(token, false);
+		}
 
-	Expr *Parser::ParseStrExpr()
-	{
-		auto token = Consume(TOKEN_STRING, L"Expect a string literal.");
-		auto strExpr = new StrExpr(token);
-
-		strExpr->value = token->literal;
-		return strExpr;
-	}
-
-	Expr *Parser::ParseNullExpr()
-	{
-		auto token = Consume(TOKEN_NULL, L"Expect 'null' keyword");
-		auto nullExpr = new NullExpr(token);
-		return nullExpr;
-	}
-	Expr *Parser::ParseTrueExpr()
-	{
-		auto token = Consume(TOKEN_TRUE, L"Expect 'true' keyword");
-		auto trueExpr = new BoolExpr(token, true);
-		return trueExpr;
-	}
-	Expr *Parser::ParseFalseExpr()
-	{
-		auto token = Consume(TOKEN_FALSE, L"Expect 'false' keyword");
-		auto falseExpr = new BoolExpr(token, false);
-		return falseExpr;
+		return new LiteralExpr(token);
 	}
 
 	Expr *Parser::ParseGroupExpr()
@@ -1237,7 +1233,7 @@ namespace lwscript
 				{
 					initializeList->elements = ((ArrayExpr *)value)->elements;
 					for (int32_t i = 0; i < grad; ++i)
-						initializeList->elements.emplace_back(new NullExpr(GetCurToken()));
+						initializeList->elements.emplace_back(new LiteralExpr(GetCurToken()));
 				}
 				else if (((VarDescExpr *)arrayExpr->elements.back())->name->type == AST_VAR_ARG)
 					initializeList->elements = ((ArrayExpr *)value)->elements;
@@ -1251,20 +1247,20 @@ namespace lwscript
 		}
 		else
 		{
-			auto nullExpr = new NullExpr(GetCurToken());
+			Expr *nullExpr = new LiteralExpr(GetCurToken());
 			initializeList->elements.resize(arrayExpr->elements.size(), nullExpr);
 		}
 
 		return std::make_pair(arrayExpr, initializeList);
 	}
 
-	Token* Parser::GetCurToken()
+	Token *Parser::GetCurToken()
 	{
 		if (!IsAtEnd())
 			return mTokens[mCurPos];
 		return mTokens.back();
 	}
-	Token* Parser::GetCurTokenAndStepOnce()
+	Token *Parser::GetCurTokenAndStepOnce()
 	{
 		if (!IsAtEnd())
 			return mTokens[mCurPos++];
@@ -1287,13 +1283,13 @@ namespace lwscript
 		return Associativity::L2R;
 	}
 
-	Token* Parser::GetNextToken()
+	Token *Parser::GetNextToken()
 	{
 		if (mCurPos + 1 < (int32_t)mTokens.size())
 			return mTokens[mCurPos + 1];
 		return mTokens.back();
 	}
-	Token* Parser::GetNextTokenAndStepOnce()
+	Token *Parser::GetNextTokenAndStepOnce()
 	{
 		if (mCurPos + 1 < (int32_t)mTokens.size())
 			return mTokens[++mCurPos];
@@ -1338,19 +1334,19 @@ namespace lwscript
 		return false;
 	}
 
-	Token* Parser::Consume(TokenType type, std::wstring_view errMsg)
+	Token *Parser::Consume(TokenType type, std::wstring_view errMsg)
 	{
 		if (mSkippingConsumeTokenTypeStack.empty() || type != mSkippingConsumeTokenTypeStack.back())
 		{
 			if (IsMatchCurToken(type))
 				return GetCurTokenAndStepOnce();
-			Token* token = GetCurToken();
+			Token *token = GetCurToken();
 			Hint::Error(token, L"{}", errMsg);
 		}
 		return nullptr;
 	}
 
-	Token* Parser::Consume(const std::vector<TokenType> &types, std::wstring_view errMsg)
+	Token *Parser::Consume(const std::vector<TokenType> &types, std::wstring_view errMsg)
 	{
 		if (!mSkippingConsumeTokenTypeStack.empty())
 			for (const auto &type : types)
@@ -1360,7 +1356,7 @@ namespace lwscript
 		for (const auto &type : types)
 			if (IsMatchCurToken(type))
 				return GetCurTokenAndStepOnce();
-		Token* token = GetCurToken();
+		Token *token = GetCurToken();
 		Hint::Error(token, L"{}", errMsg);
 	}
 

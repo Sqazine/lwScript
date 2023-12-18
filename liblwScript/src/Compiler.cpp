@@ -105,14 +105,22 @@ namespace lwscript
 		for (const auto &[k, v] : stmt->enumItems)
 		{
 			Value enumValue;
-			if (v->type == AST_INT)
-				enumValue = ((IntNumExpr *)v)->value;
-			else if (v->type == AST_REAL)
-				enumValue = ((RealNumExpr *)v)->value;
-			else if (v->type == AST_BOOL)
-				enumValue = ((BoolExpr *)v)->value;
-			else if (v->type == AST_STR)
-				enumValue = new StrObject(((StrExpr *)v)->value);
+			if (v->type == AST_LITERAL)
+			{
+				LiteralExpr *literalExpr = (LiteralExpr *)v;
+				if (literalExpr->literalType == LiteralExpr::Type::INTEGER)
+					enumValue = literalExpr->iValue;
+				else if (literalExpr->literalType == LiteralExpr::Type::FLOATING)
+					enumValue = literalExpr->dValue;
+				else if (literalExpr->literalType == LiteralExpr::Type::BOOLEAN)
+					enumValue = literalExpr->boolean;
+				else if (literalExpr->literalType == LiteralExpr::Type::STRING)
+					enumValue = new StrObject(literalExpr->str);
+				else if (literalExpr->literalType == LiteralExpr::Type::CHARACTER)
+				{
+					//TODO...
+				}
+			}
 			else
 				Hint::Error(v->tagToken, L"Enum value only integer num,floating point num,boolean or string is available.");
 
@@ -355,14 +363,8 @@ namespace lwscript
 		case AST_INFIX:
 			CompileInfixExpr((InfixExpr *)expr);
 			break;
-		case AST_INT:
-			CompileIntNumExpr((IntNumExpr *)expr);
-			break;
-		case AST_REAL:
-			CompileRealNumExpr((RealNumExpr *)expr);
-			break;
-		case AST_BOOL:
-			CompileBoolExpr((BoolExpr *)expr);
+		case AST_LITERAL:
+			CompileLiteralExpr((LiteralExpr *)expr);
 			break;
 		case AST_PREFIX:
 			CompilePrefixExpr((PrefixExpr *)expr);
@@ -372,12 +374,6 @@ namespace lwscript
 			break;
 		case AST_CONDITION:
 			CompileConditionExpr((ConditionExpr *)expr);
-			break;
-		case AST_STR:
-			CompileStrExpr((StrExpr *)expr);
-			break;
-		case AST_NULL:
-			CompileNullExpr((NullExpr *)expr);
 			break;
 		case AST_GROUP:
 			CompileGroupExpr((GroupExpr *)expr);
@@ -587,18 +583,31 @@ namespace lwscript
 			}
 		}
 	}
-	void Compiler::CompileIntNumExpr(IntNumExpr *expr)
+
+	void Compiler::CompileLiteralExpr(LiteralExpr *expr)
 	{
-		EmitConstant(expr->value, expr->tagToken);
+		switch (expr->literalType)
+		{
+		case LiteralExpr::Type::INTEGER:
+			EmitConstant(expr->iValue, expr->tagToken);
+			break;
+		case LiteralExpr::Type::FLOATING:
+			EmitConstant(expr->dValue, expr->tagToken);
+			break;
+		case LiteralExpr::Type::BOOLEAN:
+			EmitConstant(expr->boolean, expr->tagToken);
+			break;
+		case LiteralExpr::Type::STRING:
+			EmitConstant(new StrObject(expr->str), expr->tagToken);
+			break;
+		case LiteralExpr::Type::CHARACTER:
+			break;//TODO:...
+		default:
+			EmitOpCode(OP_NULL, expr->tagToken);
+			break;
+		}
 	}
-	void Compiler::CompileRealNumExpr(RealNumExpr *expr)
-	{
-		EmitConstant(expr->value, expr->tagToken);
-	}
-	void Compiler::CompileBoolExpr(BoolExpr *expr)
-	{
-		EmitConstant(expr->value, expr->tagToken);
-	}
+
 	void Compiler::CompilePrefixExpr(PrefixExpr *expr)
 	{
 		CompileExpr(expr->right);
@@ -665,14 +674,6 @@ namespace lwscript
 		PatchJump(jmpAddress);
 	}
 
-	void Compiler::CompileStrExpr(StrExpr *expr)
-	{
-		EmitConstant(new StrObject(expr->value), expr->tagToken);
-	}
-	void Compiler::CompileNullExpr(NullExpr *expr)
-	{
-		EmitOpCode(OP_NULL, expr->tagToken);
-	}
 	void Compiler::CompileGroupExpr(GroupExpr *expr)
 	{
 		CompileExpr(expr->expr);
@@ -1275,7 +1276,7 @@ namespace lwscript
 		return static_cast<uint8_t>(CurChunk().constants.size()) - 1;
 	}
 
-	void Compiler::EmitSymbol(const Symbol& symbol)
+	void Compiler::EmitSymbol(const Symbol &symbol)
 	{
 		if (symbol.type == SymbolType::GLOBAL)
 		{
@@ -1337,11 +1338,7 @@ namespace lwscript
 		{
 		case AST_BREAK:
 		case AST_CONTINUE:
-		case AST_REAL:
-		case AST_INT:
-		case AST_STR:
-		case AST_BOOL:
-		case AST_NULL:
+		case AST_LITERAL:
 		case AST_IDENTIFIER:
 			return {};
 		case AST_ASTSTMTS:

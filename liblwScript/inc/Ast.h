@@ -10,11 +10,7 @@ namespace lwscript
 	enum AstType
 	{
 		// expr
-		AST_INT,
-		AST_REAL,
-		AST_STR,
-		AST_NULL,
-		AST_BOOL,
+		AST_LITERAL,
 		AST_IDENTIFIER,
 		AST_VAR_DESC,
 		AST_GROUP,
@@ -73,56 +69,37 @@ namespace lwscript
 		virtual std::wstring ToString() = 0;
 	};
 
-	struct IntNumExpr : public Expr
+	struct LiteralExpr:public Expr
 	{
-		IntNumExpr(Token *tagToken);
-		IntNumExpr(Token *tagToken, int64_t value);
-		~IntNumExpr();
+		enum class Type
+		{
+			NIL,
+			INTEGER,
+			FLOATING,
+			BOOLEAN,
+			CHARACTER,
+			STRING	
+		};
+
+		LiteralExpr(Token *tagToken);
+		LiteralExpr(Token *tagToken,int64_t value);
+		LiteralExpr(Token *tagToken,double value);
+		LiteralExpr(Token *tagToken,bool value);
+		LiteralExpr(Token *tagToken,std::wstring_view value);
+		~LiteralExpr() override;
 
 		std::wstring ToString() override;
 
-		int64_t value;
-	};
+		Type literalType;
 
-	struct RealNumExpr : public Expr
-	{
-		RealNumExpr(Token *tagToken);
-		RealNumExpr(Token *tagToken, double value);
-		~RealNumExpr();
-
-		std::wstring ToString() override;
-
-		double value;
-	};
-
-	struct StrExpr : public Expr
-	{
-		StrExpr(Token *tagToken);
-		StrExpr(Token *tagToken, std::wstring_view str);
-		~StrExpr();
-
-		std::wstring ToString() override;
-
-		std::wstring value;
-	};
-
-	struct NullExpr : public Expr
-	{
-		NullExpr(Token *tagToken);
-		~NullExpr();
-
-		std::wstring ToString() override;
-	};
-
-	struct BoolExpr : public Expr
-	{
-		BoolExpr(Token *tagToken);
-		BoolExpr(Token *tagToken, bool value);
-		~BoolExpr();
-
-		std::wstring ToString() override;
-
-		bool value;
+		union
+		{
+			int64_t iValue;
+			double dValue;
+			bool boolean;
+			wchar_t character;
+			std::wstring str;
+		};
 	};
 
 	struct IdentifierExpr : public Expr

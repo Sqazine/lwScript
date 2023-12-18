@@ -31,17 +31,17 @@ namespace lwscript
 		{L"default", TOKEN_DEFAULT},
 		{L"match", TOKEN_MATCH},
 		{L"enum", TOKEN_ENUM},
-		{L"u8", TOKEN_U8},
-		{L"u16", TOKEN_U16},
-		{L"u32", TOKEN_U32},
-		{L"u64", TOKEN_U64},
-		{L"i8", TOKEN_I8},
-		{L"i16", TOKEN_I16},
-		{L"i32", TOKEN_I32},
-		{L"i64", TOKEN_I64},
-		{L"bool", TOKEN_BOOL},
-		{L"char", TOKEN_CHAR},
-		{L"void", TOKEN_VOID},
+		{L"u8", TOKEN_TYPE_U8},
+		{L"u16", TOKEN_TYPE_U16},
+		{L"u32", TOKEN_TYPE_U32},
+		{L"u64", TOKEN_TYPE_U64},
+		{L"i8", TOKEN_TYPE_I8},
+		{L"i16", TOKEN_TYPE_I16},
+		{L"i32", TOKEN_TYPE_I32},
+		{L"i64", TOKEN_TYPE_I64},
+		{L"bool", TOKEN_TYPE_BOOL},
+		{L"char", TOKEN_TYPE_CHAR},
+		{L"void", TOKEN_TYPE_VOID},
 		{L"as", TOKEN_AS},
 		{L"new", TOKEN_NEW},
 	};
@@ -138,6 +138,8 @@ namespace lwscript
 			AddToken(TOKEN_QUESTION);
 		else if (c == L"\"")
 			String();
+		else if(c==L"\'")
+			Character();
 		else if (c == L" " || c == L"\t" || c == L"\r")
 		{
 		}
@@ -434,5 +436,14 @@ namespace lwscript
 		GetCurCharAndStepOnce(); // eat the second '\"'
 
 		AddToken(TOKEN_STRING, mSource.substr(mStartPos + 1, mCurPos - mStartPos - 2));
+	}
+
+	void Lexer::Character()
+	{
+		GetCurCharAndStepOnce();// eat the first '\''
+
+		AddToken(TOKEN_CHAR,mSource.substr(mStartPos+1,1));
+
+		GetCurCharAndStepOnce();// eat the second '\''
 	}
 }

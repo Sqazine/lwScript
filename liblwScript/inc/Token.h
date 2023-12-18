@@ -10,6 +10,7 @@ namespace lwscript
 	{
 		TOKEN_NUMBER = 0,
 		TOKEN_STRING,
+		TOKEN_CHAR,
 		TOKEN_IDENTIFIER,
 		TOKEN_DOT,					 // .
 		TOKEN_ELLIPSIS,				 // ...
@@ -81,20 +82,20 @@ namespace lwscript
 		TOKEN_DEFAULT,				 // default
 		TOKEN_MATCH,				 // match
 		TOKEN_ENUM,					 // enum
-		TOKEN_U8,					 // u8
-		TOKEN_U16,					 // u16
-		TOKEN_U32,					 // u32
-		TOKEN_U64,					 // u64
-		TOKEN_I8,					 // i8
-		TOKEN_I16,					 // i16
-		TOKEN_I32,					 // i32
-		TOKEN_I64,					 // i64
-		TOKEN_F32,					 // f32
-		TOKEN_F64,					 // f64
-		TOKEN_BOOL,					 // bool
-		TOKEN_CHAR,					 // char
-		TOKEN_ANY,					 // any
-		TOKEN_VOID,					 // void
+		TOKEN_TYPE_U8,				 // u8
+		TOKEN_TYPE_U16,				 // u16
+		TOKEN_TYPE_U32,				 // u32
+		TOKEN_TYPE_U64,				 // u64
+		TOKEN_TYPE_I8,				 // i8
+		TOKEN_TYPE_I16,				 // i16
+		TOKEN_TYPE_I32,				 // i32
+		TOKEN_TYPE_I64,				 // i64
+		TOKEN_TYPE_F32,				 // f32
+		TOKEN_TYPE_F64,				 // f64
+		TOKEN_TYPE_BOOL,			 // bool
+		TOKEN_TYPE_CHAR,			 // char
+		TOKEN_TYPE_ANY,				 // any
+		TOKEN_TYPE_VOID,			 // void
 		TOKEN_AS,					 // as
 		TOKEN_NEW,					 // new
 		TOKEN_EOF,

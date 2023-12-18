@@ -44,6 +44,7 @@ namespace lwscript
 		void Number();
 		void Identifier();
 		void String();
+		void Character();
 
 		uint64_t mStartPos;
 		uint64_t mCurPos;

@@ -30,15 +30,11 @@ namespace lwscript
         Stmt *CheckModuleStmt(ModuleStmt *stmt);
 
         Expr *CheckExpr(Expr *expr);
+        Expr *CheckLiteralExpr(LiteralExpr *expr);
         Expr *CheckInfixExpr(InfixExpr *expr);
-        Expr *CheckIntNumExpr(IntNumExpr *expr);
-        Expr *CheckRealNumExpr(RealNumExpr *expr);
-        Expr *CheckBoolExpr(BoolExpr *expr);
         Expr *CheckPrefixExpr(PrefixExpr *expr);
         Expr *CheckPostfixExpr(PostfixExpr *expr);
         Expr *CheckConditionExpr(ConditionExpr *expr);
-        Expr *CheckStrExpr(StrExpr *expr);
-        Expr *CheckNullExpr(NullExpr *expr);
         Expr *CheckGroupExpr(GroupExpr *expr);
         Expr *CheckArrayExpr(ArrayExpr *expr);
         Expr *CheckAppregateExpr(AppregateExpr *expr);
