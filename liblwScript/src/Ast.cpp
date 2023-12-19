@@ -145,6 +145,7 @@ namespace lwscript
 	}
 	GroupExpr::~GroupExpr()
 	{
+		SAFE_DELETE(expr);
 	}
 	std::wstring GroupExpr::ToString()
 	{
@@ -253,6 +254,7 @@ namespace lwscript
 	}
 	RefExpr::~RefExpr()
 	{
+		SAFE_DELETE(refExpr);
 	}
 
 	std::wstring RefExpr::ToString()
@@ -298,6 +300,8 @@ namespace lwscript
 	}
 	CallExpr::~CallExpr()
 	{
+		SAFE_DELETE(callee);
+		std::vector<Expr *>().swap(arguments);
 	}
 	std::wstring CallExpr::ToString()
 	{
@@ -323,6 +327,8 @@ namespace lwscript
 	}
 	DotExpr::~DotExpr()
 	{
+		SAFE_DELETE(callee);
+		SAFE_DELETE(callMember);
 	}
 
 	std::wstring DotExpr::ToString()
@@ -340,6 +346,7 @@ namespace lwscript
 	}
 	NewExpr::~NewExpr()
 	{
+		SAFE_DELETE(callee);
 	}
 
 	std::wstring NewExpr::ToString()
@@ -367,6 +374,7 @@ namespace lwscript
 	}
 	BaseExpr::~BaseExpr()
 	{
+		SAFE_DELETE(callMember);
 	}
 
 	std::wstring BaseExpr::ToString()
@@ -384,6 +392,8 @@ namespace lwscript
 	}
 	BlockExpr::~BlockExpr()
 	{
+		SAFE_DELETE(endExpr);
+		std::vector<Stmt *>().swap(stmts);
 	}
 
 	std::wstring BlockExpr::ToString()
@@ -663,6 +673,8 @@ namespace lwscript
 	}
 	EnumStmt::~EnumStmt()
 	{
+		SAFE_DELETE(name);
+		std::unordered_map<IdentifierExpr *, Expr *>().swap(enumItems);
 	}
 	std::wstring EnumStmt::ToString()
 	{
@@ -698,6 +710,12 @@ namespace lwscript
 	}
 	ModuleStmt::~ModuleStmt()
 	{
+		SAFE_DELETE(name);
+		std::vector<VarStmt *>().swap(varItems);
+		std::vector<ClassStmt *>().swap(classItems);
+		std::vector<ModuleStmt *>().swap(moduleItems);
+		std::vector<EnumStmt *>().swap(enumItems);
+		std::vector<FunctionStmt *>().swap(functionItems);
 	}
 
 	std::wstring ModuleStmt::ToString()
@@ -728,6 +746,7 @@ namespace lwscript
 
 	FunctionStmt::~FunctionStmt()
 	{
+		SAFE_DELETE(name);
 		std::vector<VarDescExpr *>().swap(parameters);
 		SAFE_DELETE(body);
 	}

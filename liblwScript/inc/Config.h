@@ -34,6 +34,6 @@
 #define SAFE_DELETE(x) \
     do                 \
     {                  \
-        delete x;      \
-        x = nullptr;   \
+        delete (x);      \
+        (x) = nullptr;   \
     } while (false);

@@ -158,9 +158,7 @@ namespace lwscript
     {
         std::size_t seed = vec.size();
         for (auto &v : vec)
-        {
             seed ^= ValueHash()(v) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
-        }
         return seed;
     }
 }

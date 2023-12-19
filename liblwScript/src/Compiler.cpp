@@ -926,9 +926,7 @@ namespace lwscript
 	void Compiler::CompileVarArgExpr(VarArgExpr *expr, const RWState &state)
 	{
 		if (expr->argName)
-		{
 			CompileExpr(expr->argName, state);
-		}
 	}
 
 	void Compiler::CompileFactorialExpr(FactorialExpr *expr, const RWState &state)

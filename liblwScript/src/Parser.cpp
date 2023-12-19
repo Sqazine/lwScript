@@ -933,36 +933,24 @@ namespace lwscript
 		auto token = GetCurToken();
 		if (token->type == TOKEN_NUMBER)
 		{
-			std::wstring numLiteral = Consume(TOKEN_NUMBER, L"Expexct a number literal.")->literal;
+			auto literal=token->literal;
 			Expr *numExpr = nullptr;
-			if (numLiteral.find('.') != std::wstring::npos)
-				numExpr = new LiteralExpr(token, std::stod(numLiteral));
+			if (literal.find('.') != std::wstring::npos)
+				numExpr = new LiteralExpr(token, std::stod(literal));
 			else
-				numExpr = new LiteralExpr(token, std::stoll(numLiteral));
+				numExpr = new LiteralExpr(token, std::stoll(literal));
 			return numExpr;
 		}
 		else if (token->type == TOKEN_STRING)
-		{
-			auto token = Consume(TOKEN_STRING, L"Expect a string literal.");
-			auto strExpr = new LiteralExpr(token, token->literal);
-
-			return strExpr;
-		}
+			return new LiteralExpr(token, token->literal);
 		else if (token->type == TOKEN_NULL)
-		{
-			auto token = Consume(TOKEN_NULL, L"Expect 'null' keyword");
 			return new LiteralExpr(token);
-		}
 		else if (token->type == TOKEN_TRUE)
-		{
-			auto token = Consume(TOKEN_TRUE, L"Expect 'true' keyword");
 			return new LiteralExpr(token, true);
-		}
 		else if (token->type == TOKEN_FALSE)
-		{
-			auto token = Consume(TOKEN_FALSE, L"Expect 'false' keyword");
 			return new LiteralExpr(token, false);
-		}
+
+		GetCurTokenAndStepOnce();
 
 		return new LiteralExpr(token);
 	}
@@ -978,10 +966,8 @@ namespace lwscript
 
 	Expr *Parser::ParseArrayExpr()
 	{
-		auto arrayExpr = new ArrayExpr(GetCurToken());
-
-		Consume(TOKEN_LBRACKET, L"Expect '['.");
-
+		auto token=Consume(TOKEN_LBRACKET, L"Expect '['.");
+		auto arrayExpr = new ArrayExpr(token);
 		if (!IsMatchCurToken(TOKEN_RBRACKET))
 		{
 			do
@@ -994,15 +980,13 @@ namespace lwscript
 		}
 
 		Consume(TOKEN_RBRACKET, L"Expect ']'.");
-
 		return arrayExpr;
 	}
 
 	Expr *Parser::ParseDictExpr()
 	{
-		auto dictExpr = new DictExpr(GetCurToken());
-
-		Consume(TOKEN_LBRACE, L"Expect '{'.");
+		auto token=Consume(TOKEN_LBRACE, L"Expect '{'.");
+		auto dictExpr = new DictExpr(token);
 
 		if (!IsMatchCurToken(TOKEN_RBRACE))
 		{
@@ -1026,9 +1010,8 @@ namespace lwscript
 
 	Expr *Parser::ParseAnonyObjExpr()
 	{
-		auto anonyObjExpr = new AnonyObjExpr(GetCurToken());
-
-		Consume(TOKEN_LBRACE, L"Expect '{'.");
+		auto token=Consume(TOKEN_LBRACE, L"Expect '{'.");
+		auto anonyObjExpr = new AnonyObjExpr(token);
 
 		if (!IsMatchCurToken(TOKEN_RBRACE))
 		{
@@ -1057,7 +1040,6 @@ namespace lwscript
 	Expr *Parser::ParsePrefixExpr()
 	{
 		auto prefixExpr = new PrefixExpr(GetCurToken());
-
 		prefixExpr->op = GetCurTokenAndStepOnce()->literal;
 		prefixExpr->right = ParseExpr(Precedence::PREFIX);
 		return prefixExpr;
@@ -1067,7 +1049,6 @@ namespace lwscript
 	{
 		auto token = Consume(TOKEN_AMPERSAND, L"Expect '&'.");
 		auto refExpr = new RefExpr(token);
-
 		refExpr->refExpr = ParseExpr(Precedence::PREFIX);
 		return refExpr;
 	}
@@ -1093,7 +1074,6 @@ namespace lwscript
 	Expr *Parser::ParseConditionExpr(Expr *prefixExpr)
 	{
 		ConditionExpr *conditionExpr = new ConditionExpr(GetCurToken());
-
 		conditionExpr->condition = prefixExpr;
 		Consume(TOKEN_QUESTION, L"Expect '?'.");
 		conditionExpr->trueBranch = ParseExpr(Precedence::CONDITION);
@@ -1105,7 +1085,6 @@ namespace lwscript
 	Expr *Parser::ParseIndexExpr(Expr *prefixExpr)
 	{
 		auto indexExpr = new IndexExpr(GetCurToken());
-
 		Consume(TOKEN_LBRACKET, L"Expect '['.");
 		indexExpr->ds = prefixExpr;
 		indexExpr->index = ParseExpr();
@@ -1116,7 +1095,6 @@ namespace lwscript
 	Expr *Parser::ParseCallExpr(Expr *prefixExpr)
 	{
 		auto callExpr = new CallExpr(GetCurToken());
-
 		callExpr->callee = prefixExpr;
 		Consume(TOKEN_LPAREN, L"Expect '('.");
 		if (!IsMatchCurToken(TOKEN_RPAREN)) // has arguments

@@ -111,7 +111,7 @@ namespace lwscript
     struct StrObject : public Object
     {
         StrObject(std::wstring_view value);
-        ~StrObject();
+        ~StrObject() override;
 
         std::wstring ToString() const override;
         bool IsEqualTo(Object *other) override;
@@ -126,7 +126,7 @@ namespace lwscript
     {
         ArrayObject();
         ArrayObject(const std::vector<struct Value> &elements);
-        ~ArrayObject();
+        ~ArrayObject() override;
 
         std::wstring ToString() const override;
         void Blacken(class Allocator *allocator) override;
@@ -142,7 +142,7 @@ namespace lwscript
     {
         DictObject();
         DictObject(const ValueUnorderedMap &elements);
-        ~DictObject();
+        ~DictObject() override;
 
         std::wstring ToString() const override;
 
@@ -157,7 +157,7 @@ namespace lwscript
     {
         AnonymousObject();
         AnonymousObject(const std::unordered_map<std::wstring, Value> &elements);
-        ~AnonymousObject();
+        ~AnonymousObject()override;
 
         std::wstring ToString() const override;
 
@@ -172,7 +172,7 @@ namespace lwscript
     {
         FunctionObject();
         FunctionObject(std::wstring_view name);
-        ~FunctionObject();
+        ~FunctionObject() override;
 
         std::wstring ToString() const override;
 
@@ -191,7 +191,7 @@ namespace lwscript
     {
         UpValueObject();
         UpValueObject(Value *location);
-        ~UpValueObject();
+        ~UpValueObject() override;
 
         std::wstring ToString() const override;
 
@@ -208,7 +208,7 @@ namespace lwscript
     {
         ClosureObject();
         ClosureObject(FunctionObject *function);
-        ~ClosureObject();
+        ~ClosureObject() override;
 
         std::wstring ToString() const override;
 
@@ -226,7 +226,7 @@ namespace lwscript
     {
         NativeFunctionObject();
         NativeFunctionObject(NativeFunction f);
-        ~NativeFunctionObject();
+        ~NativeFunctionObject() override;
 
         std::wstring ToString() const override;
 
@@ -239,7 +239,7 @@ namespace lwscript
     struct RefObject : public Object
     {
         RefObject(Value *pointer);
-        ~RefObject();
+        ~RefObject() override;
 
         std::wstring ToString() const override;
 
@@ -253,7 +253,7 @@ namespace lwscript
     {
         ClassObject();
         ClassObject(std::wstring_view name);
-        ~ClassObject();
+        ~ClassObject() override;
 
         std::wstring ToString() const override;
 
@@ -274,7 +274,7 @@ namespace lwscript
     {
         ClassClosureBindObject();
         ClassClosureBindObject(const Value &receiver, ClosureObject *cl);
-        ~ClassClosureBindObject();
+        ~ClassClosureBindObject() override;
 
         std::wstring ToString() const override;
 
@@ -290,7 +290,7 @@ namespace lwscript
     {
         EnumObject();
         EnumObject(const std::wstring &name, const std::unordered_map<std::wstring, Value> &pairs);
-        ~EnumObject();
+        ~EnumObject() override;
 
         std::wstring ToString() const override;
 
@@ -308,7 +308,7 @@ namespace lwscript
     {
         ModuleObject();
         ModuleObject(const std::wstring &name, const std::unordered_map<std::wstring, Value> &values);
-        ~ModuleObject();
+        ~ModuleObject() override;
 
         std::wstring ToString() const override;
 
