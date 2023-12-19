@@ -35,6 +35,9 @@ namespace lwscript
 
 	void Compiler::ResetStatus()
 	{
+		mCurContinueStmtAddress=-1;
+		mCurBreakStmtAddress=-1;
+
 		std::vector<FunctionObject *>().swap(mFunctionList);
 		mFunctionList.emplace_back(new FunctionObject(L"_main_start_up"));
 
@@ -48,18 +51,11 @@ namespace lwscript
 		symbol->scopeDepth = 0;
 		symbol->name = L"_main_start_up";
 
-		for (const auto &libName : LibraryManager::Instance().mStdLibraryMap)
-			mSymbolTable->Define(new Token(), Privilege::IMMUTABLE, libName);
+		for (const auto &lib : LibraryManager::Instance().mStdLibraries)
+			mSymbolTable->Define(new Token(), Privilege::IMMUTABLE, lib->name);
 	}
 
 	void Compiler::CompileDecl(Stmt *stmt)
-	{
-		int64_t breakStmtAddress = -1;	  // useless
-		int64_t contineuStmtAddress = -1; // useless
-		CompileDecl(stmt, breakStmtAddress, contineuStmtAddress);
-	}
-
-	void Compiler::CompileDecl(Stmt *stmt, int64_t &breakStmtAddress, int64_t &continueStmtAddress)
 	{
 		switch (stmt->type)
 		{
@@ -79,7 +75,7 @@ namespace lwscript
 			CompileModuleDecl((ModuleStmt *)stmt);
 			break;
 		default:
-			CompileStmt((Stmt *)stmt, breakStmtAddress, continueStmtAddress);
+			CompileStmt((Stmt *)stmt);
 			break;
 		}
 	}
@@ -211,17 +207,17 @@ namespace lwscript
 		EmitSymbol(symbol);
 	}
 
-	void Compiler::CompileStmt(Stmt *stmt, int64_t &breakStmtAddress, int64_t &continueStmtAddress)
+	void Compiler::CompileStmt(Stmt *stmt)
 	{
 		switch (stmt->type)
 		{
 		case AST_IF:
-			CompileIfStmt((IfStmt *)stmt, breakStmtAddress, continueStmtAddress);
+			CompileIfStmt((IfStmt *)stmt);
 			break;
 		case AST_SCOPE:
 		{
 			EnterScope();
-			CompileScopeStmt((ScopeStmt *)stmt, breakStmtAddress, continueStmtAddress);
+			CompileScopeStmt((ScopeStmt *)stmt);
 			ExitScope();
 			break;
 		}
@@ -232,10 +228,10 @@ namespace lwscript
 			CompileReturnStmt((ReturnStmt *)stmt);
 			break;
 		case AST_BREAK:
-			CompileBreakStmt((BreakStmt *)stmt, breakStmtAddress);
+			CompileBreakStmt((BreakStmt *)stmt);
 			break;
 		case AST_CONTINUE:
-			CompileContinueStmt((ContinueStmt *)stmt, continueStmtAddress);
+			CompileContinueStmt((ContinueStmt *)stmt);
 			break;
 		default:
 			CompileExprStmt((ExprStmt *)stmt);
@@ -257,7 +253,7 @@ namespace lwscript
 		}
 	}
 
-	void Compiler::CompileIfStmt(IfStmt *stmt, int64_t &breakStmtAddress, int64_t &continueStmtAddress)
+	void Compiler::CompileIfStmt(IfStmt *stmt)
 	{
 		auto conditionPostfixExprs = StatsPostfixExprs(stmt->condition);
 
@@ -273,7 +269,7 @@ namespace lwscript
 
 		EmitOpCode(OP_POP, stmt->condition->tagToken);
 
-		CompileDecl(stmt->thenBranch, breakStmtAddress, continueStmtAddress);
+		CompileDecl(stmt->thenBranch);
 
 		auto jmpAddress = EmitJump(OP_JUMP, stmt->thenBranch->tagToken);
 
@@ -282,14 +278,14 @@ namespace lwscript
 		EmitOpCode(OP_POP, stmt->thenBranch->tagToken);
 
 		if (stmt->elseBranch)
-			CompileDecl(stmt->elseBranch, breakStmtAddress, continueStmtAddress);
+			CompileDecl(stmt->elseBranch);
 
 		PatchJump(jmpAddress);
 	}
-	void Compiler::CompileScopeStmt(ScopeStmt *stmt, int64_t &breakStmtAddress, int64_t &continueStmtAddress)
+	void Compiler::CompileScopeStmt(ScopeStmt *stmt)
 	{
 		for (const auto &s : stmt->stmts)
-			CompileDecl(s, breakStmtAddress, continueStmtAddress);
+			CompileDecl(s);
 	}
 	void Compiler::CompileWhileStmt(WhileStmt *stmt)
 	{
@@ -309,15 +305,15 @@ namespace lwscript
 
 		EmitOpCode(OP_POP, stmt->condition->tagToken);
 
-		int64_t breakStmtAddress = -1;
-		int64_t continueStmtAddress = -1;
+		mCurContinueStmtAddress=-1;
+		mCurBreakStmtAddress=-1;
 
-		CompileStmt(stmt->body, breakStmtAddress, continueStmtAddress);
+		CompileStmt(stmt->body);
 
-		if (continueStmtAddress != -1)
-			PatchJump(continueStmtAddress);
+		if (mCurContinueStmtAddress != -1)
+			PatchJump(mCurContinueStmtAddress);
 		if (stmt->increment)
-			CompileStmt(stmt->increment, breakStmtAddress, breakStmtAddress);
+			CompileStmt(stmt->increment);
 
 		EmitLoop(jmpAddress, stmt->tagToken);
 
@@ -325,8 +321,11 @@ namespace lwscript
 
 		EmitOpCode(OP_POP, stmt->condition->tagToken);
 
-		if (breakStmtAddress != -1)
-			PatchJump(breakStmtAddress);
+		if (mCurBreakStmtAddress != -1)
+			PatchJump(mCurBreakStmtAddress);
+
+		mCurContinueStmtAddress=-1;
+		mCurBreakStmtAddress=-1;
 	}
 	void Compiler::CompileReturnStmt(ReturnStmt *stmt)
 	{
@@ -347,13 +346,13 @@ namespace lwscript
 		}
 	}
 
-	void Compiler::CompileBreakStmt(BreakStmt *stmt, int64_t &stmtAddress)
+	void Compiler::CompileBreakStmt(BreakStmt *stmt)
 	{
-		stmtAddress = EmitJump(OP_JUMP, stmt->tagToken);
+		mCurBreakStmtAddress = EmitJump(OP_JUMP, stmt->tagToken);
 	}
-	void Compiler::CompileContinueStmt(ContinueStmt *stmt, int64_t &stmtAddress)
+	void Compiler::CompileContinueStmt(ContinueStmt *stmt)
 	{
-		stmtAddress = EmitJump(OP_JUMP, stmt->tagToken);
+		mCurContinueStmtAddress = EmitJump(OP_JUMP, stmt->tagToken);
 	}
 
 	void Compiler::CompileExpr(Expr *expr, const RWState &state, int8_t paramCount)
@@ -828,9 +827,7 @@ namespace lwscript
 
 		EnterScope();
 
-		int64_t breakStmtAddress = -1;
-		int64_t continueStmtAddress = -1;
-		CompileScopeStmt(expr->body, breakStmtAddress, continueStmtAddress);
+		CompileScopeStmt(expr->body);
 
 		if (CurChunk().opCodes[CurChunk().opCodes.size() - 2] != OP_RETURN)
 			EmitReturn(0, expr->body->stmts.back()->tagToken);
@@ -980,9 +977,7 @@ namespace lwscript
 
 		EnterScope();
 
-		int64_t breakStmtAddress = -1;
-		int64_t continueStmtAddress = -1;
-		CompileScopeStmt(stmt->body, breakStmtAddress, continueStmtAddress);
+		CompileScopeStmt(stmt->body);
 
 		if (stmt->type == FunctionType::CLASS_CONSTRUCTOR)
 		{

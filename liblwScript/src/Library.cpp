@@ -227,13 +227,6 @@ namespace lwscript
         mStdLibraries.emplace_back(dsClass);
         mStdLibraries.emplace_back(memClass);
         mStdLibraries.emplace_back(timeClass);
-
-        mStdLibraryMap =
-            {
-                L"io",
-                L"ds",
-                L"mem",
-                L"time"};
     }
     LibraryManager::~LibraryManager()
     {

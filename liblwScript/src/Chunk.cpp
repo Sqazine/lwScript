@@ -25,7 +25,10 @@ namespace lwscript
 		for (const auto &c : constants)
 		{
 			if (IS_FUNCTION_VALUE(c))
+			{
 				result += TO_FUNCTION_VALUE(c)->ToString();
+				result += L"\n" + TO_FUNCTION_VALUE(c)->chunk.ToString();
+			}
 		}
 		return result;
 	}

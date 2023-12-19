@@ -289,11 +289,7 @@ namespace lwscript
 
 	std::wstring FunctionObject::ToString() const
 	{
-		auto result = L"<fn " + name + L":0x" + PointerAddressToString((void *)this) + L">";
-		#ifdef OUTPUT_OPCODE
-			result += L"\n" + chunk.ToString();
-		#endif
-		return result;
+		return L"<fn " + name + L":0x" + PointerAddressToString((void *)this) + L">";
 	}
 
 	void FunctionObject::Blacken(Allocator *allocator)

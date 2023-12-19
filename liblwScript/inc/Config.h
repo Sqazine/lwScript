@@ -13,7 +13,6 @@
 #ifdef _DEBUG
 #define GC_DEBUG
 #define GC_STRESS
-#define OUTPUT_OPCODE
 #define PRINT_FUNCTION_CACHE
 #endif
 

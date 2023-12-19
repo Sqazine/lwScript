@@ -23,21 +23,20 @@ namespace lwscript
 
 	private:
 		void CompileDecl(Stmt *stmt);
-		void CompileDecl(Stmt *stmt, int64_t &breakStmtAddress, int64_t &continueStmtAddress);
 		void CompileVarDecl(VarStmt *stmt);
 		void CompileFunctionDecl(FunctionStmt *stmt);
 		void CompileClassDecl(ClassStmt *stmt);
 		void CompileEnumDecl(EnumStmt *stmt);
 		void CompileModuleDecl(ModuleStmt *stmt);
 
-		void CompileStmt(Stmt *stmt, int64_t &breakStmtAddress, int64_t &continueStmtAddress);
+		void CompileStmt(Stmt *stmt);
 		void CompileExprStmt(ExprStmt *stmt);
-		void CompileIfStmt(IfStmt *stmt, int64_t &breakStmtAddress, int64_t &continueStmtAddress);
-		void CompileScopeStmt(ScopeStmt *stmt, int64_t &breakStmtAddress, int64_t &continueStmtAddress);
+		void CompileIfStmt(IfStmt *stmt);
+		void CompileScopeStmt(ScopeStmt *stmt);
 		void CompileWhileStmt(WhileStmt *stmt);
 		void CompileReturnStmt(ReturnStmt *stmt);
-		void CompileBreakStmt(BreakStmt *stmt, int64_t &stmtAddress);
-		void CompileContinueStmt(ContinueStmt *stmt, int64_t &stmtAddress);
+		void CompileBreakStmt(BreakStmt *stmt);
+		void CompileContinueStmt(ContinueStmt *stmt);
 
 		void CompileExpr(Expr *expr, const RWState &state = RWState::READ, int8_t paramCount = -1);
 		void CompileInfixExpr(InfixExpr *expr);
@@ -90,5 +89,7 @@ namespace lwscript
 
 		std::vector<FunctionObject *> mFunctionList;
 		SymbolTable *mSymbolTable;
+
+		int64_t mCurBreakStmtAddress, mCurContinueStmtAddress;
 	};
 }

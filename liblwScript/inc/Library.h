@@ -21,10 +21,8 @@ namespace lwscript
 
         friend class VM;
         friend class Compiler;
-        std::vector<std::wstring> mStdLibraryMap;
         std::vector<ClassObject *> mStdLibraries;
 
-        std::vector<std::wstring> mLibraryMap;
         std::vector<ClassObject *> mLibraries;
     };
 }
