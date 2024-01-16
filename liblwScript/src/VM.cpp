@@ -35,7 +35,10 @@ namespace lwscript
 			Println(L"{}:", k);
 			for (const auto &[k1, v1] : v)
 			{
-				Println(L"\t{}:{}", k1[0].ToString(), v1[0].ToString());
+				for (int32_t i = 0; i < k1.size(); ++i)
+				{
+					Println(L"\t{}:{}", k1[i].ToString(), v1[i].ToString());
+				}
 			}
 		}
 	}

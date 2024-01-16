@@ -930,7 +930,7 @@ namespace lwscript
 
 	Expr *Parser::ParseLiteralExpr()
 	{
-		auto token = GetCurToken();
+		auto token = GetCurTokenAndStepOnce();
 		if (token->type == TOKEN_NUMBER)
 		{
 			auto literal=token->literal;
@@ -950,9 +950,7 @@ namespace lwscript
 		else if (token->type == TOKEN_FALSE)
 			return new LiteralExpr(token, false);
 
-		GetCurTokenAndStepOnce();
-
-		return new LiteralExpr(token);
+		Hint::Error(token, L"Unknown Literal.");
 	}
 
 	Expr *Parser::ParseGroupExpr()
