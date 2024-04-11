@@ -96,7 +96,7 @@ namespace lwscript
 			{TOKEN_THIS, &Parser::ParseThisExpr},
 			{TOKEN_BASE, &Parser::ParseBaseExpr},
 			{TOKEN_MATCH, &Parser::ParseMatchExpr},
-			{TOKEN_LPAREN_LBRACE, &Parser::ParseBlockExpr},
+			{TOKEN_LPAREN_LBRACE, &Parser::ParseCompoundExpr},
 			{TOKEN_ELLIPSIS, &Parser::ParseVarArgExpr},
 	};
 
@@ -853,13 +853,13 @@ namespace lwscript
 		return conditionExpr;
 	}
 
-	Expr *Parser::ParseBlockExpr()
+	Expr *Parser::ParseCompoundExpr()
 	{
 		auto token = Consume(TOKEN_LPAREN_LBRACE, L"Expect '({'.");
 
 		mSkippingConsumeTokenTypeStack.emplace_back(TOKEN_SEMICOLON);
 
-		auto blockExpr = new BlockExpr(token);
+		auto blockExpr = new CompoundExpr(token);
 
 		std::vector<struct Stmt *> stmts;
 		do

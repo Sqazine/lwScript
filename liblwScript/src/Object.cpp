@@ -18,7 +18,7 @@ namespace lwscript
 		if (marked)
 			return;
 #ifdef GC_DEBUG
-		Println(L"(0x{}) mark: {}", (void*)this, ToString());
+		Println(L"(0x{}) mark: {}", (void *)this, ToString());
 #endif
 		marked = true;
 		allocator->mGrayObjects.emplace_back(this);
@@ -28,7 +28,7 @@ namespace lwscript
 		if (!marked)
 			return;
 #ifdef GC_DEBUG
-		Println(L"(0x{}) unMark: {}", (void*)this, ToString());
+		Println(L"(0x{}) unMark: {}", (void *)this, ToString());
 #endif
 		marked = false;
 	}
@@ -36,7 +36,7 @@ namespace lwscript
 	void Object::Blacken(Allocator *allocator)
 	{
 #ifdef GC_DEBUG
-		Println(L"(0x{}) blacken: {}", (void*)this, ToString());
+		Println(L"(0x{}) blacken: {}", (void *)this, ToString());
 #endif
 	}
 
@@ -64,13 +64,13 @@ namespace lwscript
 		return new StrObject(value);
 	}
 
-	 uint64_t StrObject::NormalizeIdx(int64_t idx)
-	 {
+	uint64_t StrObject::NormalizeIdx(int64_t idx)
+	{
 
-					if (idx < 0)
-						idx = (int64_t)value.size() + idx;
-						return idx;
-	 }
+		if (idx < 0)
+			idx = (int64_t)value.size() + idx;
+		return idx;
+	}
 
 	ArrayObject::ArrayObject()
 		: Object(OBJECT_ARRAY)
@@ -285,6 +285,9 @@ namespace lwscript
 	}
 	FunctionObject::~FunctionObject()
 	{
+#ifdef PRINT_FUNCTION_CACHE
+		PrintCache();
+#endif
 	}
 
 	std::wstring FunctionObject::ToString() const
@@ -329,8 +332,41 @@ namespace lwscript
 		return funcObj;
 	}
 
+#ifdef USE_FUNCTION_CACHE
+	void FunctionObject::SetCache(const std::vector<Value> &arguments, const std::vector<Value> &result)
+	{
+		caches[arguments] = result;
+	}
+	bool FunctionObject::GetCache(const std::vector<Value> &arguments, std::vector<Value> &result) const
+	{
+		auto iter2 = caches.find(arguments);
+		if (iter2 != caches.end())
+		{
+			result = iter2->second;
+			return true;
+		}
+
+		return false;
+	}
+#ifdef PRINT_FUNCTION_CACHE
+	void FunctionObject::PrintCache()
+	{
+		Println(L"{}:", name);
+		for (const auto &[k, v] : caches)
+		{
+			for (int32_t i = 0; i < k.size()-1; ++i)
+				Print(L"\t{},", k[i].ToString());
+			Print(L"\t{}:", k.back().ToString());
+			for (int32_t i = 0; i < v.size()-1; ++i)
+				Print(L"{},", v[i].ToString());
+			Println(L"{}", v.back().ToString());
+		}
+	}
+#endif
+#endif
+
 	UpValueObject::UpValueObject()
-		: Object(OBJECT_UPVALUE),location(nullptr),nextUpValue(nullptr)
+		: Object(OBJECT_UPVALUE), location(nullptr), nextUpValue(nullptr)
 	{
 	}
 	UpValueObject::UpValueObject(Value *location)
@@ -604,7 +640,7 @@ namespace lwscript
 	}
 
 	ClassClosureBindObject::ClassClosureBindObject()
-		: Object(OBJECT_CLASS_CLOSURE_BIND),closure(nullptr)
+		: Object(OBJECT_CLASS_CLOSURE_BIND), closure(nullptr)
 	{
 	}
 	ClassClosureBindObject::ClassClosureBindObject(const Value &receiver, ClosureObject *cl)

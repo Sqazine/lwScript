@@ -28,7 +28,7 @@ namespace lwscript
 		AST_NEW,
 		AST_THIS,
 		AST_BASE,
-		AST_BLOCK,
+		AST_COMPOUND,
 		AST_ANONY_OBJ,
 		AST_VAR_ARG,
 		AST_FACTORIAL,
@@ -277,11 +277,11 @@ namespace lwscript
 		IdentifierExpr *callMember;
 	};
 
-	struct BlockExpr : public Expr
+	struct CompoundExpr : public Expr
 	{
-		BlockExpr(Token *tagToken);
-		BlockExpr(Token *tagToken, const std::vector<struct Stmt *> &stmts, Expr *endExpr);
-		~BlockExpr() override;
+		CompoundExpr(Token *tagToken);
+		CompoundExpr(Token *tagToken, const std::vector<struct Stmt *> &stmts, Expr *endExpr);
+		~CompoundExpr() override;
 		std::wstring ToString() override;
 
 		std::vector<struct Stmt *> stmts;

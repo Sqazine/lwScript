@@ -6,45 +6,6 @@
 
 namespace lwscript
 {
-#ifdef USE_FUNCTION_CACHE
-	void FunctionCache::Set(const std::wstring &name, const std::vector<Value> &arguments, const std::vector<Value> &result)
-	{
-		mCaches[name][arguments] = result;
-	}
-	bool FunctionCache::Get(const std::wstring &name, const std::vector<Value> &arguments, std::vector<Value> &result) const
-	{
-		auto iter = mCaches.find(name);
-		if (iter != mCaches.end())
-		{
-			auto iter2 = iter->second.find(arguments);
-			if (iter2 != iter->second.end())
-			{
-				result = iter2->second;
-				return true;
-			}
-		}
-
-		result = {};
-		return false;
-	}
-#ifdef PRINT_FUNCTION_CACHE
-	void FunctionCache::Print()
-	{
-		for (const auto &[k, v] : mCaches)
-		{
-			Println(L"{}:", k);
-			for (const auto &[k1, v1] : v)
-			{
-				for (int32_t i = 0; i < k1.size(); ++i)
-				{
-					Println(L"\t{}:{}", k1[i].ToString(), v1[i].ToString());
-				}
-			}
-		}
-	}
-#endif
-#endif
-
 	Value VM::sNullValue = Value();
 
 	VM::VM()
@@ -93,10 +54,6 @@ namespace lwscript
 		mainCallFrame->slots = mStackTop - 1;
 
 		Execute();
-
-#ifdef PRINT_FUNCTION_CACHE
-		mFunctionCache.Print();
-#endif
 
 		std::vector<Value> returnValues;
 #ifdef _DEBUG
@@ -225,17 +182,15 @@ namespace lwscript
 				if (retCount == 0)
 				{
 #ifdef USE_FUNCTION_CACHE
-					auto fnName = mFrames[mFrameCount].closure->function->name;
-					mFunctionCache.Set(fnName, mFrames[mFrameCount].arguments, {sNullValue});
+					mFrames[mFrameCount].closure->function->SetCache(mFrames[mFrameCount].arguments, {sNullValue});
 #endif
 					Push(sNullValue);
 				}
 				else
 				{
 #ifdef USE_FUNCTION_CACHE
-					auto fnName = mFrames[mFrameCount].closure->function->name;
 					std::vector<Value> rets(retValues, retValues + retCount);
-					mFunctionCache.Set(fnName, mFrames[mFrameCount].arguments, rets);
+					mFrames[mFrameCount].closure->function->SetCache(mFrames[mFrameCount].arguments, rets);
 #endif
 
 					uint8_t i = 0;
@@ -680,7 +635,7 @@ namespace lwscript
 #ifdef USE_FUNCTION_CACHE
 					std::vector<Value> args(mStackTop - argCount, mStackTop);
 					std::vector<Value> rets;
-					if (mFunctionCache.Get(TO_CLOSURE_VALUE(callee)->function->name, args, rets))
+					if (TO_CLOSURE_VALUE(callee)->function->GetCache(args, rets))
 					{
 						mStackTop = mStackTop - argCount - 1;
 						for (int32_t i = 0; i < rets.size(); ++i)
@@ -926,6 +881,7 @@ namespace lwscript
 			{
 				auto pos = READ_INS();
 				auto func = TO_FUNCTION_VALUE(frame->closure->function->chunk.constants[pos]);
+				mAllocator->RegisterToGCRecordChain(func);
 				auto closure = mAllocator->CreateObject<ClosureObject>(func);
 
 				for (int32_t i = 0; i < closure->upvalues.size(); ++i)

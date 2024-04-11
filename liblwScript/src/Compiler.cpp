@@ -395,8 +395,8 @@ namespace lwscript
 		case AST_LAMBDA:
 			CompileLambdaExpr((LambdaExpr *)expr);
 			break;
-		case AST_BLOCK:
-			CompileBlockExpr((BlockExpr *)expr);
+		case AST_COMPOUND:
+			CompileCompoundExpr((CompoundExpr *)expr);
 			break;
 		case AST_CALL:
 			CompileCallExpr((CallExpr *)expr);
@@ -840,7 +840,7 @@ namespace lwscript
 		EmitClosure(function, expr->tagToken);
 	}
 
-	void Compiler::CompileBlockExpr(BlockExpr *expr)
+	void Compiler::CompileCompoundExpr(CompoundExpr *expr)
 	{
 		EnterScope();
 		for (const auto &s : expr->stmts)

@@ -188,8 +188,8 @@ namespace lwscript
             return CheckThisExpr((ThisExpr *)expr);
         case AST_BASE:
             return CheckBaseExpr((BaseExpr *)expr);
-        case AST_BLOCK:
-            return CheckBlockExpr((BlockExpr *)expr);
+        case AST_COMPOUND:
+            return CheckCompoundExpr((CompoundExpr *)expr);
         case AST_ANONY_OBJ:
             return CheckAnonymousObjExpr((AnonyObjExpr *)expr);
         case AST_VAR_ARG:
@@ -295,7 +295,7 @@ namespace lwscript
         expr->body = (ScopeStmt *)CheckScopeStmt(expr->body);
         return expr;
     }
-    Expr *SyntaxChecker::CheckBlockExpr(BlockExpr *expr)
+    Expr *SyntaxChecker::CheckCompoundExpr(CompoundExpr *expr)
     {
         return expr;
     }

@@ -18,19 +18,6 @@ namespace lwscript
 #endif
     };
 
-#ifdef USE_FUNCTION_CACHE
-    class FunctionCache
-    {
-    public:
-        void Set(const std::wstring& name, const std::vector<Value>& arguments, const std::vector<Value>& result);
-		bool Get(const std::wstring& name, const std::vector<Value>& arguments, std::vector<Value>& result) const;
-#ifdef PRINT_FUNCTION_CACHE
-        void Print();
-#endif
-    private:
-        std::unordered_map<std::wstring, ValueVecUnorderedMap> mCaches;
-    };
-#endif
 
     class LWSCRIPT_API VM
     {
@@ -68,10 +55,6 @@ namespace lwscript
         CallFrame mFrames[STACK_MAX];
         int32_t mFrameCount;
 
-        Allocator* mAllocator;
-
-#ifdef USE_FUNCTION_CACHE
-        FunctionCache mFunctionCache;
-#endif       
+        Allocator* mAllocator;  
     };
 }

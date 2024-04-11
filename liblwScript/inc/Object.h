@@ -180,11 +180,21 @@ namespace lwscript
         bool IsEqualTo(Object *other) override;
         Object *Clone() const override;
 
+#ifdef USE_FUNCTION_CACHE
+        void SetCache(const std::vector<Value>& arguments, const std::vector<Value>& result);
+		bool GetCache(const std::vector<Value>& arguments, std::vector<Value>& result) const;
+#ifdef PRINT_FUNCTION_CACHE
+        void PrintCache();
+#endif
+#endif
+
         uint8_t arity;
         uint8_t varArgParamType; // 0:no,1:varArgWithoutName(...),2:varArgWithName(...args)
         int8_t upValueCount;
         Chunk chunk;
         std::wstring name;
+
+        ValueVecUnorderedMap caches;
     };
 
     struct UpValueObject : public Object

@@ -30,7 +30,8 @@ namespace lwscript
         while (object != nullptr)
         {
             Object *next = object->next;
-            mBytesAllocated -= sizeof(object);
+            size_t objBytes = sizeof(*object);
+            mBytesAllocated -= objBytes;
             SAFE_DELETE(object);
             object = next;
         }
@@ -44,7 +45,7 @@ namespace lwscript
     {
         if (IS_OBJECT_VALUE(value) && value.object->next == nullptr) // check is null to judge if is a unique object
         {
-            size_t objBytes = sizeof(value.object);
+            size_t objBytes = sizeof(*value.object);
             mBytesAllocated += objBytes;
 #ifdef GC_STRESS
             GC();

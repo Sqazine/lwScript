@@ -54,7 +54,7 @@ namespace lwscript
 		void CompileBaseExpr(BaseExpr *expr);
 		void CompileIdentifierExpr(IdentifierExpr *expr, const RWState &state, int8_t paramCount = -1);
 		void CompileLambdaExpr(LambdaExpr *expr);
-		void CompileBlockExpr(BlockExpr *expr);
+		void CompileCompoundExpr(CompoundExpr *expr);
 		void CompileCallExpr(CallExpr *expr);
 		void CompileDotExpr(DotExpr *expr, const RWState &state = RWState::READ);
 		void CompileRefExpr(RefExpr *expr);

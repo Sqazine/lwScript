@@ -10,5 +10,5 @@ let start=time.clock();
 let x=70;
 let a=fib(x);
 let end=time.clock();
-io.println("fibonacci({}):{}",x,a);//9227465
+io.println("fibonacci({}):{}",x,a);//190392490709135
 io.println("{}",end-start);

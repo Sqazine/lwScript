@@ -45,7 +45,7 @@ namespace lwscript
         Expr *CheckBaseExpr(BaseExpr *expr);
         Expr *CheckIdentifierExpr(IdentifierExpr *expr);
         Expr *CheckLambdaExpr(LambdaExpr *expr);
-        Expr *CheckBlockExpr(BlockExpr *expr);
+        Expr *CheckCompoundExpr(CompoundExpr *expr);
         Expr *CheckCallExpr(CallExpr *expr);
         Expr *CheckDotExpr(DotExpr *expr);
         Expr *CheckRefExpr(RefExpr *expr);

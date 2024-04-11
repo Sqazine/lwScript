@@ -93,7 +93,7 @@ namespace lwscript
 		Expr *ParseThisExpr();
 		Expr *ParseBaseExpr();
 		Expr *ParseMatchExpr();
-		Expr *ParseBlockExpr();
+		Expr *ParseCompoundExpr();
 		Expr *ParseInfixExpr(Expr *prefixExpr);
 		Expr *ParsePostfixExpr(Expr *prefixExpr);
 		Expr *ParseConditionExpr(Expr *prefixExpr);

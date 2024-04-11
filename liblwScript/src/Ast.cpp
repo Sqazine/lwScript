@@ -382,21 +382,21 @@ namespace lwscript
 		return L"base." + callMember->ToString();
 	}
 
-	BlockExpr::BlockExpr(Token *tagToken)
-		: Expr(tagToken, AST_BLOCK), endExpr(nullptr)
+	CompoundExpr::CompoundExpr(Token *tagToken)
+		: Expr(tagToken, AST_COMPOUND), endExpr(nullptr)
 	{
 	}
-	BlockExpr::BlockExpr(Token *tagToken, const std::vector<Stmt *> &stmts, Expr *endExpr)
-		: Expr(tagToken, AST_BLOCK), stmts(stmts), endExpr(endExpr)
+	CompoundExpr::CompoundExpr(Token *tagToken, const std::vector<Stmt *> &stmts, Expr *endExpr)
+		: Expr(tagToken, AST_COMPOUND), stmts(stmts), endExpr(endExpr)
 	{
 	}
-	BlockExpr::~BlockExpr()
+	CompoundExpr::~CompoundExpr()
 	{
 		SAFE_DELETE(endExpr);
 		std::vector<Stmt *>().swap(stmts);
 	}
 
-	std::wstring BlockExpr::ToString()
+	std::wstring CompoundExpr::ToString()
 	{
 		std::wstring result = L"({";
 		for (const auto &stmt : stmts)

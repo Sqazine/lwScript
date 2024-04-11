@@ -1,7 +1,7 @@
 #pragma once
 
-#define CONSTANT_MAX 8192
-#define STACK_MAX 2048
+#define CONSTANT_MAX 512
+#define STACK_MAX 512
 #define GLOBAL_VARIABLE_MAX 512
 
 #define UINT8_COUNT (UINT8_MAX + 1)
@@ -11,8 +11,8 @@
 #define USE_FUNCTION_CACHE
 
 #ifdef _DEBUG
-#define GC_DEBUG
-#define GC_STRESS
+//#define GC_DEBUG
+//#define GC_STRESS
 #define PRINT_FUNCTION_CACHE
 #endif
 
