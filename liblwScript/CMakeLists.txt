@@ -4,12 +4,6 @@ file(GLOB SRC "${CMAKE_SOURCE_DIR}/liblwScript/src/*.cpp")
 source_group("liblwScript/inc" FILES ${INC})
 source_group("liblwScript/src" FILES ${SRC})
 
-
-set(LIB_NAME "lwScript")
-if(${CURRENT_PLATFORM} STREQUAL "PLATFORM_WINDOWS")
-    set(LIB_NAME "liblwScript")
-endif()
-
 add_library(${LIB_NAME} SHARED ${SRC} ${INC})
 
 target_compile_definitions(${LIB_NAME} PUBLIC LWSCRIPT_BUILD_DLL)

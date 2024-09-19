@@ -24,11 +24,7 @@ namespace lwscript
 
 		bool IsMatchCurChar(wchar_t c);
 		bool IsMatchCurCharAndStepOnce(wchar_t c);
-		bool IsMatchNextChar(wchar_t c);
-		bool IsMatchNextCharAndStepOnce(wchar_t c);
 
-		wchar_t GetNextCharAndStepOnce();
-		wchar_t GetNextChar();
 		wchar_t GetCurCharAndStepOnce();
 		wchar_t GetCurChar();
 
@@ -49,6 +45,7 @@ namespace lwscript
 		uint64_t mStartPos;
 		uint64_t mCurPos;
 		uint64_t mLine;
+		uint64_t mColumn;
 		std::wstring mSource;
 		std::vector<Token*> mTokens;
 	};
