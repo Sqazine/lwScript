@@ -54,7 +54,7 @@ namespace lwscript
 	{
 	}
 
-	const std::vector<Token*> &Lexer::ScanTokens(std::wstring_view src)
+	const std::vector<Token *> &Lexer::ScanTokens(std::wstring_view src)
 	{
 		Hint::RecordSource(src);
 
@@ -138,13 +138,16 @@ namespace lwscript
 			AddToken(TOKEN_QUESTION);
 		else if (c == L"\"")
 			String();
-		else if(c==L"\'")
+		else if (c == L"\'")
 			Character();
 		else if (c == L" " || c == L"\t" || c == L"\r")
 		{
 		}
 		else if (c == L"\n")
+		{
 			mLine++;
+			mColumn = 1;
+		}
 		else if (c == L"+")
 		{
 			if (IsMatchCurCharAndStepOnce(L'='))
@@ -176,15 +179,17 @@ namespace lwscript
 			{
 				while (!IsMatchCurChar('\n') && !IsAtEnd())
 					GetCurCharAndStepOnce();
-				mLine++;
 			}
 			else if (IsMatchCurCharAndStepOnce(L'*'))
 			{
 				while (!IsAtEnd())
 				{
 					if (IsMatchCurChar(L'\n'))
+					{
 						mLine++;
-					Println(L"{}",GetCurChar());
+						mColumn = 1;
+					}
+					Println(L"{}", GetCurChar());
 					GetCurCharAndStepOnce();
 					if (IsMatchCurChar(L'*'))
 					{
@@ -293,7 +298,8 @@ namespace lwscript
 	{
 		mStartPos = mCurPos = 0;
 		mLine = 1;
-		std::vector<Token*>().swap(mTokens);
+		mColumn = 1;
+		std::vector<Token *>().swap(mTokens);
 	}
 
 	bool Lexer::IsMatchCurChar(wchar_t c)
@@ -304,38 +310,20 @@ namespace lwscript
 	{
 		bool result = GetCurChar() == c;
 		if (result)
+		{
 			mCurPos++;
+			mColumn++;
+		}
 		return result;
 	}
 
-	bool Lexer::IsMatchNextChar(wchar_t c)
-	{
-		return GetNextChar() == c;
-	}
-	bool Lexer::IsMatchNextCharAndStepOnce(wchar_t c)
-	{
-		bool result = GetNextChar() == c;
-		if (result)
-			mCurPos++;
-		return result;
-	}
-
-	wchar_t Lexer::GetNextCharAndStepOnce()
-	{
-		if (mCurPos + 1 < mSource.size())
-			return mSource[++mCurPos];
-		return L'\0';
-	}
-	wchar_t Lexer::GetNextChar()
-	{
-		if (mCurPos + 1 < mSource.size())
-			return mSource[mCurPos + 1];
-		return L'\0';
-	}
 	wchar_t Lexer::GetCurCharAndStepOnce()
 	{
 		if (!IsAtEnd())
+		{
+			mColumn++;
 			return mSource[mCurPos++];
+		}
 		return L'\0';
 	}
 
@@ -349,11 +337,11 @@ namespace lwscript
 	void Lexer::AddToken(TokenType type)
 	{
 		auto literal = mSource.substr(mStartPos, mCurPos - mStartPos);
-		mTokens.push_back(new Token(type, literal, mLine, mStartPos + 1, mCurPos - literal.size())); //+1 means that the column beginning front 1
+		mTokens.push_back(new Token(type, literal, mLine, mColumn - literal.size(), mCurPos - literal.size())); //+1 means that the column beginning front 1
 	}
 	void Lexer::AddToken(TokenType type, std::wstring_view literal)
 	{
-		mTokens.push_back(new Token(type, literal, mLine, mStartPos + 1, mCurPos - literal.size()));
+		mTokens.push_back(new Token(type, literal, mLine, mColumn - literal.size(), mCurPos - literal.size()));
 	}
 
 	bool Lexer::IsAtEnd()
@@ -426,12 +414,15 @@ namespace lwscript
 		while (!IsMatchCurChar(L'\"') && !IsAtEnd())
 		{
 			if (IsMatchCurChar(L'\n'))
+			{
 				mLine++;
+				mColumn = 1;
+			}
 			GetCurCharAndStepOnce();
 		}
 
 		if (IsAtEnd())
-			Println(L"[line {}]:Uniterminated string.",mLine);
+			Println(L"[line {}]:Uniterminated string.", mLine);
 
 		GetCurCharAndStepOnce(); // eat the second '\"'
 
@@ -440,10 +431,10 @@ namespace lwscript
 
 	void Lexer::Character()
 	{
-		GetCurCharAndStepOnce();// eat the first '\''
+		GetCurCharAndStepOnce(); // eat the first '\''
 
-		AddToken(TOKEN_CHAR,mSource.substr(mStartPos+1,1));
+		AddToken(TOKEN_CHAR, mSource.substr(mStartPos + 1, 1));
 
-		GetCurCharAndStepOnce();// eat the second '\''
+		GetCurCharAndStepOnce(); // eat the second '\''
 	}
 }

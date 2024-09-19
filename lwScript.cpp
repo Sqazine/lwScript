@@ -7,40 +7,43 @@
 #pragma warning(disable : 4996)
 #endif
 
+void Run(std::wstring_view content)
+{
+    lwscript::Lexer lexer;
+    lwscript::Parser parser;
+    lwscript::Compiler compiler;
+    lwscript::VM vm;
+
+    auto tokens = lexer.ScanTokens(content);
+#ifdef _DEBUG
+    for (const auto &token : tokens)
+        lwscript::Println(L"{}", *token);
+#endif
+    auto stmt = parser.Parse(tokens);
+#ifdef _DEBUG
+    lwscript::Println(L"{}", stmt->ToString());
+#endif
+    auto mainFunc = compiler.Compile(stmt);
+#ifdef _DEBUG
+    lwscript::Println(L"{}", mainFunc->ToString());
+#endif
+    vm.Run(mainFunc);
+}
+
 void Repl()
 {
 	std::wstring line;
 	std::wstring allLines;
-	lwscript::Lexer lexer;
-	lwscript::Parser parser;
-	lwscript::Compiler compiler;
-	lwscript::VM vm;
+	
 
 	lwscript::Print(L">> ");
 	while (getline(std::wcin, line))
 	{
 		allLines += line;
 		if (line == L"clear")
-		{
 			allLines = L"";
-		}
 		else
-		{
-			auto tokens = lexer.ScanTokens(allLines);
-#ifdef _DEBUG
-			for (const auto &token : tokens)
-				lwscript::Println(L"{}", *token);
-#endif
-			auto stmt = parser.Parse(tokens);
-#ifdef _DEBUG
-			lwscript::Println(L"{}", stmt->ToString());
-#endif
-			auto mainFunc = compiler.Compile(stmt);
-#ifdef _DEBUG
-			lwscript::Println(L"{}", mainFunc->ToString());
-#endif
-			vm.Run(mainFunc);
-		}
+			Run(allLines);
 		lwscript::Println(L">> ");
 	}
 }
@@ -48,26 +51,7 @@ void Repl()
 void RunFile(std::string_view path)
 {
 	std::wstring content = lwscript::ReadFile(path);
-	lwscript::Lexer lexer;
-	lwscript::Parser parser;
-	lwscript::Compiler compiler;
-	lwscript::VM vm;
-
-	auto tokens = lexer.ScanTokens(content);
-#ifdef _DEBUG
-	for (const auto &token : tokens)
-		lwscript::Println(L"{}", *token);
-#endif
-	auto stmt = parser.Parse(tokens);
-#ifdef _DEBUG
-	lwscript::Println(L"{}", stmt->ToString());
-#endif
-	auto mainFunc = compiler.Compile(stmt);
-#ifdef _DEBUG
-	lwscript::Println(L"{}", mainFunc->ToString());
-#endif
-
-	vm.Run(mainFunc);
+	Run(content);
 }
 
 int main(int argc, const char *argv[])

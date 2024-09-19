@@ -60,11 +60,11 @@ namespace lwscript
         Log(std::wcout, withLn, args...);
     }
 
-	template <typename... Args>
-	inline void Print(std::wstring_view s, const Args &...args)
-	{
-		Log(std::wcout, s, args...);
-	}
+    template <typename... Args>
+    inline void Print(std::wstring_view s, const Args &...args)
+    {
+        Log(std::wcout, s, args...);
+    }
 
     namespace Hint
     {
@@ -80,7 +80,7 @@ namespace lwscript
         }
 
         template <typename... Args>
-        inline void AssemblyLogInfo(const std::wstring &headerHint, const std::wstring &colorHint, uint64_t lineNum, uint64_t pos, const std::wstring &fmt, const Args &...args)
+        inline void AssemblyLogInfo(const std::wstring &headerHint, const std::wstring &colorHint, uint64_t lineNum, uint64_t column, uint64_t pos, const std::wstring &fmt, const Args &...args)
         {
             auto start = pos;
             auto end = pos;
@@ -99,7 +99,7 @@ namespace lwscript
                 end = Record::mSourceCode.size();
             }
 
-            auto startStr = headerHint + L":" + Record::mCurFilePath + L"(line " + std::to_wstring(lineNum) + L",column " + std::to_wstring(pos) + L"): ";
+            auto startStr = headerHint + L":" + Record::mCurFilePath + L"(line " + std::to_wstring(lineNum) + L",column " + std::to_wstring(column) + L"): ";
 
             auto lineSrcCode = Record::mSourceCode.substr(start, end - start);
 
@@ -122,7 +122,7 @@ namespace lwscript
                 if (Record::mSourceCode[i] == L'\n' || Record::mSourceCode[i] == L'\r')
                     lineNum++;
 
-            AssemblyLogInfo(L"[ERROR]", L"31", lineNum, pos, fmt, args...);
+            AssemblyLogInfo(L"[ERROR]", L"31", lineNum, 1, pos, fmt, args...);
 #ifdef _DEBUG
             assert(0);
 #else
@@ -132,7 +132,7 @@ namespace lwscript
         template <typename... Args>
         inline void Error(const Token *tok, const std::wstring &fmt, const Args &...args)
         {
-            AssemblyLogInfo(L"[ERROR]", L"31", tok->line, tok->pos, fmt, args...);
+            AssemblyLogInfo(L"[ERROR]", L"31", tok->line, tok->column, tok->pos, fmt, args...);
 #ifdef _DEBUG
             assert(0);
 #else
@@ -148,13 +148,13 @@ namespace lwscript
                 if (Record::mSourceCode[i] == L'\n' || Record::mSourceCode[i] == L'\r')
                     lineNum++;
 
-            AssemblyLogInfo(L"[WARN]", L"33", lineNum, pos, fmt, args...);
+            AssemblyLogInfo(L"[WARN]", L"33", lineNum, 1, pos, fmt, args...);
         }
 
         template <typename... Args>
         void Warn(Token tok, const std::wstring &fmt, const Args &...args)
         {
-            AssemblyLogInfo(L"[WARN]", L"33", tok.line, tok.pos, fmt, args...);
+            AssemblyLogInfo(L"[WARN]", L"33", tok.line, tok.column, tok.pos, fmt, args...);
         }
 
         template <typename... Args>
@@ -165,7 +165,7 @@ namespace lwscript
                 if (Record::mSourceCode[i] == L'\n' || Record::mSourceCode[i] == L'\r')
                     lineNum++;
 
-            AssemblyLogInfo(L"[INFO]", L"32", lineNum, pos, fmt, args...);
+            AssemblyLogInfo(L"[INFO]", L"32", lineNum, 1, pos, fmt, args...);
         }
 
         template <typename... Args>
