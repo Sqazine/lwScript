@@ -29,11 +29,10 @@ namespace lwscript
 		mStackTop = mValueStack;
 		mOpenUpValues = nullptr;
 
-		for (auto &gVar : mGlobalVariables)
-			gVar = sNullValue;
+		memset(mGlobalVariables, 0, sizeof(Value) * GLOBAL_VARIABLE_MAX);
 
-		for (int32_t i = 0; i < LibraryManager::Instance().mStdLibraries.size(); ++i)
-			mGlobalVariables[i] = LibraryManager::Instance().mStdLibraries[i]->Clone();
+		for (int32_t i = 0; i < LibraryManager::Instance().GetLibraries().size(); ++i)
+			mGlobalVariables[i] = LibraryManager::Instance().GetLibraries()[i]->Clone();
 	}
 
 	std::vector<Value> VM::Run(FunctionObject *mainFunc)
@@ -685,10 +684,10 @@ namespace lwscript
 				{
 
 					Value result;
-					auto hasRetV = TO_NATIVE_FUNCTION_VALUE(callee)->fn(mStackTop - argCount,argCount, relatedToken, result);
-					
+					auto hasRetV = TO_NATIVE_FUNCTION_VALUE(callee)->fn(mStackTop - argCount, argCount, relatedToken, result);
+
 					mStackTop -= argCount + 1;
-					
+
 					if (hasRetV)
 						Push(result);
 					else

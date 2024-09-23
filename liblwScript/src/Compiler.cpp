@@ -51,7 +51,7 @@ namespace lwscript
 		symbol->scopeDepth = 0;
 		symbol->name = L"_main_start_up";
 
-		for (const auto &lib : LibraryManager::Instance().mStdLibraries)
+		for (const auto &lib : LibraryManager::Instance().GetLibraries())
 			mSymbolTable->Define(new Token(), Privilege::IMMUTABLE, lib->name);
 	}
 
