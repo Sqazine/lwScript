@@ -189,7 +189,7 @@ namespace lwscript
 #endif
 
         uint8_t arity;
-        uint8_t varArgParamType; // 0:no,1:varArgWithoutName(...),2:varArgWithName(...args)
+        VarArg varArg;
         int8_t upValueCount;
         Chunk chunk;
         std::wstring name;

@@ -591,14 +591,14 @@ namespace lwscript
 						callee = binding->closure;
 					}
 
-					if (TO_CLOSURE_VALUE(callee)->function->varArgParamType > 0)
+					if (TO_CLOSURE_VALUE(callee)->function->varArg > VarArg::NONE)
 					{
 						auto arity = TO_CLOSURE_VALUE(callee)->function->arity;
 						if (argCount < arity)
 						{
 							if (argCount == arity - 1)
 							{
-								if (TO_CLOSURE_VALUE(callee)->function->varArgParamType == 2)
+								if (TO_CLOSURE_VALUE(callee)->function->varArg == VarArg::WITH_NAME)
 								{
 									Push(new ArrayObject());
 									argCount = arity;
@@ -612,7 +612,7 @@ namespace lwscript
 						else if (argCount >= arity)
 						{
 							auto diff = argCount - arity + 1;
-							if (TO_CLOSURE_VALUE(callee)->function->varArgParamType == 2)
+							if (TO_CLOSURE_VALUE(callee)->function->varArg == VarArg::WITH_NAME)
 							{
 								std::vector<Value> varArgs;
 								for (int32_t i = 0; i < diff; ++i)

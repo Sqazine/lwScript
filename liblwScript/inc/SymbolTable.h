@@ -23,7 +23,7 @@ namespace lwscript
     struct FunctionSymbolInfo
     {
         int8_t paramCount = -1;
-        uint8_t varArgParamType = 0;//0:no,1:varArgWithoutName(...),2:varArgWithName(...args)
+        VarArg varArg = VarArg::NONE;
     };
 
     struct Symbol

@@ -85,6 +85,8 @@ namespace lwscript
 		FunctionObject *CurFunction();
 		OpCodes &CurOpCodes();
 
+		VarArg GetVarArgFromParameterList(const std::vector<VarDescExpr*> & parameterList);
+		
 		std::vector<Expr *> StatsPostfixExprs(AstNode *astNode);
 
 		std::vector<FunctionObject *> mFunctionList;

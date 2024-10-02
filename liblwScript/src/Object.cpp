@@ -276,11 +276,11 @@ namespace lwscript
 	}
 
 	FunctionObject::FunctionObject()
-		: Object(OBJECT_FUNCTION), arity(0), upValueCount(0), varArgParamType(0)
+		: Object(OBJECT_FUNCTION), arity(0), upValueCount(0), varArg(VarArg::NONE)
 	{
 	}
 	FunctionObject::FunctionObject(std::wstring_view name)
-		: Object(OBJECT_FUNCTION), arity(0), upValueCount(0), name(name), varArgParamType(0)
+		: Object(OBJECT_FUNCTION), arity(0), upValueCount(0), name(name), varArg(VarArg::NONE)
 	{
 	}
 	FunctionObject::~FunctionObject()
@@ -354,10 +354,10 @@ namespace lwscript
 		Println(L"{}:", name);
 		for (const auto &[k, v] : caches)
 		{
-			for (int32_t i = 0; i < k.size()-1; ++i)
+			for (int32_t i = 0; i < k.size() - 1; ++i)
 				Print(L"\t{},", k[i].ToString());
 			Print(L"\t{}:", k.back().ToString());
-			for (int32_t i = 0; i < v.size()-1; ++i)
+			for (int32_t i = 0; i < v.size() - 1; ++i)
 				Print(L"{},", v[i].ToString());
 			Println(L"{}", v.back().ToString());
 		}

@@ -794,23 +794,15 @@ namespace lwscript
 	}
 	void Compiler::CompileLambdaExpr(LambdaExpr *expr)
 	{
-		uint8_t varArgParamType = 0;
-		if (!expr->parameters.empty() && expr->parameters.back()->name->type == AST_VAR_ARG)
-		{
-			auto varArg = (VarArgExpr *)expr->parameters.back()->name;
-			if (varArg->argName)
-				varArgParamType = 2;
-			else
-				varArgParamType = 1;
-		}
-
 		mFunctionList.emplace_back(new FunctionObject());
 		mSymbolTable = new SymbolTable(mSymbolTable);
 
 		mSymbolTable->Define(expr->tagToken, Privilege::IMMUTABLE, L"");
 
+		auto varArg=GetVarArgFromParameterList(expr->parameters);
+
 		CurFunction()->arity = static_cast<uint8_t>(expr->parameters.size());
-		CurFunction()->varArgParamType = varArgParamType;
+		CurFunction()->varArg = varArg;
 
 		for (const auto &param : expr->parameters)
 		{
@@ -937,17 +929,9 @@ namespace lwscript
 
 	Symbol Compiler::CompileFunction(FunctionStmt *stmt)
 	{
-		uint8_t varArgParamType = 0;
-		if (!stmt->parameters.empty() && stmt->parameters.back()->name->type == AST_VAR_ARG)
-		{
-			auto varArg = (VarArgExpr *)stmt->parameters.back()->name;
-			if (varArg->argName)
-				varArgParamType = 2;
-			else
-				varArgParamType = 1;
-		}
+		auto varArg=GetVarArgFromParameterList(stmt->parameters);
 
-		auto functionSymbol = mSymbolTable->Define(stmt->tagToken, Privilege::IMMUTABLE, stmt->name->literal, FunctionSymbolInfo{(int8_t)stmt->parameters.size(), varArgParamType});
+		auto functionSymbol = mSymbolTable->Define(stmt->tagToken, Privilege::IMMUTABLE, stmt->name->literal, FunctionSymbolInfo{(int8_t)stmt->parameters.size(), varArg});
 
 		mFunctionList.emplace_back(new FunctionObject(stmt->name->literal));
 		mSymbolTable = new SymbolTable(mSymbolTable);
@@ -958,7 +942,7 @@ namespace lwscript
 		mSymbolTable->Define(stmt->tagToken, Privilege::IMMUTABLE, symbolName);
 
 		CurFunction()->arity = static_cast<uint8_t>(stmt->parameters.size());
-		CurFunction()->varArgParamType = varArgParamType;
+		CurFunction()->varArg = varArg;
 
 		for (const auto &param : stmt->parameters)
 		{
@@ -1320,6 +1304,20 @@ namespace lwscript
 	OpCodes &Compiler::CurOpCodes()
 	{
 		return CurChunk().opCodes;
+	}
+
+	VarArg Compiler::GetVarArgFromParameterList(const std::vector<VarDescExpr*> & parameterList)
+	{
+		VarArg result{VarArg::NONE};
+		if (!parameterList.empty() && parameterList.back()->name->type == AST_VAR_ARG)
+		{
+			auto varArg = (VarArgExpr *)parameterList.back()->name;
+			if (varArg->argName)
+				result = VarArg::WITH_NAME;
+			else
+				result = VarArg::WITHOUT_NAME;
+		}
+		return result;
 	}
 
 	std::vector<Expr *> Compiler::StatsPostfixExprs(AstNode *astNode)

@@ -11,10 +11,17 @@
 #include "Token.h"
 namespace lwscript
 {
-    enum class Privilege
+    enum Privilege
     {
         MUTABLE,
         IMMUTABLE,
+    };
+
+    enum VarArg
+    {
+        NONE = 0,
+        WITHOUT_NAME,
+        WITH_NAME,
     };
 
     std::wstring LWSCRIPT_API ReadFile(std::string_view path);

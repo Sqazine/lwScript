@@ -56,7 +56,7 @@ namespace lwscript
 
             if (mSymbols[i].name == name && mSymbols[i].scopeDepth <= mScopeDepth)
             {
-                if (isSameParamCount || mSymbols[i].functionSymInfo.varArgParamType > 0)
+                if (isSameParamCount || mSymbols[i].functionSymInfo.varArg > VarArg::NONE)
                 {
                     if (mSymbols[i].scopeDepth == -1)
                         Hint::Error(relatedToken, L"symbol not defined yet!");
