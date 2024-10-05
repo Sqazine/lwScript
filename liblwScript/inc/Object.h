@@ -9,70 +9,70 @@
 #include "Value.h"
 namespace lwscript
 {
-#define IS_STR_OBJ(obj) (obj->type == OBJECT_STR)
-#define IS_ARRAY_OBJ(obj) (obj->type == OBJECT_ARRAY)
-#define IS_TABLE_OBJ(obj) (obj->type == OBJECT_DICT)
-#define IS_ANONYMOUS_OBJ(obj) (obj->type == OBJECT_ANONYMOUS)
-#define IS_FUNCTION_OBJ(obj) (obj->type == OBJECT_FUNCTION)
-#define IS_UPVALUE_OBJ(obj) (obj->type == OBJECT_UPVALUE)
-#define IS_CLOSURE_OBJ(obj) (obj->type == OBJECT_CLOSURE)
-#define IS_NATIVE_FUNCTION_OBJ(obj) (obj->type == OBJECT_NATIVE_FUNCTION)
-#define IS_REF_OBJ(obj) (obj->type == OBJECT_REF)
-#define IS_CLASS_OBJ(obj) (obj->type == OBJECT_CLASS)
-#define IS_CLASS_CLOSURE_BIND_OBJ(obj) (obj->type == OBJECT_CLASS_CLOSURE_BIND)
-#define IS_ENUM_OBJ(obj) (obj->type == OBJECT_ENUM)
-#define IS_MODULE_OBJ(obj) (obj->type == OBJECT_MODULE)
+#define IS_STR_OBJ(obj) ((obj)->type == OBJECT_STR)
+#define IS_ARRAY_OBJ(obj) ((obj)->type == OBJECT_ARRAY)
+#define IS_TABLE_OBJ(obj) ((obj)->type == OBJECT_DICT)
+#define IS_ANONYMOUS_OBJ(obj) ((obj)->type == OBJECT_ANONYMOUS)
+#define IS_FUNCTION_OBJ(obj) ((obj)->type == OBJECT_FUNCTION)
+#define IS_UPVALUE_OBJ(obj) ((obj)->type == OBJECT_UPVALUE)
+#define IS_CLOSURE_OBJ(obj) ((obj)->type == OBJECT_CLOSURE)
+#define IS_NATIVE_FUNCTION_OBJ(obj) ((obj)->type == OBJECT_NATIVE_FUNCTION)
+#define IS_REF_OBJ(obj) ((obj)->type == OBJECT_REF)
+#define IS_CLASS_OBJ(obj) ((obj)->type == OBJECT_CLASS)
+#define IS_CLASS_CLOSURE_BIND_OBJ(obj) ((obj)->type == OBJECT_CLASS_CLOSURE_BIND)
+#define IS_ENUM_OBJ(obj) ((obj)->type == OBJECT_ENUM)
+#define IS_MODULE_OBJ(obj) ((obj)->type == OBJECT_MODULE)
 
-#define TO_STR_OBJ(obj) ((lwscript::StrObject *)obj)
-#define TO_ARRAY_OBJ(obj) ((lwscript::ArrayObject *)obj)
-#define TO_TABLE_OBJ(obj) ((lwscript::DictObject *)obj)
-#define TO_ANONYMOUS_OBJ(obj) ((lwscript::AnonymousObject *)obj)
-#define TO_FUNCTION_OBJ(obj) ((lwscript::FunctionObject *)obj)
-#define TO_UPVALUE_OBJ(obj) ((lwscript::UpValueObject *)obj)
-#define TO_CLOSURE_OBJ(obj) ((lwscript::ClosureObject *)obj)
-#define TO_NATIVE_FUNCTION_OBJ(obj) ((lwscript::NativeFunctionObject *)obj)
-#define TO_REF_OBJ(obj) ((lwscript::RefObject *)obj)
-#define TO_CLASS_OBJ(obj) ((lwscript::ClassObject *)obj)
-#define TO_CLASS_CLOSURE_BIND_OBJ(obj) ((lwscript::ClassClosureBindObject *)obj)
-#define TO_ENUM_OBJ(obj) ((lwscript::EnumObject *)obj)
-#define TO_MODULE_OBJ(obj) ((lwscript::ModuleObject *)obj)
+#define TO_STR_OBJ(obj) ((lwscript::StrObject *)(obj))
+#define TO_ARRAY_OBJ(obj) ((lwscript::ArrayObject *)(obj))
+#define TO_TABLE_OBJ(obj) ((lwscript::DictObject *)(obj))
+#define TO_ANONYMOUS_OBJ(obj) ((lwscript::AnonymousObject *)(obj))
+#define TO_FUNCTION_OBJ(obj) ((lwscript::FunctionObject *)(obj))
+#define TO_UPVALUE_OBJ(obj) ((lwscript::UpValueObject *)(obj))
+#define TO_CLOSURE_OBJ(obj) ((lwscript::ClosureObject *)(obj))
+#define TO_NATIVE_FUNCTION_OBJ(obj) ((lwscript::NativeFunctionObject *)(obj))
+#define TO_REF_OBJ(obj) ((lwscript::RefObject *)(obj))
+#define TO_CLASS_OBJ(obj) ((lwscript::ClassObject *)(obj))
+#define TO_CLASS_CLOSURE_BIND_OBJ(obj) ((lwscript::ClassClosureBindObject *)(obj))
+#define TO_ENUM_OBJ(obj) ((lwscript::EnumObject *)(obj))
+#define TO_MODULE_OBJ(obj) ((lwscript::ModuleObject *)(obj))
 
-#define IS_NULL_VALUE(v) (v.type == VALUE_NULL)
-#define IS_INT_VALUE(v) (v.type == VALUE_INT)
-#define IS_REAL_VALUE(v) (v.type == VALUE_REAL)
-#define IS_BOOL_VALUE(v) (v.type == VALUE_BOOL)
-#define IS_OBJECT_VALUE(v) (v.type == VALUE_OBJECT)
-#define IS_STR_VALUE(v) (IS_OBJECT_VALUE(v) && IS_STR_OBJ(v.object))
-#define IS_ARRAY_VALUE(v) (IS_OBJECT_VALUE(v) && IS_ARRAY_OBJ(v.object))
-#define IS_DICT_VALUE(v) (IS_OBJECT_VALUE(v) && IS_TABLE_OBJ(v.object))
-#define IS_ANONYMOUS_VALUE(v) (IS_OBJECT_VALUE(v) && IS_ANONYMOUS_OBJ(v.object))
-#define IS_FUNCTION_VALUE(v) (IS_OBJECT_VALUE(v) && IS_FUNCTION_OBJ(v.object))
-#define IS_UPVALUE_VALUE(v) (IS_OBJECT_VALUE(v) && IS_UPVALUE_OBJ(v.object))
-#define IS_CLOSURE_VALUE(v) (IS_OBJECT_VALUE(v) && IS_CLOSURE_OBJ(v.object))
-#define IS_NATIVE_FUNCTION_VALUE(v) (IS_OBJECT_VALUE(v) && IS_NATIVE_FUNCTION_OBJ(v.object))
-#define IS_REF_VALUE(v) (IS_OBJECT_VALUE(v) && IS_REF_OBJ(v.object))
-#define IS_CLASS_VALUE(v) (IS_OBJECT_VALUE(v) && IS_CLASS_OBJ(v.object))
-#define IS_CLASS_CLOSURE_BIND_VALUE(v) (IS_OBJECT_VALUE(v) && IS_CLASS_CLOSURE_BIND_OBJ(v.object))
-#define IS_ENUM_VALUE(v) (IS_OBJECT_VALUE(v) && IS_ENUM_OBJ(v.object))
-#define IS_MODULE_VALUE(v) (IS_OBJECT_VALUE(v) && IS_MODULE_OBJ(v.object))
+#define IS_NULL_VALUE(v) ((v).type == VALUE_NULL)
+#define IS_INT_VALUE(v) ((v).type == VALUE_INT)
+#define IS_REAL_VALUE(v) ((v).type == VALUE_REAL)
+#define IS_BOOL_VALUE(v) ((v).type == VALUE_BOOL)
+#define IS_OBJECT_VALUE(v) ((v).type == VALUE_OBJECT)
+#define IS_STR_VALUE(v) (IS_OBJECT_VALUE(v) && IS_STR_OBJ((v).object))
+#define IS_ARRAY_VALUE(v) (IS_OBJECT_VALUE(v) && IS_ARRAY_OBJ((v).object))
+#define IS_DICT_VALUE(v) (IS_OBJECT_VALUE(v) && IS_TABLE_OBJ((v).object))
+#define IS_ANONYMOUS_VALUE(v) (IS_OBJECT_VALUE(v) && IS_ANONYMOUS_OBJ((v).object))
+#define IS_FUNCTION_VALUE(v) (IS_OBJECT_VALUE(v) && IS_FUNCTION_OBJ((v).object))
+#define IS_UPVALUE_VALUE(v) (IS_OBJECT_VALUE(v) && IS_UPVALUE_OBJ((v).object))
+#define IS_CLOSURE_VALUE(v) (IS_OBJECT_VALUE(v) && IS_CLOSURE_OBJ((v).object))
+#define IS_NATIVE_FUNCTION_VALUE(v) (IS_OBJECT_VALUE(v) && IS_NATIVE_FUNCTION_OBJ((v).object))
+#define IS_REF_VALUE(v) (IS_OBJECT_VALUE(v) && IS_REF_OBJ((v).object))
+#define IS_CLASS_VALUE(v) (IS_OBJECT_VALUE(v) && IS_CLASS_OBJ((v).object))
+#define IS_CLASS_CLOSURE_BIND_VALUE(v) (IS_OBJECT_VALUE(v) && IS_CLASS_CLOSURE_BIND_OBJ((v).object))
+#define IS_ENUM_VALUE(v) (IS_OBJECT_VALUE(v) && IS_ENUM_OBJ((v).object))
+#define IS_MODULE_VALUE(v) (IS_OBJECT_VALUE(v) && IS_MODULE_OBJ((v).object))
 
-#define TO_INT_VALUE(v) (v.integer)
-#define TO_REAL_VALUE(v) (v.realnum)
-#define TO_BOOL_VALUE(v) (v.boolean)
-#define TO_OBJECT_VALUE(v) (v.object)
-#define TO_STR_VALUE(v) (TO_STR_OBJ(v.object))
-#define TO_ARRAY_VALUE(v) (TO_ARRAY_OBJ(v.object))
-#define TO_DICT_VALUE(v) (TO_TABLE_OBJ(v.object))
-#define TO_ANONYMOUS_VALUE(v) (TO_ANONYMOUS_OBJ(v.object))
-#define TO_FUNCTION_VALUE(v) (TO_FUNCTION_OBJ(v.object))
-#define TO_UPVALUE_VALUE(v) (TO_UPVALUE_OBJ(v.object))
-#define TO_CLOSURE_VALUE(v) (TO_CLOSURE_OBJ(v.object))
-#define TO_NATIVE_FUNCTION_VALUE(v) (TO_NATIVE_FUNCTION_OBJ(v.object))
-#define TO_REF_VALUE(v) (TO_REF_OBJ(v.object))
-#define TO_CLASS_VALUE(v) (TO_CLASS_OBJ(v.object))
-#define TO_CLASS_CLOSURE_BIND_VALUE(v) (TO_CLASS_CLOSURE_BIND_OBJ(v.object))
-#define TO_ENUM_VALUE(v) (TO_ENUM_OBJ(v.object))
-#define TO_MODULE_VALUE(v) (TO_MODULE_OBJ(v.object))
+#define TO_INT_VALUE(v) ((v).integer)
+#define TO_REAL_VALUE(v) ((v).realnum)
+#define TO_BOOL_VALUE(v) ((v).boolean)
+#define TO_OBJECT_VALUE(v) ((v).object)
+#define TO_STR_VALUE(v) (TO_STR_OBJ((v).object))
+#define TO_ARRAY_VALUE(v) (TO_ARRAY_OBJ((v).object))
+#define TO_DICT_VALUE(v) (TO_TABLE_OBJ((v).object))
+#define TO_ANONYMOUS_VALUE(v) (TO_ANONYMOUS_OBJ((v).object))
+#define TO_FUNCTION_VALUE(v) (TO_FUNCTION_OBJ((v).object))
+#define TO_UPVALUE_VALUE(v) (TO_UPVALUE_OBJ((v).object))
+#define TO_CLOSURE_VALUE(v) (TO_CLOSURE_OBJ((v).object))
+#define TO_NATIVE_FUNCTION_VALUE(v) (TO_NATIVE_FUNCTION_OBJ((v).object))
+#define TO_REF_VALUE(v) (TO_REF_OBJ((v).object))
+#define TO_CLASS_VALUE(v) (TO_CLASS_OBJ((v).object))
+#define TO_CLASS_CLOSURE_BIND_VALUE(v) (TO_CLASS_CLOSURE_BIND_OBJ((v).object))
+#define TO_ENUM_VALUE(v) (TO_ENUM_OBJ((v).object))
+#define TO_MODULE_VALUE(v) (TO_MODULE_OBJ((v).object))
 
     enum ObjectType
     {
@@ -104,8 +104,8 @@ namespace lwscript
         virtual Object *Clone() const = 0;
 
         const ObjectType type;
-        bool marked;
-        Object *next;
+        bool marked{false};
+        Object *next{nullptr};
     };
 
     struct StrObject : public Object
@@ -119,7 +119,7 @@ namespace lwscript
 
         uint64_t NormalizeIdx(int64_t idx);
 
-        std::wstring value;
+        std::wstring value{};
     };
 
     struct ArrayObject : public Object
@@ -135,7 +135,7 @@ namespace lwscript
 
         uint64_t NormalizeIdx(int64_t idx);
 
-        std::vector<struct Value> elements;
+        std::vector<struct Value> elements{};
     };
 
     struct DictObject : public Object
@@ -150,7 +150,7 @@ namespace lwscript
         bool IsEqualTo(Object *other) override;
         Object *Clone() const override;
 
-        ValueUnorderedMap elements;
+        ValueUnorderedMap elements{};
     };
 
     struct AnonymousObject : public Object
@@ -165,7 +165,7 @@ namespace lwscript
         bool IsEqualTo(Object *other) override;
         Object *Clone() const override;
 
-        std::unordered_map<std::wstring, Value> elements;
+        std::unordered_map<std::wstring, Value> elements{};
     };
 
     struct FunctionObject : public Object
@@ -188,11 +188,11 @@ namespace lwscript
 #endif
 #endif
 
-        uint8_t arity;
-        VarArg varArg;
-        int8_t upValueCount;
-        Chunk chunk;
-        std::wstring name;
+        uint8_t arity{0};
+        VarArg varArg{VarArg::NONE};
+        int8_t upValueCount{0};
+        Chunk chunk{};
+        std::wstring name{};
 
         ValueVecUnorderedMap caches;
     };
@@ -209,9 +209,9 @@ namespace lwscript
         bool IsEqualTo(Object *other) override;
         Object *Clone() const override;
 
-        Value *location;
-        Value closed;
-        UpValueObject *nextUpValue;
+        Value *location{nullptr};
+        Value closed{};
+        UpValueObject *nextUpValue{nullptr};
     };
 
     struct ClosureObject : public Object
@@ -226,8 +226,8 @@ namespace lwscript
         bool IsEqualTo(Object *other) override;
         Object *Clone() const override;
 
-        FunctionObject *function;
-        std::vector<UpValueObject *> upvalues;
+        FunctionObject *function{nullptr};
+        std::vector<UpValueObject *> upvalues{};
     };
 
     using NativeFunction = std::function<bool(Value*,uint32_t, const Token *, Value&)>;
@@ -243,7 +243,7 @@ namespace lwscript
         bool IsEqualTo(Object *other) override;
         Object *Clone() const override;
 
-        NativeFunction fn;
+        NativeFunction fn{};
     };
 
     struct RefObject : public Object
@@ -256,7 +256,7 @@ namespace lwscript
         bool IsEqualTo(Object *other) override;
         Object *Clone() const override;
 
-        Value *pointer;
+        Value *pointer{};
     };
 
     struct ClassObject : public Object
@@ -274,10 +274,10 @@ namespace lwscript
         bool GetMember(const std::wstring &name, Value &retV);
         bool GetParentMember(const std::wstring &name, Value &retV);
 
-        std::wstring name;
-        std::map<int32_t, ClosureObject *> constructors; // argument count as key
-        std::unordered_map<std::wstring, Value> members;
-        std::map<std::wstring, ClassObject *> parents;
+        std::wstring name{};
+        std::map<int32_t, ClosureObject *> constructors{}; // argument count as key for now
+        std::unordered_map<std::wstring, Value> members{};
+        std::map<std::wstring, ClassObject *> parents{};
     };
 
     struct ClassClosureBindObject : public Object

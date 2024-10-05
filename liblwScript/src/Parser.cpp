@@ -933,7 +933,7 @@ namespace lwscript
 		auto token = GetCurTokenAndStepOnce();
 		if (token->type == TOKEN_NUMBER)
 		{
-			auto literal=token->literal;
+			auto literal = token->literal;
 			Expr *numExpr = nullptr;
 			if (literal.find('.') != std::wstring::npos)
 				numExpr = new LiteralExpr(token, std::stod(literal));
@@ -951,6 +951,7 @@ namespace lwscript
 			return new LiteralExpr(token, false);
 
 		Hint::Error(token, L"Unknown Literal.");
+		return nullptr;
 	}
 
 	Expr *Parser::ParseGroupExpr()
@@ -964,7 +965,7 @@ namespace lwscript
 
 	Expr *Parser::ParseArrayExpr()
 	{
-		auto token=Consume(TOKEN_LBRACKET, L"Expect '['.");
+		auto token = Consume(TOKEN_LBRACKET, L"Expect '['.");
 		auto arrayExpr = new ArrayExpr(token);
 		if (!IsMatchCurToken(TOKEN_RBRACKET))
 		{
@@ -983,7 +984,7 @@ namespace lwscript
 
 	Expr *Parser::ParseDictExpr()
 	{
-		auto token=Consume(TOKEN_LBRACE, L"Expect '{'.");
+		auto token = Consume(TOKEN_LBRACE, L"Expect '{'.");
 		auto dictExpr = new DictExpr(token);
 
 		if (!IsMatchCurToken(TOKEN_RBRACE))
@@ -1008,7 +1009,7 @@ namespace lwscript
 
 	Expr *Parser::ParseAnonyObjExpr()
 	{
-		auto token=Consume(TOKEN_LBRACE, L"Expect '{'.");
+		auto token = Consume(TOKEN_LBRACE, L"Expect '{'.");
 		auto anonyObjExpr = new AnonyObjExpr(token);
 
 		if (!IsMatchCurToken(TOKEN_RBRACE))
@@ -1334,6 +1335,7 @@ namespace lwscript
 				return GetCurTokenAndStepOnce();
 		Token *token = GetCurToken();
 		Hint::Error(token, L"{}", errMsg);
+		return nullptr;
 	}
 
 	bool Parser::IsAtEnd()

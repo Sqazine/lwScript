@@ -1,7 +1,3 @@
-#include "Object.h"
-#include "Value.h"
-#include "Utils.h"
-#include "Token.h"
 const auto SizeOfFunction = new NativeFunctionObject([](Value *args, uint32_t argCount, const Token *relatedToken, Value &result) -> bool
                                                      {
                                                          if (args == nullptr || argCount > 1)
