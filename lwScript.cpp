@@ -25,7 +25,7 @@ void Run(std::wstring_view content)
 #endif
     auto mainFunc = compiler.Compile(stmt);
 #ifdef _DEBUG
-    lwscript::Println(L"{}", mainFunc->ToString());
+    lwscript::Println(L"{}", mainFunc->ToStringWithChunk());
 #endif
     vm.Run(mainFunc);
 }

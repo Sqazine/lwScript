@@ -295,6 +295,11 @@ namespace lwscript
 		return L"<fn " + name + L":0x" + PointerAddressToString((void *)this) + L">";
 	}
 
+	std::wstring FunctionObject::ToStringWithChunk() const
+	{
+		return ToString() + L"\n" + chunk.ToString();
+	}
+
 	void FunctionObject::Blacken(Allocator *allocator)
 	{
 		Object::Blacken(allocator);

@@ -74,7 +74,7 @@ namespace lwscript
 #define TO_ENUM_VALUE(v) (TO_ENUM_OBJ((v).object))
 #define TO_MODULE_VALUE(v) (TO_MODULE_OBJ((v).object))
 
-    enum ObjectType
+    enum LWSCRIPT_API ObjectType
     {
         OBJECT_STR,
         OBJECT_ARRAY,
@@ -91,7 +91,7 @@ namespace lwscript
         OBJECT_MODULE
     };
 
-    struct Object
+    struct LWSCRIPT_API Object
     {
         Object(ObjectType type);
         virtual ~Object();
@@ -108,7 +108,7 @@ namespace lwscript
         Object *next{nullptr};
     };
 
-    struct StrObject : public Object
+    struct LWSCRIPT_API StrObject : public Object
     {
         StrObject(std::wstring_view value);
         ~StrObject() override;
@@ -122,7 +122,7 @@ namespace lwscript
         std::wstring value{};
     };
 
-    struct ArrayObject : public Object
+    struct LWSCRIPT_API ArrayObject : public Object
     {
         ArrayObject();
         ArrayObject(const std::vector<struct Value> &elements);
@@ -138,7 +138,7 @@ namespace lwscript
         std::vector<struct Value> elements{};
     };
 
-    struct DictObject : public Object
+    struct LWSCRIPT_API DictObject : public Object
     {
         DictObject();
         DictObject(const ValueUnorderedMap &elements);
@@ -153,7 +153,7 @@ namespace lwscript
         ValueUnorderedMap elements{};
     };
 
-    struct AnonymousObject : public Object
+    struct LWSCRIPT_API AnonymousObject : public Object
     {
         AnonymousObject();
         AnonymousObject(const std::unordered_map<std::wstring, Value> &elements);
@@ -168,13 +168,14 @@ namespace lwscript
         std::unordered_map<std::wstring, Value> elements{};
     };
 
-    struct FunctionObject : public Object
+    struct LWSCRIPT_API FunctionObject : public Object
     {
         FunctionObject();
         FunctionObject(std::wstring_view name);
         ~FunctionObject() override;
 
         std::wstring ToString() const override;
+        std::wstring ToStringWithChunk() const;
 
         void Blacken(class Allocator *allocator) override;
         bool IsEqualTo(Object *other) override;
@@ -197,7 +198,7 @@ namespace lwscript
         ValueVecUnorderedMap caches;
     };
 
-    struct UpValueObject : public Object
+    struct LWSCRIPT_API UpValueObject : public Object
     {
         UpValueObject();
         UpValueObject(Value *location);
@@ -214,7 +215,7 @@ namespace lwscript
         UpValueObject *nextUpValue{nullptr};
     };
 
-    struct ClosureObject : public Object
+    struct LWSCRIPT_API ClosureObject : public Object
     {
         ClosureObject();
         ClosureObject(FunctionObject *function);
@@ -232,7 +233,7 @@ namespace lwscript
 
     using NativeFunction = std::function<bool(Value*,uint32_t, const Token *, Value&)>;
 
-    struct NativeFunctionObject : public Object
+    struct LWSCRIPT_API NativeFunctionObject : public Object
     {
         NativeFunctionObject();
         NativeFunctionObject(NativeFunction f);
@@ -246,7 +247,7 @@ namespace lwscript
         NativeFunction fn{};
     };
 
-    struct RefObject : public Object
+    struct LWSCRIPT_API RefObject : public Object
     {
         RefObject(Value *pointer);
         ~RefObject() override;
@@ -259,7 +260,7 @@ namespace lwscript
         Value *pointer{};
     };
 
-    struct ClassObject : public Object
+    struct LWSCRIPT_API ClassObject : public Object
     {
         ClassObject();
         ClassObject(std::wstring_view name);
@@ -280,7 +281,7 @@ namespace lwscript
         std::map<std::wstring, ClassObject *> parents{};
     };
 
-    struct ClassClosureBindObject : public Object
+    struct LWSCRIPT_API ClassClosureBindObject : public Object
     {
         ClassClosureBindObject();
         ClassClosureBindObject(const Value &receiver, ClosureObject *cl);
@@ -296,7 +297,7 @@ namespace lwscript
         ClosureObject *closure;
     };
 
-    struct EnumObject : public Object
+    struct LWSCRIPT_API EnumObject : public Object
     {
         EnumObject();
         EnumObject(const std::wstring &name, const std::unordered_map<std::wstring, Value> &pairs);
@@ -314,7 +315,7 @@ namespace lwscript
         std::unordered_map<std::wstring, Value> pairs;
     };
 
-    struct ModuleObject : public Object
+    struct LWSCRIPT_API ModuleObject : public Object
     {
         ModuleObject();
         ModuleObject(const std::wstring &name, const std::unordered_map<std::wstring, Value> &values);

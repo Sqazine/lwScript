@@ -25,10 +25,7 @@ namespace lwscript
 		for (const auto &c : constants)
 		{
 			if (IS_FUNCTION_VALUE(c))
-			{
-				result += TO_FUNCTION_VALUE(c)->ToString();
-				result += L"\n" + TO_FUNCTION_VALUE(c)->chunk.ToString();
-			}
+				result += TO_FUNCTION_VALUE(c)->ToStringWithChunk();
 		}
 		return result;
 	}
@@ -43,7 +40,7 @@ namespace lwscript
 	case opCode:                                                                                         \
 	{                                                                                                    \
 		auto tok = opCodeRelatedTokens[opcodes[++i]];                                                    \
-		auto tokStr = tok->ToString();                                                                    \
+		auto tokStr = tok->ToString();                                                                   \
 		std::wstring tokGap(maxTokenShowSize - tokStr.size(), L' ');                                     \
 		tokStr += tokGap;                                                                                \
 		cout << tokStr << std::setfill(L'0') << std::setw(8) << i << L"    " << (L#opCode) << std::endl; \
@@ -54,12 +51,11 @@ namespace lwscript
 	case opCode:                                                                                                                                           \
 	{                                                                                                                                                      \
 		auto tok = opCodeRelatedTokens[opcodes[++i]];                                                                                                      \
-		uint16_t addressOffset = opcodes[i + 1] << 8 | opcodes[i + 2];                                                                                     \
-		auto tokStr = tok->ToString();                                                                                                                      \
+		uint16_t addressOffset = opcodes[++i] << 8 | opcodes[++i];                                                                                         \
+		auto tokStr = tok->ToString();                                                                                                                     \
 		std::wstring tokGap(maxTokenShowSize - tokStr.size(), L' ');                                                                                       \
 		tokStr += tokGap;                                                                                                                                  \
 		cout << tokStr << std::setfill(L'0') << std::setw(8) << i << L"    " << (L#opCode) << L"    " << i << "->" << i op addressOffset + 3 << std::endl; \
-		i += 2;                                                                                                                                            \
 		break;                                                                                                                                             \
 	}
 
@@ -67,12 +63,11 @@ namespace lwscript
 	case opCode:                                                                                                           \
 	{                                                                                                                      \
 		auto tok = opCodeRelatedTokens[opcodes[++i]];                                                                      \
-		auto pos = opcodes[i + 1];                                                                                         \
-		auto tokStr = tok->ToString();                                                                                      \
+		auto pos = opcodes[++i];                                                                                           \
+		auto tokStr = tok->ToString();                                                                                     \
 		std::wstring tokGap(maxTokenShowSize - tokStr.size(), L' ');                                                       \
 		tokStr += tokGap;                                                                                                  \
 		cout << tokStr << std::setfill(L'0') << std::setw(8) << i << L"    " << (L#opCode) << L"    " << pos << std::endl; \
-		i++;                                                                                                               \
 		break;                                                                                                             \
 	}
 
@@ -133,38 +128,32 @@ namespace lwscript
 			case OP_CONSTANT:
 			{
 				auto tok = opCodeRelatedTokens[opcodes[++i]];
-				auto pos = opcodes[i + 1];
-				std::wstring constantStr;
-				if (IS_FUNCTION_VALUE(constants[pos]))
-					constantStr = (L"<fn " + TO_FUNCTION_VALUE(constants[pos])->name + L":0x" + PointerAddressToString((void *)TO_FUNCTION_VALUE(constants[pos])) + L">");
-				else
-					constantStr = constants[pos].ToString();
+				auto pos = opcodes[++i];
+				std::wstring constantStr = constants[pos].ToString();
 
 				auto tokStr = tok->ToString();
 				std::wstring tokGap(maxTokenShowSize - tokStr.size(), L' ');
 				tokStr += tokGap;
 				cout << tokStr << std::setfill(L'0') << std::setw(8) << i << L"    " << L"OP_CONSTANT    " << pos << L"    '" << constantStr << L"'" << std::endl;
-				i++;
 				break;
 			}
 			case OP_CLASS:
 			{
 				auto tok = opCodeRelatedTokens[opcodes[++i]];
-				auto ctorCount = opcodes[i + 1];
-				auto varCount = opcodes[i + 2];
-				auto constCount = opcodes[i + 3];
-				auto parentClassCount = opcodes[i + 4];
+				auto ctorCount = opcodes[++i];
+				auto varCount = opcodes[++i];
+				auto constCount = opcodes[++i];
+				auto parentClassCount = opcodes[++i];
 				auto tokStr = tok->ToString();
 				std::wstring tokGap(maxTokenShowSize - tokStr.size(), L' ');
 				tokStr += tokGap;
 				cout << tokStr << std::setfill(L'0') << std::setw(8) << i << L"    " << L"OP_CLASS    " << ctorCount << "    " << varCount << L"    " << constCount << L"    " << parentClassCount << std::endl;
-				i += 4;
 				break;
 			}
 			case OP_CLOSURE:
 			{
 				auto tok = opCodeRelatedTokens[opcodes[++i]];
-				auto pos = opcodes[i + 1];
+				auto pos = opcodes[++i];
 				std::wstring funcStr = (L"<fn " + TO_FUNCTION_VALUE(constants[pos])->name + L":0x" + PointerAddressToString((void *)TO_FUNCTION_VALUE(constants[pos])) + L">");
 
 				auto tokStr = tok->ToString();
@@ -172,8 +161,6 @@ namespace lwscript
 				tokStr += tokGap;
 
 				cout << tokStr << std::setfill(L'0') << std::setw(8) << i << L"    " << L"OP_CLOSURE    " << pos << L"    " << funcStr << std::endl;
-
-				i++;
 
 				auto upvalueCount = TO_FUNCTION_VALUE(constants[pos])->upValueCount;
 				if (upvalueCount > 0)
@@ -192,13 +179,12 @@ namespace lwscript
 			case OP_MODULE:
 			{
 				auto tok = opCodeRelatedTokens[opcodes[++i]];
-				auto varCount = opcodes[i + 1];
-				auto constCount = opcodes[i + 2];
+				auto varCount = opcodes[++i];
+				auto constCount = opcodes[++i];
 				auto tokStr = tok->ToString();
 				std::wstring tokGap(maxTokenShowSize - tokStr.size(), L' ');
 				tokStr += tokGap;
 				cout << tokStr << std::setfill(L'0') << std::setw(8) << i << L"    " << L"OP_MODULE    " << varCount << L"    " << constCount << std::endl;
-				i += 2;
 				break;
 			}
 			default:
