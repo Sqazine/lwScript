@@ -286,7 +286,9 @@ namespace lwscript
 	FunctionObject::~FunctionObject()
 	{
 #ifdef PRINT_FUNCTION_CACHE
-		PrintCache();
+		if (!caches.empty())
+			PrintCache();
+		caches.clear();
 #endif
 	}
 
@@ -305,6 +307,15 @@ namespace lwscript
 		Object::Blacken(allocator);
 		for (auto &c : chunk.constants)
 			c.Mark(allocator);
+#ifdef USE_FUNCTION_CACHE
+		for(auto& [key,value]:caches)
+		{
+			for(auto& keyElement:key)
+				keyElement.Mark(allocator);
+			for(auto& valueElement:value)
+				valueElement.Mark(allocator);
+		}
+#endif
 	}
 
 	bool FunctionObject::IsEqualTo(Object *other)

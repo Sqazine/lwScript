@@ -30,10 +30,3 @@
 #endif
 
 #endif
-
-#define SAFE_DELETE(x) \
-    do                 \
-    {                  \
-        delete (x);      \
-        (x) = nullptr;   \
-    } while (false);

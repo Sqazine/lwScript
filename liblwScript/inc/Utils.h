@@ -11,6 +11,16 @@
 #include "Token.h"
 namespace lwscript
 {
+    #define SAFE_DELETE(x)   \
+    do                   \
+    {                    \
+        if (x)           \
+        {                \
+            delete x;    \
+            x = nullptr; \
+        }                \
+    } while (false);
+
     enum Privilege
     {
         MUTABLE,
@@ -38,12 +48,6 @@ namespace lwscript
         os << s;
     }
 
-    template <typename... Args>
-    inline void Log(std::wostream &os, std::wstring_view s, const Args &...args)
-    {
-        Log(os, s, args...);
-    }
-
     template <typename T, typename... Args>
     inline void Log(std::wostream &os, std::wstring_view s, const T &next, const Args &...args)
     {
@@ -56,15 +60,15 @@ namespace lwscript
             std::wstringstream sstr;
             sstr << next;
             tmpS.replace(index, 2, sstr.str());
+            sstr.clear();
             Log(os, tmpS, args...);
         }
     }
 
     template <typename... Args>
-    inline void Println(std::wstring_view s, const Args &...args)
+    inline void Println(const std::wstring& s, const Args &...args)
     {
-        auto withLn = std::wstring(s) + L"\n";
-        Log(std::wcout, withLn, args...);
+        Log(std::wcout, s + L"\n", args...);
     }
 
     template <typename... Args>

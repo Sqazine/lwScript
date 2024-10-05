@@ -6,8 +6,6 @@
 
 namespace lwscript
 {
-	Value VM::sNullValue = Value();
-
 	VM::VM()
 		: mOpenUpValues(nullptr), mStackTop(nullptr), mAllocator(nullptr)
 	{
@@ -181,9 +179,9 @@ namespace lwscript
 				if (retCount == 0)
 				{
 #ifdef USE_FUNCTION_CACHE
-					mFrames[mFrameCount].closure->function->SetCache(mFrames[mFrameCount].arguments, {sNullValue});
+					mFrames[mFrameCount].closure->function->SetCache(mFrames[mFrameCount].arguments, {Value()});
 #endif
-					Push(sNullValue);
+					Push(Value());
 				}
 				else
 				{
@@ -215,7 +213,7 @@ namespace lwscript
 			}
 			case OP_NULL:
 			{
-				Push(sNullValue);
+				Push(Value());
 				break;
 			}
 			case OP_SET_GLOBAL:
@@ -691,7 +689,7 @@ namespace lwscript
 					if (hasRetV)
 						Push(result);
 					else
-						Push(sNullValue);
+						Push(Value());
 				}
 				else
 					Hint::Error(relatedToken, L"Invalid callee,Only function is available: {}", callee.ToString());
@@ -911,7 +909,7 @@ namespace lwscript
 						auto diff = count - arrayObj->elements.size();
 						while (diff > 0)
 						{
-							Push(sNullValue);
+							Push(Value());
 							diff--;
 						}
 						for (int32_t i = static_cast<int32_t>(arrayObj->elements.size() - 1); i >= 0; --i)
@@ -928,7 +926,7 @@ namespace lwscript
 					auto diff = count - 1;
 					while (diff > 0)
 					{
-						Push(sNullValue);
+						Push(Value());
 						diff--;
 					}
 
@@ -952,7 +950,7 @@ namespace lwscript
 							if (i == diff)
 								Push(mAllocator->CreateObject<ArrayObject>());
 							else
-								Push(sNullValue);
+								Push(Value());
 						}
 
 						for (int32_t i = static_cast<int32_t>(arrayObj->elements.size() - 1); i >= 0; --i)
@@ -974,7 +972,7 @@ namespace lwscript
 					auto diff = count - 2;
 					while (diff > 0)
 					{
-						Push(sNullValue);
+						Push(Value());
 						diff--;
 					}
 

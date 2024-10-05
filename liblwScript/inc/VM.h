@@ -43,8 +43,6 @@ namespace lwscript
 
         UpValueObject *mOpenUpValues;
 
-        static Value sNullValue;
-
         friend class Allocator;
 
         Value mGlobalVariables[GLOBAL_VARIABLE_MAX];

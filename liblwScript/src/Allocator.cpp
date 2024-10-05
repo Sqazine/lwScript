@@ -87,7 +87,7 @@ namespace lwscript
             upvalue->Mark(this);
 
         for (int32_t i = 0; i < GLOBAL_VARIABLE_MAX; ++i)
-            if (mVM->mGlobalVariables[i] != VM::sNullValue)
+            if (mVM->mGlobalVariables[i] != Value())
                 mVM->mGlobalVariables[i].Mark(this);
     }
     void Allocator::MarkGrayObjects()

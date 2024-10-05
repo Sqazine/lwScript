@@ -7,27 +7,28 @@
 #pragma warning(disable : 4996)
 #endif
 
+lwscript::Lexer *gLexer = nullptr;
+lwscript::Parser *gParser = nullptr;
+lwscript::Compiler *gCompiler = nullptr;
+lwscript::VM *gVm = nullptr;
+
 void Run(std::wstring_view content)
 {
-    lwscript::Lexer lexer;
-    lwscript::Parser parser;
-    lwscript::Compiler compiler;
-    lwscript::VM vm;
-
-    auto tokens = lexer.ScanTokens(content);
+	auto tokens = gLexer->ScanTokens(content);
 #ifdef _DEBUG
-    for (const auto &token : tokens)
-        lwscript::Println(L"{}", *token);
+	for (const auto &token : tokens)
+		lwscript::Println(L"{}", *token);
 #endif
-    auto stmt = parser.Parse(tokens);
+	auto stmt = gParser->Parse(tokens);
 #ifdef _DEBUG
-    lwscript::Println(L"{}", stmt->ToString());
+	lwscript::Println(L"{}", stmt->ToString());
 #endif
-    auto mainFunc = compiler.Compile(stmt);
+	auto mainFunc = gCompiler->Compile(stmt);
 #ifdef _DEBUG
-    lwscript::Println(L"{}", mainFunc->ToStringWithChunk());
+	auto str = mainFunc->ToStringWithChunk();
+	lwscript::Println(L"{}", str);
 #endif
-    vm.Run(mainFunc);
+	gVm->Run(mainFunc);
 }
 
 void Repl()
@@ -60,12 +61,22 @@ int main(int argc, const char *argv[])
 	system("chcp 65001");
 #endif
 
+	gLexer = new lwscript::Lexer();
+	gParser = new lwscript::Parser();
+	gCompiler = new lwscript::Compiler();
+	gVm = new lwscript::VM();
+
 	if (argc == 2)
 		RunFile(argv[1]);
 	else if (argc == 1)
 		Repl();
 	else
 		lwscript::Println(L"Usage: lwScript [filepath]");
+
+	SAFE_DELETE(gLexer);
+	SAFE_DELETE(gParser);
+	SAFE_DELETE(gCompiler);
+	SAFE_DELETE(gVm);
 
 	return 0;
 }
