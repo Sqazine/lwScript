@@ -69,6 +69,7 @@ namespace lwscript
 		FOR,				   // for
 		FUNCTION,			   // fn
 		CLASS,				   // class
+		STRUCT,				   // struct
 		THIS,				   // this
 		BASE,				   // base
 		RETURN,				   // return

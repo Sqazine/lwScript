@@ -58,7 +58,7 @@ namespace lwscript
 		void CompileCallExpr(CallExpr *expr);
 		void CompileDotExpr(DotExpr *expr, const RWState &state = RWState::READ);
 		void CompileRefExpr(RefExpr *expr);
-		void CompileAnonymousObjExpr(AnonyObjExpr *expr);
+		void CompileStructExpr(StructExpr *expr);
 		void CompileVarArgExpr(VarArgExpr *expr, const RWState &state = RWState::READ);
 		void CompileFactorialExpr(FactorialExpr *expr, const RWState &state = RWState::READ);
 

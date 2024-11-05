@@ -5,13 +5,13 @@
 #include "Utils.h"
 namespace lwscript
 {
-	enum ValueType
+	enum class ValueKind
 	{
-		VALUE_NULL,
-		VALUE_INT,
-		VALUE_REAL,
-		VALUE_BOOL,
-		VALUE_OBJECT,
+		NIL,
+		INT,
+		REAL,
+		BOOL,
+		OBJECT,
 	};
 
 	struct LWSCRIPT_API Value
@@ -28,7 +28,7 @@ namespace lwscript
 		void UnMark() const;
 		Value Clone() const;
 
-		ValueType type;
+		ValueKind kind;
 		Privilege privilege = Privilege::MUTABLE;
 
 		union

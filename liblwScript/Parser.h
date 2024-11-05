@@ -85,7 +85,7 @@ namespace lwscript
 		Expr *ParseGroupExpr();
 		Expr *ParseArrayExpr();
 		Expr *ParseDictExpr();
-		Expr *ParseAnonyObjExpr();
+		Expr *ParseStructExpr();
 		Expr *ParsePrefixExpr();
 		Expr *ParseRefExpr();
 		Expr *ParseLambdaExpr();

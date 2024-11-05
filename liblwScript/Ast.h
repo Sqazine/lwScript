@@ -1,4 +1,4 @@
-#pragma once
+#pragma once./examples
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -29,7 +29,7 @@ namespace lwscript
 		THIS,
 		BASE,
 		COMPOUND,
-		ANONY_OBJ,
+		STRUCT,
 		VAR_ARG,
 		FACTORIAL,
 		APPREGATE,
@@ -288,11 +288,11 @@ namespace lwscript
 		Expr *endExpr;
 	};
 
-	struct AnonyObjExpr : public Expr
+	struct StructExpr : public Expr
 	{
-		AnonyObjExpr(Token *tagToken);
-		AnonyObjExpr(Token *tagToken, const std::vector<std::pair<std::wstring, Expr *>> &elements);
-		~AnonyObjExpr() override;
+		StructExpr(Token *tagToken);
+		StructExpr(Token *tagToken, const std::vector<std::pair<std::wstring, Expr *>> &elements);
+		~StructExpr() override;
 		std::wstring ToString() override;
 
 		std::vector<std::pair<std::wstring, Expr *>> elements;

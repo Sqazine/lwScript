@@ -49,7 +49,7 @@ namespace lwscript
         Expr *CheckCallExpr(CallExpr *expr);
         Expr *CheckDotExpr(DotExpr *expr);
         Expr *CheckRefExpr(RefExpr *expr);
-        Expr *CheckAnonymousObjExpr(AnonyObjExpr *expr);
+        Expr *CheckStructExpr(StructExpr *expr);
         Expr *CheckVarArgExpr(VarArgExpr *expr);
         Expr *CheckFactorialExpr(FactorialExpr *expr);
         Expr *CheckVarDescExpr(VarDescExpr *expr);

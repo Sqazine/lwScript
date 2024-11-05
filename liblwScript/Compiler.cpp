@@ -422,6 +422,9 @@ namespace lwscript
 		case AstKind::FACTORIAL:
 			CompileFactorialExpr((FactorialExpr *)expr);
 			break;
+		case AstKind::STRUCT:
+			CompileStructExpr((StructExpr *)expr);
+			break;
 		default:
 			break;
 		}
@@ -721,19 +724,15 @@ namespace lwscript
 
 	void Compiler::CompileNewExpr(NewExpr *expr)
 	{
-		if (expr->callee->kind == AstKind::CALL)
-		{
-			auto callee = (CallExpr *)expr->callee;
-			CompileExpr(callee->callee, RWState::READ);
-			EmitOpCode(OP_CALL, expr->callee->tagToken);
-			Emit(0);
-			for (const auto &arg : callee->arguments)
-				CompileExpr(arg);
-			EmitOpCode(OP_CALL, expr->callee->tagToken);
-			Emit(static_cast<uint8_t>(callee->arguments.size()));
-		}
-		else if (expr->callee->kind == AstKind::ANONY_OBJ)
-			CompileAnonymousObjExpr((AnonyObjExpr *)(expr->callee));
+
+		auto callee = (CallExpr *)expr->callee;
+		CompileExpr(callee->callee, RWState::READ);
+		EmitOpCode(OP_CALL, expr->callee->tagToken);
+		Emit(0);
+		for (const auto &arg : callee->arguments)
+			CompileExpr(arg);
+		EmitOpCode(OP_CALL, expr->callee->tagToken);
+		Emit(static_cast<uint8_t>(callee->arguments.size()));
 	}
 
 	void Compiler::CompileThisExpr(ThisExpr *expr)
@@ -903,14 +902,14 @@ namespace lwscript
 		}
 	}
 
-	void Compiler::CompileAnonymousObjExpr(AnonyObjExpr *expr)
+	void Compiler::CompileStructExpr(StructExpr *expr)
 	{
 		for (auto [k, v] : expr->elements)
 		{
 			CompileExpr(v);
 			EmitConstant(new StrObject(k), v->tagToken);
 		}
-		EmitOpCode(OP_ANONYMOUS_OBJ, expr->tagToken);
+		EmitOpCode(OP_STRUCT_OBJ, expr->tagToken);
 		uint8_t pos = static_cast<uint8_t>(expr->elements.size());
 		Emit(pos);
 	}

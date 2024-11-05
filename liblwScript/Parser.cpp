@@ -99,6 +99,7 @@ namespace lwscript
 			{TokenKind::MATCH, &Parser::ParseMatchExpr},
 			{TokenKind::LPAREN_LBRACE, &Parser::ParseCompoundExpr},
 			{TokenKind::ELLIPSIS, &Parser::ParseVarArgExpr},
+			{TokenKind::STRUCT,&Parser::ParseStructExpr},
 	};
 
 	std::unordered_map<TokenKind, InfixFn> Parser::mInfixFunctions =
@@ -734,13 +735,7 @@ namespace lwscript
 		auto newExpr = new NewExpr(GetCurToken());
 
 		Consume(TokenKind::NEW, L"Expect 'new' keyword");
-
-		Expr *callee;
-		if (IsMatchCurToken(TokenKind::LBRACE))
-			callee = ParseAnonyObjExpr();
-		else
-			callee = ParseExpr();
-
+		Expr *callee=ParseExpr();
 		newExpr->callee = callee;
 		return newExpr;
 	}
@@ -1008,10 +1003,11 @@ namespace lwscript
 		return dictExpr;
 	}
 
-	Expr *Parser::ParseAnonyObjExpr()
+	Expr *Parser::ParseStructExpr()
 	{
-		auto token = Consume(TokenKind::LBRACE, L"Expect '{'.");
-		auto anonyObjExpr = new AnonyObjExpr(token);
+		auto token = Consume(TokenKind::STRUCT, L"Expect 'struct' keyword.");
+		Consume(TokenKind::LBRACE, L"Expect '{' after 'struct' keyword.");
+		auto structExpr = new StructExpr(token);
 
 		if (!IsMatchCurToken(TokenKind::RBRACE))
 		{
@@ -1024,17 +1020,17 @@ namespace lwscript
 				Expr *key = ParseExpr();
 
 				if (key->kind != AstKind::IDENTIFIER)
-					Logger::Error(key->tagToken, L"Anonymous object require key must be a valid identifier.");
+					Logger::Error(key->tagToken, L"Struct object require key must be a valid identifier.");
 
-				Consume(TokenKind::COLON, L"Expect ':' after anony object key.");
+				Consume(TokenKind::COLON, L"Expect ':' after struct object's key.");
 				Expr *value = ParseExpr();
 				elements.emplace_back(((IdentifierExpr *)key)->literal, value);
 			} while (IsMatchCurTokenAndStepOnce(TokenKind::COMMA));
 
-			anonyObjExpr->elements = elements;
+			structExpr->elements = elements;
 		}
-		Consume(TokenKind::RBRACE, L"Expect '}' after anony object.");
-		return anonyObjExpr;
+		Consume(TokenKind::RBRACE, L"Expect '}' after struct object.");
+		return structExpr;
 	}
 
 	Expr *Parser::ParsePrefixExpr()

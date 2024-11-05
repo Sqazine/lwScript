@@ -5,7 +5,7 @@
 namespace lwscript
 {
     SyntaxChecker::SyntaxChecker()
-        : mLoopDepth(0), mVarArgScopeDepth(false),mClassScopeDepth(0)
+        : mLoopDepth(0), mVarArgScopeDepth(false), mClassScopeDepth(0)
     {
     }
     SyntaxChecker::~SyntaxChecker()
@@ -191,8 +191,8 @@ namespace lwscript
             return CheckBaseExpr((BaseExpr *)expr);
         case AstKind::COMPOUND:
             return CheckCompoundExpr((CompoundExpr *)expr);
-        case AstKind::ANONY_OBJ:
-            return CheckAnonymousObjExpr((AnonyObjExpr *)expr);
+        case AstKind::STRUCT:
+            return CheckStructExpr((StructExpr *)expr);
         case AstKind::VAR_ARG:
             return CheckVarArgExpr((VarArgExpr *)expr);
         case AstKind::FACTORIAL:
@@ -265,8 +265,8 @@ namespace lwscript
     }
     Expr *SyntaxChecker::CheckNewExpr(NewExpr *expr)
     {
-        if (expr->callee->kind != AstKind::CALL && expr->callee->kind != AstKind::ANONY_OBJ)
-            Logger::Error(expr->callee->tagToken, L"Not a valid new expr,call expr or anonymous object expr is necessary followed 'new' keyword.");
+        if (expr->callee->kind != AstKind::CALL)
+            Logger::Error(expr->callee->tagToken, L"Not a valid new expr,call expr is necessary followed 'new' keyword.");
 
         return expr;
     }
@@ -314,7 +314,7 @@ namespace lwscript
             Logger::Error(expr->tagToken, L"Only left value is available for reference.");
         return expr;
     }
-    Expr *SyntaxChecker::CheckAnonymousObjExpr(AnonyObjExpr *expr)
+    Expr *SyntaxChecker::CheckStructExpr(StructExpr *expr)
     {
         return expr;
     }

@@ -1,6 +1,6 @@
 fn ret()
 {
-    return new {
+    return struct {
         name:"test",
         value:100,
     };
@@ -9,7 +9,7 @@ fn ret()
 let r=ret();
 io.println("{},{}",r.name,r.value);//test,100
 
-let johnScore=new {
+let johnScore=struct {
         name:"John",
         score:100,
     };

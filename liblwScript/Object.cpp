@@ -6,8 +6,8 @@
 namespace lwscript
 {
 
-	Object::Object(ObjectType type)
-		: type(type), marked(false), next(nullptr)
+	Object::Object(ObjectKind kind)
+		: kind(kind), marked(false), next(nullptr)
 	{
 	}
 	Object::~Object()
@@ -42,7 +42,7 @@ namespace lwscript
 	}
 
 	StrObject::StrObject(std::wstring_view value)
-		: Object(OBJECT_STR), value(value)
+		: Object(ObjectKind::STR), value(value)
 	{
 	}
 	StrObject::~StrObject()
@@ -74,11 +74,11 @@ namespace lwscript
 	}
 
 	ArrayObject::ArrayObject()
-		: Object(OBJECT_ARRAY)
+		: Object(ObjectKind::ARRAY)
 	{
 	}
 	ArrayObject::ArrayObject(const std::vector<Value> &elements)
-		: Object(OBJECT_ARRAY), elements(elements)
+		: Object(ObjectKind::ARRAY), elements(elements)
 	{
 	}
 	ArrayObject::~ArrayObject()
@@ -138,11 +138,11 @@ namespace lwscript
 	}
 
 	DictObject::DictObject()
-		: Object(OBJECT_DICT)
+		: Object(ObjectKind::DICT)
 	{
 	}
 	DictObject::DictObject(const ValueUnorderedMap &elements)
-		: Object(OBJECT_DICT), elements(elements)
+		: Object(ObjectKind::DICT), elements(elements)
 	{
 	}
 	DictObject::~DictObject()
@@ -208,19 +208,19 @@ namespace lwscript
 		return new DictObject(m);
 	}
 
-	AnonymousObject::AnonymousObject()
-		: Object(OBJECT_ANONYMOUS)
+	StructObject::StructObject()
+		: Object(ObjectKind::STRUCT)
 	{
 	}
-	AnonymousObject::AnonymousObject(const std::unordered_map<std::wstring, Value> &elements)
-		: Object(OBJECT_ANONYMOUS), elements(elements)
+	StructObject::StructObject(const std::unordered_map<std::wstring, Value> &elements)
+		: Object(ObjectKind::STRUCT), elements(elements)
 	{
 	}
-	AnonymousObject::~AnonymousObject()
+	StructObject::~StructObject()
 	{
 	}
 
-	std::wstring AnonymousObject::ToString() const
+	std::wstring StructObject::ToString() const
 	{
 		std::wstring result = L"{";
 		for (const auto &[k, v] : elements)
@@ -230,7 +230,7 @@ namespace lwscript
 		return result;
 	}
 
-	void AnonymousObject::Blacken(Allocator *allocator)
+	void StructObject::Blacken(Allocator *allocator)
 	{
 		Object::Blacken(allocator);
 		for (auto &[k, v] : elements)
@@ -238,20 +238,20 @@ namespace lwscript
 			v.Mark(allocator);
 		}
 	}
-	bool AnonymousObject::IsEqualTo(Object *other)
+	bool StructObject::IsEqualTo(Object *other)
 	{
-		if (!IS_ANONYMOUS_OBJ(other))
+		if (!IS_STRUCT_OBJ(other))
 			return false;
 
-		AnonymousObject *anonymousOther = TO_ANONYMOUS_OBJ(other);
+		StructObject *structOther = TO_STRUCT_OBJ(other);
 
-		if (anonymousOther->elements.size() != elements.size())
+		if (structOther->elements.size() != elements.size())
 			return false;
 
 		for (const auto &[k1, v1] : elements)
 		{
 			bool isFound = false;
-			for (const auto &[k2, v2] : anonymousOther->elements)
+			for (const auto &[k2, v2] : structOther->elements)
 			{
 				if (k1 == k2 && v1 == v2)
 					isFound = true;
@@ -262,7 +262,7 @@ namespace lwscript
 
 		return true;
 	}
-	Object *AnonymousObject::Clone() const
+	Object *StructObject::Clone() const
 	{
 		std::unordered_map<std::wstring, Value> m;
 		for (auto [k, v] : elements)
@@ -273,15 +273,15 @@ namespace lwscript
 			m[kCopy] = vCopy;
 		}
 
-		return new AnonymousObject(m);
+		return new StructObject(m);
 	}
 
 	FunctionObject::FunctionObject()
-		: Object(OBJECT_FUNCTION), arity(0), upValueCount(0), varArg(VarArg::NONE)
+		: Object(ObjectKind::FUNCTION), arity(0), upValueCount(0), varArg(VarArg::NONE)
 	{
 	}
 	FunctionObject::FunctionObject(std::wstring_view name)
-		: Object(OBJECT_FUNCTION), arity(0), upValueCount(0), name(name), varArg(VarArg::NONE)
+		: Object(ObjectKind::FUNCTION), arity(0), upValueCount(0), name(name), varArg(VarArg::NONE)
 	{
 	}
 	FunctionObject::~FunctionObject()
@@ -384,11 +384,11 @@ namespace lwscript
 
 
 	UpValueObject::UpValueObject()
-		: Object(OBJECT_UPVALUE), location(nullptr), nextUpValue(nullptr)
+		: Object(ObjectKind::UPVALUE), location(nullptr), nextUpValue(nullptr)
 	{
 	}
 	UpValueObject::UpValueObject(Value *location)
-		: Object(OBJECT_UPVALUE), location(location), nextUpValue(nullptr)
+		: Object(ObjectKind::UPVALUE), location(location), nextUpValue(nullptr)
 	{
 	}
 	UpValueObject::~UpValueObject()
@@ -433,11 +433,11 @@ namespace lwscript
 	}
 
 	ClosureObject::ClosureObject()
-		: Object(OBJECT_CLOSURE), function(nullptr)
+		: Object(ObjectKind::CLOSURE), function(nullptr)
 	{
 	}
 	ClosureObject::ClosureObject(FunctionObject *function)
-		: Object(OBJECT_CLOSURE), function(function)
+		: Object(ObjectKind::CLOSURE), function(function)
 	{
 		upvalues.resize(function->upValueCount);
 	}
@@ -486,11 +486,11 @@ namespace lwscript
 	}
 
 	NativeFunctionObject::NativeFunctionObject()
-		: Object(OBJECT_NATIVE_FUNCTION)
+		: Object(ObjectKind::NATIVE_FUNCTION)
 	{
 	}
 	NativeFunctionObject::NativeFunctionObject(NativeFunction f)
-		: Object(OBJECT_NATIVE_FUNCTION), fn(f)
+		: Object(ObjectKind::NATIVE_FUNCTION), fn(f)
 	{
 	}
 	NativeFunctionObject::~NativeFunctionObject()
@@ -515,7 +515,7 @@ namespace lwscript
 	}
 
 	RefObject::RefObject(Value *pointer)
-		: Object(OBJECT_REF), pointer(pointer)
+		: Object(ObjectKind::REF), pointer(pointer)
 	{
 	}
 	RefObject::~RefObject()
@@ -541,12 +541,12 @@ namespace lwscript
 	}
 
 	ClassObject::ClassObject()
-		: Object(OBJECT_CLASS)
+		: Object(ObjectKind::CLASS)
 	{
 	}
 
 	ClassObject::ClassObject(std::wstring_view name)
-		: Object(OBJECT_CLASS), name(name)
+		: Object(ObjectKind::CLASS), name(name)
 	{
 	}
 
@@ -658,11 +658,11 @@ namespace lwscript
 	}
 
 	ClassClosureBindObject::ClassClosureBindObject()
-		: Object(OBJECT_CLASS_CLOSURE_BIND), closure(nullptr)
+		: Object(ObjectKind::CLASS_CLOSURE_BIND), closure(nullptr)
 	{
 	}
 	ClassClosureBindObject::ClassClosureBindObject(const Value &receiver, ClosureObject *cl)
-		: Object(OBJECT_CLASS_CLOSURE_BIND), receiver(receiver), closure(cl)
+		: Object(ObjectKind::CLASS_CLOSURE_BIND), receiver(receiver), closure(cl)
 	{
 	}
 	ClassClosureBindObject::~ClassClosureBindObject()
@@ -701,11 +701,11 @@ namespace lwscript
 	}
 
 	EnumObject::EnumObject()
-		: Object(OBJECT_ENUM)
+		: Object(ObjectKind::ENUM)
 	{
 	}
 	EnumObject::EnumObject(const std::wstring &name, const std::unordered_map<std::wstring, Value> &pairs)
-		: Object(OBJECT_ENUM), name(name), pairs(pairs)
+		: Object(ObjectKind::ENUM), name(name), pairs(pairs)
 	{
 	}
 
@@ -765,12 +765,12 @@ namespace lwscript
 	}
 
 	ModuleObject::ModuleObject()
-		: Object(OBJECT_MODULE)
+		: Object(ObjectKind::MODULE)
 	{
 	}
 
 	ModuleObject::ModuleObject(const std::wstring &name, const std::unordered_map<std::wstring, Value> &values)
-		: Object(OBJECT_MODULE), name(name), values(values)
+		: Object(ObjectKind::MODULE), name(name), values(values)
 	{
 	}
 

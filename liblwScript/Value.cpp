@@ -4,25 +4,25 @@
 namespace lwscript
 {
     Value::Value()
-        : type(VALUE_NULL), object(nullptr)
+        : kind(ValueKind::NIL), object(nullptr)
     {
     }
     Value::Value(double number)
-        : realnum(number), type(VALUE_REAL)
+        : realnum(number), kind(ValueKind::REAL)
     {
     }
 
     Value::Value(int64_t integer)
-        : integer(integer), type(VALUE_INT)
+        : integer(integer), kind(ValueKind::INT)
     {
     }
     Value::Value(bool boolean)
-        : boolean(boolean), type(VALUE_BOOL)
+        : boolean(boolean), kind(ValueKind::BOOL)
     {
     }
 
     Value::Value(Object *object)
-        : object(object), type(VALUE_OBJECT)
+        : object(object), kind(ValueKind::OBJECT)
     {
     }
 
@@ -32,17 +32,17 @@ namespace lwscript
 
     std::wstring Value::ToString() const
     {
-        switch (type)
+        switch (kind)
         {
-        case VALUE_INT:
+        case ValueKind::INT:
             return std::to_wstring(integer);
-        case VALUE_REAL:
+        case ValueKind::REAL:
             return std::to_wstring(realnum);
-        case VALUE_BOOL:
+        case ValueKind::BOOL:
             return boolean ? L"true" : L"false";
-        case VALUE_NULL:
+        case ValueKind::NIL:
             return L"null";
-        case VALUE_OBJECT:
+        case ValueKind::OBJECT:
             return object->ToString();
         default:
             return L"null";
@@ -51,33 +51,33 @@ namespace lwscript
     }
     void Value::Mark(Allocator *allocator) const
     {
-        if (type == VALUE_OBJECT)
+        if (kind == ValueKind::OBJECT)
             object->Mark(allocator);
     }
     void Value::UnMark() const
     {
-        if (type == VALUE_OBJECT)
+        if (kind == ValueKind::OBJECT)
             object->UnMark();
     }
 
     Value Value::Clone() const
     {
         Value result;
-        result.type = this->type;
-        switch (type)
+        result.kind = this->kind;
+        switch (kind)
         {
-        case VALUE_INT:
+        case ValueKind::INT:
             result.integer = this->integer;
             break;
-        case VALUE_REAL:
+        case ValueKind::REAL:
             result.realnum = this->realnum;
             break;
-        case VALUE_BOOL:
+        case ValueKind::BOOL:
             result.boolean = this->boolean;
             break;
-        case VALUE_NULL:
+        case ValueKind::NIL:
             break;
-        case VALUE_OBJECT:
+        case ValueKind::OBJECT:
             result.object = this->object->Clone();
             break;
         default:
@@ -88,9 +88,9 @@ namespace lwscript
 
     bool operator==(const Value &left, const Value &right)
     {
-        switch (left.type)
+        switch (left.kind)
         {
-        case VALUE_INT:
+        case ValueKind::INT:
         {
             if (IS_INT_VALUE(right))
                 return TO_INT_VALUE(left) == TO_INT_VALUE(right);
@@ -99,7 +99,7 @@ namespace lwscript
             else
                 return false;
         }
-        case VALUE_REAL:
+        case ValueKind::REAL:
         {
             if (IS_INT_VALUE(right))
                 return TO_REAL_VALUE(left) == TO_INT_VALUE(right);
@@ -108,16 +108,16 @@ namespace lwscript
             else
                 return false;
         }
-        case VALUE_NULL:
+        case ValueKind::NIL:
             return IS_NULL_VALUE(right);
-        case VALUE_BOOL:
+        case ValueKind::BOOL:
         {
             if (IS_BOOL_VALUE(right))
                 return TO_BOOL_VALUE(left) == TO_BOOL_VALUE(right);
             else
                 return false;
         }
-        case VALUE_OBJECT:
+        case ValueKind::OBJECT:
         {
             if (IS_OBJECT_VALUE(right))
                 return TO_OBJECT_VALUE(left)->IsEqualTo(TO_OBJECT_VALUE(right));
@@ -137,20 +137,20 @@ namespace lwscript
 
     size_t ValueHash::operator()(const Value &v) const
     {
-        switch (v.type)
+        switch (v.kind)
         {
-        case VALUE_NULL:
-            return std::hash<ValueType>()(v.type);
-        case VALUE_INT:
-            return std::hash<ValueType>()(v.type) ^ std::hash<int64_t>()(v.integer);
-        case VALUE_REAL:
-            return std::hash<ValueType>()(v.type) ^ std::hash<double>()(v.realnum);
-        case VALUE_BOOL:
-            return std::hash<ValueType>()(v.type) ^ std::hash<bool>()(v.boolean);
-        case VALUE_OBJECT:
-            return std::hash<ValueType>()(v.type) ^ std::hash<Object *>()(v.object);
+        case ValueKind::NIL:
+            return std::hash<ValueKind>()(v.kind);
+        case ValueKind::INT:
+            return std::hash<ValueKind>()(v.kind) ^ std::hash<int64_t>()(v.integer);
+        case ValueKind::REAL:
+            return std::hash<ValueKind>()(v.kind) ^ std::hash<double>()(v.realnum);
+        case ValueKind::BOOL:
+            return std::hash<ValueKind>()(v.kind) ^ std::hash<bool>()(v.boolean);
+        case ValueKind::OBJECT:
+            return std::hash<ValueKind>()(v.kind) ^ std::hash<Object *>()(v.object);
         default:
-            return std::hash<ValueType>()(v.type);
+            return std::hash<ValueKind>()(v.kind);
         }
     }
 

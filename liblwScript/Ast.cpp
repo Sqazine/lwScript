@@ -406,20 +406,20 @@ namespace lwscript
 		return result;
 	}
 
-	AnonyObjExpr::AnonyObjExpr(Token *tagToken)
-		: Expr(tagToken, AstKind::ANONY_OBJ)
+	StructExpr::StructExpr(Token *tagToken)
+		: Expr(tagToken, AstKind::STRUCT)
 	{
 	}
-	AnonyObjExpr::AnonyObjExpr(Token *tagToken, const std::vector<std::pair<std::wstring, Expr *>> &elements)
-		: Expr(tagToken, AstKind::ANONY_OBJ), elements(elements)
+	StructExpr::StructExpr(Token *tagToken, const std::vector<std::pair<std::wstring, Expr *>> &elements)
+		: Expr(tagToken, AstKind::STRUCT), elements(elements)
 	{
 	}
-	AnonyObjExpr::~AnonyObjExpr()
+	StructExpr::~StructExpr()
 	{
 		std::vector<std::pair<std::wstring, Expr *>>().swap(elements);
 	}
 
-	std::wstring AnonyObjExpr::ToString()
+	std::wstring StructExpr::ToString()
 	{
 		std::wstring result = L"{";
 		if (!elements.empty())

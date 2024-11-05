@@ -740,7 +740,7 @@ namespace lwscript
 				Push(classObj);
 				break;
 			}
-			case OP_ANONYMOUS_OBJ:
+			case OP_STRUCT_OBJ:
 			{
 				auto eCount = READ_INS();
 				std::unordered_map<std::wstring, Value> elements;
@@ -750,7 +750,7 @@ namespace lwscript
 					auto value = Pop();
 					elements[key] = value;
 				}
-				Push(mAllocator->CreateObject<AnonymousObject>(elements));
+				Push(mAllocator->CreateObject<StructObject>(elements));
 				break;
 			}
 			case OP_GET_PROPERTY:
@@ -794,13 +794,13 @@ namespace lwscript
 					else
 						Logger::Error(relatedToken, L"No member: {} in enum object: {}", propName, enumObj->name);
 				}
-				else if (IS_ANONYMOUS_VALUE(peekValue))
+				else if (IS_STRUCT_VALUE(peekValue))
 				{
-					auto anonymousObj = TO_ANONYMOUS_VALUE(peekValue);
-					auto iter = anonymousObj->elements.find(propName);
-					if (iter == anonymousObj->elements.end())
-						Logger::Error(relatedToken, L"No property: {} in anonymous object:{}.", propName, anonymousObj->ToString());
-					Pop(); // pop anonymouse object
+					auto structObj = TO_STRUCT_VALUE(peekValue);
+					auto iter = structObj->elements.find(propName);
+					if (iter == structObj->elements.end())
+						Logger::Error(relatedToken, L"No property: {} in struct object:{}.", propName, structObj->ToString());
+					Pop(); // pop struct object
 					Push(iter->second);
 					break;
 				}
@@ -818,7 +818,7 @@ namespace lwscript
 						Logger::Error(relatedToken, L"No member: {} in module: {}", propName, moduleObj->name);
 				}
 				else
-					Logger::Error(relatedToken, L"Invalid call:not a valid class,enum or anonymous object instance: {}", peekValue.ToString());
+					Logger::Error(relatedToken, L"Invalid call:not a valid class,enum or struct object instance: {}", peekValue.ToString());
 
 				break;
 			}
@@ -846,20 +846,20 @@ namespace lwscript
 					else
 						Logger::Error(relatedToken, L"No member named: {} in class: {}", propName, klass->name);
 				}
-				else if (IS_ANONYMOUS_VALUE(peekValue))
+				else if (IS_STRUCT_VALUE(peekValue))
 				{
-					auto anonymousObj = TO_ANONYMOUS_VALUE(peekValue);
-					auto iter = anonymousObj->elements.find(propName);
-					if (iter == anonymousObj->elements.end())
-						Logger::Error(relatedToken, L"No property: {} in anonymous object:{}", propName, anonymousObj->ToString());
-					Pop(); // pop anonymouse object
-					anonymousObj->elements[iter->first] = Peek();
+					auto structObj = TO_STRUCT_VALUE(peekValue);
+					auto iter = structObj->elements.find(propName);
+					if (iter == structObj->elements.end())
+						Logger::Error(relatedToken, L"No property: {} in struct object:{}", propName, structObj->ToString());
+					Pop(); // pop struct object
+					structObj->elements[iter->first] = Peek();
 					break;
 				}
 				else if (IS_ENUM_VALUE(peekValue))
 					Logger::Error(relatedToken, L"Invalid call:cannot assign value to a enum object member.");
 				else
-					Logger::Error(relatedToken, L"Invalid call:not a valid class or anonymous object instance.");
+					Logger::Error(relatedToken, L"Invalid call:not a valid class or struct object instance.");
 				break;
 			}
 			case OP_GET_BASE:

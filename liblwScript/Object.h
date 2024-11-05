@@ -9,24 +9,24 @@
 #include "Value.h"
 namespace lwscript
 {
-#define IS_STR_OBJ(obj) ((obj)->type == OBJECT_STR)
-#define IS_ARRAY_OBJ(obj) ((obj)->type == OBJECT_ARRAY)
-#define IS_TABLE_OBJ(obj) ((obj)->type == OBJECT_DICT)
-#define IS_ANONYMOUS_OBJ(obj) ((obj)->type == OBJECT_ANONYMOUS)
-#define IS_FUNCTION_OBJ(obj) ((obj)->type == OBJECT_FUNCTION)
-#define IS_UPVALUE_OBJ(obj) ((obj)->type == OBJECT_UPVALUE)
-#define IS_CLOSURE_OBJ(obj) ((obj)->type == OBJECT_CLOSURE)
-#define IS_NATIVE_FUNCTION_OBJ(obj) ((obj)->type == OBJECT_NATIVE_FUNCTION)
-#define IS_REF_OBJ(obj) ((obj)->type == OBJECT_REF)
-#define IS_CLASS_OBJ(obj) ((obj)->type == OBJECT_CLASS)
-#define IS_CLASS_CLOSURE_BIND_OBJ(obj) ((obj)->type == OBJECT_CLASS_CLOSURE_BIND)
-#define IS_ENUM_OBJ(obj) ((obj)->type == OBJECT_ENUM)
-#define IS_MODULE_OBJ(obj) ((obj)->type == OBJECT_MODULE)
+#define IS_STR_OBJ(obj) ((obj)->kind == ObjectKind::STR)
+#define IS_ARRAY_OBJ(obj) ((obj)->kind == ObjectKind::ARRAY)
+#define IS_TABLE_OBJ(obj) ((obj)->kind == ObjectKind::DICT)
+#define IS_STRUCT_OBJ(obj) ((obj)->kind == ObjectKind::STRUCT)
+#define IS_FUNCTION_OBJ(obj) ((obj)->kind == ObjectKind::FUNCTION)
+#define IS_UPVALUE_OBJ(obj) ((obj)->kind == ObjectKind::UPVALUE)
+#define IS_CLOSURE_OBJ(obj) ((obj)->kind == ObjectKind::CLOSURE)
+#define IS_NATIVE_FUNCTION_OBJ(obj) ((obj)->kind == ObjectKind::NATIVE_FUNCTION)
+#define IS_REF_OBJ(obj) ((obj)->kind == ObjectKind::REF)
+#define IS_CLASS_OBJ(obj) ((obj)->kind == ObjectKind::CLASS)
+#define IS_CLASS_CLOSURE_BIND_OBJ(obj) ((obj)->kind == ObjectKind::CLASS_CLOSURE_BIND)
+#define IS_ENUM_OBJ(obj) ((obj)->kind == ObjectKind::ENUM)
+#define IS_MODULE_OBJ(obj) ((obj)->kind == ObjectKind::MODULE)
 
 #define TO_STR_OBJ(obj) ((lwscript::StrObject *)(obj))
 #define TO_ARRAY_OBJ(obj) ((lwscript::ArrayObject *)(obj))
 #define TO_TABLE_OBJ(obj) ((lwscript::DictObject *)(obj))
-#define TO_ANONYMOUS_OBJ(obj) ((lwscript::AnonymousObject *)(obj))
+#define TO_STRUCT_OBJ(obj) ((lwscript::StructObject *)(obj))
 #define TO_FUNCTION_OBJ(obj) ((lwscript::FunctionObject *)(obj))
 #define TO_UPVALUE_OBJ(obj) ((lwscript::UpValueObject *)(obj))
 #define TO_CLOSURE_OBJ(obj) ((lwscript::ClosureObject *)(obj))
@@ -37,15 +37,15 @@ namespace lwscript
 #define TO_ENUM_OBJ(obj) ((lwscript::EnumObject *)(obj))
 #define TO_MODULE_OBJ(obj) ((lwscript::ModuleObject *)(obj))
 
-#define IS_NULL_VALUE(v) ((v).type == VALUE_NULL)
-#define IS_INT_VALUE(v) ((v).type == VALUE_INT)
-#define IS_REAL_VALUE(v) ((v).type == VALUE_REAL)
-#define IS_BOOL_VALUE(v) ((v).type == VALUE_BOOL)
-#define IS_OBJECT_VALUE(v) ((v).type == VALUE_OBJECT)
+#define IS_NULL_VALUE(v) ((v).kind == ValueKind::NIL)
+#define IS_INT_VALUE(v) ((v).kind == ValueKind::INT)
+#define IS_REAL_VALUE(v) ((v).kind == ValueKind::REAL)
+#define IS_BOOL_VALUE(v) ((v).kind == ValueKind::BOOL)
+#define IS_OBJECT_VALUE(v) ((v).kind == ValueKind::OBJECT)
 #define IS_STR_VALUE(v) (IS_OBJECT_VALUE(v) && IS_STR_OBJ((v).object))
 #define IS_ARRAY_VALUE(v) (IS_OBJECT_VALUE(v) && IS_ARRAY_OBJ((v).object))
 #define IS_DICT_VALUE(v) (IS_OBJECT_VALUE(v) && IS_TABLE_OBJ((v).object))
-#define IS_ANONYMOUS_VALUE(v) (IS_OBJECT_VALUE(v) && IS_ANONYMOUS_OBJ((v).object))
+#define IS_STRUCT_VALUE(v) (IS_OBJECT_VALUE(v) && IS_STRUCT_OBJ((v).object))
 #define IS_FUNCTION_VALUE(v) (IS_OBJECT_VALUE(v) && IS_FUNCTION_OBJ((v).object))
 #define IS_UPVALUE_VALUE(v) (IS_OBJECT_VALUE(v) && IS_UPVALUE_OBJ((v).object))
 #define IS_CLOSURE_VALUE(v) (IS_OBJECT_VALUE(v) && IS_CLOSURE_OBJ((v).object))
@@ -63,7 +63,7 @@ namespace lwscript
 #define TO_STR_VALUE(v) (TO_STR_OBJ((v).object))
 #define TO_ARRAY_VALUE(v) (TO_ARRAY_OBJ((v).object))
 #define TO_DICT_VALUE(v) (TO_TABLE_OBJ((v).object))
-#define TO_ANONYMOUS_VALUE(v) (TO_ANONYMOUS_OBJ((v).object))
+#define TO_STRUCT_VALUE(v) (TO_STRUCT_OBJ((v).object))
 #define TO_FUNCTION_VALUE(v) (TO_FUNCTION_OBJ((v).object))
 #define TO_UPVALUE_VALUE(v) (TO_UPVALUE_OBJ((v).object))
 #define TO_CLOSURE_VALUE(v) (TO_CLOSURE_OBJ((v).object))
@@ -74,26 +74,26 @@ namespace lwscript
 #define TO_ENUM_VALUE(v) (TO_ENUM_OBJ((v).object))
 #define TO_MODULE_VALUE(v) (TO_MODULE_OBJ((v).object))
 
-    enum LWSCRIPT_API ObjectType
+    enum class LWSCRIPT_API ObjectKind
     {
-        OBJECT_STR,
-        OBJECT_ARRAY,
-        OBJECT_DICT,
-        OBJECT_ANONYMOUS,
-        OBJECT_FUNCTION,
-        OBJECT_UPVALUE,
-        OBJECT_CLOSURE,
-        OBJECT_NATIVE_FUNCTION,
-        OBJECT_REF,
-        OBJECT_CLASS,
-        OBJECT_CLASS_CLOSURE_BIND,
-        OBJECT_ENUM,
-        OBJECT_MODULE
+        STR,
+        ARRAY,
+        DICT,
+        STRUCT,
+        FUNCTION,
+        UPVALUE,
+        CLOSURE,
+        NATIVE_FUNCTION,
+        REF,
+        CLASS,
+        CLASS_CLOSURE_BIND,
+        ENUM,
+        MODULE
     };
 
     struct LWSCRIPT_API Object
     {
-        Object(ObjectType type);
+        Object(ObjectKind kind);
         virtual ~Object();
 
         virtual std::wstring ToString() const = 0;
@@ -103,7 +103,7 @@ namespace lwscript
         virtual bool IsEqualTo(Object *other) = 0;
         virtual Object *Clone() const = 0;
 
-        const ObjectType type;
+        const ObjectKind kind;
         bool marked{false};
         Object *next{nullptr};
     };
@@ -153,11 +153,11 @@ namespace lwscript
         ValueUnorderedMap elements{};
     };
 
-    struct LWSCRIPT_API AnonymousObject : public Object
+    struct LWSCRIPT_API StructObject : public Object
     {
-        AnonymousObject();
-        AnonymousObject(const std::unordered_map<std::wstring, Value> &elements);
-        ~AnonymousObject()override;
+        StructObject();
+        StructObject(const std::unordered_map<std::wstring, Value> &elements);
+        ~StructObject() override;
 
         std::wstring ToString() const override;
 
@@ -181,9 +181,9 @@ namespace lwscript
         bool IsEqualTo(Object *other) override;
         Object *Clone() const override;
 
-        // Function Cache Functions 
-        void SetCache(const std::vector<Value>& arguments, const std::vector<Value>& result);
-		bool GetCache(const std::vector<Value>& arguments, std::vector<Value>& result) const;
+        // Function Cache Functions
+        void SetCache(const std::vector<Value> &arguments, const std::vector<Value> &result);
+        bool GetCache(const std::vector<Value> &arguments, std::vector<Value> &result) const;
         void PrintCache();
         // Function Cache Functions
 
@@ -229,7 +229,7 @@ namespace lwscript
         std::vector<UpValueObject *> upvalues{};
     };
 
-    using NativeFunction = std::function<bool(Value*,uint32_t, const Token *, Value&)>;
+    using NativeFunction = std::function<bool(Value *, uint32_t, const Token *, Value &)>;
 
     struct LWSCRIPT_API NativeFunctionObject : public Object
     {

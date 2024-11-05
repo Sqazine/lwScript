@@ -81,7 +81,6 @@ namespace lwscript
 
     LibraryManager::LibraryManager()
     {
-
         auto ioClass = new ClassObject(L"io");
         ioClass->members[L"print"] = new NativeFunctionObject(PRINT_LAMBDA(Print));
         ioClass->members[L"println"] = new NativeFunctionObject(PRINT_LAMBDA(Println));

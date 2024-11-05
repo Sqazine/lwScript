@@ -45,6 +45,7 @@ namespace lwscript
 		{L"void", TokenKind::VOID},
 		{L"as", TokenKind::AS},
 		{L"new", TokenKind::NEW},
+		{L"struct", TokenKind::STRUCT},
 	};
 
 	Lexer::Lexer()
