@@ -4,7 +4,7 @@
 #include "Config.h"
 #include "Chunk.h"
 #include "Object.h"
-#include "Library.h"
+#include "LibraryManager.h"
 #include "Allocator.h"
 namespace lwscript
 {
@@ -13,9 +13,10 @@ namespace lwscript
         ClosureObject *closure = nullptr;
         uint8_t *ip = nullptr;
         Value *slots = nullptr;
-#ifdef USE_FUNCTION_CACHE
+
+        // Function Cache arguments
         std::vector<Value> arguments;
-#endif
+        // Function Cache arguments
     };
 
 

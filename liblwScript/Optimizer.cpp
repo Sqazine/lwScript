@@ -17,27 +17,27 @@ namespace lwscript
 
 	Stmt *Optimizer::OptStmt(Stmt *stmt)
 	{
-		switch (stmt->type)
+		switch (stmt->kind)
 		{
-		case AST_ASTSTMTS:
+		case AstKind::ASTSTMTS:
 			return OptAstStmts((AstStmts *)stmt);
-		case AST_RETURN:
+		case AstKind::RETURN:
 			return OptReturnStmt((ReturnStmt *)stmt);
-		case AST_EXPR:
+		case AstKind::EXPR:
 			return OptExprStmt((ExprStmt *)stmt);
-		case AST_VAR:
+		case AstKind::VAR:
 			return OptVarStmt((VarStmt *)stmt);
-		case AST_SCOPE:
+		case AstKind::SCOPE:
 			return OptScopeStmt((ScopeStmt *)stmt);
-		case AST_IF:
+		case AstKind::IF:
 			return OptIfStmt((IfStmt *)stmt);
-		case AST_WHILE:
+		case AstKind::WHILE:
 			return OptWhileStmt((WhileStmt *)stmt);
-		case AST_FUNCTION:
+		case AstKind::FUNCTION:
 			return OptFunctionStmt((FunctionStmt *)stmt);
-		case AST_CLASS:
+		case AstKind::CLASS:
 			return OptClassStmt((ClassStmt *)stmt);
-		case AST_MODULE:
+		case AstKind::MODULE:
 			return OptModuleStmt((ModuleStmt *)stmt);
 		default:
 			return stmt;
@@ -61,7 +61,7 @@ namespace lwscript
 		if (stmt->elseBranch)
 			stmt->elseBranch = OptStmt(stmt->elseBranch);
 
-		if (stmt->condition->type == AST_LITERAL && ((LiteralExpr *)stmt->condition)->literalType == LiteralExpr::Type::BOOLEAN)
+		if (stmt->condition->kind == AstKind::LITERAL && ((LiteralExpr *)stmt->condition)->literalType == LiteralExpr::Type::BOOLEAN)
 		{
 			if (((LiteralExpr *)stmt->condition)->boolean == true)
 				return stmt->thenBranch;
@@ -128,35 +128,35 @@ namespace lwscript
 
 	Expr *Optimizer::OptExpr(Expr *expr)
 	{
-		switch (expr->type)
+		switch (expr->kind)
 		{
-		case AST_LITERAL:
+		case AstKind::LITERAL:
 			return OptLiteralExpr((LiteralExpr *)expr);
-		case AST_IDENTIFIER:
+		case AstKind::IDENTIFIER:
 			return OptIdentifierExpr((IdentifierExpr *)expr);
-		case AST_GROUP:
+		case AstKind::GROUP:
 			return OptGroupExpr((GroupExpr *)expr);
-		case AST_ARRAY:
+		case AstKind::ARRAY:
 			return OptArrayExpr((ArrayExpr *)expr);
-		case AST_INDEX:
+		case AstKind::INDEX:
 			return OptIndexExpr((IndexExpr *)expr);
-		case AST_PREFIX:
+		case AstKind::PREFIX:
 			return OptPrefixExpr((PrefixExpr *)expr);
-		case AST_INFIX:
+		case AstKind::INFIX:
 			return OptInfixExpr((InfixExpr *)expr);
-		case AST_POSTFIX:
+		case AstKind::POSTFIX:
 			return OptPostfixExpr((PostfixExpr *)expr);
-		case AST_CONDITION:
+		case AstKind::CONDITION:
 			return OptConditionExpr((ConditionExpr *)expr);
-		case AST_REF:
+		case AstKind::REF:
 			return OptRefExpr((RefExpr *)expr);
-		case AST_CALL:
+		case AstKind::CALL:
 			return OptCallExpr((CallExpr *)expr);
-		case AST_DOT:
+		case AstKind::DOT:
 			return OptDotExpr((DotExpr *)expr);
-		case AST_LAMBDA:
+		case AstKind::LAMBDA:
 			return OptLambdaExpr((LambdaExpr *)expr);
-		case AST_FACTORIAL:
+		case AstKind::FACTORIAL:
 			return OptFactorialExpr((FactorialExpr *)expr);
 		default:
 			return expr;
@@ -180,7 +180,7 @@ namespace lwscript
 		expr->trueBranch = OptExpr(expr->trueBranch);
 		expr->falseBranch = OptExpr(expr->falseBranch);
 
-		if (expr->condition->type == AST_LITERAL && ((LiteralExpr *)expr->condition)->literalType == LiteralExpr::Type::BOOLEAN)
+		if (expr->condition->kind == AstKind::LITERAL && ((LiteralExpr *)expr->condition)->literalType == LiteralExpr::Type::BOOLEAN)
 		{
 			if (((LiteralExpr *)expr->condition)->boolean == true)
 				return expr->trueBranch;
@@ -265,7 +265,7 @@ namespace lwscript
 
 	Expr *Optimizer::OptFactorialExpr(FactorialExpr *expr)
 	{
-		if (expr->expr->type == AST_LITERAL && ((LiteralExpr *)expr->expr)->literalType == LiteralExpr::Type::INTEGER)
+		if (expr->expr->kind == AstKind::LITERAL && ((LiteralExpr *)expr->expr)->literalType == LiteralExpr::Type::INTEGER)
 		{
 			auto intExpr = new LiteralExpr(expr->tagToken, Factorial(((LiteralExpr *)expr->expr)->iValue));
 			SAFE_DELETE(expr);
@@ -297,10 +297,10 @@ namespace lwscript
 
 	Expr *Optimizer::ConstantFold(Expr *expr)
 	{
-		if (expr->type == AST_INFIX)
+		if (expr->kind == AstKind::INFIX)
 		{
 			auto infix = (InfixExpr *)expr;
-			if (infix->left->type == AST_LITERAL && infix->right->type == AST_LITERAL)
+			if (infix->left->kind == AstKind::LITERAL && infix->right->kind == AstKind::LITERAL)
 			{
 				Expr *newExpr = infix;
 				auto tagToken = infix->tagToken;
@@ -420,11 +420,11 @@ namespace lwscript
 				}
 			}
 		}
-		else if (expr->type == AST_PREFIX)
+		else if (expr->kind == AstKind::PREFIX)
 		{
 			auto prefix = (PrefixExpr *)expr;
 
-			if (prefix->right->type == AST_LITERAL)
+			if (prefix->right->kind == AstKind::LITERAL)
 			{
 				auto rightLiteralExpr = ((LiteralExpr *)prefix->right);
 				if (rightLiteralExpr->literalType == LiteralExpr::Type::FLOATING && prefix->op == L"-")
@@ -453,10 +453,10 @@ namespace lwscript
 				}
 			}
 		}
-		else if (expr->type == AST_POSTFIX)
+		else if (expr->kind == AstKind::POSTFIX)
 		{
 			auto postfix = (PostfixExpr *)expr;
-			if (postfix->left->type == AST_LITERAL)
+			if (postfix->left->kind == AstKind::LITERAL)
 			{
 				auto leftLiteralExpr = (LiteralExpr *)postfix->left;
 				if (postfix->op == L"!")

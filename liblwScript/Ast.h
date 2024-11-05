@@ -7,46 +7,46 @@
 #include "Utils.h"
 namespace lwscript
 {
-	enum AstType
+	enum class AstKind
 	{
 		// expr
-		AST_LITERAL,
-		AST_IDENTIFIER,
-		AST_VAR_DESC,
-		AST_GROUP,
-		AST_ARRAY,
-		AST_DICT,
-		AST_PREFIX,
-		AST_INFIX,
-		AST_POSTFIX,
-		AST_CONDITION,
-		AST_INDEX,
-		AST_REF,
-		AST_LAMBDA,
-		AST_DOT,
-		AST_CALL,
-		AST_NEW,
-		AST_THIS,
-		AST_BASE,
-		AST_COMPOUND,
-		AST_ANONY_OBJ,
-		AST_VAR_ARG,
-		AST_FACTORIAL,
-		AST_APPREGATE,
+		LITERAL,
+		IDENTIFIER,
+		VAR_DESC,
+		GROUP,
+		ARRAY,
+		DICT,
+		PREFIX,
+		INFIX,
+		POSTFIX,
+		CONDITION,
+		INDEX,
+		REF,
+		LAMBDA,
+		DOT,
+		CALL,
+		NEW,
+		THIS,
+		BASE,
+		COMPOUND,
+		ANONY_OBJ,
+		VAR_ARG,
+		FACTORIAL,
+		APPREGATE,
 		// stmt
-		AST_VAR,
-		AST_EXPR,
-		AST_RETURN,
-		AST_IF,
-		AST_SCOPE,
-		AST_WHILE,
-		AST_BREAK,
-		AST_CONTINUE,
-		AST_ENUM,
-		AST_FUNCTION,
-		AST_CLASS,
-		AST_MODULE,
-		AST_ASTSTMTS,
+		VAR,
+		EXPR,
+		RETURN,
+		IF,
+		SCOPE,
+		WHILE,
+		BREAK,
+		CONTINUE,
+		ENUM,
+		FUNCTION,
+		CLASS,
+		MODULE,
+		ASTSTMTS,
 	};
 
 #define AST_TEMPLATE(name, base)          \
@@ -59,16 +59,16 @@ namespace lwscript
 
 	struct AstNode
 	{
-		AstNode(Token *tagToken, AstType type) : tagToken(tagToken), type(type) {}
+		AstNode(Token *tagToken, AstKind kind) : tagToken(tagToken), kind(kind) {}
 		virtual ~AstNode() {}
 		virtual std::wstring ToString() = 0;
-		const AstType type;
+		const AstKind kind;
 		Token *tagToken;
 	};
 
 	struct Expr : public AstNode
 	{
-		Expr(Token *tagToken, AstType type) : AstNode(tagToken, type) {}
+		Expr(Token *tagToken, AstKind kind) : AstNode(tagToken, kind) {}
 		virtual ~Expr() {}
 		virtual std::wstring ToString() = 0;
 	};
@@ -266,7 +266,7 @@ namespace lwscript
 		Expr *callee;
 	};
 
-	AST_TEMPLATE(ThisExpr,Expr)
+	AST_TEMPLATE(ThisExpr, Expr)
 
 	struct BaseExpr : public Expr
 	{
@@ -327,7 +327,7 @@ namespace lwscript
 
 	struct Stmt : public AstNode
 	{
-		Stmt(Token *tagToken, AstType type) : AstNode(tagToken, type) {}
+		Stmt(Token *tagToken, AstKind kind) : AstNode(tagToken, kind) {}
 		virtual ~Stmt() {}
 		virtual std::wstring ToString() = 0;
 	};
@@ -397,8 +397,8 @@ namespace lwscript
 		ScopeStmt *increment;
 	};
 
-	AST_TEMPLATE(BreakStmt,Stmt)
-	AST_TEMPLATE(ContinueStmt,Stmt)
+	AST_TEMPLATE(BreakStmt, Stmt)
+	AST_TEMPLATE(ContinueStmt, Stmt)
 
 	struct EnumStmt : public Stmt
 	{
@@ -412,7 +412,7 @@ namespace lwscript
 		std::unordered_map<IdentifierExpr *, Expr *> enumItems;
 	};
 
-	enum class FunctionType
+	enum class FunctionKind
 	{
 		CLASS_CONSTRUCTOR,
 		CLASS_CLOSURE,
@@ -422,12 +422,12 @@ namespace lwscript
 	struct FunctionStmt : public Stmt
 	{
 		FunctionStmt(Token *tagToken);
-		FunctionStmt(Token *tagToken, FunctionType type, IdentifierExpr *name, const std::vector<VarDescExpr *> &parameters, ScopeStmt *body);
+		FunctionStmt(Token *tagToken, FunctionKind kind, IdentifierExpr *name, const std::vector<VarDescExpr *> &parameters, ScopeStmt *body);
 		~FunctionStmt() override;
 
 		std::wstring ToString() override;
 
-		FunctionType type;
+		FunctionKind functionKind;
 		IdentifierExpr *name;
 		std::vector<VarDescExpr *> parameters;
 		ScopeStmt *body;

@@ -1,6 +1,6 @@
 #include "SymbolTable.h"
 #include "Utils.h"
-
+#include "Logger.h"
 namespace lwscript
 {
     SymbolTable::SymbolTable()
@@ -18,14 +18,14 @@ namespace lwscript
     Symbol SymbolTable::Define(const Token* relatedToken, Privilege privilege, const std::wstring &name, const FunctionSymbolInfo &functionInfo)
     {
         if (mSymbolCount >= mSymbols.size())
-            Hint::Error(relatedToken, L"Too many symbols in current scope.");
+            Logger::Error(relatedToken, L"Too many symbols in current scope.");
         for (int16_t i = mSymbolCount - 1; i >= 0; --i)
         {
             auto isSameParamCount = (mSymbols[i].functionSymInfo.paramCount < 0 || functionInfo.paramCount < 0) ? true : mSymbols[i].functionSymInfo.paramCount == functionInfo.paramCount;
             if (mSymbols[i].scopeDepth == -1 || mSymbols[i].scopeDepth < mScopeDepth)
                 break;
             if (mSymbols[i].name == name && isSameParamCount)
-                Hint::Error(relatedToken, L"Redefinition symbol:{}", name);
+                Logger::Error(relatedToken, L"Redefinition symbol:{}", name);
         }
 
         auto *symbol = &mSymbols[mSymbolCount++];
@@ -36,12 +36,12 @@ namespace lwscript
 
         if (mScopeDepth == 0)
         {
-            symbol->type = SymbolType::GLOBAL;
+            symbol->kind = SymbolKind::GLOBAL;
             symbol->index = mGlobalSymbolCount++;
         }
         else
         {
-            symbol->type = SymbolType::LOCAL;
+            symbol->kind = SymbolKind::LOCAL;
             symbol->index = mLocalSymbolCount++;
         }
         symbol->scopeDepth = mScopeDepth;
@@ -59,7 +59,7 @@ namespace lwscript
                 if (isSameParamCount || mSymbols[i].functionSymInfo.varArg > VarArg::NONE)
                 {
                     if (mSymbols[i].scopeDepth == -1)
-                        Hint::Error(relatedToken, L"symbol not defined yet!");
+                        Logger::Error(relatedToken, L"symbol not defined yet!");
 
                     if (d == 1)
                         mSymbols[i].isCaptured = true;
@@ -72,15 +72,15 @@ namespace lwscript
         if (enclosing)
         {
             Symbol result = enclosing->Resolve(relatedToken, name, paramCount, ++d);
-            if (d > 0 && result.type != SymbolType::GLOBAL)
+            if (d > 0 && result.kind != SymbolKind::GLOBAL)
             {
-                result.type = SymbolType::UPVALUE;
+                result.kind = SymbolKind::UPVALUE;
                 result.upvalue = AddUpValue(relatedToken, result.index, enclosing->mTableDepth);
             }
             return result;
         }
 
-        Hint::Error(relatedToken, L"No symbol: \"{}\" in current scope.", name);
+        Logger::Error(relatedToken, L"No symbol: \"{}\" in current scope.", name);
     }
 
     UpValue SymbolTable::AddUpValue(const Token* relatedToken, uint8_t location, uint8_t depth)
@@ -93,7 +93,7 @@ namespace lwscript
         }
 
         if (mUpValueCount == UINT8_COUNT)
-            Hint::Error(relatedToken, L"Too many closure upvalues in function.");
+            Logger::Error(relatedToken, L"Too many closure upvalues in function.");
         mUpValues[mUpValueCount].location = location;
         mUpValues[mUpValueCount].depth = depth;
         mUpValues[mUpValueCount].index = mUpValueCount;

@@ -6,7 +6,7 @@
 #include "Token.h"
 namespace lwscript
 {
-    enum class SymbolType
+    enum class SymbolKind
     {
         GLOBAL,
         LOCAL,
@@ -29,12 +29,12 @@ namespace lwscript
     struct Symbol
     {
         std::wstring name;
-        SymbolType type = SymbolType::GLOBAL;
+        SymbolKind kind = SymbolKind::GLOBAL;
         Privilege privilege = Privilege::MUTABLE;
         uint8_t index = 0;
         int8_t scopeDepth = -1;
         FunctionSymbolInfo functionSymInfo;
-        UpValue upvalue; // available only while type is SymbolType::UPVALUE
+        UpValue upvalue; // available only while type is SymbolKind::UPVALUE
         bool isCaptured = false;
         const Token* relatedToken;
     };

@@ -15,7 +15,7 @@ namespace lwscript
 		Lexer();
 		~Lexer();
 
-		const std::vector<Token*> &ScanTokens(std::wstring_view src);
+		const std::vector<Token *> &ScanTokens(std::wstring_view src);
 
 	private:
 		void ResetStatus();
@@ -28,8 +28,8 @@ namespace lwscript
 		wchar_t GetCurCharAndStepOnce();
 		wchar_t GetCurChar();
 
-		void AddToken(TokenType type);
-		void AddToken(TokenType type, std::wstring_view literal);
+		void AddToken(TokenKind type);
+		void AddToken(TokenKind type, std::wstring_view literal);
 
 		bool IsAtEnd();
 
@@ -47,6 +47,6 @@ namespace lwscript
 		uint64_t mLine;
 		uint64_t mColumn;
 		std::wstring mSource;
-		std::vector<Token*> mTokens;
+		std::vector<Token *> mTokens;
 	};
 }

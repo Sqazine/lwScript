@@ -1,23 +1,19 @@
 #include "Utils.h"
+#include "Logger.h"
 #include <locale>
 #include <codecvt>
+#include <fstream>
+#include <sstream>
 namespace lwscript
 {
     std::wstring ReadFile(std::string_view path)
     {
-        Hint::Record::mCurFilePath = Utf8Decode(path.data());
+        Logger::Record::mCurFilePath = Utf8Decode(path.data());
 
         std::wifstream file;
         file.open(path.data(), std::ios::in | std::ios::binary);
         if (!file.is_open())
-        {
-            std::cout << "Failed to open file:" << path << std::endl;
-#ifdef _DEBUG
-            assert(0);
-#else
-            exit(1);
-#endif
-        }
+            Logger::Error("Failed to open file:{}", path);
 
         std::wstringstream sstream;
         sstream << file.rdbuf();

@@ -1,7 +1,8 @@
 #include "Object.h"
 #include "Chunk.h"
 #include "Utils.h"
-#include "VM.h"
+#include "Logger.h"
+#include "Allocator.h"
 namespace lwscript
 {
 
@@ -307,15 +308,16 @@ namespace lwscript
 		Object::Blacken(allocator);
 		for (auto &c : chunk.constants)
 			c.Mark(allocator);
-#ifdef USE_FUNCTION_CACHE
-		for(auto& [key,value]:caches)
+		if (Config::GetInstance()->IsUseFunctionCache())
 		{
-			for(auto& keyElement:key)
-				keyElement.Mark(allocator);
-			for(auto& valueElement:value)
-				valueElement.Mark(allocator);
+			for (auto &[key, value] : caches)
+			{
+				for (auto &keyElement : key)
+					keyElement.Mark(allocator);
+				for (auto &valueElement : value)
+					valueElement.Mark(allocator);
+			}
 		}
-#endif
 	}
 
 	bool FunctionObject::IsEqualTo(Object *other)
@@ -348,7 +350,7 @@ namespace lwscript
 		return funcObj;
 	}
 
-#ifdef USE_FUNCTION_CACHE
+
 	void FunctionObject::SetCache(const std::vector<Value> &arguments, const std::vector<Value> &result)
 	{
 		caches[arguments] = result;
@@ -379,7 +381,7 @@ namespace lwscript
 		}
 	}
 #endif
-#endif
+
 
 	UpValueObject::UpValueObject()
 		: Object(OBJECT_UPVALUE), location(nullptr), nextUpValue(nullptr)

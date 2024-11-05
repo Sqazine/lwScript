@@ -1,6 +1,8 @@
 #pragma once
 
 #include "Utils.h"
+#include "Config.h"
+#include "Logger.h"
 #include "Token.h"
 #include "Ast.h"
 #include "Lexer.h"

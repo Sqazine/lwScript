@@ -6,9 +6,9 @@
 #include "Token.h"
 #include "Ast.h"
 #include "Utils.h"
-
 #include "Optimizer.h"
 #include "SyntaxChecker.h"
+
 namespace lwscript
 {
 	enum class Precedence
@@ -56,13 +56,13 @@ namespace lwscript
 		Parser();
 		~Parser();
 
-		Stmt *Parse(const std::vector<Token*> &tokens);
+		Stmt *Parse(const std::vector<Token *> &tokens);
 
 	private:
 		void ResetStatus();
 
 		Stmt *ParseDecl();
-		Stmt *ParseVarDecl(TokenType tType);
+		Stmt *ParseVarDecl(TokenKind tType);
 		Stmt *ParseFunctionDecl();
 		Stmt *ParseClassDecl();
 		Stmt *ParseEnumDecl();
@@ -81,7 +81,7 @@ namespace lwscript
 
 		Expr *ParseExpr(Precedence precedence = Precedence::LOWEST);
 		Expr *ParseIdentifierExpr();
-		Expr* ParseLiteralExpr();
+		Expr *ParseLiteralExpr();
 		Expr *ParseGroupExpr();
 		Expr *ParseArrayExpr();
 		Expr *ParseDictExpr();
@@ -105,22 +105,22 @@ namespace lwscript
 		Expr *ParseVarArgExpr();
 		std::pair<Expr *, Expr *> ParseDestructuringAssignmentExpr();
 
-		Token* GetCurToken();
-		Token* GetCurTokenAndStepOnce();
+		Token *GetCurToken();
+		Token *GetCurTokenAndStepOnce();
 		Precedence GetCurTokenPrecedence();
 		Associativity GetCurTokenAssociativity();
 
-		Token* GetNextToken();
-		Token* GetNextTokenAndStepOnce();
+		Token *GetNextToken();
+		Token *GetNextTokenAndStepOnce();
 		Precedence GetNextTokenPrecedence();
 
-		bool IsMatchCurToken(TokenType type);
-		bool IsMatchCurTokenAndStepOnce(TokenType type);
-		bool IsMatchNextToken(TokenType type);
-		bool IsMatchNextTokenAndStepOnce(TokenType type);
+		bool IsMatchCurToken(TokenKind kind);
+		bool IsMatchCurTokenAndStepOnce(TokenKind kind);
+		bool IsMatchNextToken(TokenKind kind);
+		bool IsMatchNextTokenAndStepOnce(TokenKind kind);
 
-		Token* Consume(TokenType type, std::wstring_view errMsg);
-		Token* Consume(const std::vector<TokenType>& types, std::wstring_view errMsg);
+		Token *Consume(TokenKind kind, std::wstring_view errMsg);
+		Token *Consume(const std::vector<TokenKind> &kinds, std::wstring_view errMsg);
 
 		bool IsAtEnd();
 
@@ -129,13 +129,13 @@ namespace lwscript
 
 		ClassInfo *mCurClassInfo;
 
-		std::vector<TokenType> mSkippingConsumeTokenTypeStack; //skip token while call consume function
+		std::vector<TokenKind> mSkippingConsumeTokenKindStack; //skip token while call consume function
 
 		int64_t mCurPos;
-		std::vector<Token*> mTokens;
+		std::vector<Token *> mTokens;
 
-		static std::unordered_map<TokenType, PrefixFn> mPrefixFunctions;
-		static std::unordered_map<TokenType, InfixFn> mInfixFunctions;
-		static std::unordered_map<TokenType, PostfixFn> mPostfixFunctions;
+		static std::unordered_map<TokenKind, PrefixFn> mPrefixFunctions;
+		static std::unordered_map<TokenKind, InfixFn> mInfixFunctions;
+		static std::unordered_map<TokenKind, PostfixFn> mPostfixFunctions;
 	};
 }

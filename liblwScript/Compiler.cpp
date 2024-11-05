@@ -1,8 +1,8 @@
 #include "Compiler.h"
-
 #include "Utils.h"
 #include "Object.h"
-#include "Library.h"
+#include "LibraryManager.h"
+#include "Logger.h"
 namespace lwscript
 {
 	Compiler::Compiler()
@@ -19,7 +19,7 @@ namespace lwscript
 	{
 		ResetStatus();
 
-		if (stmt->type == AST_ASTSTMTS)
+		if (stmt->kind == AstKind::ASTSTMTS)
 		{
 			auto stmts = ((AstStmts *)stmt)->stmts;
 			for (const auto &s : stmts)
@@ -35,43 +35,43 @@ namespace lwscript
 
 	void Compiler::ResetStatus()
 	{
-		mCurContinueStmtAddress=-1;
-		mCurBreakStmtAddress=-1;
+		mCurContinueStmtAddress = -1;
+		mCurBreakStmtAddress = -1;
 
 		std::vector<FunctionObject *>().swap(mFunctionList);
-		mFunctionList.emplace_back(new FunctionObject(L"_main_start_up"));
+		mFunctionList.emplace_back(new FunctionObject(MAIN_ENTRY_FUNCTION_NAME));
 
 		SAFE_DELETE(mSymbolTable);
 		mSymbolTable = new SymbolTable();
 
 		auto symbol = &mSymbolTable->mSymbols[mSymbolTable->mSymbolCount++];
-		symbol->type = SymbolType::LOCAL;
+		symbol->kind = SymbolKind::LOCAL;
 		symbol->index = mSymbolTable->mLocalSymbolCount++;
 		symbol->privilege = Privilege::IMMUTABLE;
 		symbol->scopeDepth = 0;
-		symbol->name = L"_main_start_up";
+		symbol->name = MAIN_ENTRY_FUNCTION_NAME;
 
-		for (const auto &lib : LibraryManager::Instance().GetLibraries())
+		for (const auto &lib : LibraryManager::GetInstance()->GetLibraries())
 			mSymbolTable->Define(new Token(), Privilege::IMMUTABLE, lib->name);
 	}
 
 	void Compiler::CompileDecl(Stmt *stmt)
 	{
-		switch (stmt->type)
+		switch (stmt->kind)
 		{
-		case AST_VAR:
+		case AstKind::VAR:
 			CompileVarDecl((VarStmt *)stmt);
 			break;
-		case AST_FUNCTION:
+		case AstKind::FUNCTION:
 			CompileFunctionDecl((FunctionStmt *)stmt);
 			break;
-		case AST_CLASS:
+		case AstKind::CLASS:
 			CompileClassDecl((ClassStmt *)stmt);
 			break;
-		case AST_ENUM:
+		case AstKind::ENUM:
 			CompileEnumDecl((EnumStmt *)stmt);
 			break;
-		case AST_MODULE:
+		case AstKind::MODULE:
 			CompileModuleDecl((ModuleStmt *)stmt);
 			break;
 		default:
@@ -101,7 +101,7 @@ namespace lwscript
 		for (const auto &[k, v] : stmt->enumItems)
 		{
 			Value enumValue;
-			if (v->type == AST_LITERAL)
+			if (v->kind == AstKind::LITERAL)
 			{
 				LiteralExpr *literalExpr = (LiteralExpr *)v;
 				if (literalExpr->literalType == LiteralExpr::Type::INTEGER)
@@ -118,7 +118,7 @@ namespace lwscript
 				}
 			}
 			else
-				Hint::Error(v->tagToken, L"Enum value only integer num,floating point num,boolean or string is available.");
+				Logger::Error(v->tagToken, L"Enum value only integer num,floating point num,boolean or string is available.");
 
 			pairs[k->literal] = enumValue;
 		}
@@ -209,28 +209,28 @@ namespace lwscript
 
 	void Compiler::CompileStmt(Stmt *stmt)
 	{
-		switch (stmt->type)
+		switch (stmt->kind)
 		{
-		case AST_IF:
+		case AstKind::IF:
 			CompileIfStmt((IfStmt *)stmt);
 			break;
-		case AST_SCOPE:
+		case AstKind::SCOPE:
 		{
 			EnterScope();
 			CompileScopeStmt((ScopeStmt *)stmt);
 			ExitScope();
 			break;
 		}
-		case AST_WHILE:
+		case AstKind::WHILE:
 			CompileWhileStmt((WhileStmt *)stmt);
 			break;
-		case AST_RETURN:
+		case AstKind::RETURN:
 			CompileReturnStmt((ReturnStmt *)stmt);
 			break;
-		case AST_BREAK:
+		case AstKind::BREAK:
 			CompileBreakStmt((BreakStmt *)stmt);
 			break;
-		case AST_CONTINUE:
+		case AstKind::CONTINUE:
 			CompileContinueStmt((ContinueStmt *)stmt);
 			break;
 		default:
@@ -305,8 +305,8 @@ namespace lwscript
 
 		EmitOpCode(OP_POP, stmt->condition->tagToken);
 
-		mCurContinueStmtAddress=-1;
-		mCurBreakStmtAddress=-1;
+		mCurContinueStmtAddress = -1;
+		mCurBreakStmtAddress = -1;
 
 		CompileStmt(stmt->body);
 
@@ -324,8 +324,8 @@ namespace lwscript
 		if (mCurBreakStmtAddress != -1)
 			PatchJump(mCurBreakStmtAddress);
 
-		mCurContinueStmtAddress=-1;
-		mCurBreakStmtAddress=-1;
+		mCurContinueStmtAddress = -1;
+		mCurBreakStmtAddress = -1;
 	}
 	void Compiler::CompileReturnStmt(ReturnStmt *stmt)
 	{
@@ -357,69 +357,69 @@ namespace lwscript
 
 	void Compiler::CompileExpr(Expr *expr, const RWState &state, int8_t paramCount)
 	{
-		switch (expr->type)
+		switch (expr->kind)
 		{
-		case AST_INFIX:
+		case AstKind::INFIX:
 			CompileInfixExpr((InfixExpr *)expr);
 			break;
-		case AST_LITERAL:
+		case AstKind::LITERAL:
 			CompileLiteralExpr((LiteralExpr *)expr);
 			break;
-		case AST_PREFIX:
+		case AstKind::PREFIX:
 			CompilePrefixExpr((PrefixExpr *)expr);
 			break;
-		case AST_POSTFIX:
+		case AstKind::POSTFIX:
 			CompilePostfixExpr((PostfixExpr *)expr, state);
 			break;
-		case AST_CONDITION:
+		case AstKind::CONDITION:
 			CompileConditionExpr((ConditionExpr *)expr);
 			break;
-		case AST_GROUP:
+		case AstKind::GROUP:
 			CompileGroupExpr((GroupExpr *)expr);
 			break;
-		case AST_ARRAY:
+		case AstKind::ARRAY:
 			CompileArrayExpr((ArrayExpr *)expr);
 			break;
-		case AST_APPREGATE:
+		case AstKind::APPREGATE:
 			CompileAppregateExpr((AppregateExpr *)expr);
 			break;
-		case AST_DICT:
+		case AstKind::DICT:
 			CompileDictExpr((DictExpr *)expr);
 			break;
-		case AST_INDEX:
+		case AstKind::INDEX:
 			CompileIndexExpr((IndexExpr *)expr, state);
 			break;
-		case AST_IDENTIFIER:
+		case AstKind::IDENTIFIER:
 			CompileIdentifierExpr((IdentifierExpr *)expr, state, paramCount);
 			break;
-		case AST_LAMBDA:
+		case AstKind::LAMBDA:
 			CompileLambdaExpr((LambdaExpr *)expr);
 			break;
-		case AST_COMPOUND:
+		case AstKind::COMPOUND:
 			CompileCompoundExpr((CompoundExpr *)expr);
 			break;
-		case AST_CALL:
+		case AstKind::CALL:
 			CompileCallExpr((CallExpr *)expr);
 			break;
-		case AST_DOT:
+		case AstKind::DOT:
 			CompileDotExpr((DotExpr *)expr, state);
 			break;
-		case AST_REF:
+		case AstKind::REF:
 			CompileRefExpr((RefExpr *)expr);
 			break;
-		case AST_NEW:
+		case AstKind::NEW:
 			CompileNewExpr((NewExpr *)expr);
 			break;
-		case AST_THIS:
+		case AstKind::THIS:
 			CompileThisExpr((ThisExpr *)expr);
 			break;
-		case AST_BASE:
+		case AstKind::BASE:
 			CompileBaseExpr((BaseExpr *)expr);
 			break;
-		case AST_VAR_ARG:
+		case AstKind::VAR_ARG:
 			CompileVarArgExpr((VarArgExpr *)expr, state);
 			break;
-		case AST_FACTORIAL:
+		case AstKind::FACTORIAL:
 			CompileFactorialExpr((FactorialExpr *)expr);
 			break;
 		default:
@@ -430,7 +430,7 @@ namespace lwscript
 	{
 		if (expr->op == L"=")
 		{
-			if (expr->left->type == AST_ARRAY)
+			if (expr->left->kind == AstKind::ARRAY)
 			{
 				auto assignee = (ArrayExpr *)expr->left;
 
@@ -443,7 +443,7 @@ namespace lwscript
 
 				uint8_t resolveCount = static_cast<uint8_t>(assignee->elements.size());
 
-				if (assignee->elements.back()->type == AST_VAR_ARG)
+				if (assignee->elements.back()->kind == AstKind::VAR_ARG)
 				{
 					if (((VarArgExpr *)assignee->elements.back())->argName)
 						appregateOpCode = OP_APPREGATE_RESOLVE_VAR_ARG;
@@ -452,9 +452,9 @@ namespace lwscript
 				}
 				else
 				{
-					if (expr->right->type == AST_ARRAY)
+					if (expr->right->kind == AstKind::ARRAY)
 						if (assignee->elements.size() < ((ArrayExpr *)expr->right)->elements.size())
-							Hint::Error(((ArrayExpr *)expr->right)->elements[assignee->elements.size()]->tagToken, L"variable less than value");
+							Logger::Error(((ArrayExpr *)expr->right)->elements[assignee->elements.size()]->tagToken, L"variable less than value");
 				}
 
 				CurOpCodes()[appregateOpCodeAddress] = appregateOpCode;
@@ -600,7 +600,7 @@ namespace lwscript
 			EmitConstant(new StrObject(expr->str), expr->tagToken);
 			break;
 		case LiteralExpr::Type::CHARACTER:
-			break;//TODO:...
+			break; //TODO:...
 		default:
 			EmitOpCode(OP_NULL, expr->tagToken);
 			break;
@@ -618,7 +618,7 @@ namespace lwscript
 			EmitOpCode(OP_BIT_NOT, expr->tagToken);
 		else if (expr->op == L"++")
 		{
-			while (expr->right->type == AST_PREFIX && ((PrefixExpr *)expr->right)->op == L"++" || ((PrefixExpr *)expr->right)->op == L"--")
+			while (expr->right->kind == AstKind::PREFIX && ((PrefixExpr *)expr->right)->op == L"++" || ((PrefixExpr *)expr->right)->op == L"--")
 				expr = (PrefixExpr *)expr->right;
 			EmitConstant((int64_t)1, expr->tagToken);
 			EmitOpCode(OP_ADD, expr->tagToken);
@@ -626,14 +626,14 @@ namespace lwscript
 		}
 		else if (expr->op == L"--")
 		{
-			while (expr->right->type == AST_PREFIX && ((PrefixExpr *)expr->right)->op == L"++" || ((PrefixExpr *)expr->right)->op == L"--")
+			while (expr->right->kind == AstKind::PREFIX && ((PrefixExpr *)expr->right)->op == L"++" || ((PrefixExpr *)expr->right)->op == L"--")
 				expr = (PrefixExpr *)expr->right;
 			EmitConstant((int64_t)1, expr->tagToken);
 			EmitOpCode(OP_SUB, expr->tagToken);
 			CompileExpr(expr->right, RWState::WRITE);
 		}
 		else
-			Hint::Error(expr->tagToken, L"No prefix op:{}", expr->op);
+			Logger::Error(expr->tagToken, L"No prefix op:{}", expr->op);
 	}
 	void Compiler::CompilePostfixExpr(PostfixExpr *expr, const RWState &state, bool isDelayCompile)
 	{
@@ -646,7 +646,7 @@ namespace lwscript
 			else if (expr->op == L"--")
 				EmitOpCode(OP_SUB, expr->tagToken);
 			else
-				Hint::Error(expr->tagToken, L"No postfix op:{}", expr->op);
+				Logger::Error(expr->tagToken, L"No postfix op:{}", expr->op);
 			CompileExpr(expr->left, RWState::WRITE);
 			EmitOpCode(OP_POP, expr->tagToken);
 		}
@@ -721,7 +721,7 @@ namespace lwscript
 
 	void Compiler::CompileNewExpr(NewExpr *expr)
 	{
-		if (expr->callee->type == AST_CALL)
+		if (expr->callee->kind == AstKind::CALL)
 		{
 			auto callee = (CallExpr *)expr->callee;
 			CompileExpr(callee->callee, RWState::READ);
@@ -732,7 +732,7 @@ namespace lwscript
 			EmitOpCode(OP_CALL, expr->callee->tagToken);
 			Emit(static_cast<uint8_t>(callee->arguments.size()));
 		}
-		else if (expr->callee->type == AST_ANONY_OBJ)
+		else if (expr->callee->kind == AstKind::ANONY_OBJ)
 			CompileAnonymousObjExpr((AnonyObjExpr *)(expr->callee));
 	}
 
@@ -754,17 +754,17 @@ namespace lwscript
 	{
 		OpCode getOp, setOp;
 		auto symbol = mSymbolTable->Resolve(expr->tagToken, expr->literal, paramCount);
-		if (symbol.type == SymbolType::GLOBAL)
+		if (symbol.kind == SymbolKind::GLOBAL)
 		{
 			getOp = OP_GET_GLOBAL;
 			setOp = OP_SET_GLOBAL;
 		}
-		else if (symbol.type == SymbolType::LOCAL)
+		else if (symbol.kind == SymbolKind::LOCAL)
 		{
 			getOp = OP_GET_LOCAL;
 			setOp = OP_SET_LOCAL;
 		}
-		else if (symbol.type == SymbolType::UPVALUE)
+		else if (symbol.kind == SymbolKind::UPVALUE)
 		{
 			getOp = OP_GET_UPVALUE;
 			setOp = OP_SET_UPVALUE;
@@ -775,18 +775,18 @@ namespace lwscript
 			if (symbol.privilege == Privilege::MUTABLE)
 			{
 				EmitOpCode(setOp, expr->tagToken);
-				if (symbol.type == SymbolType::UPVALUE)
+				if (symbol.kind == SymbolKind::UPVALUE)
 					Emit(symbol.upvalue.index);
 				else
 					Emit(symbol.index);
 			}
 			else
-				Hint::Error(expr->tagToken, L"{} is a constant,which cannot be assigned!", expr->ToString());
+				Logger::Error(expr->tagToken, L"{} is a constant,which cannot be assigned!", expr->ToString());
 		}
 		else
 		{
 			EmitOpCode(getOp, expr->tagToken);
-			if (symbol.type == SymbolType::UPVALUE)
+			if (symbol.kind == SymbolKind::UPVALUE)
 				Emit(symbol.upvalue.index);
 			else
 				Emit(symbol.index);
@@ -799,7 +799,7 @@ namespace lwscript
 
 		mSymbolTable->Define(expr->tagToken, Privilege::IMMUTABLE, L"");
 
-		auto varArg=GetVarArgFromParameterList(expr->parameters);
+		auto varArg = GetVarArgFromParameterList(expr->parameters);
 
 		CurFunction()->arity = static_cast<uint8_t>(expr->parameters.size());
 		CurFunction()->varArg = varArg;
@@ -807,9 +807,9 @@ namespace lwscript
 		for (const auto &param : expr->parameters)
 		{
 			auto varDescExpr = (VarDescExpr *)param;
-			if (varDescExpr->name->type == AST_IDENTIFIER)
+			if (varDescExpr->name->kind == AstKind::IDENTIFIER)
 				mSymbolTable->Define(varDescExpr->tagToken, Privilege::MUTABLE, ((IdentifierExpr *)((VarDescExpr *)param)->name)->literal);
-			else if (varDescExpr->name->type == AST_VAR_ARG)
+			else if (varDescExpr->name->kind == AstKind::VAR_ARG)
 			{
 				auto varArg = ((VarArgExpr *)varDescExpr->name);
 				if (varArg->argName)
@@ -861,22 +861,22 @@ namespace lwscript
 	void Compiler::CompileRefExpr(RefExpr *expr)
 	{
 		Symbol symbol;
-		if (expr->refExpr->type == AST_INDEX)
+		if (expr->refExpr->kind == AstKind::INDEX)
 		{
 			auto refIdxExpr = ((IndexExpr *)expr->refExpr);
 			CompileExpr(refIdxExpr->index);
 			symbol = mSymbolTable->Resolve(refIdxExpr->ds->tagToken, refIdxExpr->ds->ToString());
-			if (symbol.type == SymbolType::GLOBAL)
+			if (symbol.kind == SymbolKind::GLOBAL)
 			{
 				EmitOpCode(OP_REF_INDEX_GLOBAL, symbol.relatedToken);
 				Emit(symbol.index);
 			}
-			else if (symbol.type == SymbolType::LOCAL)
+			else if (symbol.kind == SymbolKind::LOCAL)
 			{
 				EmitOpCode(OP_REF_INDEX_LOCAL, symbol.relatedToken);
 				Emit(symbol.index);
 			}
-			else if (symbol.type == SymbolType::UPVALUE)
+			else if (symbol.kind == SymbolKind::UPVALUE)
 			{
 				EmitOpCode(OP_REF_INDEX_UPVALUE, symbol.relatedToken);
 				Emit(symbol.upvalue.index);
@@ -885,17 +885,17 @@ namespace lwscript
 		else
 		{
 			symbol = mSymbolTable->Resolve(expr->refExpr->tagToken, expr->refExpr->ToString());
-			if (symbol.type == SymbolType::GLOBAL)
+			if (symbol.kind == SymbolKind::GLOBAL)
 			{
 				EmitOpCode(OP_REF_GLOBAL, symbol.relatedToken);
 				Emit(symbol.index);
 			}
-			else if (symbol.type == SymbolType::LOCAL)
+			else if (symbol.kind == SymbolKind::LOCAL)
 			{
 				EmitOpCode(OP_REF_LOCAL, symbol.relatedToken);
 				Emit(symbol.index);
 			}
-			else if (symbol.type == SymbolType::UPVALUE)
+			else if (symbol.kind == SymbolKind::UPVALUE)
 			{
 				EmitOpCode(OP_REF_UPVALUE, symbol.relatedToken);
 				Emit(symbol.upvalue.index);
@@ -929,7 +929,7 @@ namespace lwscript
 
 	Symbol Compiler::CompileFunction(FunctionStmt *stmt)
 	{
-		auto varArg=GetVarArgFromParameterList(stmt->parameters);
+		auto varArg = GetVarArgFromParameterList(stmt->parameters);
 
 		auto functionSymbol = mSymbolTable->Define(stmt->tagToken, Privilege::IMMUTABLE, stmt->name->literal, FunctionSymbolInfo{(int8_t)stmt->parameters.size(), varArg});
 
@@ -937,7 +937,7 @@ namespace lwscript
 		mSymbolTable = new SymbolTable(mSymbolTable);
 
 		std::wstring symbolName = stmt->name->literal;
-		if (stmt->type == FunctionType::CLASS_CLOSURE || stmt->type == FunctionType::CLASS_CONSTRUCTOR)
+		if (stmt->functionKind == FunctionKind::CLASS_CLOSURE || stmt->functionKind == FunctionKind::CLASS_CONSTRUCTOR)
 			symbolName = L"this";
 		mSymbolTable->Define(stmt->tagToken, Privilege::IMMUTABLE, symbolName);
 
@@ -947,9 +947,9 @@ namespace lwscript
 		for (const auto &param : stmt->parameters)
 		{
 			auto varDescExpr = (VarDescExpr *)param;
-			if (varDescExpr->name->type == AST_IDENTIFIER)
+			if (varDescExpr->name->kind == AstKind::IDENTIFIER)
 				mSymbolTable->Define(varDescExpr->tagToken, Privilege::MUTABLE, ((IdentifierExpr *)((VarDescExpr *)param)->name)->literal);
-			else if (varDescExpr->name->type == AST_VAR_ARG)
+			else if (varDescExpr->name->kind == AstKind::VAR_ARG)
 			{
 				auto varArg = ((VarArgExpr *)varDescExpr->name);
 				if (varArg->argName)
@@ -961,7 +961,7 @@ namespace lwscript
 
 		CompileScopeStmt(stmt->body);
 
-		if (stmt->type == FunctionType::CLASS_CONSTRUCTOR)
+		if (stmt->functionKind == FunctionKind::CLASS_CONSTRUCTOR)
 		{
 			EmitOpCode(OP_GET_LOCAL, stmt->tagToken);
 			Emit(0);
@@ -998,7 +998,7 @@ namespace lwscript
 			for (const auto &[k, v] : stmt->variables)
 			{
 				// destructuring assignment like let [x,y,...args]=....
-				if (k->type == AST_ARRAY)
+				if (k->kind == AstKind::ARRAY)
 				{
 					auto arrayExpr = (ArrayExpr *)k;
 
@@ -1025,14 +1025,14 @@ namespace lwscript
 						std::wstring literal;
 						Token *token = nullptr;
 
-						if (((VarDescExpr *)arrayExpr->elements[i])->name->type == AST_IDENTIFIER)
+						if (((VarDescExpr *)arrayExpr->elements[i])->name->kind == AstKind::IDENTIFIER)
 						{
 							literal = ((IdentifierExpr *)((VarDescExpr *)arrayExpr->elements[i])->name)->literal;
 							token = ((IdentifierExpr *)((VarDescExpr *)arrayExpr->elements[i])->name)->tagToken;
 							symbol = mSymbolTable->Define(token, stmt->privilege, literal);
 							resolveCount++;
 						}
-						else if (((VarDescExpr *)arrayExpr->elements[i])->name->type == AST_VAR_ARG)
+						else if (((VarDescExpr *)arrayExpr->elements[i])->name->kind == AstKind::VAR_ARG)
 						{
 							// varArg with name like:let [x,y,...args] (means IdentifierExpr* in VarDescExpr* not nullptr)
 							if (((VarArgExpr *)((VarDescExpr *)arrayExpr->elements[i])->name)->argName)
@@ -1047,7 +1047,7 @@ namespace lwscript
 								continue;
 						}
 
-						if (symbol.type == SymbolType::GLOBAL)
+						if (symbol.kind == SymbolKind::GLOBAL)
 						{
 							EmitOpCode(OP_SET_GLOBAL, symbol.relatedToken);
 							Emit(symbol.index);
@@ -1069,27 +1069,27 @@ namespace lwscript
 						Emit(varCount);
 					}
 				}
-				else if (k->type == AST_VAR_DESC)
+				else if (k->kind == AstKind::VAR_DESC)
 				{
 					CompileExpr(v);
 
 					std::wstring literal;
 					Token *token = nullptr;
 
-					if (((VarDescExpr *)k)->name->type == AST_IDENTIFIER)
+					if (((VarDescExpr *)k)->name->kind == AstKind::IDENTIFIER)
 					{
 						literal = ((IdentifierExpr *)(((VarDescExpr *)k)->name))->literal;
 						token = ((IdentifierExpr *)(((VarDescExpr *)k)->name))->tagToken;
 					}
 
-					else if (((VarDescExpr *)k)->name->type == AST_VAR_ARG)
+					else if (((VarDescExpr *)k)->name->kind == AstKind::VAR_ARG)
 					{
 						literal = ((VarArgExpr *)((VarDescExpr *)k)->name)->argName->literal;
 						token = ((VarArgExpr *)((VarDescExpr *)k)->name)->argName->tagToken;
 					}
 
 					auto symbol = mSymbolTable->Define(token, stmt->privilege, literal);
-					if (symbol.type == SymbolType::GLOBAL)
+					if (symbol.kind == SymbolKind::GLOBAL)
 					{
 						EmitOpCode(OP_SET_GLOBAL, symbol.relatedToken);
 						Emit(symbol.index);
@@ -1102,7 +1102,7 @@ namespace lwscript
 					varCount++;
 				}
 				else
-					Hint::Error(k->tagToken, L"Unknown variable:{}", k->ToString());
+					Logger::Error(k->tagToken, L"Unknown variable:{}", k->ToString());
 			}
 		}
 
@@ -1255,13 +1255,13 @@ namespace lwscript
 
 	void Compiler::EmitSymbol(const Symbol &symbol)
 	{
-		if (symbol.type == SymbolType::GLOBAL)
+		if (symbol.kind == SymbolKind::GLOBAL)
 		{
 			EmitOpCode(OP_SET_GLOBAL, symbol.relatedToken);
 			Emit(symbol.index);
 			EmitOpCode(OP_POP, symbol.relatedToken);
 		}
-		else if (symbol.type == SymbolType::LOCAL)
+		else if (symbol.kind == SymbolKind::LOCAL)
 		{
 			EmitOpCode(OP_SET_LOCAL, symbol.relatedToken);
 			Emit(symbol.index);
@@ -1279,14 +1279,14 @@ namespace lwscript
 		for (int32_t i = 0; i < mSymbolTable->mSymbols.size(); ++i)
 		{
 			Symbol *symbol = &mSymbolTable->mSymbols[i];
-			if (symbol->type == SymbolType::LOCAL &&
+			if (symbol->kind == SymbolKind::LOCAL &&
 				symbol->scopeDepth > mSymbolTable->mScopeDepth)
 			{
 				if (symbol->isCaptured)
 					EmitOpCode(OP_CLOSE_UPVALUE, symbol->relatedToken);
 				else
 					EmitOpCode(OP_POP, symbol->relatedToken);
-				symbol->type = SymbolType::GLOBAL; // mark as global to avoid second pop
+				symbol->kind = SymbolKind::GLOBAL; // mark as global to avoid second pop
 			}
 		}
 	}
@@ -1306,10 +1306,10 @@ namespace lwscript
 		return CurChunk().opCodes;
 	}
 
-	VarArg Compiler::GetVarArgFromParameterList(const std::vector<VarDescExpr*> & parameterList)
+	VarArg Compiler::GetVarArgFromParameterList(const std::vector<VarDescExpr *> &parameterList)
 	{
 		VarArg result{VarArg::NONE};
-		if (!parameterList.empty() && parameterList.back()->name->type == AST_VAR_ARG)
+		if (!parameterList.empty() && parameterList.back()->name->kind == AstKind::VAR_ARG)
 		{
 			auto varArg = (VarArgExpr *)parameterList.back()->name;
 			if (varArg->argName)
@@ -1325,14 +1325,14 @@ namespace lwscript
 		if (!astNode) // check astnode is nullptr
 			return {};
 
-		switch (astNode->type)
+		switch (astNode->kind)
 		{
-		case AST_BREAK:
-		case AST_CONTINUE:
-		case AST_LITERAL:
-		case AST_IDENTIFIER:
+		case AstKind::BREAK:
+		case AstKind::CONTINUE:
+		case AstKind::LITERAL:
+		case AstKind::IDENTIFIER:
 			return {};
-		case AST_ASTSTMTS:
+		case AstKind::ASTSTMTS:
 		{
 			std::vector<Expr *> result;
 			for (const auto &stmt : ((AstStmts *)astNode)->stmts)
@@ -1342,11 +1342,11 @@ namespace lwscript
 			}
 			return result;
 		}
-		case AST_RETURN:
+		case AstKind::RETURN:
 			return StatsPostfixExprs(((ReturnStmt *)astNode)->expr);
-		case AST_EXPR:
+		case AstKind::EXPR:
 			return StatsPostfixExprs(((ExprStmt *)astNode)->expr);
-		case AST_VAR:
+		case AstKind::VAR:
 		{
 			std::vector<Expr *> result;
 			for (const auto &[k, v] : ((VarStmt *)astNode)->variables)
@@ -1356,7 +1356,7 @@ namespace lwscript
 			}
 			return result;
 		}
-		case AST_SCOPE:
+		case AstKind::SCOPE:
 		{
 			std::vector<Expr *> result;
 			for (const auto &stmt : ((ScopeStmt *)astNode)->stmts)
@@ -1366,7 +1366,7 @@ namespace lwscript
 			}
 			return result;
 		}
-		case AST_IF:
+		case AstKind::IF:
 		{
 			std::vector<Expr *> result;
 			auto conditionResult = StatsPostfixExprs(((IfStmt *)astNode)->condition);
@@ -1377,7 +1377,7 @@ namespace lwscript
 			result.insert(result.end(), elseBranchResult.begin(), elseBranchResult.end());
 			return result;
 		}
-		case AST_WHILE:
+		case AstKind::WHILE:
 		{
 			std::vector<Expr *> result = StatsPostfixExprs(((WhileStmt *)astNode)->condition);
 			auto bodyResult = StatsPostfixExprs(((WhileStmt *)astNode)->body);
@@ -1389,7 +1389,7 @@ namespace lwscript
 			}
 			return result;
 		}
-		case AST_ENUM:
+		case AstKind::ENUM:
 		{
 			std::vector<Expr *> result;
 			for (const auto &[k, v] : ((EnumStmt *)astNode)->enumItems)
@@ -1401,14 +1401,14 @@ namespace lwscript
 			}
 			return result;
 		}
-		case AST_FUNCTION:
+		case AstKind::FUNCTION:
 		{
 			std::vector<Expr *> result;
 			auto bodyResult = StatsPostfixExprs(((FunctionStmt *)astNode)->body);
 			result.insert(result.end(), bodyResult.begin(), bodyResult.end());
 			return result;
 		}
-		case AST_CLASS:
+		case AstKind::CLASS:
 		{
 			std::vector<Expr *> result;
 
@@ -1425,9 +1425,9 @@ namespace lwscript
 			}
 			return result;
 		}
-		case AST_GROUP:
+		case AstKind::GROUP:
 			return StatsPostfixExprs(((GroupExpr *)astNode)->expr);
-		case AST_ARRAY:
+		case AstKind::ARRAY:
 		{
 			std::vector<Expr *> result;
 			for (const auto &e : ((ArrayExpr *)astNode)->elements)
@@ -1437,7 +1437,7 @@ namespace lwscript
 			}
 			return result;
 		}
-		case AST_DICT:
+		case AstKind::DICT:
 		{
 			std::vector<Expr *> result;
 			for (const auto &[k, v] : ((DictExpr *)astNode)->elements)
@@ -1449,7 +1449,7 @@ namespace lwscript
 			}
 			return result;
 		}
-		case AST_INDEX:
+		case AstKind::INDEX:
 		{
 			std::vector<Expr *> result;
 			auto dsResult = StatsPostfixExprs(((IndexExpr *)astNode)->ds);
@@ -1458,9 +1458,9 @@ namespace lwscript
 			result.insert(result.end(), indexResult.begin(), indexResult.end());
 			return result;
 		}
-		case AST_PREFIX:
+		case AstKind::PREFIX:
 			return StatsPostfixExprs(((PrefixExpr *)astNode)->right);
-		case AST_INFIX:
+		case AstKind::INFIX:
 		{
 			std::vector<Expr *> result;
 			auto leftResult = StatsPostfixExprs(((InfixExpr *)astNode)->left);
@@ -1470,7 +1470,7 @@ namespace lwscript
 			result.insert(result.end(), rightResult.begin(), rightResult.end());
 			return result;
 		}
-		case AST_POSTFIX:
+		case AstKind::POSTFIX:
 		{
 			std::vector<Expr *> result;
 			auto leftResult = StatsPostfixExprs(((PostfixExpr *)astNode)->left);
@@ -1478,7 +1478,7 @@ namespace lwscript
 			result.emplace_back((PostfixExpr *)astNode);
 			return result;
 		}
-		case AST_CONDITION:
+		case AstKind::CONDITION:
 		{
 			std::vector<Expr *> result;
 			auto conditionResult = StatsPostfixExprs(((ConditionExpr *)astNode)->condition);
@@ -1489,7 +1489,7 @@ namespace lwscript
 			result.insert(result.end(), falseBranchResult.begin(), falseBranchResult.end());
 			return result;
 		}
-		case AST_LAMBDA:
+		case AstKind::LAMBDA:
 		{
 			std::vector<Expr *> result;
 			for (const auto &param : ((LambdaExpr *)astNode)->parameters)
@@ -1501,7 +1501,7 @@ namespace lwscript
 			result.insert(result.end(), bodyResult.begin(), bodyResult.end());
 			return result;
 		}
-		case AST_CALL:
+		case AstKind::CALL:
 		{
 			std::vector<Expr *> result;
 			auto calleeResult = StatsPostfixExprs(((CallExpr *)astNode)->callee);
@@ -1513,7 +1513,7 @@ namespace lwscript
 			}
 			return result;
 		}
-		case AST_REF:
+		case AstKind::REF:
 			return StatsPostfixExprs(((RefExpr *)astNode)->refExpr);
 		default:
 			return {};

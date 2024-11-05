@@ -3,12 +3,14 @@
 #include <functional>
 #include "Value.h"
 #include "Object.h"
+#include "Config.h"
 namespace lwscript
 {
     class LWSCRIPT_API LibraryManager
     {
+        NON_COPYABLE(LibraryManager)
     public:
-        static LibraryManager &Instance() noexcept;
+        SINGLETON_DECL(LibraryManager)
 
         void RegisterLibrary(ClassObject *libraryClass);
 
@@ -17,11 +19,6 @@ namespace lwscript
     private:
         LibraryManager();
         ~LibraryManager() = default;
-
-        LibraryManager(const LibraryManager &) = delete;
-        LibraryManager(LibraryManager &&) = delete;
-        LibraryManager &operator=(const LibraryManager &) = delete;
-        LibraryManager &operator=(LibraryManager &&) = delete;
 
         std::vector<ClassObject *> mLibraries;
     };

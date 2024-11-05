@@ -40,7 +40,7 @@ namespace lwscript
 
 		void CompileExpr(Expr *expr, const RWState &state = RWState::READ, int8_t paramCount = -1);
 		void CompileInfixExpr(InfixExpr *expr);
-		void CompileLiteralExpr(LiteralExpr* expr);
+		void CompileLiteralExpr(LiteralExpr *expr);
 		void CompilePrefixExpr(PrefixExpr *expr);
 		void CompilePostfixExpr(PostfixExpr *expr, const RWState &state = RWState::READ, bool isDelayCompile = true);
 		void CompileConditionExpr(ConditionExpr *expr);
@@ -64,19 +64,19 @@ namespace lwscript
 
 		Symbol CompileFunction(FunctionStmt *stmt);
 		uint32_t CompileVars(VarStmt *stmt, bool IsInClassOrModuleScope);
-		Symbol CompileClass(ClassStmt* stmt);
+		Symbol CompileClass(ClassStmt *stmt);
 
-		uint64_t EmitOpCode(OpCode opCode,const Token* token);
+		uint64_t EmitOpCode(OpCode opCode, const Token *token);
 		uint64_t Emit(uint8_t opcode);
-		uint64_t EmitConstant(const Value &value, const Token* token);
-		uint64_t EmitClosure(FunctionObject *function, const Token* token);
-		uint64_t EmitReturn(uint8_t retCount, const Token* token);
-		uint64_t EmitJump(OpCode opcode, const Token* token);
-		void EmitLoop(uint16_t opcode, const Token* token);
+		uint64_t EmitConstant(const Value &value, const Token *token);
+		uint64_t EmitClosure(FunctionObject *function, const Token *token);
+		uint64_t EmitReturn(uint8_t retCount, const Token *token);
+		uint64_t EmitJump(OpCode opcode, const Token *token);
+		void EmitLoop(uint16_t opcode, const Token *token);
 		void PatchJump(uint64_t offset);
 		uint8_t AddConstant(const Value &value);
 
-		void EmitSymbol(const Symbol& symbol);
+		void EmitSymbol(const Symbol &symbol);
 
 		void EnterScope();
 		void ExitScope();
@@ -85,8 +85,8 @@ namespace lwscript
 		FunctionObject *CurFunction();
 		OpCodes &CurOpCodes();
 
-		VarArg GetVarArgFromParameterList(const std::vector<VarDescExpr*> & parameterList);
-		
+		VarArg GetVarArgFromParameterList(const std::vector<VarDescExpr *> &parameterList);
+
 		std::vector<Expr *> StatsPostfixExprs(AstNode *astNode);
 
 		std::vector<FunctionObject *> mFunctionList;

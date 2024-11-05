@@ -1,49 +1,50 @@
 #include "Lexer.h"
+#include "Logger.h"
 namespace lwscript
 {
 	struct Keyword
 	{
 		const wchar_t *name;
-		TokenType type;
+		TokenKind type;
 	};
 
 	constexpr Keyword keywords[] = {
-		{L"let", TOKEN_LET},
-		{L"if", TOKEN_IF},
-		{L"else", TOKEN_ELSE},
-		{L"true", TOKEN_TRUE},
-		{L"false", TOKEN_FALSE},
-		{L"null", TOKEN_NULL},
-		{L"while", TOKEN_WHILE},
-		{L"for", TOKEN_FOR},
-		{L"fn", TOKEN_FUNCTION},
-		{L"class", TOKEN_CLASS},
-		{L"this", TOKEN_THIS},
-		{L"base", TOKEN_BASE},
-		{L"return", TOKEN_RETURN},
-		{L"static", TOKEN_STATIC},
-		{L"const", TOKEN_CONST},
-		{L"break", TOKEN_BREAK},
-		{L"continue", TOKEN_CONTINUE},
-		{L"import", TOKEN_IMPORT},
-		{L"module", TOKEN_MODULE},
-		{L"switch", TOKEN_SWITCH},
-		{L"default", TOKEN_DEFAULT},
-		{L"match", TOKEN_MATCH},
-		{L"enum", TOKEN_ENUM},
-		{L"u8", TOKEN_TYPE_U8},
-		{L"u16", TOKEN_TYPE_U16},
-		{L"u32", TOKEN_TYPE_U32},
-		{L"u64", TOKEN_TYPE_U64},
-		{L"i8", TOKEN_TYPE_I8},
-		{L"i16", TOKEN_TYPE_I16},
-		{L"i32", TOKEN_TYPE_I32},
-		{L"i64", TOKEN_TYPE_I64},
-		{L"bool", TOKEN_TYPE_BOOL},
-		{L"char", TOKEN_TYPE_CHAR},
-		{L"void", TOKEN_TYPE_VOID},
-		{L"as", TOKEN_AS},
-		{L"new", TOKEN_NEW},
+		{L"let", TokenKind::LET},
+		{L"if", TokenKind::IF},
+		{L"else", TokenKind::ELSE},
+		{L"true", TokenKind::TRUE},
+		{L"false", TokenKind::FALSE},
+		{L"null", TokenKind::NIL},
+		{L"while", TokenKind::WHILE},
+		{L"for", TokenKind::FOR},
+		{L"fn", TokenKind::FUNCTION},
+		{L"class", TokenKind::CLASS},
+		{L"this", TokenKind::THIS},
+		{L"base", TokenKind::BASE},
+		{L"return", TokenKind::RETURN},
+		{L"static", TokenKind::STATIC},
+		{L"const", TokenKind::CONST},
+		{L"break", TokenKind::BREAK},
+		{L"continue", TokenKind::CONTINUE},
+		{L"import", TokenKind::IMPORT},
+		{L"module", TokenKind::MODULE},
+		{L"switch", TokenKind::SWITCH},
+		{L"default", TokenKind::DEFAULT},
+		{L"match", TokenKind::MATCH},
+		{L"enum", TokenKind::ENUM},
+		{L"u8", TokenKind::U8},
+		{L"u16", TokenKind::U16},
+		{L"u32", TokenKind::U32},
+		{L"u64", TokenKind::U64},
+		{L"i8", TokenKind::I8},
+		{L"i16", TokenKind::I16},
+		{L"i32", TokenKind::I32},
+		{L"i64", TokenKind::I64},
+		{L"bool", TokenKind::BOOL},
+		{L"char", TokenKind::CHAR},
+		{L"void", TokenKind::VOID},
+		{L"as", TokenKind::AS},
+		{L"new", TokenKind::NEW},
 	};
 
 	Lexer::Lexer()
@@ -56,7 +57,7 @@ namespace lwscript
 
 	const std::vector<Token *> &Lexer::ScanTokens(std::wstring_view src)
 	{
-		Hint::RecordSource(src);
+		Logger::RecordSource(src);
 
 		ResetStatus();
 		mSource = src;
@@ -66,7 +67,7 @@ namespace lwscript
 			ScanToken();
 		}
 
-		AddToken(TOKEN_EOF, L"EOF");
+		AddToken(TokenKind::END, L"EOF");
 
 		return mTokens;
 	}
@@ -95,47 +96,47 @@ namespace lwscript
 		if (c == L"(")
 		{
 			if (IsMatchCurCharAndStepOnce(L'{'))
-				AddToken(TOKEN_LPAREN_LBRACE);
+				AddToken(TokenKind::LPAREN_LBRACE);
 			else
-				AddToken(TOKEN_LPAREN);
+				AddToken(TokenKind::LPAREN);
 		}
 		else if (c == L")")
-			AddToken(TOKEN_RPAREN);
+			AddToken(TokenKind::RPAREN);
 		else if (c == L"[")
-			AddToken(TOKEN_LBRACKET);
+			AddToken(TokenKind::LBRACKET);
 		else if (c == L"]")
-			AddToken(TOKEN_RBRACKET);
+			AddToken(TokenKind::RBRACKET);
 		else if (c == L"{")
-			AddToken(TOKEN_LBRACE);
+			AddToken(TokenKind::LBRACE);
 		else if (c == L"}")
 		{
 			if (IsMatchCurCharAndStepOnce(L')'))
-				AddToken(TOKEN_RBRACE_RPAREN);
+				AddToken(TokenKind::RBRACE_RPAREN);
 			else
-				AddToken(TOKEN_RBRACE);
+				AddToken(TokenKind::RBRACE);
 		}
 		else if (c == L".")
 		{
 			if (IsMatchCurCharAndStepOnce(L'.'))
 			{
 				if (IsMatchCurCharAndStepOnce(L'.'))
-					AddToken(TOKEN_ELLIPSIS);
+					AddToken(TokenKind::ELLIPSIS);
 				else
-					Hint::Error(mCurPos, L"Unknown literal:'..',did you want '.' or '...'?");
+					Logger::Error(mCurPos, L"Unknown literal:'..',did you want '.' or '...'?");
 			}
 			else
-				AddToken(TOKEN_DOT);
+				AddToken(TokenKind::DOT);
 		}
 		else if (c == L",")
-			AddToken(TOKEN_COMMA);
+			AddToken(TokenKind::COMMA);
 		else if (c == L":")
-			AddToken(TOKEN_COLON);
+			AddToken(TokenKind::COLON);
 		else if (c == L";")
-			AddToken(TOKEN_SEMICOLON);
+			AddToken(TokenKind::SEMICOLON);
 		else if (c == L"~")
-			AddToken(TOKEN_TILDE);
+			AddToken(TokenKind::TILDE);
 		else if (c == L"?")
-			AddToken(TOKEN_QUESTION);
+			AddToken(TokenKind::QUESTION);
 		else if (c == L"\"")
 			String();
 		else if (c == L"\'")
@@ -151,27 +152,27 @@ namespace lwscript
 		else if (c == L"+")
 		{
 			if (IsMatchCurCharAndStepOnce(L'='))
-				AddToken(TOKEN_PLUS_EQUAL);
+				AddToken(TokenKind::PLUS_EQUAL);
 			else if (IsMatchCurCharAndStepOnce(L'+'))
-				AddToken(TOKEN_PLUS_PLUS);
+				AddToken(TokenKind::PLUS_PLUS);
 			else
-				AddToken(TOKEN_PLUS);
+				AddToken(TokenKind::PLUS);
 		}
 		else if (c == L"-")
 		{
 			if (IsMatchCurCharAndStepOnce(L'='))
-				AddToken(TOKEN_MINUS_EQUAL);
+				AddToken(TokenKind::MINUS_EQUAL);
 			else if (IsMatchCurCharAndStepOnce(L'-'))
-				AddToken(TOKEN_MINUS_MINUS);
+				AddToken(TokenKind::MINUS_MINUS);
 			else
-				AddToken(TOKEN_MINUS);
+				AddToken(TokenKind::MINUS);
 		}
 		else if (c == L"*")
 		{
 			if (IsMatchCurCharAndStepOnce(L'='))
-				AddToken(TOKEN_ASTERISK_EQUAL);
+				AddToken(TokenKind::ASTERISK_EQUAL);
 			else
-				AddToken(TOKEN_ASTERISK);
+				AddToken(TokenKind::ASTERISK);
 		}
 		else if (c == L"/")
 		{
@@ -203,82 +204,82 @@ namespace lwscript
 				}
 			}
 			else if (IsMatchCurCharAndStepOnce(L'='))
-				AddToken(TOKEN_SLASH_EQUAL);
+				AddToken(TokenKind::SLASH_EQUAL);
 			else
-				AddToken(TOKEN_SLASH);
+				AddToken(TokenKind::SLASH);
 		}
 		else if (c == L"%")
 		{
 			if (IsMatchCurCharAndStepOnce(L'='))
-				AddToken(TOKEN_PERCENT_EQUAL);
-			AddToken(TOKEN_PERCENT);
+				AddToken(TokenKind::PERCENT_EQUAL);
+			AddToken(TokenKind::PERCENT);
 		}
 		else if (c == L"!")
 		{
 			if (IsMatchCurCharAndStepOnce(L'='))
-				AddToken(TOKEN_BANG_EQUAL);
+				AddToken(TokenKind::BANG_EQUAL);
 			else
-				AddToken(TOKEN_BANG);
+				AddToken(TokenKind::BANG);
 		}
 		else if (c == L"&")
 		{
 			if (IsMatchCurCharAndStepOnce(L'&'))
-				AddToken(TOKEN_AMPERSAND_AMPERSAND);
+				AddToken(TokenKind::AMPERSAND_AMPERSAND);
 			else if (IsMatchCurCharAndStepOnce(L'='))
-				AddToken(TOKEN_AMPERSAND_EQUAL);
+				AddToken(TokenKind::AMPERSAND_EQUAL);
 			else
-				AddToken(TOKEN_AMPERSAND);
+				AddToken(TokenKind::AMPERSAND);
 		}
 		else if (c == L"|")
 		{
 			if (IsMatchCurCharAndStepOnce(L'|'))
-				AddToken(TOKEN_VBAR_VBAR);
+				AddToken(TokenKind::VBAR_VBAR);
 			else if (IsMatchCurCharAndStepOnce(L'='))
-				AddToken(TOKEN_VBAR_EQUAL);
+				AddToken(TokenKind::VBAR_EQUAL);
 			else
-				AddToken(TOKEN_VBAR);
+				AddToken(TokenKind::VBAR);
 		}
 		else if (c == L"^")
 		{
 			if (IsMatchCurCharAndStepOnce(L'='))
-				AddToken(TOKEN_CARET_EQUAL);
+				AddToken(TokenKind::CARET_EQUAL);
 			else
-				AddToken(TOKEN_CARET);
+				AddToken(TokenKind::CARET);
 		}
 		else if (c == L"<")
 		{
 			if (IsMatchCurCharAndStepOnce(L'='))
-				AddToken(TOKEN_LESS_EQUAL);
+				AddToken(TokenKind::LESS_EQUAL);
 			else if (IsMatchCurCharAndStepOnce(L'<'))
 			{
 				if (IsMatchCurCharAndStepOnce(L'='))
-					AddToken(TOKEN_LESS_LESS_EQUAL);
+					AddToken(TokenKind::LESS_LESS_EQUAL);
 				else
-					AddToken(TOKEN_LESS_LESS);
+					AddToken(TokenKind::LESS_LESS);
 			}
 			else
-				AddToken(TOKEN_LESS);
+				AddToken(TokenKind::LESS);
 		}
 		else if (c == L">")
 		{
 			if (IsMatchCurCharAndStepOnce(L'='))
-				AddToken(TOKEN_GREATER_EQUAL);
+				AddToken(TokenKind::GREATER_EQUAL);
 			else if (IsMatchCurCharAndStepOnce(L'>'))
 			{
 				if (IsMatchCurCharAndStepOnce(L'='))
-					AddToken(TOKEN_GREATER_GREATER_EQUAL);
+					AddToken(TokenKind::GREATER_GREATER_EQUAL);
 				else
-					AddToken(TOKEN_GREATER_GREATER);
+					AddToken(TokenKind::GREATER_GREATER);
 			}
 			else
-				AddToken(TOKEN_GREATER);
+				AddToken(TokenKind::GREATER);
 		}
 		else if (c == L"=")
 		{
 			if (IsMatchCurCharAndStepOnce(L'='))
-				AddToken(TOKEN_EQUAL_EQUAL);
+				AddToken(TokenKind::EQUAL_EQUAL);
 			else
-				AddToken(TOKEN_EQUAL);
+				AddToken(TokenKind::EQUAL);
 		}
 		else
 		{
@@ -289,7 +290,7 @@ namespace lwscript
 			else
 			{
 				auto literal = mSource.substr(mStartPos, mCurPos - mStartPos);
-				Hint::Error(mCurPos, L"Unknown literal:" + literal);
+				Logger::Error(mCurPos, L"Unknown literal:" + literal);
 			}
 		}
 	}
@@ -334,12 +335,12 @@ namespace lwscript
 		return L'\0';
 	}
 
-	void Lexer::AddToken(TokenType type)
+	void Lexer::AddToken(TokenKind type)
 	{
 		auto literal = mSource.substr(mStartPos, mCurPos - mStartPos);
 		mTokens.push_back(new Token(type, literal, mLine, mColumn - literal.size(), mCurPos - literal.size())); //+1 means that the column beginning front 1
 	}
-	void Lexer::AddToken(TokenType type, std::wstring_view literal)
+	void Lexer::AddToken(TokenKind type, std::wstring_view literal)
 	{
 		mTokens.push_back(new Token(type, literal, mLine, mColumn - literal.size(), mCurPos - literal.size()));
 	}
@@ -377,10 +378,10 @@ namespace lwscript
 			else if (GetCurChar() == L'f')
 				GetCurCharAndStepOnce();
 			else
-				Hint::Error(mCurPos, L"The character next to '.' in a floating number must be in [0-9] range or a single 'f' character.");
+				Logger::Error(mCurPos, L"The character next to '.' in a floating number must be in [0-9] range or a single 'f' character.");
 		}
 
-		AddToken(TOKEN_NUMBER);
+		AddToken(TokenKind::NUMBER);
 	}
 
 	void Lexer::Identifier()
@@ -406,7 +407,7 @@ namespace lwscript
 			}
 
 		if (!isKeyWord)
-			AddToken(TOKEN_IDENTIFIER, literal);
+			AddToken(TokenKind::IDENTIFIER, literal);
 	}
 
 	void Lexer::String()
@@ -426,14 +427,14 @@ namespace lwscript
 
 		GetCurCharAndStepOnce(); // eat the second '\"'
 
-		AddToken(TOKEN_STRING, mSource.substr(mStartPos + 1, mCurPos - mStartPos - 2));
+		AddToken(TokenKind::STRING, mSource.substr(mStartPos + 1, mCurPos - mStartPos - 2));
 	}
 
 	void Lexer::Character()
 	{
 		GetCurCharAndStepOnce(); // eat the first '\''
 
-		AddToken(TOKEN_CHAR, mSource.substr(mStartPos + 1, 1));
+		AddToken(TokenKind::CHARACTER, mSource.substr(mStartPos + 1, 1));
 
 		GetCurCharAndStepOnce(); // eat the second '\''
 	}

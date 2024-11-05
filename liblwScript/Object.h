@@ -181,13 +181,11 @@ namespace lwscript
         bool IsEqualTo(Object *other) override;
         Object *Clone() const override;
 
-#ifdef USE_FUNCTION_CACHE
+        // Function Cache Functions 
         void SetCache(const std::vector<Value>& arguments, const std::vector<Value>& result);
 		bool GetCache(const std::vector<Value>& arguments, std::vector<Value>& result) const;
-#ifdef PRINT_FUNCTION_CACHE
         void PrintCache();
-#endif
-#endif
+        // Function Cache Functions
 
         uint8_t arity{0};
         VarArg varArg{VarArg::NONE};

@@ -1,5 +1,6 @@
 #include "SyntaxChecker.h"
 #include "Utils.h"
+#include "Logger.h"
 
 namespace lwscript
 {
@@ -18,27 +19,27 @@ namespace lwscript
 
     Stmt *SyntaxChecker::CheckStmt(Stmt *stmt)
     {
-        switch (stmt->type)
+        switch (stmt->kind)
         {
-        case AST_ASTSTMTS:
+        case AstKind::ASTSTMTS:
             return CheckAstStmts((AstStmts *)stmt);
-        case AST_RETURN:
+        case AstKind::RETURN:
             return CheckReturnStmt((ReturnStmt *)stmt);
-        case AST_EXPR:
+        case AstKind::EXPR:
             return CheckExprStmt((ExprStmt *)stmt);
-        case AST_VAR:
+        case AstKind::VAR:
             return CheckVarStmt((VarStmt *)stmt);
-        case AST_SCOPE:
+        case AstKind::SCOPE:
             return CheckScopeStmt((ScopeStmt *)stmt);
-        case AST_IF:
+        case AstKind::IF:
             return CheckIfStmt((IfStmt *)stmt);
-        case AST_WHILE:
+        case AstKind::WHILE:
             return CheckWhileStmt((WhileStmt *)stmt);
-        case AST_FUNCTION:
+        case AstKind::FUNCTION:
             return CheckFunctionStmt((FunctionStmt *)stmt);
-        case AST_CLASS:
+        case AstKind::CLASS:
             return CheckClassStmt((ClassStmt *)stmt);
-        case AST_MODULE:
+        case AstKind::MODULE:
             return CheckModuleStmt((ModuleStmt *)stmt);
         default:
             return stmt;
@@ -56,24 +57,24 @@ namespace lwscript
     {
         for (auto &[k, v] : stmt->variables)
         {
-            if (k->type == AST_ARRAY)
+            if (k->kind == AstKind::ARRAY)
             {
                 auto arrayK = (ArrayExpr *)k;
                 for (int32_t i = 0; i < arrayK->elements.size(); ++i)
                 {
                     auto e = arrayK->elements[i];
                     e = CheckExpr(e);
-                    if (e->type != AST_VAR_DESC && e->type != AST_VAR_ARG)
-                        Hint::Error(e->tagToken, L"only variable description or variable argument is available in destructing assign expr.");
+                    if (e->kind != AstKind::VAR_DESC && e->kind != AstKind::VAR_ARG)
+                        Logger::Error(e->tagToken, L"only variable description or variable argument is available in destructing assign expr.");
 
-                    if (e->type == AST_VAR_ARG && i != arrayK->elements.size() - 1)
-                        Hint::Error(k->tagToken, L"variable argument expr only available at the end of destructing assignment expr.");
+                    if (e->kind == AstKind::VAR_ARG && i != arrayK->elements.size() - 1)
+                        Logger::Error(k->tagToken, L"variable argument expr only available at the end of destructing assignment expr.");
                 }
             }
-            else if (k->type == AST_VAR_DESC)
+            else if (k->kind == AstKind::VAR_DESC)
                 k = CheckExpr(k);
             else
-                Hint::Error(k->tagToken, L"only destructing assign expr or variable description is available in let/const stmt's binding part.");
+                Logger::Error(k->tagToken, L"only destructing assign expr or variable description is available in let/const stmt's binding part.");
 
             v = CheckExpr(v);
         }
@@ -117,8 +118,8 @@ namespace lwscript
             auto e = stmt->parameters[i];
             e = (VarDescExpr *)CheckVarDescExpr(e);
 
-            if (e->name->type == AST_VAR_ARG && i != stmt->parameters.size() - 1)
-                Hint::Error(e->tagToken, L"variable argument expr only available at the end of function parameter list.");
+            if (e->name->kind == AstKind::VAR_ARG && i != stmt->parameters.size() - 1)
+                Logger::Error(e->tagToken, L"variable argument expr only available at the end of function parameter list.");
         }
 
         stmt->body = (ScopeStmt *)CheckScopeStmt(stmt->body);
@@ -150,53 +151,53 @@ namespace lwscript
 
     Expr *SyntaxChecker::CheckExpr(Expr *expr)
     {
-        switch (expr->type)
+        switch (expr->kind)
         {
-        case AST_LITERAL:
+        case AstKind::LITERAL:
             return CheckLiteralExpr((LiteralExpr *)expr);
-        case AST_IDENTIFIER:
+        case AstKind::IDENTIFIER:
             return CheckIdentifierExpr((IdentifierExpr *)expr);
-        case AST_VAR_DESC:
+        case AstKind::VAR_DESC:
             return CheckVarArgExpr((VarArgExpr *)expr);
-        case AST_GROUP:
+        case AstKind::GROUP:
             return CheckGroupExpr((GroupExpr *)expr);
-        case AST_ARRAY:
+        case AstKind::ARRAY:
             return CheckArrayExpr((ArrayExpr *)expr);
-        case AST_DICT:
+        case AstKind::DICT:
             return CheckDictExpr((DictExpr *)expr);
-        case AST_PREFIX:
+        case AstKind::PREFIX:
             return CheckPrefixExpr((PrefixExpr *)expr);
-        case AST_INFIX:
+        case AstKind::INFIX:
             return CheckInfixExpr((InfixExpr *)expr);
-        case AST_POSTFIX:
+        case AstKind::POSTFIX:
             return CheckPostfixExpr((PostfixExpr *)expr);
-        case AST_CONDITION:
+        case AstKind::CONDITION:
             return CheckConditionExpr((ConditionExpr *)expr);
-        case AST_INDEX:
+        case AstKind::INDEX:
             return CheckIndexExpr((IndexExpr *)expr);
-        case AST_REF:
+        case AstKind::REF:
             return CheckRefExpr((RefExpr *)expr);
-        case AST_LAMBDA:
+        case AstKind::LAMBDA:
             return CheckLambdaExpr((LambdaExpr *)expr);
-        case AST_DOT:
+        case AstKind::DOT:
             return CheckDotExpr((DotExpr *)expr);
-        case AST_CALL:
+        case AstKind::CALL:
             return CheckCallExpr((CallExpr *)expr);
-        case AST_NEW:
+        case AstKind::NEW:
             return CheckNewExpr((NewExpr *)expr);
-        case AST_THIS:
+        case AstKind::THIS:
             return CheckThisExpr((ThisExpr *)expr);
-        case AST_BASE:
+        case AstKind::BASE:
             return CheckBaseExpr((BaseExpr *)expr);
-        case AST_COMPOUND:
+        case AstKind::COMPOUND:
             return CheckCompoundExpr((CompoundExpr *)expr);
-        case AST_ANONY_OBJ:
+        case AstKind::ANONY_OBJ:
             return CheckAnonymousObjExpr((AnonyObjExpr *)expr);
-        case AST_VAR_ARG:
+        case AstKind::VAR_ARG:
             return CheckVarArgExpr((VarArgExpr *)expr);
-        case AST_FACTORIAL:
+        case AstKind::FACTORIAL:
             return CheckFactorialExpr((FactorialExpr *)expr);
-        case AST_APPREGATE:
+        case AstKind::APPREGATE:
             return CheckAppregateExpr((AppregateExpr *)expr);
         default:
             return expr;
@@ -251,7 +252,7 @@ namespace lwscript
         for (auto &[k, v] : expr->elements)
         {
             if (!IsConstantLiteral(k))
-                Hint::Error(k->tagToken, L"Dict keys can only have constant literals (int num,real num,string,boolean,null or variable identifier).");
+                Logger::Error(k->tagToken, L"Dict keys can only have constant literals (int num,real num,string,boolean,null or variable identifier).");
             v = CheckExpr(v);
         }
         return expr;
@@ -264,8 +265,8 @@ namespace lwscript
     }
     Expr *SyntaxChecker::CheckNewExpr(NewExpr *expr)
     {
-        if (expr->callee->type != AST_CALL && expr->callee->type != AST_ANONY_OBJ)
-            Hint::Error(expr->callee->tagToken, L"Not a valid new expr,call expr or anonymous object expr is necessary followed 'new' keyword.");
+        if (expr->callee->kind != AstKind::CALL && expr->callee->kind != AstKind::ANONY_OBJ)
+            Logger::Error(expr->callee->tagToken, L"Not a valid new expr,call expr or anonymous object expr is necessary followed 'new' keyword.");
 
         return expr;
     }
@@ -288,8 +289,8 @@ namespace lwscript
             auto e = expr->parameters[i];
             e = (VarDescExpr *)CheckVarDescExpr(e);
 
-            if (e->name->type == AST_VAR_ARG && i != expr->parameters.size() - 1)
-                Hint::Error(e->tagToken, L"variable argument expr only available at the end of lambda parameter list.");
+            if (e->name->kind == AstKind::VAR_ARG && i != expr->parameters.size() - 1)
+                Logger::Error(e->tagToken, L"variable argument expr only available at the end of lambda parameter list.");
         }
 
         expr->body = (ScopeStmt *)CheckScopeStmt(expr->body);
@@ -309,8 +310,8 @@ namespace lwscript
     }
     Expr *SyntaxChecker::CheckRefExpr(RefExpr *expr)
     {
-        if (expr->refExpr->type != AST_IDENTIFIER && expr->refExpr->type != AST_INDEX)
-            Hint::Error(expr->tagToken, L"Only left value is available for reference.");
+        if (expr->refExpr->kind != AstKind::IDENTIFIER && expr->refExpr->kind != AstKind::INDEX)
+            Logger::Error(expr->tagToken, L"Only left value is available for reference.");
         return expr;
     }
     Expr *SyntaxChecker::CheckAnonymousObjExpr(AnonyObjExpr *expr)
@@ -329,17 +330,17 @@ namespace lwscript
 
     Expr *SyntaxChecker::CheckVarDescExpr(VarDescExpr *expr)
     {
-        if (expr->name->type != AST_IDENTIFIER && expr->name->type != AST_VAR_ARG)
-            Hint::Error(expr->tagToken, L"Only identifier or variable argument is available at variable declaration or param declaration");
+        if (expr->name->kind != AstKind::IDENTIFIER && expr->name->kind != AstKind::VAR_ARG)
+            Logger::Error(expr->tagToken, L"Only identifier or variable argument is available at variable declaration or param declaration");
         return expr;
     }
 
     bool SyntaxChecker::IsConstantLiteral(Expr *expr)
     {
-        switch (expr->type)
+        switch (expr->kind)
         {
-        case AST_LITERAL:
-        case AST_IDENTIFIER:
+        case AstKind::LITERAL:
+        case AstKind::IDENTIFIER:
             return true;
         default:
             return false;

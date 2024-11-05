@@ -1,59 +1,25 @@
 #pragma once
 #include <iostream>
-#include <fstream>
 #include <sstream>
 #include <string_view>
 #include <string>
 #include <cassert>
 #include <cstdarg>
-#include <vector>
-#include <array>
 #include "Token.h"
+
 namespace lwscript
 {
-    #define SAFE_DELETE(x)   \
-    do                   \
-    {                    \
-        if (x)           \
-        {                \
-            delete x;    \
-            x = nullptr; \
-        }                \
-    } while (false);
-
-    enum Privilege
-    {
-        MUTABLE,
-        IMMUTABLE,
-    };
-
-    enum VarArg
-    {
-        NONE = 0,
-        WITHOUT_NAME,
-        WITH_NAME,
-    };
-
-    std::wstring LWSCRIPT_API ReadFile(std::string_view path);
-
-    std::wstring PointerAddressToString(void *pointer);
-
-    int64_t Factorial(int64_t v, int64_t tmp = 1);
-
-    std::string Utf8Encode(const std::wstring &str);
-    std::wstring Utf8Decode(const std::string &str);
-
-    inline void Log(std::wostream &os, std::wstring_view s)
+    inline void Output(std::wostream &os, std::wstring_view s)
     {
         os << s;
     }
 
     template <typename T, typename... Args>
-    inline void Log(std::wostream &os, std::wstring_view s, const T &next, const Args &...args)
+    inline void Output(std::wostream &os, std::wstring_view s, const T &next, const Args &...args)
     {
         auto index = s.find_first_of(L"{}");
         if (index == std::wstring::npos)
-            Log(os, s);
+            Output(os, s);
         else
         {
             std::wstring tmpS = s.data();
@@ -61,23 +27,57 @@ namespace lwscript
             sstr << next;
             tmpS.replace(index, 2, sstr.str());
             sstr.clear();
-            Log(os, tmpS, args...);
+            Output(os, tmpS, args...);
+        }
+    }
+
+    inline void Output(std::ostream &os, std::string_view s)
+    {
+        os << s;
+    }
+
+    template <typename T, typename... Args>
+    inline void Output(std::ostream &os, std::string_view s, const T &next, const Args &...args)
+    {
+        auto index = s.find_first_of("{}");
+        if (index == std::string::npos)
+            Output(os, s);
+        else
+        {
+            std::string tmpS = s.data();
+            std::stringstream sstr;
+            sstr << next;
+            tmpS.replace(index, 2, sstr.str());
+            sstr.clear();
+            Output(os, tmpS, args...);
         }
     }
 
     template <typename... Args>
-    inline void Println(const std::wstring& s, const Args &...args)
+    inline void Println(const std::wstring &s, const Args &...args)
     {
-        Log(std::wcout, s + L"\n", args...);
+        Output(std::wcout, s + L"\n", args...);
     }
 
     template <typename... Args>
     inline void Print(std::wstring_view s, const Args &...args)
     {
-        Log(std::wcout, s, args...);
+        Output(std::wcout, s, args...);
     }
 
-    namespace Hint
+    template <typename... Args>
+    inline void Println(const std::string &s, const Args &...args)
+    {
+        Output(std::cout, s + "\n", args...);
+    }
+
+    template <typename... Args>
+    inline void Print(std::string_view s, const Args &...args)
+    {
+        Output(std::cout, s, args...);
+    }
+
+    namespace Logger
     {
         namespace Record
         {
@@ -126,6 +126,28 @@ namespace lwscript
         }
 
         template <typename... Args>
+        inline void Error(const std::string &fmt, const Args &...args)
+        {
+            Println("\033[31m" + fmt + "\033[0m", args...);
+#ifndef NDEBUG
+            assert(0);
+#else
+            exit(1);
+#endif
+        }
+
+        template <typename... Args>
+        inline void Error(const std::wstring &fmt, const Args &...args)
+        {
+            Println(L"\033[31m" + fmt + L"\033[0m", args...);
+#ifndef NDEBUG
+            assert(0);
+#else
+            exit(1);
+#endif
+        }
+
+        template <typename... Args>
         inline void Error(uint64_t pos, const std::wstring &fmt, const Args &...args)
         {
             auto lineNum = 1;
@@ -134,17 +156,18 @@ namespace lwscript
                     lineNum++;
 
             AssemblyLogInfo(L"[ERROR]", L"31", lineNum, 1, pos, fmt, args...);
-#ifdef _DEBUG
+#ifndef NDEBUG
             assert(0);
 #else
             exit(1);
 #endif
         }
+
         template <typename... Args>
         inline void Error(const Token *tok, const std::wstring &fmt, const Args &...args)
         {
             AssemblyLogInfo(L"[ERROR]", L"31", tok->line, tok->column, tok->pos, fmt, args...);
-#ifdef _DEBUG
+#ifndef NDEBUG
             assert(0);
 #else
             exit(1);
@@ -163,9 +186,9 @@ namespace lwscript
         }
 
         template <typename... Args>
-        void Warn(Token tok, const std::wstring &fmt, const Args &...args)
+        void Warn(const Token *tok, const std::wstring &fmt, const Args &...args)
         {
-            AssemblyLogInfo(L"[WARN]", L"33", tok.line, tok.column, tok.pos, fmt, args...);
+            AssemblyLogInfo(L"[WARN]", L"33", tok->line, tok->column, tok->pos, fmt, args...);
         }
 
         template <typename... Args>
@@ -180,10 +203,9 @@ namespace lwscript
         }
 
         template <typename... Args>
-        void Info(Token tok, const std::wstring &fmt, const Args &...args)
+        void Info(const Token *tok, const std::wstring &fmt, const Args &...args)
         {
-            AssemblyLogInfo(L"[INFO]", L"32", tok.line, tok.pos, fmt, args...);
+            AssemblyLogInfo(L"[INFO]", L"32", tok->line, tok->column, tok->pos, fmt, args...);
         }
     }
-
 }
