@@ -2,12 +2,14 @@
 #include "VM.h"
 namespace lwscript
 {
+    SINGLETON_IMPL(Allocator)
 
-    Allocator::Allocator(VM* vm)
-        : mVM(vm), mObjectChain(nullptr)
+    Allocator::Allocator()
+        : mObjectChain(nullptr)
     {
         ResetStatus();
     }
+
     Allocator::~Allocator()
     {
         FreeObjects();
@@ -21,6 +23,16 @@ namespace lwscript
         mBytesAllocated = 0;
         mNextGCByteSize = 256;
         mObjectChain = nullptr;
+
+        mCallFrameTop = mCallFrameStack;
+        mStackTop = mValueStack;
+
+        mOpenUpValues = nullptr;
+
+        memset(mGlobalVariableList, 0, sizeof(Value) * GLOBAL_VARIABLE_MAX);
+
+        for (int32_t i = 0; i < LibraryManager::GetInstance()->GetLibraries().size(); ++i)
+            mGlobalVariableList[i] = LibraryManager::GetInstance()->GetLibraries()[i]->Clone();
     }
 
     void Allocator::FreeObjects()
@@ -37,7 +49,7 @@ namespace lwscript
         }
 
 #ifdef GC_DEBUG
-        Println(L"collected {} bytes (from {} to {}) next gc bytes {}", bytes - mBytesAllocated,bytes,mNextGCByteSize);
+        Println(L"collected {} bytes (from {} to {}) next gc bytes {}", bytes - mBytesAllocated, bytes, mNextGCByteSize);
 #endif
     }
 
@@ -60,13 +72,122 @@ namespace lwscript
 #endif
         }
     }
+
+    void Allocator::PushStack(const Value &value)
+    {
+        *(mStackTop++) = value;
+    }
+    Value Allocator::PopStack()
+    {
+        return *(--mStackTop);
+    }
+    Value Allocator::PeekStack(int32_t distance)
+    {
+        return *(mStackTop - distance - 1);
+    }
+
+    void Allocator::PushCallFrame(const CallFrame &callFrame)
+    {
+        *(mCallFrameTop++) = callFrame;
+    }
+
+    CallFrame *Allocator::PopCallFrame()
+    {
+        return --mCallFrameTop;
+    }
+
+    CallFrame *Allocator::PeekCallFrame(int32_t distance)
+    {
+        return mCallFrameTop - distance - 1;
+    }
+
+    bool Allocator::IsCallFrameStackEmpty()
+    {
+        return mCallFrameTop == mCallFrameStack;
+    }
+
+    size_t Allocator::CallFrameCount()
+    {
+        return mCallFrameTop - mCallFrameStack;
+    }
+
+    UpValueObject *Allocator::CaptureUpValue(Value *location)
+    {
+        UpValueObject *prevUpValue = nullptr;
+        UpValueObject *upValue = mOpenUpValues;
+
+        while (upValue != nullptr && upValue->location > location)
+        {
+            prevUpValue = upValue;
+            upValue = upValue->nextUpValue;
+        }
+
+        if (upValue != nullptr && upValue->location == location)
+            return upValue;
+
+        auto createdUpValue = CreateObject<UpValueObject>(location);
+        createdUpValue->nextUpValue = upValue;
+
+        if (prevUpValue == nullptr)
+            mOpenUpValues = createdUpValue;
+        else
+            prevUpValue->nextUpValue = createdUpValue;
+
+        return createdUpValue;
+    }
+    void Allocator::ClosedUpValues(Value *end)
+    {
+        while (mOpenUpValues != nullptr && mOpenUpValues->location >= end)
+        {
+            UpValueObject *upvalue = mOpenUpValues;
+            upvalue->closed = *upvalue->location;
+            upvalue->location = &upvalue->closed;
+            mOpenUpValues = upvalue->nextUpValue;
+        }
+    }
+
+    void Allocator::SetStackTop(Value *top)
+    {
+        mStackTop = top;
+    }
+
+    Value *Allocator::StackTop() const
+    {
+        return mStackTop;
+    }
+
+    Value *Allocator::Stack()
+    {
+        return mValueStack;
+    }
+
+    void Allocator::MoveStackTop(int32_t offset)
+    {
+        mStackTop += offset;
+    }
+
+    void Allocator::SetValueFromStackTopOffset(int32_t offset, const Value &value)
+    {
+        mStackTop[offset] = value;
+    }
+
+    Value *Allocator::GetGlobalVariable(size_t idx)
+    {
+        return &mGlobalVariableList[idx];
+    }
+
+    void Allocator::SetGlobalVariable(size_t idx, const Value &v)
+    {
+        mGlobalVariableList[idx] = v;
+    }
+
     void Allocator::GC()
     {
 #ifdef GC_DEBUG
         Println(L"begin gc");
         size_t bytes = mBytesAllocated;
 #endif
-        
+
         MarkRootObjects();
         MarkGrayObjects();
         Sweep();
@@ -77,19 +198,21 @@ namespace lwscript
         Println(L"    collected {} bytes (from {} to {}) next gc bytes {}", bytes - mBytesAllocated, bytes, mNextGCByteSize);
 #endif
     }
+
     void Allocator::MarkRootObjects()
     {
-        for (Value *slot = mVM->mValueStack; slot < mVM-> mStackTop; ++slot)
+        for (Value *slot = mValueStack; slot < mStackTop; ++slot)
             slot->Mark(this);
-        for (int32_t i = 0; i < mVM->mFrameCount; ++i)
-            mVM->mFrames[i].closure->Mark(this);
-        for (UpValueObject *upvalue = mVM->mOpenUpValues; upvalue != nullptr; upvalue = upvalue->nextUpValue)
+        for (CallFrame *slot = mCallFrameStack; slot < mCallFrameTop; ++slot)
+            slot->closure->Mark(this);
+        for (UpValueObject *upvalue = mOpenUpValues; upvalue != nullptr; upvalue = upvalue->nextUpValue)
             upvalue->Mark(this);
 
         for (int32_t i = 0; i < GLOBAL_VARIABLE_MAX; ++i)
-            if (mVM->mGlobalVariables[i] != Value())
-                mVM->mGlobalVariables[i].Mark(this);
+            if (mGlobalVariableList[i] != Value())
+                mGlobalVariableList[i].Mark(this);
     }
+
     void Allocator::MarkGrayObjects()
     {
         while (mGrayObjects.size() > 0)
@@ -99,6 +222,7 @@ namespace lwscript
             object->Blacken(this);
         }
     }
+
     void Allocator::Sweep()
     {
         Object *previous = nullptr;

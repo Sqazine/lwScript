@@ -99,7 +99,7 @@ namespace lwscript
 			{TokenKind::MATCH, &Parser::ParseMatchExpr},
 			{TokenKind::LPAREN_LBRACE, &Parser::ParseCompoundExpr},
 			{TokenKind::ELLIPSIS, &Parser::ParseVarArgExpr},
-			{TokenKind::STRUCT,&Parser::ParseStructExpr},
+			{TokenKind::STRUCT, &Parser::ParseStructExpr},
 	};
 
 	std::unordered_map<TokenKind, InfixFn> Parser::mInfixFunctions =
@@ -735,7 +735,7 @@ namespace lwscript
 		auto newExpr = new NewExpr(GetCurToken());
 
 		Consume(TokenKind::NEW, L"Expect 'new' keyword");
-		Expr *callee=ParseExpr();
+		Expr *callee = ParseExpr();
 		newExpr->callee = callee;
 		return newExpr;
 	}

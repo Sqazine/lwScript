@@ -350,7 +350,6 @@ namespace lwscript
 		return funcObj;
 	}
 
-
 	void FunctionObject::SetCache(const std::vector<Value> &arguments, const std::vector<Value> &result)
 	{
 		caches[arguments] = result;
@@ -381,7 +380,6 @@ namespace lwscript
 		}
 	}
 #endif
-
 
 	UpValueObject::UpValueObject()
 		: Object(ObjectKind::UPVALUE), location(nullptr), nextUpValue(nullptr)

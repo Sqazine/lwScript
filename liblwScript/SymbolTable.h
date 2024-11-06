@@ -36,7 +36,7 @@ namespace lwscript
         FunctionSymbolInfo functionSymInfo;
         UpValue upvalue; // available only while type is SymbolKind::UPVALUE
         bool isCaptured = false;
-        const Token* relatedToken;
+        const Token *relatedToken;
     };
     class SymbolTable
     {
@@ -44,9 +44,9 @@ namespace lwscript
         SymbolTable();
         SymbolTable(SymbolTable *enclosing);
 
-        Symbol Define(const Token* relatedToken, Privilege privilege, const std::wstring &name,const FunctionSymbolInfo& functionInfo={});
+        Symbol Define(const Token *relatedToken, Privilege privilege, const std::wstring &name, const FunctionSymbolInfo &functionInfo = {});
 
-        Symbol Resolve(const Token* relatedToken, const std::wstring &name, int8_t paramCount = -1 , int8_t d = 0);
+        Symbol Resolve(const Token *relatedToken, const std::wstring &name, int8_t paramCount = -1, int8_t d = 0);
 
         std::array<Symbol, UINT8_COUNT> mSymbols;
         uint8_t mSymbolCount;
@@ -58,7 +58,7 @@ namespace lwscript
         SymbolTable *enclosing;
 
     private:
-        UpValue AddUpValue(const Token* relatedToken, uint8_t location, uint8_t depth);
+        UpValue AddUpValue(const Token *relatedToken, uint8_t location, uint8_t depth);
         uint8_t mTableDepth; // Depth of symbol table nesting(related to symboltable's enclosing)
     };
 }

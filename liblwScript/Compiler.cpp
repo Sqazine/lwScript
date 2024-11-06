@@ -909,7 +909,7 @@ namespace lwscript
 			CompileExpr(v);
 			EmitConstant(new StrObject(k), v->tagToken);
 		}
-		EmitOpCode(OP_STRUCT_OBJ, expr->tagToken);
+		EmitOpCode(OP_STRUCT, expr->tagToken);
 		uint8_t pos = static_cast<uint8_t>(expr->elements.size());
 		Emit(pos);
 	}

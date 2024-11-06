@@ -1,67 +1,41 @@
 #include "VM.h"
 #include <iostream>
+#include "Allocator.h"
 #include "Utils.h"
 #include "Object.h"
 #include "Token.h"
 #include "Logger.h"
 namespace lwscript
 {
-	VM::VM()
-		: mOpenUpValues(nullptr), mStackTop(nullptr), mAllocator(nullptr)
-	{
-		ResetStatus();
-	}
-	VM::~VM()
-	{
-		SAFE_DELETE(mAllocator);
-	}
-
-	void VM::ResetStatus()
-	{
-		if (mAllocator)
-			SAFE_DELETE(mAllocator);
-
-		mAllocator = new Allocator(this);
-
-		mFrameCount = 0;
-		mStackTop = mValueStack;
-		mOpenUpValues = nullptr;
-
-		memset(mGlobalVariables, 0, sizeof(Value) * GLOBAL_VARIABLE_MAX);
-
-		for (int32_t i = 0; i < LibraryManager::GetInstance()->GetLibraries().size(); ++i)
-			mGlobalVariables[i] = LibraryManager::GetInstance()->GetLibraries()[i]->Clone();
-	}
-
 	std::vector<Value> VM::Run(FunctionObject *mainFunc)
 	{
-		ResetStatus();
+		REGISTER_TO_GC_RECORD_CHAIN(mainFunc);
 
-		mAllocator->RegisterToGCRecordChain(mainFunc);
+		PUSH_STACK(mainFunc);
+		auto closure = Allocator::GetInstance()->CreateObject<ClosureObject>(mainFunc);
+		POP_STACK();
 
-		Push(mainFunc);
-		auto closure = mAllocator->CreateObject<ClosureObject>(mainFunc);
-		Pop();
+		PUSH_STACK(closure);
 
-		Push(closure);
+		CallFrame mainCallFrame;
+		mainCallFrame.closure = closure;
+		mainCallFrame.ip = closure->function->chunk.opCodes.data();
+		mainCallFrame.slots = STACK_TOP() - 1;
 
-		CallFrame *mainCallFrame = &mFrames[mFrameCount++];
-		mainCallFrame->closure = closure;
-		mainCallFrame->ip = closure->function->chunk.opCodes.data();
-		mainCallFrame->slots = mStackTop - 1;
+		PUSH_CALL_FRAME(mainCallFrame);
 
 		Execute();
 
 		std::vector<Value> returnValues;
 #ifndef NDEBUG
-		if (mStackTop != mValueStack + 1)
+		if (STACK_TOP() != STACK() + 1)
 			Logger::Error(new Token(), L"Stack occupancy exception.");
 #endif
 
-		while (mStackTop != mValueStack + 1)
-			returnValues.emplace_back(Pop());
+		while (STACK_TOP() != STACK() + 1)
+			returnValues.emplace_back(POP_STACK());
 
-		Pop();
+		POP_STACK();
 
 		return returnValues;
 	}
@@ -72,20 +46,20 @@ namespace lwscript
 #define COMMON_BINARY(op)                                                                                                                                                                                    \
 	do                                                                                                                                                                                                       \
 	{                                                                                                                                                                                                        \
-		Value right = Pop();                                                                                                                                                                                 \
-		Value left = Pop();                                                                                                                                                                                  \
+		Value right = POP_STACK();                                                                                                                                                                           \
+		Value left = POP_STACK();                                                                                                                                                                            \
 		if (IS_REF_VALUE(left))                                                                                                                                                                              \
 			left = *TO_REF_VALUE(left)->pointer;                                                                                                                                                             \
 		if (IS_REF_VALUE(right))                                                                                                                                                                             \
 			right = *TO_REF_VALUE(right)->pointer;                                                                                                                                                           \
 		if (IS_INT_VALUE(left) && IS_INT_VALUE(right))                                                                                                                                                       \
-			Push(TO_INT_VALUE(left) op TO_INT_VALUE(right));                                                                                                                                                 \
+			PUSH_STACK(TO_INT_VALUE(left) op TO_INT_VALUE(right));                                                                                                                                           \
 		else if (IS_REAL_VALUE(left) && IS_REAL_VALUE(right))                                                                                                                                                \
-			Push(TO_REAL_VALUE(left) op TO_REAL_VALUE(right));                                                                                                                                               \
+			PUSH_STACK(TO_REAL_VALUE(left) op TO_REAL_VALUE(right));                                                                                                                                         \
 		else if (IS_INT_VALUE(left) && IS_REAL_VALUE(right))                                                                                                                                                 \
-			Push(TO_INT_VALUE(left) op TO_REAL_VALUE(right));                                                                                                                                                \
+			PUSH_STACK(TO_INT_VALUE(left) op TO_REAL_VALUE(right));                                                                                                                                          \
 		else if (IS_REAL_VALUE(left) && IS_INT_VALUE(right))                                                                                                                                                 \
-			Push(TO_REAL_VALUE(left) op TO_INT_VALUE(right));                                                                                                                                                \
+			PUSH_STACK(TO_REAL_VALUE(left) op TO_INT_VALUE(right));                                                                                                                                          \
 		else                                                                                                                                                                                                 \
 			Logger::Error(relatedToken, L"Invalid binary op:{}{}{},only (&)int-(&)int,(&)real-(&)real,(&)int-(&)real or (&)real-(&)int type pair is available.", left.ToString(), (L#op), right.ToString()); \
 	} while (0);
@@ -94,52 +68,52 @@ namespace lwscript
 #define INTEGER_BINARY(op)                                                                                                                                  \
 	do                                                                                                                                                      \
 	{                                                                                                                                                       \
-		Value right = Pop();                                                                                                                                \
-		Value left = Pop();                                                                                                                                 \
+		Value right = POP_STACK();                                                                                                                          \
+		Value left = POP_STACK();                                                                                                                           \
 		if (IS_REF_VALUE(left))                                                                                                                             \
 			left = *TO_REF_VALUE(left)->pointer;                                                                                                            \
 		if (IS_REF_VALUE(right))                                                                                                                            \
 			right = *TO_REF_VALUE(right)->pointer;                                                                                                          \
 		if (IS_INT_VALUE(left) && IS_INT_VALUE(right))                                                                                                      \
-			Push(TO_INT_VALUE(left) op TO_INT_VALUE(right));                                                                                                \
+			PUSH_STACK(TO_INT_VALUE(left) op TO_INT_VALUE(right));                                                                                          \
 		else                                                                                                                                                \
 			Logger::Error(relatedToken, L"Invalid binary op:{}{}{},only (&)int-(&)int type pair is available.", left.ToString(), (L#op), right.ToString()); \
 	} while (0);
 
 // > <
-#define COMPARE_BINARY(op)                                                    \
-	do                                                                        \
-	{                                                                         \
-		Value right = Pop();                                                  \
-		Value left = Pop();                                                   \
-		if (IS_REF_VALUE(left))                                               \
-			left = *TO_REF_VALUE(left)->pointer;                              \
-		if (IS_REF_VALUE(right))                                              \
-			right = *TO_REF_VALUE(right)->pointer;                            \
-		if (IS_INT_VALUE(left) && IS_INT_VALUE(right))                        \
-			Push(TO_INT_VALUE(left) op TO_INT_VALUE(right) ? true : false);   \
-		else if (IS_REAL_VALUE(left) && IS_REAL_VALUE(right))                 \
-			Push(TO_REAL_VALUE(left) op TO_REAL_VALUE(right) ? true : false); \
-		else if (IS_INT_VALUE(left) && IS_REAL_VALUE(right))                  \
-			Push(TO_INT_VALUE(left) op TO_REAL_VALUE(right) ? true : false);  \
-		else if (IS_REAL_VALUE(left) && IS_INT_VALUE(right))                  \
-			Push(TO_REAL_VALUE(left) op TO_INT_VALUE(right) ? true : false);  \
-		else                                                                  \
-			Push(false);                                                      \
+#define COMPARE_BINARY(op)                                                          \
+	do                                                                              \
+	{                                                                               \
+		Value right = POP_STACK();                                                  \
+		Value left = POP_STACK();                                                   \
+		if (IS_REF_VALUE(left))                                                     \
+			left = *TO_REF_VALUE(left)->pointer;                                    \
+		if (IS_REF_VALUE(right))                                                    \
+			right = *TO_REF_VALUE(right)->pointer;                                  \
+		if (IS_INT_VALUE(left) && IS_INT_VALUE(right))                              \
+			PUSH_STACK(TO_INT_VALUE(left) op TO_INT_VALUE(right) ? true : false);   \
+		else if (IS_REAL_VALUE(left) && IS_REAL_VALUE(right))                       \
+			PUSH_STACK(TO_REAL_VALUE(left) op TO_REAL_VALUE(right) ? true : false); \
+		else if (IS_INT_VALUE(left) && IS_REAL_VALUE(right))                        \
+			PUSH_STACK(TO_INT_VALUE(left) op TO_REAL_VALUE(right) ? true : false);  \
+		else if (IS_REAL_VALUE(left) && IS_INT_VALUE(right))                        \
+			PUSH_STACK(TO_REAL_VALUE(left) op TO_INT_VALUE(right) ? true : false);  \
+		else                                                                        \
+			PUSH_STACK(false);                                                      \
 	} while (0);
 
 // && ||
 #define LOGIC_BINARY(op)                                                                                                                                      \
 	do                                                                                                                                                        \
 	{                                                                                                                                                         \
-		Value right = Pop();                                                                                                                                  \
-		Value left = Pop();                                                                                                                                   \
+		Value right = POP_STACK();                                                                                                                            \
+		Value left = POP_STACK();                                                                                                                             \
 		if (IS_REF_VALUE(left))                                                                                                                               \
 			left = *TO_REF_VALUE(left)->pointer;                                                                                                              \
 		if (IS_REF_VALUE(right))                                                                                                                              \
 			right = *TO_REF_VALUE(right)->pointer;                                                                                                            \
 		if (IS_BOOL_VALUE(left) && IS_BOOL_VALUE(right))                                                                                                      \
-			Push(TO_BOOL_VALUE(left) op TO_BOOL_VALUE(right) ? Value(true) : Value(false));                                                                   \
+			PUSH_STACK(TO_BOOL_VALUE(left) op TO_BOOL_VALUE(right) ? Value(true) : Value(false));                                                             \
 		else                                                                                                                                                  \
 			Logger::Error(relatedToken, L"Invalid binary op:{}{}{},only (&)bool-(&)bool type pair is available.", left.ToString(), (L#op), right.ToString()); \
 	} while (0);
@@ -154,10 +128,12 @@ namespace lwscript
 	if (!IS_INT_VALUE(idxValue))  \
 		Logger::Error(relatedToken, L"Invalid idx type for array or string,only integer is available.");
 
-		CallFrame *frame = &mFrames[mFrameCount - 1];
-
 		while (1)
 		{
+			if (IS_CALL_FRAME_STACK_EMPTY())
+				return;
+			CallFrame *frame = PEEK_CALL_FRAME(0);
+
 			auto instruction = READ_INS();
 			auto relatedToken = frame->closure->function->chunk.opCodeRelatedTokens[READ_INS()];
 			switch (instruction)
@@ -165,41 +141,44 @@ namespace lwscript
 			case OP_RETURN:
 			{
 				auto retCount = READ_INS();
-				Value *retValues = mStackTop - retCount;
+				Value *retValues = STACK_TOP() - retCount;
 
-				ClosedUpValues(frame->slots);
+				CLOSED_UPVALUES(frame->slots);
 
-				mFrameCount--;
-				if (mFrameCount == 0)
+				if (IS_CALL_FRAME_STACK_EMPTY())
 					return;
 
-				mStackTop = frame->slots;
+				SET_STACK_TOP(frame->slots);
 
 				if (retCount == 0)
 				{
 					if (Config::GetInstance()->IsUseFunctionCache())
-						mFrames[mFrameCount].closure->function->SetCache(mFrames[mFrameCount].arguments, {Value()});
+					{
+						auto callFrameTop = PEEK_CALL_FRAME(0);
+						callFrameTop->closure->function->SetCache(callFrameTop->arguments, {Value()});
+					}
 
-					Push(Value());
+					PUSH_STACK(Value());
 				}
 				else
 				{
 					if (Config::GetInstance()->IsUseFunctionCache())
 					{
+						auto callFrameTop = PEEK_CALL_FRAME(0);
 						std::vector<Value> rets(retValues, retValues + retCount);
-						mFrames[mFrameCount].closure->function->SetCache(mFrames[mFrameCount].arguments, rets);
+						callFrameTop->closure->function->SetCache(callFrameTop->arguments, rets);
 					}
 
 					uint8_t i = 0;
 					while (i < retCount)
 					{
 						auto value = *(retValues + i);
-						Push(value);
+						PUSH_STACK(value);
 						i++;
 					}
 				}
 
-				frame = &mFrames[mFrameCount - 1];
+				frame = POP_CALL_FRAME();
 				break;
 			}
 			case OP_CONSTANT:
@@ -207,35 +186,38 @@ namespace lwscript
 				auto pos = READ_INS();
 				auto v = frame->closure->function->chunk.constants[pos];
 				auto vClone = v.Clone();
-				mAllocator->RegisterToGCRecordChain(vClone);
-				Push(vClone);
+				REGISTER_TO_GC_RECORD_CHAIN(vClone);
+				PUSH_STACK(vClone);
 				break;
 			}
 			case OP_NULL:
 			{
-				Push(Value());
+				PUSH_STACK(Value());
 				break;
 			}
 			case OP_SET_GLOBAL:
 			{
 				auto pos = READ_INS();
-				auto v = Peek();
-				if (IS_REF_VALUE(mGlobalVariables[pos]))
-					*TO_REF_VALUE(mGlobalVariables[pos])->pointer = v;
+				auto v = PEEK_STACK(0);
+
+				auto globalValue = GET_GLOBAL_VARIABLE(pos);
+
+				if (IS_REF_VALUE(*globalValue))
+					*TO_REF_VALUE(*globalValue)->pointer = v;
 				else
-					mGlobalVariables[pos] = v;
+					*globalValue = v;
 				break;
 			}
 			case OP_GET_GLOBAL:
 			{
 				auto pos = READ_INS();
-				Push(mGlobalVariables[pos]);
+				PUSH_STACK(*GET_GLOBAL_VARIABLE(pos));
 				break;
 			}
 			case OP_SET_LOCAL:
 			{
 				auto pos = READ_INS();
-				auto value = Peek();
+				auto value = PEEK_STACK(0);
 
 				auto slot = frame->slots + pos;
 
@@ -248,46 +230,46 @@ namespace lwscript
 			case OP_GET_LOCAL:
 			{
 				auto pos = READ_INS();
-				Push(frame->slots[pos]); // now assume base ptr on the stack bottom
+				PUSH_STACK(frame->slots[pos]); // now assume base ptr on the stack bottom
 				break;
 			}
 			case OP_SET_UPVALUE:
 			{
 				auto pos = READ_INS();
-				auto v = Peek();
-				*frame->closure->upvalues[pos]->location = Peek();
+				auto v = PEEK_STACK(0);
+				*frame->closure->upvalues[pos]->location = PEEK_STACK(0);
 				break;
 			}
 			case OP_GET_UPVALUE:
 			{
 				auto pos = READ_INS();
-				Push(*frame->closure->upvalues[pos]->location);
+				PUSH_STACK(*frame->closure->upvalues[pos]->location);
 				break;
 			}
 			case OP_CLOSE_UPVALUE:
 			{
-				ClosedUpValues(mStackTop - 1);
-				Pop();
+				CLOSED_UPVALUES(STACK_TOP() - 1);
+				POP_STACK();
 				break;
 			}
 			case OP_ADD:
 			{
-				Value left = Pop();
-				Value right = Pop();
+				Value left = POP_STACK();
+				Value right = POP_STACK();
 				if (IS_REF_VALUE(left))
 					left = *TO_REF_VALUE(left)->pointer;
 				if (IS_REF_VALUE(right))
 					right = *TO_REF_VALUE(right)->pointer;
 				if (IS_INT_VALUE(left) && IS_INT_VALUE(right))
-					Push(TO_INT_VALUE(left) + TO_INT_VALUE(right));
+					PUSH_STACK(TO_INT_VALUE(left) + TO_INT_VALUE(right));
 				else if (IS_REAL_VALUE(left) && IS_REAL_VALUE(right))
-					Push(TO_REAL_VALUE(left) + TO_REAL_VALUE(right));
+					PUSH_STACK(TO_REAL_VALUE(left) + TO_REAL_VALUE(right));
 				else if (IS_INT_VALUE(left) && IS_REAL_VALUE(right))
-					Push(TO_INT_VALUE(left) + TO_REAL_VALUE(right));
+					PUSH_STACK(TO_INT_VALUE(left) + TO_REAL_VALUE(right));
 				else if (IS_REAL_VALUE(left) && IS_INT_VALUE(right))
-					Push(TO_REAL_VALUE(left) + TO_INT_VALUE(right));
+					PUSH_STACK(TO_REAL_VALUE(left) + TO_INT_VALUE(right));
 				else if (IS_STR_VALUE(left) && IS_STR_VALUE(right))
-					Push(mAllocator->CreateObject<StrObject>(TO_STR_VALUE(left)->value + TO_STR_VALUE(right)->value));
+					PUSH_STACK(Allocator::GetInstance()->CreateObject<StrObject>(TO_STR_VALUE(left)->value + TO_STR_VALUE(right)->value));
 				else
 					Logger::Error(relatedToken, L"Invalid binary op:{}+{},only (&)int-(&)int,(&)real-(&)real,(&)int-(&)real or (&)real-(&)int type pair is available.", left.ToString(), right.ToString());
 				break;
@@ -344,45 +326,45 @@ namespace lwscript
 			}
 			case OP_NOT:
 			{
-				auto value = Pop();
+				auto value = POP_STACK();
 				if (IS_REF_VALUE(value))
 					value = *TO_REF_VALUE(value)->pointer;
 				if (!IS_BOOL_VALUE(value))
 					Logger::Error(relatedToken, L"Invalid op:!{}, only bool type is available.", value.ToString());
-				Push(!TO_BOOL_VALUE(value));
+				PUSH_STACK(!TO_BOOL_VALUE(value));
 				break;
 			}
 			case OP_EQUAL:
 			{
-				Value left = Pop();
-				Value right = Pop();
+				Value left = POP_STACK();
+				Value right = POP_STACK();
 				if (IS_REF_VALUE(left))
 					left = *TO_REF_VALUE(left)->pointer;
 				if (IS_REF_VALUE(right))
 					right = *TO_REF_VALUE(right)->pointer;
-				Push(left == right);
+				PUSH_STACK(left == right);
 				break;
 			}
 			case OP_MINUS:
 			{
-				auto value = Pop();
+				auto value = POP_STACK();
 				if (IS_REF_VALUE(value))
 					value = *TO_REF_VALUE(value)->pointer;
 				if (IS_INT_VALUE(value))
-					Push(-TO_INT_VALUE(value));
+					PUSH_STACK(-TO_INT_VALUE(value));
 				else if (IS_REAL_VALUE(value))
-					Push(-TO_REAL_VALUE(value));
+					PUSH_STACK(-TO_REAL_VALUE(value));
 				else
 					Logger::Error(relatedToken, L"Invalid op:-{}, only -(int||real expr) is available.", value.ToString());
 				break;
 			}
 			case OP_FACTORIAL:
 			{
-				auto value = Pop();
+				auto value = POP_STACK();
 				if (IS_REF_VALUE(value))
 					value = *TO_REF_VALUE(value)->pointer;
 				if (IS_INT_VALUE(value))
-					Push(Factorial(TO_INT_VALUE(value)));
+					PUSH_STACK(Factorial(TO_INT_VALUE(value)));
 				else
 					Logger::Error(relatedToken, L"Invalid op:{}!, only (int expr)! is available.", value.ToString());
 				break;
@@ -393,13 +375,13 @@ namespace lwscript
 
 				std::vector<Value> elements(count);
 				size_t i = 0;
-				for (auto e = mStackTop - count; e < mStackTop; ++e, ++i)
+				for (auto e = STACK_TOP() - count; e < STACK_TOP(); ++e, ++i)
 					elements[i] = *e;
-				auto arrayObject = mAllocator->CreateObject<ArrayObject>(elements);
+				auto arrayObject = Allocator::GetInstance()->CreateObject<ArrayObject>(elements);
 
-				mStackTop -= count;
+				MOVE_STACK_TOP(-count);
 
-				Push(arrayObject);
+				PUSH_STACK(arrayObject);
 				break;
 			}
 			case OP_DICT:
@@ -408,17 +390,17 @@ namespace lwscript
 				ValueUnorderedMap elements;
 				for (int64_t i = 0; i < (int64_t)eCount; ++i)
 				{
-					auto key = Pop();
-					auto value = Pop();
+					auto key = POP_STACK();
+					auto value = POP_STACK();
 					elements[key] = value;
 				}
-				Push(mAllocator->CreateObject<DictObject>(elements));
+				PUSH_STACK(Allocator::GetInstance()->CreateObject<DictObject>(elements));
 				break;
 			}
 			case OP_GET_INDEX:
 			{
-				auto idxValue = Pop();
-				auto dsValue = Pop();
+				auto idxValue = POP_STACK();
+				auto dsValue = POP_STACK();
 				if (IS_ARRAY_VALUE(dsValue))
 				{
 					auto array = TO_ARRAY_VALUE(dsValue);
@@ -427,7 +409,7 @@ namespace lwscript
 					auto intIdx = array->NormalizeIdx(TO_INT_VALUE(idxValue));
 					CHECK_IDX_RANGE(array->elements, intIdx);
 
-					Push(array->elements[intIdx]);
+					PUSH_STACK(array->elements[intIdx]);
 				}
 				else if (IS_STR_VALUE(dsValue))
 				{
@@ -435,7 +417,7 @@ namespace lwscript
 					CHECK_IDX_VALID(idxValue)
 					auto intIdx = strObj->NormalizeIdx(TO_INT_VALUE(idxValue));
 					CHECK_IDX_RANGE(strObj->value, intIdx);
-					Push(mAllocator->CreateObject<StrObject>(strObj->value.substr(intIdx, 1)));
+					PUSH_STACK(Allocator::GetInstance()->CreateObject<StrObject>(strObj->value.substr(intIdx, 1)));
 				}
 				else if (IS_DICT_VALUE(dsValue))
 				{
@@ -444,7 +426,7 @@ namespace lwscript
 					auto iter = dict->elements.find(idxValue);
 
 					if (iter != dict->elements.end())
-						Push(iter->second);
+						PUSH_STACK(iter->second);
 					else
 						Logger::Error(relatedToken, L"No key in dict");
 				}
@@ -452,9 +434,9 @@ namespace lwscript
 			}
 			case OP_SET_INDEX:
 			{
-				auto idxValue = Pop();
-				auto dsValue = Pop();
-				auto newValue = Peek();
+				auto idxValue = POP_STACK();
+				auto dsValue = POP_STACK();
+				auto newValue = PEEK_STACK(0);
 				if (IS_ARRAY_VALUE(dsValue))
 				{
 					auto array = TO_ARRAY_VALUE(dsValue);
@@ -484,13 +466,13 @@ namespace lwscript
 			}
 			case OP_POP:
 			{
-				Pop();
+				POP_STACK();
 				break;
 			}
 			case OP_JUMP_IF_FALSE:
 			{
 				uint16_t address = (*(frame->ip++) << 8) | (*(frame->ip++));
-				if (IsFalsey(Peek()))
+				if (IsFalsey(PEEK_STACK(0)))
 					frame->ip += address;
 				break;
 			}
@@ -509,53 +491,56 @@ namespace lwscript
 			case OP_REF_GLOBAL:
 			{
 				auto index = READ_INS();
-				Push(mAllocator->CreateObject<RefObject>(&mGlobalVariables[index]));
+				PUSH_STACK(Allocator::GetInstance()->CreateObject<RefObject>(GET_GLOBAL_VARIABLE(index)));
 				break;
 			}
 			case OP_REF_LOCAL:
 			{
 				auto index = READ_INS();
-				Push(mAllocator->CreateObject<RefObject>(frame->slots + index));
+				PUSH_STACK(Allocator::GetInstance()->CreateObject<RefObject>(frame->slots + index));
 				break;
 			}
 			case OP_REF_UPVALUE:
 			{
 				auto index = READ_INS();
-				Push(mAllocator->CreateObject<RefObject>(frame->closure->upvalues[index]->location));
+				PUSH_STACK(Allocator::GetInstance()->CreateObject<RefObject>(frame->closure->upvalues[index]->location));
 				break;
 			}
 			case OP_REF_INDEX_GLOBAL:
 			{
 				auto index = READ_INS();
-				auto idxValue = Pop();
-				if (IS_DICT_VALUE(mGlobalVariables[index]))
-					Push(mAllocator->CreateObject<RefObject>(&TO_DICT_VALUE(mGlobalVariables[index])->elements[idxValue]));
-				else if (IS_ARRAY_VALUE(mGlobalVariables[index]))
+				auto idxValue = POP_STACK();
+
+				auto globalValue = GET_GLOBAL_VARIABLE(index);
+
+				if (IS_DICT_VALUE(*globalValue))
+					PUSH_STACK(Allocator::GetInstance()->CreateObject<RefObject>(&TO_DICT_VALUE(*globalValue)->elements[idxValue]));
+				else if (IS_ARRAY_VALUE(*globalValue))
 				{
-					auto array = TO_ARRAY_VALUE(mGlobalVariables[index]);
+					auto array = TO_ARRAY_VALUE(*globalValue);
 					CHECK_IDX_VALID(idxValue)
 					auto intIdx = array->NormalizeIdx(TO_INT_VALUE(idxValue));
 					CHECK_IDX_RANGE(array->elements, intIdx);
-					Push(mAllocator->CreateObject<RefObject>(&(array->elements[intIdx])));
+					PUSH_STACK(Allocator::GetInstance()->CreateObject<RefObject>(&(array->elements[intIdx])));
 				}
 				else
-					Logger::Error(relatedToken, L"Invalid indexed reference type:{} not a dict or array value.", mGlobalVariables[index].ToString());
+					Logger::Error(relatedToken, L"Invalid indexed reference type:{} not a dict or array value.", globalValue->ToString());
 				break;
 			}
 			case OP_REF_INDEX_LOCAL:
 			{
 				auto index = READ_INS();
-				auto idxValue = Pop();
+				auto idxValue = POP_STACK();
 				Value *v = frame->slots + index;
 				if (IS_DICT_VALUE((*v)))
-					Push(mAllocator->CreateObject<RefObject>(&TO_DICT_VALUE((*v))->elements[idxValue]));
+					PUSH_STACK(Allocator::GetInstance()->CreateObject<RefObject>(&TO_DICT_VALUE((*v))->elements[idxValue]));
 				else if (IS_ARRAY_VALUE((*v)))
 				{
 					auto array = TO_ARRAY_VALUE((*v));
 					CHECK_IDX_VALID(idxValue)
 					auto intIdx = array->NormalizeIdx(TO_INT_VALUE(idxValue));
 					CHECK_IDX_RANGE(array->elements, intIdx);
-					Push(mAllocator->CreateObject<RefObject>(&array->elements[intIdx]));
+					PUSH_STACK(Allocator::GetInstance()->CreateObject<RefObject>(&array->elements[intIdx]));
 				}
 				else
 					Logger::Error(relatedToken, L"Invalid indexed reference type:{} not a dict or array value.", v->ToString());
@@ -564,17 +549,17 @@ namespace lwscript
 			case OP_REF_INDEX_UPVALUE:
 			{
 				auto index = READ_INS();
-				auto idxValue = Pop();
+				auto idxValue = POP_STACK();
 				Value *v = frame->closure->upvalues[index]->location;
 				if (IS_DICT_VALUE((*v)))
-					Push(mAllocator->CreateObject<RefObject>(&TO_DICT_VALUE((*v))->elements[idxValue]));
+					PUSH_STACK(Allocator::GetInstance()->CreateObject<RefObject>(&TO_DICT_VALUE((*v))->elements[idxValue]));
 				else if (IS_ARRAY_VALUE((*v)))
 				{
 					auto array = TO_ARRAY_VALUE((*v));
 					CHECK_IDX_VALID(idxValue)
 					auto intIdx = array->NormalizeIdx(TO_INT_VALUE(idxValue));
 					CHECK_IDX_RANGE(array->elements, intIdx)
-					Push(mAllocator->CreateObject<RefObject>(&array->elements[intIdx]));
+					PUSH_STACK(Allocator::GetInstance()->CreateObject<RefObject>(&array->elements[intIdx]));
 				}
 				else
 					Logger::Error(relatedToken, L"Invalid indexed reference type: {}  not a dict or array value.", v->ToString());
@@ -583,13 +568,14 @@ namespace lwscript
 			case OP_CALL:
 			{
 				auto argCount = READ_INS();
-				auto callee = Peek(argCount);
+				auto callee = PEEK_STACK(argCount);
 				if (IS_CLOSURE_VALUE(callee) || IS_CLASS_CLOSURE_BIND_VALUE(callee)) // normal function or class member function
 				{
 					if (IS_CLASS_CLOSURE_BIND_VALUE(callee))
 					{
 						auto binding = TO_CLASS_CLOSURE_BIND_VALUE(callee);
-						mStackTop[-argCount - 1] = binding->receiver;
+
+						SET_VALUE_FROM_STACK_TOP_OFFSET(-(argCount + 1), binding->receiver);
 						callee = binding->closure;
 					}
 
@@ -602,7 +588,7 @@ namespace lwscript
 							{
 								if (TO_CLOSURE_VALUE(callee)->function->varArg == VarArg::WITH_NAME)
 								{
-									Push(new ArrayObject());
+									PUSH_STACK(new ArrayObject());
 									argCount = arity;
 								}
 								else
@@ -618,14 +604,14 @@ namespace lwscript
 							{
 								std::vector<Value> varArgs;
 								for (int32_t i = 0; i < diff; ++i)
-									varArgs.insert(varArgs.begin(), Pop());
-								Push(new ArrayObject(varArgs));
+									varArgs.insert(varArgs.begin(), POP_STACK());
+								PUSH_STACK(new ArrayObject(varArgs));
 								argCount = arity;
 							}
 							else
 							{
 								for (int32_t i = 0; i < diff; ++i)
-									Pop();
+									POP_STACK();
 								argCount = arity - 1;
 							}
 						}
@@ -633,26 +619,24 @@ namespace lwscript
 					else if (argCount != TO_CLOSURE_VALUE(callee)->function->arity)
 						Logger::Error(relatedToken, L"No matching argument count.");
 
-					std::vector<Value> args(mStackTop - argCount, mStackTop);
+					std::vector<Value> args(STACK_TOP() - argCount, STACK_TOP());
 					std::vector<Value> rets;
 					if (Config::GetInstance()->IsUseFunctionCache() && TO_CLOSURE_VALUE(callee)->function->GetCache(args, rets))
 					{
-						mStackTop = mStackTop - argCount - 1;
+						MOVE_STACK_TOP(-(argCount + 1));
 						for (int32_t i = 0; i < rets.size(); ++i)
-							Push(rets[i]);
+							PUSH_STACK(rets[i]);
 					}
 					else
 					{
-
 						// init a new frame
-						CallFrame *newframe = &mFrames[mFrameCount++];
-						newframe->closure = TO_CLOSURE_VALUE(callee);
-						newframe->ip = newframe->closure->function->chunk.opCodes.data();
-						newframe->slots = mStackTop - argCount - 1;
+						CallFrame newframe;
+						newframe.closure = TO_CLOSURE_VALUE(callee);
+						newframe.ip = newframe.closure->function->chunk.opCodes.data();
+						newframe.slots = STACK_TOP() - argCount - 1;
 						if (Config::GetInstance()->IsUseFunctionCache())
-							newframe->arguments = args;
-
-						frame = &mFrames[mFrameCount - 1];
+							newframe.arguments = args;
+						PUSH_CALL_FRAME(newframe);
 					}
 				}
 				else if (IS_CLASS_VALUE(callee)) // class constructor
@@ -671,26 +655,24 @@ namespace lwscript
 
 						auto ctor = iter->second;
 						// init a new frame
-						CallFrame *newframe = &mFrames[mFrameCount++];
-						newframe->closure = ctor;
-						newframe->ip = newframe->closure->function->chunk.opCodes.data();
-						newframe->slots = mStackTop - argCount - 1;
-
-						frame = &mFrames[mFrameCount - 1];
+						CallFrame newframe;
+						newframe.closure = ctor;
+						newframe.ip = newframe.closure->function->chunk.opCodes.data();
+						newframe.slots = STACK_TOP() - argCount - 1;
 					}
 				}
 				else if (IS_NATIVE_FUNCTION_VALUE(callee)) // native function
 				{
 
 					Value result;
-					auto hasRetV = TO_NATIVE_FUNCTION_VALUE(callee)->fn(mStackTop - argCount, argCount, relatedToken, result);
+					auto hasRetV = TO_NATIVE_FUNCTION_VALUE(callee)->fn(STACK_TOP() - argCount, argCount, relatedToken, result);
 
-					mStackTop -= argCount + 1;
+					MOVE_STACK_TOP(-(argCount + 1));
 
 					if (hasRetV)
-						Push(result);
+						PUSH_STACK(result);
 					else
-						Push(Value());
+						PUSH_STACK(Value());
 				}
 				else
 					Logger::Error(relatedToken, L"Invalid callee,Only function is available: {}", callee.ToString());
@@ -698,69 +680,69 @@ namespace lwscript
 			}
 			case OP_CLASS:
 			{
-				auto name = Peek();
+				auto name = PEEK_STACK(0);
 				auto ctorCount = READ_INS();
 				auto varCount = READ_INS();
 				auto constCount = READ_INS();
 				auto parentClassCount = READ_INS();
 
-				auto classObj = mAllocator->CreateObject<ClassObject>();
+				auto classObj = Allocator::GetInstance()->CreateObject<ClassObject>();
 				classObj->name = TO_STR_VALUE(name)->value;
-				Pop(); // pop name strobject
+				POP_STACK(); // pop name strobject
 
 				for (int32_t i = 0; i < ctorCount; ++i)
 				{
-					auto v = TO_CLOSURE_VALUE(Pop());
+					auto v = TO_CLOSURE_VALUE(POP_STACK());
 					classObj->constructors[v->function->arity] = v;
 				}
 
 				for (int32_t i = 0; i < parentClassCount; ++i)
 				{
-					name = Pop();
-					auto parentClass = Pop();
+					name = POP_STACK();
+					auto parentClass = POP_STACK();
 					classObj->parents[TO_STR_VALUE(name)->value] = TO_CLASS_VALUE(parentClass);
 				}
 
 				for (int32_t i = 0; i < varCount; ++i)
 				{
-					name = Pop();
-					auto v = Pop();
+					name = POP_STACK();
+					auto v = POP_STACK();
 					v.privilege = Privilege::MUTABLE;
 					classObj->members[TO_STR_VALUE(name)->value] = v;
 				}
 
 				for (int32_t i = 0; i < constCount; ++i)
 				{
-					name = Pop();
-					auto v = Pop();
+					name = POP_STACK();
+					auto v = POP_STACK();
 					v.privilege = Privilege::IMMUTABLE;
 					classObj->members[TO_STR_VALUE(name)->value] = v;
 				}
 
-				Push(classObj);
+				PUSH_STACK(classObj);
 				break;
 			}
-			case OP_STRUCT_OBJ:
+			case OP_STRUCT:
 			{
 				auto eCount = READ_INS();
 				std::unordered_map<std::wstring, Value> elements;
 				for (int64_t i = 0; i < (int64_t)eCount; ++i)
 				{
-					auto key = TO_STR_VALUE(Pop())->value;
-					auto value = Pop();
+					auto key = TO_STR_VALUE(POP_STACK())->value;
+					auto value = POP_STACK();
 					elements[key] = value;
 				}
-				Push(mAllocator->CreateObject<StructObject>(elements));
+				PUSH_STACK(Allocator::GetInstance()->CreateObject<StructObject>(elements));
 				break;
 			}
 			case OP_GET_PROPERTY:
 			{
-				auto peekValue = Peek(1);
+				auto peekValue = PEEK_STACK(1);
 
 				if (IS_REF_VALUE(peekValue))
 					peekValue = *(TO_REF_VALUE(peekValue)->pointer);
 
-				auto propName = TO_STR_VALUE(Pop())->value;
+				auto propName = TO_STR_VALUE(POP_STACK())->value;
 				if (IS_CLASS_VALUE(peekValue))
 				{
 					ClassObject *klass = TO_CLASS_VALUE(peekValue);
@@ -768,13 +750,13 @@ namespace lwscript
 					Value member;
 					if (klass->GetMember(propName, member))
 					{
-						Pop(); // pop class object
+						POP_STACK(); // pop class object
 						if (IS_CLOSURE_VALUE(member))
 						{
-							ClassClosureBindObject *binding = mAllocator->CreateObject<ClassClosureBindObject>(klass, TO_CLOSURE_VALUE(member));
+							ClassClosureBindObject *binding = Allocator::GetInstance()->CreateObject<ClassClosureBindObject>(klass, TO_CLOSURE_VALUE(member));
 							member = Value(binding);
 						}
-						Push(member);
+						PUSH_STACK(member);
 						break;
 					}
 					else
@@ -787,8 +769,8 @@ namespace lwscript
 					Value member;
 					if (enumObj->GetMember(propName, member))
 					{
-						Pop(); // pop enum object
-						Push(member);
+						POP_STACK(); // pop enum object
+						PUSH_STACK(member);
 						break;
 					}
 					else
@@ -800,8 +782,8 @@ namespace lwscript
 					auto iter = structObj->elements.find(propName);
 					if (iter == structObj->elements.end())
 						Logger::Error(relatedToken, L"No property: {} in struct object:{}.", propName, structObj->ToString());
-					Pop(); // pop struct object
-					Push(iter->second);
+					POP_STACK(); // pop struct object
+					PUSH_STACK(iter->second);
 					break;
 				}
 				else if (IS_MODULE_VALUE(peekValue))
@@ -810,8 +792,8 @@ namespace lwscript
 					Value member;
 					if (moduleObj->GetMember(propName, member))
 					{
-						Pop(); // pop module object
-						Push(member);
+						POP_STACK(); // pop module object
+						PUSH_STACK(member);
 						break;
 					}
 					else
@@ -824,16 +806,16 @@ namespace lwscript
 			}
 			case OP_SET_PROPERTY:
 			{
-				auto peekValue = Peek(1);
+				auto peekValue = PEEK_STACK(1);
 
 				if (IS_REF_VALUE(peekValue))
 					peekValue = *(TO_REF_VALUE(peekValue)->pointer);
 
-				auto propName = TO_STR_VALUE(Pop())->value;
+				auto propName = TO_STR_VALUE(POP_STACK())->value;
 				if (IS_CLASS_VALUE(peekValue))
 				{
 					auto klass = TO_CLASS_VALUE(peekValue);
-					Pop(); // pop class value
+					POP_STACK(); // pop class value
 
 					Value member;
 					if (klass->GetMember(propName, member))
@@ -841,7 +823,7 @@ namespace lwscript
 						if (member.privilege == Privilege::IMMUTABLE)
 							Logger::Error(relatedToken, L"Constant cannot be assigned twice: {}'s member: {} is a constant value", klass->name, propName);
 						else
-							klass->members[propName] = Peek();
+							klass->members[propName] = PEEK_STACK(0);
 					}
 					else
 						Logger::Error(relatedToken, L"No member named: {} in class: {}", propName, klass->name);
@@ -852,8 +834,8 @@ namespace lwscript
 					auto iter = structObj->elements.find(propName);
 					if (iter == structObj->elements.end())
 						Logger::Error(relatedToken, L"No property: {} in struct object:{}", propName, structObj->ToString());
-					Pop(); // pop struct object
-					structObj->elements[iter->first] = Peek();
+					POP_STACK(); // pop struct object
+					structObj->elements[iter->first] = PEEK_STACK(0);
 					break;
 				}
 				else if (IS_ENUM_VALUE(peekValue))
@@ -864,44 +846,44 @@ namespace lwscript
 			}
 			case OP_GET_BASE:
 			{
-				if (!IS_CLASS_VALUE(Peek(1)))
+				if (!IS_CLASS_VALUE(PEEK_STACK(1)))
 					Logger::Error(relatedToken, L"Invalid class call:not a valid class instance.");
-				auto propName = TO_STR_VALUE(Pop())->value;
-				auto klass = TO_CLASS_VALUE(Pop());
+				auto propName = TO_STR_VALUE(POP_STACK())->value;
+				auto klass = TO_CLASS_VALUE(POP_STACK());
 				Value member;
 				bool hasValue = klass->GetParentMember(propName, member);
 				if (!hasValue)
 					Logger::Error(relatedToken, L"No member: {} in class: {}'s parent class(es).", propName, klass->name);
-				Push(member);
+				PUSH_STACK(member);
 				break;
 			}
 			case OP_CLOSURE:
 			{
 				auto pos = READ_INS();
 				auto func = TO_FUNCTION_VALUE(frame->closure->function->chunk.constants[pos]);
-				mAllocator->RegisterToGCRecordChain(func);
-				auto closure = mAllocator->CreateObject<ClosureObject>(func);
+				REGISTER_TO_GC_RECORD_CHAIN(func);
+				auto closure = Allocator::GetInstance()->CreateObject<ClosureObject>(func);
 
 				for (int32_t i = 0; i < closure->upvalues.size(); ++i)
 				{
 					auto index = READ_INS();
 					auto depth = READ_INS();
-					if (depth == mFrameCount - 1)
+					if (depth == CALL_FRAME_COUNT() - 1)
 					{
-						auto captured = CaptureUpValue(frame->slots + index);
+						auto captured = CAPTURE_UPVALUE(frame->slots + index);
 						closure->upvalues[i] = captured;
 					}
 					else
 						closure->upvalues[i] = frame->closure->upvalues[index];
 				}
 
-				Push(closure);
+				PUSH_STACK(closure);
 				break;
 			}
 			case OP_APPREGATE_RESOLVE:
 			{
 				auto count = READ_INS();
-				auto value = Pop();
+				auto value = POP_STACK();
 				if (IS_ARRAY_VALUE(value))
 				{
 					auto arrayObj = TO_ARRAY_VALUE(value);
@@ -910,16 +892,16 @@ namespace lwscript
 						auto diff = count - arrayObj->elements.size();
 						while (diff > 0)
 						{
-							Push(Value());
+							PUSH_STACK(Value());
 							diff--;
 						}
 						for (int32_t i = static_cast<int32_t>(arrayObj->elements.size() - 1); i >= 0; --i)
-							Push(arrayObj->elements[i]);
+							PUSH_STACK(arrayObj->elements[i]);
 					}
 					else
 					{
 						for (int32_t i = count - 1; i >= 0; --i)
-							Push(arrayObj->elements[i]);
+							PUSH_STACK(arrayObj->elements[i]);
 					}
 				}
 				else
@@ -927,18 +909,18 @@ namespace lwscript
 					auto diff = count - 1;
 					while (diff > 0)
 					{
-						Push(Value());
+						PUSH_STACK(Value());
 						diff--;
 					}
 
-					Push(value);
+					PUSH_STACK(value);
 				}
 				break;
 			}
 			case OP_APPREGATE_RESOLVE_VAR_ARG:
 			{
 				auto count = READ_INS();
-				auto value = Pop();
+				auto value = POP_STACK();
 				if (IS_ARRAY_VALUE(value))
 				{
 					auto arrayObj = TO_ARRAY_VALUE(value);
@@ -949,23 +931,23 @@ namespace lwscript
 						for (int32_t i = static_cast<int32_t>(diff); i > 0; --i)
 						{
 							if (i == diff)
-								Push(mAllocator->CreateObject<ArrayObject>());
+								PUSH_STACK(Allocator::GetInstance()->CreateObject<ArrayObject>());
 							else
-								Push(Value());
+								PUSH_STACK(Value());
 						}
 
 						for (int32_t i = static_cast<int32_t>(arrayObj->elements.size() - 1); i >= 0; --i)
-							Push(arrayObj->elements[i]);
+							PUSH_STACK(arrayObj->elements[i]);
 					}
 					else
 					{
-						ArrayObject *varArgArray = mAllocator->CreateObject<ArrayObject>();
+						ArrayObject *varArgArray = Allocator::GetInstance()->CreateObject<ArrayObject>();
 						for (int32_t i = count - 1; i < arrayObj->elements.size(); ++i)
 							varArgArray->elements.emplace_back(arrayObj->elements[i]);
-						Push(varArgArray);
+						PUSH_STACK(varArgArray);
 
 						for (int32_t i = count - 2; i >= 0; --i)
-							Push(arrayObj->elements[i]);
+							PUSH_STACK(arrayObj->elements[i]);
 					}
 				}
 				else
@@ -973,44 +955,44 @@ namespace lwscript
 					auto diff = count - 2;
 					while (diff > 0)
 					{
-						Push(Value());
+						PUSH_STACK(Value());
 						diff--;
 					}
 
-					Push(mAllocator->CreateObject<ArrayObject>());
-					Push(value);
+					PUSH_STACK(Allocator::GetInstance()->CreateObject<ArrayObject>());
+					PUSH_STACK(value);
 				}
 				break;
 			}
 			case OP_MODULE:
 			{
-				auto name = Peek();
+				auto name = PEEK_STACK(0);
 				auto nameStr = TO_STR_VALUE(name)->value;
 
 				auto varCount = READ_INS();
 				auto constCount = READ_INS();
 
-				auto moduleObj = mAllocator->CreateObject<ModuleObject>();
+				auto moduleObj = Allocator::GetInstance()->CreateObject<ModuleObject>();
 				moduleObj->name = nameStr;
-				Pop(); // pop name strobject
+				POP_STACK(); // pop name strobject
 
 				for (int32_t i = 0; i < constCount; ++i)
 				{
-					name = Pop();
-					auto v = Pop();
+					name = POP_STACK();
+					auto v = POP_STACK();
 					v.privilege = Privilege::IMMUTABLE;
 					moduleObj->values[nameStr] = v;
 				}
 
 				for (int32_t i = 0; i < varCount; ++i)
 				{
-					name = Pop();
-					auto v = Pop();
+					name = POP_STACK();
+					auto v = POP_STACK();
 					v.privilege = Privilege::MUTABLE;
 					moduleObj->values[nameStr] = v;
 				}
 
-				Push(moduleObj);
+				PUSH_STACK(moduleObj);
 
 				break;
 			}
@@ -1020,13 +1002,13 @@ namespace lwscript
 				std::vector<Value> values(count);
 				std::vector<Value> keys(count);
 				for (int32_t i = count - 1; i >= 0; --i)
-					keys[i] = Pop();
+					keys[i] = POP_STACK();
 				for (uint32_t i = 0; i < count; ++i)
-					values[i] = Pop();
+					values[i] = POP_STACK();
 				for (uint32_t i = 0; i < count; ++i)
 				{
-					Push(values[i]);
-					Push(keys[i]);
+					PUSH_STACK(values[i]);
+					PUSH_STACK(keys[i]);
 				}
 				break;
 			}
@@ -1039,54 +1021,5 @@ namespace lwscript
 	bool VM::IsFalsey(const Value &v)
 	{
 		return IS_NULL_VALUE(v) || (IS_BOOL_VALUE(v) && !TO_BOOL_VALUE(v));
-	}
-
-	void VM::Push(const Value &value)
-	{
-		*(mStackTop++) = value;
-	}
-	Value VM::Pop()
-	{
-		return *(--mStackTop);
-	}
-
-	Value VM::Peek(int32_t distance)
-	{
-		return *(mStackTop - distance - 1);
-	}
-
-	UpValueObject *VM::CaptureUpValue(Value *location)
-	{
-		UpValueObject *prevUpValue = nullptr;
-		UpValueObject *upValue = mOpenUpValues;
-
-		while (upValue != nullptr && upValue->location > location)
-		{
-			prevUpValue = upValue;
-			upValue = upValue->nextUpValue;
-		}
-
-		if (upValue != nullptr && upValue->location == location)
-			return upValue;
-
-		auto createdUpValue = mAllocator->CreateObject<UpValueObject>(location);
-		createdUpValue->nextUpValue = upValue;
-
-		if (prevUpValue == nullptr)
-			mOpenUpValues = createdUpValue;
-		else
-			prevUpValue->nextUpValue = createdUpValue;
-
-		return createdUpValue;
-	}
-	void VM::ClosedUpValues(Value *end)
-	{
-		while (mOpenUpValues != nullptr && mOpenUpValues->location >= end)
-		{
-			UpValueObject *upvalue = mOpenUpValues;
-			upvalue->closed = *upvalue->location;
-			upvalue->location = &upvalue->closed;
-			mOpenUpValues = upvalue->nextUpValue;
-		}
 	}
 }

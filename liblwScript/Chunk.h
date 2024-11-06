@@ -50,7 +50,7 @@ namespace lwscript
         OP_REF_INDEX_UPVALUE,
         OP_CALL,
         OP_CLASS,
-        OP_STRUCT_OBJ,
+        OP_STRUCT,
         OP_SET_PROPERTY,
         OP_GET_PROPERTY,
         OP_GET_BASE,
