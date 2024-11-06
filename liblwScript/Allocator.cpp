@@ -202,15 +202,15 @@ namespace lwscript
     void Allocator::MarkRootObjects()
     {
         for (Value *slot = mValueStack; slot < mStackTop; ++slot)
-            slot->Mark(this);
+            slot->Mark();
         for (CallFrame *slot = mCallFrameStack; slot < mCallFrameTop; ++slot)
-            slot->closure->Mark(this);
+            slot->closure->Mark();
         for (UpValueObject *upvalue = mOpenUpValues; upvalue != nullptr; upvalue = upvalue->nextUpValue)
-            upvalue->Mark(this);
+            upvalue->Mark();
 
         for (int32_t i = 0; i < GLOBAL_VARIABLE_MAX; ++i)
             if (mGlobalVariableList[i] != Value())
-                mGlobalVariableList[i].Mark(this);
+                mGlobalVariableList[i].Mark();
     }
 
     void Allocator::MarkGrayObjects()
@@ -219,7 +219,7 @@ namespace lwscript
         {
             auto object = mGrayObjects.back();
             mGrayObjects.pop_back();
-            object->Blacken(this);
+            object->Blacken();
         }
     }
 

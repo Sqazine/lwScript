@@ -49,10 +49,10 @@ namespace lwscript
         }
         return L"null";
     }
-    void Value::Mark(Allocator *allocator) const
+    void Value::Mark() const
     {
         if (kind == ValueKind::OBJECT)
-            object->Mark(allocator);
+            object->Mark();
     }
     void Value::UnMark() const
     {

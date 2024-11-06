@@ -97,9 +97,9 @@ namespace lwscript
         virtual ~Object();
 
         virtual std::wstring ToString() const = 0;
-        void Mark(class Allocator *allocator);
+        void Mark();
         void UnMark();
-        virtual void Blacken(class Allocator *allocator);
+        virtual void Blacken();
         virtual bool IsEqualTo(Object *other) = 0;
         virtual Object *Clone() const = 0;
 
@@ -129,7 +129,7 @@ namespace lwscript
         ~ArrayObject() override;
 
         std::wstring ToString() const override;
-        void Blacken(class Allocator *allocator) override;
+        void Blacken() override;
         bool IsEqualTo(Object *other) override;
         Object *Clone() const override;
 
@@ -146,7 +146,7 @@ namespace lwscript
 
         std::wstring ToString() const override;
 
-        void Blacken(class Allocator *allocator) override;
+        void Blacken() override;
         bool IsEqualTo(Object *other) override;
         Object *Clone() const override;
 
@@ -161,7 +161,7 @@ namespace lwscript
 
         std::wstring ToString() const override;
 
-        void Blacken(class Allocator *allocator) override;
+        void Blacken() override;
         bool IsEqualTo(Object *other) override;
         Object *Clone() const override;
 
@@ -177,7 +177,7 @@ namespace lwscript
         std::wstring ToString() const override;
         std::wstring ToStringWithChunk() const;
 
-        void Blacken(class Allocator *allocator) override;
+        void Blacken() override;
         bool IsEqualTo(Object *other) override;
         Object *Clone() const override;
 
@@ -204,7 +204,7 @@ namespace lwscript
 
         std::wstring ToString() const override;
 
-        void Blacken(class Allocator *allocator) override;
+        void Blacken() override;
         bool IsEqualTo(Object *other) override;
         Object *Clone() const override;
 
@@ -221,7 +221,7 @@ namespace lwscript
 
         std::wstring ToString() const override;
 
-        void Blacken(class Allocator *allocator) override;
+        void Blacken() override;
         bool IsEqualTo(Object *other) override;
         Object *Clone() const override;
 
@@ -266,7 +266,7 @@ namespace lwscript
 
         std::wstring ToString() const override;
 
-        void Blacken(class Allocator *allocator) override;
+        void Blacken() override;
         bool IsEqualTo(Object *other) override;
         Object *Clone() const override;
 
@@ -287,7 +287,7 @@ namespace lwscript
 
         std::wstring ToString() const override;
 
-        void Blacken(class Allocator *allocator) override;
+        void Blacken() override;
         bool IsEqualTo(Object *other) override;
         Object *Clone() const override;
 
@@ -303,7 +303,7 @@ namespace lwscript
 
         std::wstring ToString() const override;
 
-        void Blacken(class Allocator *allocator) override;
+        void Blacken() override;
         bool IsEqualTo(Object *other) override;
         Object *Clone() const override;
 
@@ -321,7 +321,7 @@ namespace lwscript
 
         std::wstring ToString() const override;
 
-        void Blacken(class Allocator *allocator) override;
+        void Blacken() override;
         bool IsEqualTo(Object *other) override;
         Object *Clone() const override;
 
