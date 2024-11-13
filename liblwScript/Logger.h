@@ -9,25 +9,24 @@
 
 namespace lwscript
 {
-    inline void Output(std::wostream &os, std::wstring_view s)
+    inline void Output(std::wostream &os, std::wstring s)
     {
         os << s;
     }
 
     template <typename T, typename... Args>
-    inline void Output(std::wostream &os, std::wstring_view s, const T &next, const Args &...args)
+    inline void Output(std::wostream &os, std::wstring s, const T &next, const Args &...args)
     {
         auto index = s.find_first_of(L"{}");
         if (index == std::wstring::npos)
             Output(os, s);
         else
         {
-            std::wstring tmpS = s.data();
             std::wstringstream sstr;
             sstr << next;
-            tmpS.replace(index, 2, sstr.str());
+            s.replace(index, 2, sstr.str());
             sstr.clear();
-            Output(os, tmpS, args...);
+            Output(os, s, args...);
         }
     }
 
@@ -60,7 +59,7 @@ namespace lwscript
     }
 
     template <typename... Args>
-    inline void Print(std::wstring_view s, const Args &...args)
+    inline void Print(const std::wstring &s, const Args &...args)
     {
         Output(std::wcout, s, args...);
     }
@@ -72,7 +71,7 @@ namespace lwscript
     }
 
     template <typename... Args>
-    inline void Print(std::string_view s, const Args &...args)
+    inline void Print(const std::string s, const Args &...args)
     {
         Output(std::cout, s, args...);
     }

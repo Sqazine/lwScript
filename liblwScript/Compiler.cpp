@@ -682,8 +682,8 @@ namespace lwscript
 	}
 	void Compiler::CompileArrayExpr(ArrayExpr *expr)
 	{
-		for (int32_t i = (int32_t)expr->elements.size() - 1; i >= 0; --i)
-			CompileExpr(expr->elements[i]);
+		for (const auto& elementExpr:expr->elements)
+			CompileExpr(elementExpr);
 		EmitOpCode(OP_ARRAY, expr->tagToken);
 
 		uint8_t pos = (uint8_t)expr->elements.size();
