@@ -100,7 +100,7 @@ namespace lwscript
         object->marked = false;
         mObjectChain = object;
 #ifdef GC_DEBUG
-        Logger::Info(nullptr, TEXT("{} has been add to gc record chain {} for {}"), (void *)object, objBytes, object->kind);
+        Logger::Info(TEXT("{} has been add to gc record chain {} for {}"), (void *)object, objBytes, object->kind);
 #endif
 
         return object;
@@ -110,7 +110,7 @@ namespace lwscript
     inline void Allocator::FreeObject(T *object)
     {
 #ifdef GC_DEBUG
-        Logger::Println(TEXT("delete object(0x{})"), (void *)object);
+        Logger::Info(TEXT("delete object(0x{})"), (void *)object);
 #endif
         mBytesAllocated -= sizeof(object);
         SAFE_DELETE(object);

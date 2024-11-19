@@ -1,6 +1,5 @@
 #include <string>
 #include <string_view>
-#include <codecvt>
 #include "liblwscript/lwScript.h"
 
 #if defined(_WIN32) || defined(_WIN64)
@@ -56,10 +55,10 @@ void RunFile(std::string_view path)
 
 int32_t PrintUsage()
 {
-	std::cout << "Usage: lwscript [option]:" << std::endl;
-	std::cout << "-h or --help:show usage info." << std::endl;
-	std::cout << "-f or --file:run source file with a valid file path,like : lwscript -f examples/array.cd." << std::endl;
-	std::cout << "-fc or --function-cache:cache function execute result." << std::endl;
+	lwscript::Logger::Info(TEXT("Usage: lwscript [option]:"));
+	lwscript::Logger::Info(TEXT("-h or --help:show usage info."));
+	lwscript::Logger::Info(TEXT("-f or --file:run source file with a valid file path,like : lwscript -f examples/array.cd."));
+	lwscript::Logger::Info(TEXT("-fc or --function-cache:cache function execute result."));
 	return EXIT_FAILURE;
 }
 

@@ -19,7 +19,7 @@ namespace lwscript
 		if (marked)
 			return;
 #ifdef GC_DEBUG
-		Logger::Println(TEXT("(0x{}) mark: {}"), (void *)this, ToString());
+		Logger::Info(TEXT("(0x{}) mark: {}"), (void *)this, ToString());
 #endif
 		marked = true;
 		Allocator::GetInstance()->mGrayObjects.emplace_back(this);
@@ -29,7 +29,7 @@ namespace lwscript
 		if (!marked)
 			return;
 #ifdef GC_DEBUG
-		Logger::Println(TEXT("(0x{}) unMark: {}"), (void *)this, ToString());
+		Logger::Info(TEXT("(0x{}) unMark: {}"), (void *)this, ToString());
 #endif
 		marked = false;
 	}
@@ -37,7 +37,7 @@ namespace lwscript
 	void Object::Blacken()
 	{
 #ifdef GC_DEBUG
-		Logger::Println(TEXT("(0x{}) blacken: {}"), (void *)this, ToString());
+		Logger::Info(TEXT("(0x{}) blacken: {}"), (void *)this, ToString());
 #endif
 	}
 
@@ -67,7 +67,6 @@ namespace lwscript
 
 	uint64_t StrObject::NormalizeIdx(int64_t idx)
 	{
-
 		if (idx < 0)
 			idx = (int64_t)value.size() + idx;
 		return idx;

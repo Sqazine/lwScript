@@ -93,7 +93,7 @@ namespace lwscript
         template <typename... Args>
         inline void Error(const STD_STRING &fmt, const Args &...args)
         {
-            Println(TEXT("\033[31m") + fmt + TEXT("\033[0m"), args...);
+            Println(TEXT("\033[31m[ERROR]:") + fmt + TEXT("\033[0m"), args...);
 #ifndef NDEBUG
             assert(0);
 #else
@@ -129,6 +129,12 @@ namespace lwscript
         }
 
         template <typename... Args>
+        inline void Warn(const STD_STRING &fmt, const Args &...args)
+        {
+            Println(TEXT("\033[33m[WARN]:") + fmt + TEXT("\033[0m"), args...);
+        }
+
+        template <typename... Args>
         void Warn(int32_t pos, const STD_STRING &fmt, const Args &...args)
         {
             auto lineNum = 1;
@@ -143,6 +149,12 @@ namespace lwscript
         void Warn(const Token *tok, const STD_STRING &fmt, const Args &...args)
         {
             AssemblyLogInfo(TEXT("[WARN]"), TEXT("33"), tok->line, tok->column, tok->pos, fmt, args...);
+        }
+
+        template <typename... Args>
+        inline void Info(const STD_STRING &fmt, const Args &...args)
+        {
+            Println(TEXT("\033[32m[INFO]:") + fmt + TEXT("\033[0m"), args...);
         }
 
         template <typename... Args>
