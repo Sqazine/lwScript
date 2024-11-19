@@ -294,11 +294,12 @@ namespace lwscript
 	{
 		return TEXT("<fn ") + name + TEXT(":0x") + PointerAddressToString((void *)this) + TEXT(">");
 	}
-
+#ifndef NDEBUG
 	STD_STRING FunctionObject::ToStringWithChunk() const
 	{
 		return ToString() + TEXT("\n") + chunk.ToString();
 	}
+#endif
 
 	void FunctionObject::Blacken()
 	{

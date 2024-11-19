@@ -74,7 +74,7 @@ namespace lwscript
 #define TO_ENUM_VALUE(v) (TO_ENUM_OBJ((v).object))
 #define TO_MODULE_VALUE(v) (TO_MODULE_OBJ((v).object))
 
-    enum LWSCRIPT_API ObjectKind:uint8_t
+    enum LWSCRIPT_API ObjectKind : uint8_t
     {
         STR,
         ARRAY,
@@ -175,7 +175,9 @@ namespace lwscript
         ~FunctionObject() override;
 
         STD_STRING ToString() const override;
+#ifndef NDEBUG
         STD_STRING ToStringWithChunk() const;
+#endif
 
         void Blacken() override;
         bool IsEqualTo(Object *other) override;

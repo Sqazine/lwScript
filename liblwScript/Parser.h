@@ -6,7 +6,7 @@
 #include "Token.h"
 #include "Ast.h"
 #include "Utils.h"
-#include "Optimizer.h"
+#include "ConstantFolder.h"
 #include "SyntaxChecker.h"
 
 namespace lwscript
@@ -124,9 +124,6 @@ namespace lwscript
 		Token *Consume(const std::vector<TokenKind> &kinds, STD_STRING_VIEW errMsg);
 
 		bool IsAtEnd();
-
-		Optimizer mOptimizer;
-		SyntaxChecker mSyntaxChecker;
 
 		ClassInfo *mCurClassInfo;
 

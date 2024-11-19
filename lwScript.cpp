@@ -6,10 +6,12 @@
 #pragma warning(disable : 4996)
 #endif
 
-lwscript::Lexer *gLexer = nullptr;
-lwscript::Parser *gParser = nullptr;
-lwscript::Compiler *gCompiler = nullptr;
-lwscript::VM *gVm = nullptr;
+lwscript::Lexer *gLexer{nullptr};
+lwscript::Parser *gParser{nullptr};
+lwscript::ConstantFolder *gConstantFolder{nullptr};
+lwscript::SyntaxChecker *gSyntaxChecker{nullptr};
+lwscript::Compiler *gCompiler{nullptr};
+lwscript::VM *gVm{nullptr};
 
 void Run(STD_STRING_VIEW content)
 {
@@ -19,6 +21,14 @@ void Run(STD_STRING_VIEW content)
 		lwscript::Logger::Println(TEXT("{}"), *token);
 #endif
 	auto stmt = gParser->Parse(tokens);
+#ifndef NDEBUG
+	lwscript::Logger::Println(TEXT("{}"), stmt->ToString());
+#endif
+	stmt = gConstantFolder->Fold(stmt);
+#ifndef NDEBUG
+	lwscript::Logger::Println(TEXT("{}"), stmt->ToString());
+#endif
+	stmt = gSyntaxChecker->Check(stmt);
 #ifndef NDEBUG
 	lwscript::Logger::Println(TEXT("{}"), stmt->ToString());
 #endif
@@ -87,6 +97,8 @@ int main(int argc, const char *argv[])
 
 	gLexer = new lwscript::Lexer();
 	gParser = new lwscript::Parser();
+	gConstantFolder = new lwscript::ConstantFolder();
+	gSyntaxChecker = new lwscript::SyntaxChecker();
 	gCompiler = new lwscript::Compiler();
 	gVm = new lwscript::VM();
 
@@ -97,6 +109,8 @@ int main(int argc, const char *argv[])
 
 	SAFE_DELETE(gLexer);
 	SAFE_DELETE(gParser);
+	SAFE_DELETE(gConstantFolder);
+	SAFE_DELETE(gSyntaxChecker);
 	SAFE_DELETE(gCompiler);
 	SAFE_DELETE(gVm);
 

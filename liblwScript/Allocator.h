@@ -2,7 +2,7 @@
 #include <vector>
 #include "Object.h"
 #include "Value.h"
-#include "Config.h"
+#include "Defines.h"
 
 namespace lwscript
 {

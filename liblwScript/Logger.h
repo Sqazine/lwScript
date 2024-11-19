@@ -6,6 +6,7 @@
 #include <cassert>
 #include <cstdarg>
 #include "Token.h"
+#include "Defines.h"
 
 namespace lwscript
 {

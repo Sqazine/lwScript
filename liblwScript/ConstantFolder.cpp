@@ -1,65 +1,65 @@
-#include "Optimizer.h"
+#include "ConstantFolder.h"
 #include "Utils.h"
 
 namespace lwscript
 {
-	Optimizer::Optimizer()
+	ConstantFolder::ConstantFolder()
 	{
 	}
-	Optimizer::~Optimizer()
+	ConstantFolder::~ConstantFolder()
 	{
 	}
 
-	Stmt *Optimizer::Opt(Stmt *stmt)
+	Stmt *ConstantFolder::Fold(Stmt *stmt)
 	{
-		return OptStmt(stmt);
+		return FoldStmt(stmt);
 	}
 
-	Stmt *Optimizer::OptStmt(Stmt *stmt)
+	Stmt *ConstantFolder::FoldStmt(Stmt *stmt)
 	{
 		switch (stmt->kind)
 		{
 		case AstKind::ASTSTMTS:
-			return OptAstStmts((AstStmts *)stmt);
+			return FoldAstStmts((AstStmts *)stmt);
 		case AstKind::RETURN:
-			return OptReturnStmt((ReturnStmt *)stmt);
+			return FoldReturnStmt((ReturnStmt *)stmt);
 		case AstKind::EXPR:
-			return OptExprStmt((ExprStmt *)stmt);
+			return FoldExprStmt((ExprStmt *)stmt);
 		case AstKind::VAR:
-			return OptVarStmt((VarStmt *)stmt);
+			return FoldVarStmt((VarStmt *)stmt);
 		case AstKind::SCOPE:
-			return OptScopeStmt((ScopeStmt *)stmt);
+			return FoldScopeStmt((ScopeStmt *)stmt);
 		case AstKind::IF:
-			return OptIfStmt((IfStmt *)stmt);
+			return FoldIfStmt((IfStmt *)stmt);
 		case AstKind::WHILE:
-			return OptWhileStmt((WhileStmt *)stmt);
+			return FoldWhileStmt((WhileStmt *)stmt);
 		case AstKind::FUNCTION:
-			return OptFunctionStmt((FunctionStmt *)stmt);
+			return FoldFunctionStmt((FunctionStmt *)stmt);
 		case AstKind::CLASS:
-			return OptClassStmt((ClassStmt *)stmt);
+			return FoldClassStmt((ClassStmt *)stmt);
 		case AstKind::MODULE:
-			return OptModuleStmt((ModuleStmt *)stmt);
+			return FoldModuleStmt((ModuleStmt *)stmt);
 		default:
 			return stmt;
 		}
 	}
-	Stmt *Optimizer::OptAstStmts(AstStmts *stmt)
+	Stmt *ConstantFolder::FoldAstStmts(AstStmts *stmt)
 	{
 		for (auto &s : stmt->stmts)
-			s = OptStmt(s);
+			s = FoldStmt(s);
 		return stmt;
 	}
-	Stmt *Optimizer::OptExprStmt(ExprStmt *stmt)
+	Stmt *ConstantFolder::FoldExprStmt(ExprStmt *stmt)
 	{
-		stmt->expr = OptExpr(stmt->expr);
+		stmt->expr = FoldExpr(stmt->expr);
 		return stmt;
 	}
-	Stmt *Optimizer::OptIfStmt(IfStmt *stmt)
+	Stmt *ConstantFolder::FoldIfStmt(IfStmt *stmt)
 	{
-		stmt->condition = OptExpr(stmt->condition);
-		stmt->thenBranch = OptStmt(stmt->thenBranch);
+		stmt->condition = FoldExpr(stmt->condition);
+		stmt->thenBranch = FoldStmt(stmt->thenBranch);
 		if (stmt->elseBranch)
-			stmt->elseBranch = OptStmt(stmt->elseBranch);
+			stmt->elseBranch = FoldStmt(stmt->elseBranch);
 
 		if (stmt->condition->kind == AstKind::LITERAL && ((LiteralExpr *)stmt->condition)->literalType == LiteralExpr::Type::BOOLEAN)
 		{
@@ -71,114 +71,114 @@ namespace lwscript
 
 		return stmt;
 	}
-	Stmt *Optimizer::OptScopeStmt(ScopeStmt *stmt)
+	Stmt *ConstantFolder::FoldScopeStmt(ScopeStmt *stmt)
 	{
 		for (auto &s : stmt->stmts)
-			s = OptStmt(s);
+			s = FoldStmt(s);
 		return stmt;
 	}
-	Stmt *Optimizer::OptWhileStmt(WhileStmt *stmt)
+	Stmt *ConstantFolder::FoldWhileStmt(WhileStmt *stmt)
 	{
-		stmt->condition = OptExpr(stmt->condition);
-		stmt->body = (ScopeStmt *)OptScopeStmt(stmt->body);
+		stmt->condition = FoldExpr(stmt->condition);
+		stmt->body = (ScopeStmt *)FoldScopeStmt(stmt->body);
 		return stmt;
 	}
-	Stmt *Optimizer::OptEnumStmt(EnumStmt *stmt)
+	Stmt *ConstantFolder::FoldEnumStmt(EnumStmt *stmt)
 	{
 		for (auto &[k, v] : stmt->enumItems)
-			v = OptExpr(v);
+			v = FoldExpr(v);
 		return stmt;
 	}
-	Stmt *Optimizer::OptReturnStmt(ReturnStmt *stmt)
+	Stmt *ConstantFolder::FoldReturnStmt(ReturnStmt *stmt)
 	{
 		return stmt;
 	}
-	Stmt *Optimizer::OptVarStmt(VarStmt *stmt)
+	Stmt *ConstantFolder::FoldVarStmt(VarStmt *stmt)
 	{
 		for (auto &[k, v] : stmt->variables)
-			v = OptExpr(v);
+			v = FoldExpr(v);
 		return stmt;
 	}
 
-	Stmt *Optimizer::OptFunctionStmt(FunctionStmt *stmt)
+	Stmt *ConstantFolder::FoldFunctionStmt(FunctionStmt *stmt)
 	{
 		for (auto &e : stmt->parameters)
-			e = (VarDescExpr *)OptVarDescExpr(e);
+			e = (VarDescExpr *)FoldVarDescExpr(e);
 
-		stmt->body = (ScopeStmt *)OptScopeStmt(stmt->body);
+		stmt->body = (ScopeStmt *)FoldScopeStmt(stmt->body);
 
 		return stmt;
 	}
 
-	Stmt *Optimizer::OptClassStmt(ClassStmt *stmt)
+	Stmt *ConstantFolder::FoldClassStmt(ClassStmt *stmt)
 	{
 		for (auto &varStmt : stmt->varItems)
-			varStmt = (VarStmt *)OptVarStmt(varStmt);
+			varStmt = (VarStmt *)FoldVarStmt(varStmt);
 
 		for (auto &fnStmt : stmt->fnItems)
-			fnStmt = (FunctionStmt *)OptFunctionStmt(fnStmt);
+			fnStmt = (FunctionStmt *)FoldFunctionStmt(fnStmt);
 
 		return stmt;
 	}
 
-	Stmt *Optimizer::OptModuleStmt(ModuleStmt *stmt)
+	Stmt *ConstantFolder::FoldModuleStmt(ModuleStmt *stmt)
 	{
 		return stmt;
 	}
 
-	Expr *Optimizer::OptExpr(Expr *expr)
+	Expr *ConstantFolder::FoldExpr(Expr *expr)
 	{
 		switch (expr->kind)
 		{
 		case AstKind::LITERAL:
-			return OptLiteralExpr((LiteralExpr *)expr);
+			return FoldLiteralExpr((LiteralExpr *)expr);
 		case AstKind::IDENTIFIER:
-			return OptIdentifierExpr((IdentifierExpr *)expr);
+			return FoldIdentifierExpr((IdentifierExpr *)expr);
 		case AstKind::GROUP:
-			return OptGroupExpr((GroupExpr *)expr);
+			return FoldGroupExpr((GroupExpr *)expr);
 		case AstKind::ARRAY:
-			return OptArrayExpr((ArrayExpr *)expr);
+			return FoldArrayExpr((ArrayExpr *)expr);
 		case AstKind::INDEX:
-			return OptIndexExpr((IndexExpr *)expr);
+			return FoldIndexExpr((IndexExpr *)expr);
 		case AstKind::PREFIX:
-			return OptPrefixExpr((PrefixExpr *)expr);
+			return FoldPrefixExpr((PrefixExpr *)expr);
 		case AstKind::INFIX:
-			return OptInfixExpr((InfixExpr *)expr);
+			return FoldInfixExpr((InfixExpr *)expr);
 		case AstKind::POSTFIX:
-			return OptPostfixExpr((PostfixExpr *)expr);
+			return FoldPostfixExpr((PostfixExpr *)expr);
 		case AstKind::CONDITION:
-			return OptConditionExpr((ConditionExpr *)expr);
+			return FoldConditionExpr((ConditionExpr *)expr);
 		case AstKind::REF:
-			return OptRefExpr((RefExpr *)expr);
+			return FoldRefExpr((RefExpr *)expr);
 		case AstKind::CALL:
-			return OptCallExpr((CallExpr *)expr);
+			return FoldCallExpr((CallExpr *)expr);
 		case AstKind::DOT:
-			return OptDotExpr((DotExpr *)expr);
+			return FoldDotExpr((DotExpr *)expr);
 		case AstKind::LAMBDA:
-			return OptLambdaExpr((LambdaExpr *)expr);
+			return FoldLambdaExpr((LambdaExpr *)expr);
 		case AstKind::FACTORIAL:
-			return OptFactorialExpr((FactorialExpr *)expr);
+			return FoldFactorialExpr((FactorialExpr *)expr);
 		default:
 			return expr;
 		}
 	}
-	Expr *Optimizer::OptInfixExpr(InfixExpr *expr)
+	Expr *ConstantFolder::FoldInfixExpr(InfixExpr *expr)
 	{
-		expr->left = OptExpr(expr->left);
-		expr->right = OptExpr(expr->right);
+		expr->left = FoldExpr(expr->left);
+		expr->right = FoldExpr(expr->right);
 
-		return OptFlow(expr);
+		return ConstantFold(expr);
 	}
-	Expr *Optimizer::OptPostfixExpr(PostfixExpr *expr)
+	Expr *ConstantFolder::FoldPostfixExpr(PostfixExpr *expr)
 	{
-		expr->left = OptExpr(expr->left);
-		return OptFlow(expr);
+		expr->left = FoldExpr(expr->left);
+		return ConstantFold(expr);
 	}
-	Expr *Optimizer::OptConditionExpr(ConditionExpr *expr)
+	Expr *ConstantFolder::FoldConditionExpr(ConditionExpr *expr)
 	{
-		expr->condition = OptExpr(expr->condition);
-		expr->trueBranch = OptExpr(expr->trueBranch);
-		expr->falseBranch = OptExpr(expr->falseBranch);
+		expr->condition = FoldExpr(expr->condition);
+		expr->trueBranch = FoldExpr(expr->trueBranch);
+		expr->falseBranch = FoldExpr(expr->falseBranch);
 
 		if (expr->condition->kind == AstKind::LITERAL && ((LiteralExpr *)expr->condition)->literalType == LiteralExpr::Type::BOOLEAN)
 		{
@@ -190,80 +190,80 @@ namespace lwscript
 
 		return expr;
 	}
-	Expr *Optimizer::OptLiteralExpr(LiteralExpr *expr)
+	Expr *ConstantFolder::FoldLiteralExpr(LiteralExpr *expr)
 	{
 		return expr;
 	}
 
-	Expr *Optimizer::OptPrefixExpr(PrefixExpr *expr)
+	Expr *ConstantFolder::FoldPrefixExpr(PrefixExpr *expr)
 	{
-		expr->right = OptExpr(expr->right);
-		return OptFlow(expr);
+		expr->right = FoldExpr(expr->right);
+		return ConstantFold(expr);
 	}
 
-	Expr *Optimizer::OptGroupExpr(GroupExpr *expr)
+	Expr *ConstantFolder::FoldGroupExpr(GroupExpr *expr)
 	{
-		return OptExpr(expr->expr);
+		return FoldExpr(expr->expr);
 	}
-	Expr *Optimizer::OptArrayExpr(ArrayExpr *expr)
+	Expr *ConstantFolder::FoldArrayExpr(ArrayExpr *expr)
 	{
 		for (auto &e : expr->elements)
-			e = OptExpr(e);
+			e = FoldExpr(e);
 		return expr;
 	}
-	Expr *Optimizer::OptDictExpr(DictExpr *expr)
+	Expr *ConstantFolder::FoldDictExpr(DictExpr *expr)
 	{
 		for (auto &[k, v] : expr->elements)
 		{
-			k = OptExpr(k);
-			v = OptExpr(v);
+			k = FoldExpr(k);
+			v = FoldExpr(v);
 		}
 		return expr;
 	}
-	Expr *Optimizer::OptIndexExpr(IndexExpr *expr)
+	Expr *ConstantFolder::FoldIndexExpr(IndexExpr *expr)
 	{
-		expr->ds = OptExpr(expr->ds);
-		expr->index = OptExpr(expr->index);
+		expr->ds = FoldExpr(expr->ds);
+		expr->index = FoldExpr(expr->index);
 		return expr;
 	}
-	Expr *Optimizer::OptIdentifierExpr(IdentifierExpr *expr)
+	Expr *ConstantFolder::FoldIdentifierExpr(IdentifierExpr *expr)
 	{
 		return expr;
 	}
-	Expr *Optimizer::OptLambdaExpr(LambdaExpr *expr)
+	Expr *ConstantFolder::FoldLambdaExpr(LambdaExpr *expr)
 	{
 		for (auto &e : expr->parameters)
-			e = (VarDescExpr *)OptVarDescExpr(e);
-		expr->body = (ScopeStmt *)OptScopeStmt(expr->body);
+			e = (VarDescExpr *)FoldVarDescExpr(e);
+		expr->body = (ScopeStmt *)FoldScopeStmt(expr->body);
 		return expr;
 	}
 
-	Expr *Optimizer::OptDotExpr(DotExpr *expr)
+	Expr *ConstantFolder::FoldDotExpr(DotExpr *expr)
 	{
 		return expr;
 	}
 
-	Expr *Optimizer::OptCallExpr(CallExpr *expr)
+	Expr *ConstantFolder::FoldCallExpr(CallExpr *expr)
 	{
-		expr->callee = OptExpr(expr->callee);
+		expr->callee = FoldExpr(expr->callee);
 		for (auto &arg : expr->arguments)
-			arg = OptExpr(arg);
+			arg = FoldExpr(arg);
 		return expr;
 	}
-	Expr *Optimizer::OptNewExpr(NewExpr *expr)
+	Expr *ConstantFolder::FoldNewExpr(NewExpr *expr)
 	{
 		return expr;
 	}
-	Expr *Optimizer::OptThisExpr(ThisExpr *expr)
+	Expr *ConstantFolder::FoldThisExpr(ThisExpr *expr)
 	{
 		return expr;
 	}
-	Expr *Optimizer::OptBaseExpr(BaseExpr *expr)
+	Expr *ConstantFolder::FoldBaseExpr(BaseExpr *expr)
 	{
 		return expr;
 	}
 
-	Expr *Optimizer::OptFactorialExpr(FactorialExpr *expr)
+	Expr *ConstantFolder::FoldFactorialExpr(FactorialExpr *expr)
 	{
 		if (expr->expr->kind == AstKind::LITERAL && ((LiteralExpr *)expr->expr)->literalType == LiteralExpr::Type::INTEGER)
 		{
@@ -273,29 +273,23 @@ namespace lwscript
 		}
 		else
 		{
-			expr->expr = OptExpr(expr->expr);
+			expr->expr = FoldExpr(expr->expr);
 			return expr;
 		}
 	}
 
-	Expr *Optimizer::OptVarDescExpr(VarDescExpr *expr)
+	Expr *ConstantFolder::FoldVarDescExpr(VarDescExpr *expr)
 	{
 		return expr;
 	}
 
-	Expr *Optimizer::OptRefExpr(RefExpr *expr)
+	Expr *ConstantFolder::FoldRefExpr(RefExpr *expr)
 	{
-		expr->refExpr = (IdentifierExpr *)OptExpr(expr->refExpr);
+		expr->refExpr = (IdentifierExpr *)FoldExpr(expr->refExpr);
 		return expr;
 	}
 
-	Expr *Optimizer::OptFlow(Expr *expr)
-	{
-		expr = ConstantFold(expr);
-		return expr;
-	}
-
-	Expr *Optimizer::ConstantFold(Expr *expr)
+	Expr *ConstantFolder::ConstantFold(Expr *expr)
 	{
 		if (expr->kind == AstKind::INFIX)
 		{
