@@ -5,7 +5,7 @@
 #include "Utils.h"
 namespace lwscript
 {
-	enum class ValueKind
+	enum ValueKind:uint8_t
 	{
 		NIL,
 		INT,
@@ -23,7 +23,7 @@ namespace lwscript
 		Value(struct Object *object);
 		~Value();
 
-		std::wstring ToString() const;
+		STD_STRING ToString() const;
 		void Mark() const;
 		void UnMark() const;
 		Value Clone() const;

@@ -97,7 +97,7 @@ namespace lwscript
 
 	void Compiler::CompileEnumDecl(EnumStmt *stmt)
 	{
-		std::unordered_map<std::wstring, Value> pairs;
+		std::unordered_map<STD_STRING, Value> pairs;
 		for (const auto &[k, v] : stmt->enumItems)
 		{
 			Value enumValue;
@@ -114,11 +114,11 @@ namespace lwscript
 					enumValue = new StrObject(literalExpr->str);
 				else if (literalExpr->literalType == LiteralExpr::Type::CHARACTER)
 				{
-					//TODO...
+					// TODO...
 				}
 			}
 			else
-				Logger::Error(v->tagToken, L"Enum value only integer num,floating point num,boolean or string is available.");
+				Logger::Error(v->tagToken, TEXT("Enum value only integer num,floating point num,boolean or string is available."));
 
 			pairs[k->literal] = enumValue;
 		}
@@ -136,7 +136,7 @@ namespace lwscript
 
 		mSymbolTable = new SymbolTable(mSymbolTable);
 
-		mSymbolTable->Define(stmt->tagToken, Privilege::IMMUTABLE, L"");
+		mSymbolTable->Define(stmt->tagToken, Privilege::IMMUTABLE, TEXT(""));
 
 		uint8_t constCount = 0;
 		uint8_t varCount = 0;
@@ -431,7 +431,7 @@ namespace lwscript
 	}
 	void Compiler::CompileInfixExpr(InfixExpr *expr)
 	{
-		if (expr->op == L"=")
+		if (expr->op == TEXT("="))
 		{
 			if (expr->left->kind == AstKind::ARRAY)
 			{
@@ -457,7 +457,7 @@ namespace lwscript
 				{
 					if (expr->right->kind == AstKind::ARRAY)
 						if (assignee->elements.size() < ((ArrayExpr *)expr->right)->elements.size())
-							Logger::Error(((ArrayExpr *)expr->right)->elements[assignee->elements.size()]->tagToken, L"variable less than value");
+							Logger::Error(((ArrayExpr *)expr->right)->elements[assignee->elements.size()]->tagToken, TEXT("variable less than value"));
 				}
 
 				CurOpCodes()[appregateOpCodeAddress] = appregateOpCode;
@@ -476,7 +476,7 @@ namespace lwscript
 				CompileExpr(expr->left, RWState::WRITE);
 			}
 		}
-		else if (expr->op == L"&&")
+		else if (expr->op == TEXT("&&"))
 		{
 			// Short circuit calculation
 			CompileExpr(expr->left);
@@ -485,7 +485,7 @@ namespace lwscript
 			CompileExpr(expr->right);
 			PatchJump(address);
 		}
-		else if (expr->op == L"||")
+		else if (expr->op == TEXT("||"))
 		{
 			CompileExpr(expr->left);
 			uint64_t elseJumpAddress = EmitJump(OP_JUMP_IF_FALSE, expr->left->tagToken);
@@ -499,86 +499,86 @@ namespace lwscript
 		{
 			CompileExpr(expr->left);
 			CompileExpr(expr->right);
-			if (expr->op == L"+")
+			if (expr->op == TEXT("+"))
 				EmitOpCode(OP_ADD, expr->tagToken);
-			else if (expr->op == L"-")
+			else if (expr->op == TEXT("-"))
 				EmitOpCode(OP_SUB, expr->tagToken);
-			else if (expr->op == L"*")
+			else if (expr->op == TEXT("*"))
 				EmitOpCode(OP_MUL, expr->tagToken);
-			else if (expr->op == L"/")
+			else if (expr->op == TEXT("/"))
 				EmitOpCode(OP_DIV, expr->tagToken);
-			else if (expr->op == L"%")
+			else if (expr->op == TEXT("%"))
 				EmitOpCode(OP_MOD, expr->tagToken);
-			else if (expr->op == L"&")
+			else if (expr->op == TEXT("&"))
 				EmitOpCode(OP_BIT_AND, expr->tagToken);
-			else if (expr->op == L"|")
+			else if (expr->op == TEXT("|"))
 				EmitOpCode(OP_BIT_OR, expr->tagToken);
-			else if (expr->op == L"<")
+			else if (expr->op == TEXT("<"))
 				EmitOpCode(OP_LESS, expr->tagToken);
-			else if (expr->op == L">")
+			else if (expr->op == TEXT(">"))
 				EmitOpCode(OP_GREATER, expr->tagToken);
-			else if (expr->op == L"<<")
+			else if (expr->op == TEXT("<<"))
 				EmitOpCode(OP_BIT_LEFT_SHIFT, expr->tagToken);
-			else if (expr->op == L">>")
+			else if (expr->op == TEXT(">>"))
 				EmitOpCode(OP_BIT_RIGHT_SHIFT, expr->tagToken);
-			else if (expr->op == L"<=")
+			else if (expr->op == TEXT("<="))
 			{
 				EmitOpCode(OP_GREATER, expr->tagToken);
 				EmitOpCode(OP_NOT, expr->tagToken);
 			}
-			else if (expr->op == L">=")
+			else if (expr->op == TEXT(">="))
 			{
 				EmitOpCode(OP_LESS, expr->tagToken);
 				EmitOpCode(OP_NOT, expr->tagToken);
 			}
-			else if (expr->op == L"==")
+			else if (expr->op == TEXT("=="))
 				EmitOpCode(OP_EQUAL, expr->tagToken);
-			else if (expr->op == L"!=")
+			else if (expr->op == TEXT("!="))
 			{
 				EmitOpCode(OP_EQUAL, expr->tagToken);
 				EmitOpCode(OP_NOT, expr->tagToken);
 			}
-			else if (expr->op == L"+=")
+			else if (expr->op == TEXT("+="))
 			{
 				EmitOpCode(OP_ADD, expr->tagToken);
 				CompileExpr(expr->left, RWState::WRITE);
 			}
-			else if (expr->op == L"-=")
+			else if (expr->op == TEXT("-="))
 			{
 				EmitOpCode(OP_SUB, expr->tagToken);
 				CompileExpr(expr->left, RWState::WRITE);
 			}
-			else if (expr->op == L"*=")
+			else if (expr->op == TEXT("*="))
 			{
 				EmitOpCode(OP_MUL, expr->tagToken);
 				CompileExpr(expr->left, RWState::WRITE);
 			}
-			else if (expr->op == L"/=")
+			else if (expr->op == TEXT("/="))
 			{
 				EmitOpCode(OP_DIV, expr->tagToken);
 				CompileExpr(expr->left, RWState::WRITE);
 			}
-			else if (expr->op == L"%=")
+			else if (expr->op == TEXT("%="))
 			{
 				EmitOpCode(OP_MOD, expr->tagToken);
 				CompileExpr(expr->left, RWState::WRITE);
 			}
-			else if (expr->op == L"&=")
+			else if (expr->op == TEXT("&="))
 			{
 				EmitOpCode(OP_BIT_AND, expr->tagToken);
 				CompileExpr(expr->left, RWState::WRITE);
 			}
-			else if (expr->op == L"|=")
+			else if (expr->op == TEXT("|="))
 			{
 				EmitOpCode(OP_BIT_OR, expr->tagToken);
 				CompileExpr(expr->left, RWState::WRITE);
 			}
-			else if (expr->op == L"<<=")
+			else if (expr->op == TEXT("<<="))
 			{
 				EmitOpCode(OP_BIT_LEFT_SHIFT, expr->tagToken);
 				CompileExpr(expr->left, RWState::WRITE);
 			}
-			else if (expr->op == L">>=")
+			else if (expr->op == TEXT(">>="))
 			{
 				EmitOpCode(OP_BIT_RIGHT_SHIFT, expr->tagToken);
 				CompileExpr(expr->left, RWState::WRITE);
@@ -603,7 +603,7 @@ namespace lwscript
 			EmitConstant(new StrObject(expr->str), expr->tagToken);
 			break;
 		case LiteralExpr::Type::CHARACTER:
-			break; //TODO:...
+			break; // TODO:...
 		default:
 			EmitOpCode(OP_NULL, expr->tagToken);
 			break;
@@ -613,30 +613,30 @@ namespace lwscript
 	void Compiler::CompilePrefixExpr(PrefixExpr *expr)
 	{
 		CompileExpr(expr->right);
-		if (expr->op == L"!")
+		if (expr->op == TEXT("!"))
 			EmitOpCode(OP_NOT, expr->tagToken);
-		else if (expr->op == L"-")
+		else if (expr->op == TEXT("-"))
 			EmitOpCode(OP_MINUS, expr->tagToken);
-		else if (expr->op == L"~")
+		else if (expr->op == TEXT("~"))
 			EmitOpCode(OP_BIT_NOT, expr->tagToken);
-		else if (expr->op == L"++")
+		else if (expr->op == TEXT("++"))
 		{
-			while (expr->right->kind == AstKind::PREFIX && ((PrefixExpr *)expr->right)->op == L"++" || ((PrefixExpr *)expr->right)->op == L"--")
+			while (expr->right->kind == AstKind::PREFIX && ((PrefixExpr *)expr->right)->op == TEXT("++") || ((PrefixExpr *)expr->right)->op == TEXT("--"))
 				expr = (PrefixExpr *)expr->right;
 			EmitConstant((int64_t)1, expr->tagToken);
 			EmitOpCode(OP_ADD, expr->tagToken);
 			CompileExpr(expr->right, RWState::WRITE);
 		}
-		else if (expr->op == L"--")
+		else if (expr->op == TEXT("--"))
 		{
-			while (expr->right->kind == AstKind::PREFIX && ((PrefixExpr *)expr->right)->op == L"++" || ((PrefixExpr *)expr->right)->op == L"--")
+			while (expr->right->kind == AstKind::PREFIX && ((PrefixExpr *)expr->right)->op == TEXT("++") || ((PrefixExpr *)expr->right)->op == TEXT("--"))
 				expr = (PrefixExpr *)expr->right;
 			EmitConstant((int64_t)1, expr->tagToken);
 			EmitOpCode(OP_SUB, expr->tagToken);
 			CompileExpr(expr->right, RWState::WRITE);
 		}
 		else
-			Logger::Error(expr->tagToken, L"No prefix op:{}", expr->op);
+			Logger::Error(expr->tagToken, TEXT("No prefix op:{}"), expr->op);
 	}
 	void Compiler::CompilePostfixExpr(PostfixExpr *expr, const RWState &state, bool isDelayCompile)
 	{
@@ -644,12 +644,12 @@ namespace lwscript
 		if (!isDelayCompile)
 		{
 			EmitConstant((int64_t)1, expr->tagToken);
-			if (expr->op == L"++")
+			if (expr->op == TEXT("++"))
 				EmitOpCode(OP_ADD, expr->tagToken);
-			else if (expr->op == L"--")
+			else if (expr->op == TEXT("--"))
 				EmitOpCode(OP_SUB, expr->tagToken);
 			else
-				Logger::Error(expr->tagToken, L"No postfix op:{}", expr->op);
+				Logger::Error(expr->tagToken, TEXT("No postfix op:{}"), expr->op);
 			CompileExpr(expr->left, RWState::WRITE);
 			EmitOpCode(OP_POP, expr->tagToken);
 		}
@@ -682,7 +682,7 @@ namespace lwscript
 	}
 	void Compiler::CompileArrayExpr(ArrayExpr *expr)
 	{
-		for (const auto& elementExpr:expr->elements)
+		for (const auto &elementExpr : expr->elements)
 			CompileExpr(elementExpr);
 		EmitOpCode(OP_ARRAY, expr->tagToken);
 
@@ -737,13 +737,13 @@ namespace lwscript
 
 	void Compiler::CompileThisExpr(ThisExpr *expr)
 	{
-		auto identExpr = new IdentifierExpr(expr->tagToken, L"this");
+		auto identExpr = new IdentifierExpr(expr->tagToken, TEXT("this"));
 		CompileExpr(identExpr);
 	}
 
 	void Compiler::CompileBaseExpr(BaseExpr *expr)
 	{
-		auto identExpr = new IdentifierExpr(expr->tagToken, L"this");
+		auto identExpr = new IdentifierExpr(expr->tagToken, TEXT("this"));
 		CompileExpr(identExpr);
 		EmitConstant(new StrObject(expr->callMember->ToString()), expr->tagToken);
 		EmitOpCode(OP_GET_BASE, expr->callMember->tagToken);
@@ -780,7 +780,7 @@ namespace lwscript
 					Emit(symbol.index);
 			}
 			else
-				Logger::Error(expr->tagToken, L"{} is a constant,which cannot be assigned!", expr->ToString());
+				Logger::Error(expr->tagToken, TEXT("{} is a constant,which cannot be assigned!"), expr->ToString());
 		}
 		else
 		{
@@ -796,7 +796,7 @@ namespace lwscript
 		mFunctionList.emplace_back(new FunctionObject());
 		mSymbolTable = new SymbolTable(mSymbolTable);
 
-		mSymbolTable->Define(expr->tagToken, Privilege::IMMUTABLE, L"");
+		mSymbolTable->Define(expr->tagToken, Privilege::IMMUTABLE, TEXT(""));
 
 		auto varArg = GetVarArgFromParameterList(expr->parameters);
 
@@ -935,9 +935,9 @@ namespace lwscript
 		mFunctionList.emplace_back(new FunctionObject(stmt->name->literal));
 		mSymbolTable = new SymbolTable(mSymbolTable);
 
-		std::wstring symbolName = stmt->name->literal;
+		STD_STRING symbolName = stmt->name->literal;
 		if (stmt->functionKind == FunctionKind::CLASS_CLOSURE || stmt->functionKind == FunctionKind::CLASS_CONSTRUCTOR)
-			symbolName = L"this";
+			symbolName = TEXT("this");
 		mSymbolTable->Define(stmt->tagToken, Privilege::IMMUTABLE, symbolName);
 
 		CurFunction()->arity = static_cast<uint8_t>(stmt->parameters.size());
@@ -1021,7 +1021,7 @@ namespace lwscript
 					for (int32_t i = 0; i < arrayExpr->elements.size(); ++i)
 					{
 						Symbol symbol;
-						std::wstring literal;
+						STD_STRING literal;
 						Token *token = nullptr;
 
 						if (((VarDescExpr *)arrayExpr->elements[i])->name->kind == AstKind::IDENTIFIER)
@@ -1072,7 +1072,7 @@ namespace lwscript
 				{
 					CompileExpr(v);
 
-					std::wstring literal;
+					STD_STRING literal;
 					Token *token = nullptr;
 
 					if (((VarDescExpr *)k)->name->kind == AstKind::IDENTIFIER)
@@ -1101,7 +1101,7 @@ namespace lwscript
 					varCount++;
 				}
 				else
-					Logger::Error(k->tagToken, L"Unknown variable:{}", k->ToString());
+					Logger::Error(k->tagToken, TEXT("Unknown variable:{}"), k->ToString());
 			}
 		}
 
@@ -1121,7 +1121,7 @@ namespace lwscript
 		mFunctionList.emplace_back(new FunctionObject(stmt->name));
 		mSymbolTable = new SymbolTable(mSymbolTable);
 
-		mSymbolTable->Define(stmt->tagToken, Privilege::IMMUTABLE, L"");
+		mSymbolTable->Define(stmt->tagToken, Privilege::IMMUTABLE, TEXT(""));
 
 		int8_t varCount = 0;
 		int8_t constCount = 0;

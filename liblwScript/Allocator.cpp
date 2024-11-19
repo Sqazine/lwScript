@@ -49,7 +49,7 @@ namespace lwscript
         }
 
 #ifdef GC_DEBUG
-        Println(L"collected {} bytes (from {} to {}) next gc bytes {}", bytes - mBytesAllocated, bytes, mNextGCByteSize);
+        Logger::Println(TEXT("collected {} bytes (from {} to {}) next gc bytes {}"), bytes - mBytesAllocated, bytes, mNextGCByteSize);
 #endif
     }
 
@@ -68,7 +68,7 @@ namespace lwscript
             value.object->next = mObjectChain;
             mObjectChain = value.object;
 #ifdef GC_DEBUG
-            std::cout << (void *)value.object << " has been add to gc record chain " << objBytes << " for " << value.object->type << std::endl;
+            Logger::Info(nullptr, TEXT("{} has been add to gc record chain {} for {}"), (void *)value.object, objBytes, value.object->kind);
 #endif
         }
     }
@@ -184,7 +184,7 @@ namespace lwscript
     void Allocator::GC()
     {
 #ifdef GC_DEBUG
-        Println(L"begin gc");
+        Logger::Println(TEXT("begin gc"));
         size_t bytes = mBytesAllocated;
 #endif
 
@@ -194,8 +194,8 @@ namespace lwscript
         mNextGCByteSize = mBytesAllocated * GC_HEAP_GROW_FACTOR;
 
 #ifdef GC_DEBUG
-        Println(L"end gc");
-        Println(L"    collected {} bytes (from {} to {}) next gc bytes {}", bytes - mBytesAllocated, bytes, mNextGCByteSize);
+        Logger::Println(TEXT("end gc"));
+        Logger::Println(TEXT("    collected {} bytes (from {} to {}) next gc bytes {}"), bytes - mBytesAllocated, bytes, mNextGCByteSize);
 #endif
     }
 

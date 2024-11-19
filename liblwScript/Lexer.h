@@ -15,27 +15,27 @@ namespace lwscript
 		Lexer();
 		~Lexer();
 
-		const std::vector<Token *> &ScanTokens(std::wstring_view src);
+		const std::vector<Token *> &ScanTokens(STD_STRING_VIEW src);
 
 	private:
 		void ResetStatus();
 
 		void ScanToken();
 
-		bool IsMatchCurChar(wchar_t c);
-		bool IsMatchCurCharAndStepOnce(wchar_t c);
+		bool IsMatchCurChar(CHAR_T c);
+		bool IsMatchCurCharAndStepOnce(CHAR_T c);
 
-		wchar_t GetCurCharAndStepOnce();
-		wchar_t GetCurChar();
+		CHAR_T GetCurCharAndStepOnce();
+		CHAR_T GetCurChar();
 
 		void AddToken(TokenKind type);
-		void AddToken(TokenKind type, std::wstring_view literal);
+		void AddToken(TokenKind type, STD_STRING_VIEW literal);
 
 		bool IsAtEnd();
 
-		bool IsNumber(wchar_t c);
-		bool IsLetter(wchar_t c, bool isAscii);
-		bool IsLetterOrNumber(wchar_t c, bool isAscii);
+		bool IsNumber(CHAR_T c);
+		bool IsLetter(CHAR_T c, bool isAscii);
+		bool IsLetterOrNumber(CHAR_T c, bool isAscii);
 
 		void Number();
 		void Identifier();
@@ -46,7 +46,7 @@ namespace lwscript
 		uint64_t mCurPos;
 		uint64_t mLine;
 		uint64_t mColumn;
-		std::wstring mSource;
+		STD_STRING mSource;
 		std::vector<Token *> mTokens;
 	};
 }

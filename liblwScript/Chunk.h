@@ -70,7 +70,7 @@ namespace lwscript
         Chunk(const OpCodes &opcodes, const std::vector<Value> &constants);
         ~Chunk();
 
-        std::wstring ToString() const;
+        STD_STRING ToString() const;
         std::vector<uint8_t> Serialization() const;
 
         OpCodes opCodes;
@@ -78,7 +78,7 @@ namespace lwscript
         std::vector<const Token *> opCodeRelatedTokens;
 
     private:
-        std::wstring OpCodeToString(const OpCodes &opcodes) const;
+        STD_STRING OpCodeToString(const OpCodes &opcodes) const;
         uint32_t GetBiggestTokenLength() const;
     };
 

@@ -12,45 +12,45 @@ lwscript::Parser *gParser = nullptr;
 lwscript::Compiler *gCompiler = nullptr;
 lwscript::VM *gVm = nullptr;
 
-void Run(std::wstring_view content)
+void Run(STD_STRING_VIEW content)
 {
 	auto tokens = gLexer->ScanTokens(content);
 #ifndef NDEBUG
 	for (const auto &token : tokens)
-		lwscript::Println(L"{}", *token);
+		lwscript::Logger::Println(TEXT("{}"), *token);
 #endif
 	auto stmt = gParser->Parse(tokens);
 #ifndef NDEBUG
-	lwscript::Println(L"{}", stmt->ToString());
+	lwscript::Logger::Println(TEXT("{}"), stmt->ToString());
 #endif
 	auto mainFunc = gCompiler->Compile(stmt);
 #ifndef NDEBUG
 	auto str = mainFunc->ToStringWithChunk();
-	lwscript::Println(L"{}", str);
+	lwscript::Logger::Println(TEXT("{}"), str);
 #endif
 	gVm->Run(mainFunc);
 }
 
 void Repl()
 {
-	std::wstring line;
-	std::wstring allLines;
+	STD_STRING line;
+	STD_STRING allLines;
 
-	lwscript::Print(L">> ");
-	while (getline(std::wcin, line))
+	lwscript::Logger::Print(TEXT(">> "));
+	while (getline(CIN, line))
 	{
 		allLines += line;
-		if (line == L"clear")
-			allLines = L"";
+		if (line == TEXT("clear"))
+			allLines = TEXT("");
 		else
 			Run(allLines);
-		lwscript::Println(L">> ");
+		lwscript::Logger::Println(TEXT(">> "));
 	}
 }
 
 void RunFile(std::string_view path)
 {
-	std::wstring content = lwscript::ReadFile(path);
+	STD_STRING content = lwscript::ReadFile(path);
 	Run(content);
 }
 

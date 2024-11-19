@@ -104,22 +104,22 @@ namespace lwscript
 
 	struct LWSCRIPT_API Token
 	{
-		Token() : kind(TokenKind::END), literal(L""), line(-1), column(-1), pos(-1) {}
-		Token(TokenKind kind, std::wstring_view literal, uint64_t line, uint64_t column, uint64_t pos) : kind(kind), literal(literal), line(line), column(column), pos(pos) {}
+		Token() : kind(TokenKind::END), literal(TEXT("")), line(-1), column(-1), pos(-1) {}
+		Token(TokenKind kind, STD_STRING_VIEW literal, uint64_t line, uint64_t column, uint64_t pos) : kind(kind), literal(literal), line(line), column(column), pos(pos) {}
 
-		std::wstring ToString() const
+		STD_STRING ToString() const
 		{
-			return L"\"" + literal + L"\"(" + std::to_wstring(line) + L"," + std::to_wstring(column) + L")";
+			return TEXT("\"") + literal + TEXT("\"(") + TO_STRING(line) + TEXT(",") + TO_STRING(column) + TEXT(")");
 		}
 
 		TokenKind kind;
-		std::wstring literal;
+		STD_STRING literal;
 		uint64_t line;
 		uint64_t column;
 		uint64_t pos;
 	};
 
-	inline std::wostream &operator<<(std::wostream &stream, const Token &token)
+	inline STD_OSTREAM &operator<<(STD_OSTREAM &stream, const Token &token)
 	{
 		return stream << token.ToString();
 	}

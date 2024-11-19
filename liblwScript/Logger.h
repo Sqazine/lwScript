@@ -9,98 +9,64 @@
 
 namespace lwscript
 {
-    inline void Output(std::wostream &os, std::wstring s)
-    {
-        os << s;
-    }
-
-    template <typename T, typename... Args>
-    inline void Output(std::wostream &os, std::wstring s, const T &next, const Args &...args)
-    {
-        auto index = s.find_first_of(L"{}");
-        if (index == std::wstring::npos)
-            Output(os, s);
-        else
-        {
-            std::wstringstream sstr;
-            sstr << next;
-            s.replace(index, 2, sstr.str());
-            sstr.clear();
-            Output(os, s, args...);
-        }
-    }
-
-    inline void Output(std::ostream &os, std::string_view s)
-    {
-        os << s;
-    }
-
-    template <typename T, typename... Args>
-    inline void Output(std::ostream &os, std::string_view s, const T &next, const Args &...args)
-    {
-        auto index = s.find_first_of("{}");
-        if (index == std::string::npos)
-            Output(os, s);
-        else
-        {
-            std::string tmpS = s.data();
-            std::stringstream sstr;
-            sstr << next;
-            tmpS.replace(index, 2, sstr.str());
-            sstr.clear();
-            Output(os, tmpS, args...);
-        }
-    }
-
-    template <typename... Args>
-    inline void Println(const std::wstring &s, const Args &...args)
-    {
-        Output(std::wcout, s + L"\n", args...);
-    }
-
-    template <typename... Args>
-    inline void Print(const std::wstring &s, const Args &...args)
-    {
-        Output(std::wcout, s, args...);
-    }
-
-    template <typename... Args>
-    inline void Println(const std::string &s, const Args &...args)
-    {
-        Output(std::cout, s + "\n", args...);
-    }
-
-    template <typename... Args>
-    inline void Print(const std::string s, const Args &...args)
-    {
-        Output(std::cout, s, args...);
-    }
-
     namespace Logger
     {
         namespace Record
         {
-            inline std::wstring mCurFilePath = L"interpreter";
-            inline std::wstring mSourceCode = L"";
+            inline STD_STRING mCurFilePath = TEXT("interpreter");
+            inline STD_STRING mSourceCode = TEXT("");
         }
 
-        inline void RecordSource(std::wstring_view sourceCode)
+        inline void Output(STD_OSTREAM &os, STD_STRING s)
+        {
+            os << s;
+        }
+
+        template <typename T, typename... Args>
+        inline void Output(STD_OSTREAM &os, STD_STRING s, const T &next, const Args &...args)
+        {
+            auto index = s.find_first_of(TEXT("{}"));
+            if (index == STD_STRING::npos)
+                Output(os, s);
+            else
+            {
+                STD_STRING_STREAM sstr;
+                sstr << next;
+                s.replace(index, 2, sstr.str());
+                sstr.clear();
+                Output(os, s, args...);
+            }
+        }
+
+        template <typename... Args>
+        inline void Println(const STD_STRING &s, const Args &...args)
+        {
+            Output(COUT, s + TEXT("\n"), args...);
+        }
+
+        template <typename... Args>
+        inline void Print(const STD_STRING &s, const Args &...args)
+        {
+            Output(COUT, s, args...);
+        }
+
+        inline void RecordSource(STD_STRING_VIEW sourceCode)
         {
             Record::mSourceCode = sourceCode;
         }
 
         template <typename... Args>
-        inline void AssemblyLogInfo(const std::wstring &headerHint, const std::wstring &colorHint, uint64_t lineNum, uint64_t column, uint64_t pos, const std::wstring &fmt, const Args &...args)
+        inline void AssemblyLogInfo(const STD_STRING &headerHint, const STD_STRING &colorHint, uint64_t lineNum, uint64_t column, uint64_t pos, const STD_STRING &fmt, const Args &...args)
         {
             auto start = pos;
             auto end = pos;
 
-            if (Record::mCurFilePath != L"interpreter")
+            if (Record::mCurFilePath != TEXT("interpreter"))
             {
-                while ((Record::mSourceCode[start - 1] != L'\n' && Record::mSourceCode[start - 1] != L'\r') && start - 1 > 0)
+                while ((Record::mSourceCode[start - 1] != TCHAR('\n') && Record::mSourceCode[start - 1] != TCHAR('\r')) && start - 1 > 0)
                     start--;
 
-                while ((Record::mSourceCode[end] != L'\n' && Record::mSourceCode[end] != L'\r') && end < Record::mSourceCode.size())
+                while ((Record::mSourceCode[end] != TCHAR('\n') && Record::mSourceCode[end] != TCHAR('\r')) && end < Record::mSourceCode.size())
                     end++;
             }
             else
@@ -109,25 +75,25 @@ namespace lwscript
                 end = Record::mSourceCode.size();
             }
 
-            auto startStr = headerHint + L":" + Record::mCurFilePath + L"(line " + std::to_wstring(lineNum) + L",column " + std::to_wstring(column) + L"): ";
+            auto startStr = headerHint + TEXT(":") + Record::mCurFilePath + TEXT("(line ") + TO_STRING(lineNum) + TEXT(",column ") + TO_STRING(column) + TEXT("): ");
 
             auto lineSrcCode = Record::mSourceCode.substr(start, end - start);
 
-            Println(L"\033[{}m{}{}\033[0m", colorHint, startStr, lineSrcCode);
+            Println(TEXT("\033[{}m{}{}\033[0m"), colorHint, startStr, lineSrcCode);
 
             auto blankSize = startStr.size() + pos - start;
 
-            std::wstring errorHintStr;
-            errorHintStr.insert(0, blankSize, L' ');
-            errorHintStr += L"^ " + std::wstring(fmt);
+            STD_STRING errorHintStr;
+            errorHintStr.insert(0, blankSize, TCHAR(' '));
+            errorHintStr += TEXT("^ ") + STD_STRING(fmt);
 
-            Println(L"\033[{}m" + errorHintStr + L"\033[0m", colorHint, args...);
+            Println(TEXT("\033[{}m") + errorHintStr + TEXT("\033[0m"), colorHint, args...);
         }
 
         template <typename... Args>
-        inline void Error(const std::string &fmt, const Args &...args)
+        inline void Error(const STD_STRING &fmt, const Args &...args)
         {
-            Println("\033[31m" + fmt + "\033[0m", args...);
+            Println(TEXT("\033[31m") + fmt + TEXT("\033[0m"), args...);
 #ifndef NDEBUG
             assert(0);
 #else
@@ -136,25 +102,14 @@ namespace lwscript
         }
 
         template <typename... Args>
-        inline void Error(const std::wstring &fmt, const Args &...args)
-        {
-            Println(L"\033[31m" + fmt + L"\033[0m", args...);
-#ifndef NDEBUG
-            assert(0);
-#else
-            exit(1);
-#endif
-        }
-
-        template <typename... Args>
-        inline void Error(uint64_t pos, const std::wstring &fmt, const Args &...args)
+        inline void Error(uint64_t pos, const STD_STRING &fmt, const Args &...args)
         {
             auto lineNum = 1;
             for (uint64_t i = 0; i < pos; ++i)
-                if (Record::mSourceCode[i] == L'\n' || Record::mSourceCode[i] == L'\r')
+                if (Record::mSourceCode[i] == TCHAR('\n') || Record::mSourceCode[i] == TCHAR('\r'))
                     lineNum++;
 
-            AssemblyLogInfo(L"[ERROR]", L"31", lineNum, 1, pos, fmt, args...);
+            AssemblyLogInfo(TEXT("[ERROR]"), TEXT("31"), lineNum, 1, pos, fmt, args...);
 #ifndef NDEBUG
             assert(0);
 #else
@@ -163,9 +118,9 @@ namespace lwscript
         }
 
         template <typename... Args>
-        inline void Error(const Token *tok, const std::wstring &fmt, const Args &...args)
+        inline void Error(const Token *tok, const STD_STRING &fmt, const Args &...args)
         {
-            AssemblyLogInfo(L"[ERROR]", L"31", tok->line, tok->column, tok->pos, fmt, args...);
+            AssemblyLogInfo(TEXT("[ERROR]"), TEXT("31"), tok->line, tok->column, tok->pos, fmt, args...);
 #ifndef NDEBUG
             assert(0);
 #else
@@ -174,37 +129,37 @@ namespace lwscript
         }
 
         template <typename... Args>
-        void Warn(int32_t pos, const std::wstring &fmt, const Args &...args)
+        void Warn(int32_t pos, const STD_STRING &fmt, const Args &...args)
         {
             auto lineNum = 1;
             for (int32_t i = 0; i < pos; ++i)
-                if (Record::mSourceCode[i] == L'\n' || Record::mSourceCode[i] == L'\r')
+                if (Record::mSourceCode[i] == TCHAR('\n') || Record::mSourceCode[i] == TCHAR('\r'))
                     lineNum++;
 
-            AssemblyLogInfo(L"[WARN]", L"33", lineNum, 1, pos, fmt, args...);
+            AssemblyLogInfo(TEXT("[WARN]"), TEXT("33"), lineNum, 1, pos, fmt, args...);
         }
 
         template <typename... Args>
-        void Warn(const Token *tok, const std::wstring &fmt, const Args &...args)
+        void Warn(const Token *tok, const STD_STRING &fmt, const Args &...args)
         {
-            AssemblyLogInfo(L"[WARN]", L"33", tok->line, tok->column, tok->pos, fmt, args...);
+            AssemblyLogInfo(TEXT("[WARN]"), TEXT("33"), tok->line, tok->column, tok->pos, fmt, args...);
         }
 
         template <typename... Args>
-        void Info(int32_t pos, const std::wstring &fmt, const Args &...args)
+        void Info(int32_t pos, const STD_STRING &fmt, const Args &...args)
         {
             auto lineNum = 1;
             for (int32_t i = 0; i < pos; ++i)
-                if (Record::mSourceCode[i] == L'\n' || Record::mSourceCode[i] == L'\r')
+                if (Record::mSourceCode[i] == TCHAR('\n') || Record::mSourceCode[i] == TCHAR('\r'))
                     lineNum++;
 
-            AssemblyLogInfo(L"[INFO]", L"32", lineNum, 1, pos, fmt, args...);
+            AssemblyLogInfo(TEXT("[INFO]"), TEXT("32"), lineNum, 1, pos, fmt, args...);
         }
 
         template <typename... Args>
-        void Info(const Token *tok, const std::wstring &fmt, const Args &...args)
+        void Info(const Token *tok, const STD_STRING &fmt, const Args &...args)
         {
-            AssemblyLogInfo(L"[INFO]", L"32", tok->line, tok->column, tok->pos, fmt, args...);
+            AssemblyLogInfo(TEXT("[INFO]"), TEXT("32"), tok->line, tok->column, tok->pos, fmt, args...);
         }
     }
 }

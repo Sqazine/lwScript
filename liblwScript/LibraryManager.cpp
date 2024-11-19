@@ -11,51 +11,51 @@
         return false;                                                                                         \
     if (argCount == 1)                                                                                        \
     {                                                                                                         \
-        fn(L"{}", args[0].ToString());                                                                        \
+        fn(TEXT("{}"), args[0].ToString());                                                                   \
         return false;                                                                                         \
     }                                                                                                         \
     if (!IS_STR_VALUE(args[0]))                                                                               \
     {                                                                                                         \
         for (uint32_t i = 0; i < argCount; ++i)                                                               \
-            fn(L"{}", args[i].ToString());                                                                    \
+            fn(TEXT("{}"), args[i].ToString());                                                               \
         return false;                                                                                         \
     }                                                                                                         \
-    std::wstring content = TO_STR_VALUE(args[0])->value;                                                      \
+    STD_STRING content = TO_STR_VALUE(args[0])->value;                                                        \
     if (argCount != 1) /*formatting output*/                                                                  \
     {                                                                                                         \
-        size_t pos = content.find(L"{}");                                                                     \
+        size_t pos = content.find(TEXT("{}"));                                                                \
         size_t argpos = 1;                                                                                    \
-        while (pos != std::wstring::npos)                                                                     \
+        while (pos != STD_STRING::npos)                                                                       \
         {                                                                                                     \
             if (argpos < argCount)                                                                            \
                 content.replace(pos, 2, args[argpos++].ToString());                                           \
             else                                                                                              \
-                content.replace(pos, 2, L"null");                                                             \
-            pos = content.find(L"{}");                                                                        \
+                content.replace(pos, 2, TEXT("null"));                                                        \
+            pos = content.find(TEXT("{}"));                                                                   \
         }                                                                                                     \
     }                                                                                                         \
-    size_t pos = content.find(L"\\n");                                                                        \
-    while (pos != std::wstring::npos)                                                                         \
+    size_t pos = content.find(TEXT("\\n"));                                                                   \
+    while (pos != STD_STRING::npos)                                                                           \
     {                                                                                                         \
-        content[pos] = '\n';                                                                                  \
-        content.replace(pos + 1, 1, L""); /*erase a char*/                                                    \
-        pos = content.find(L"\\n");                                                                           \
+        content[pos] = TCHAR('\n');                                                                            \
+        content.replace(pos + 1, 1, TEXT("")); /*erase a char*/                                               \
+        pos = content.find(TEXT("\\n"));                                                                      \
     }                                                                                                         \
-    pos = content.find(L"\\t");                                                                               \
-    while (pos != std::wstring::npos)                                                                         \
+    pos = content.find(TEXT("\\t"));                                                                          \
+    while (pos != STD_STRING::npos)                                                                           \
     {                                                                                                         \
-        content[pos] = '\t';                                                                                  \
-        content.replace(pos + 1, 1, L""); /*erase a char*/                                                    \
-        pos = content.find(L"\\t");                                                                           \
+        content[pos] = TCHAR('\t');                                                                            \
+        content.replace(pos + 1, 1, TEXT("")); /*erase a char*/                                               \
+        pos = content.find(TEXT("\\t"));                                                                      \
     }                                                                                                         \
-    pos = content.find(L"\\r");                                                                               \
-    while (pos != std::wstring::npos)                                                                         \
+    pos = content.find(TEXT("\\r"));                                                                          \
+    while (pos != STD_STRING::npos)                                                                           \
     {                                                                                                         \
-        content[pos] = '\r';                                                                                  \
-        content.replace(pos + 1, 1, L""); /*erase a char*/                                                    \
-        pos = content.find(L"\\r");                                                                           \
+        content[pos] = TCHAR('\r');                                                                            \
+        content.replace(pos + 1, 1, TEXT("")); /*erase a char*/                                               \
+        pos = content.find(TEXT("\\r"));                                                                      \
     }                                                                                                         \
-    fn(L"{}", content);                                                                                       \
+    fn(TEXT("{}"), content);                                                                                  \
     return false;                                                                                             \
 }
 
@@ -68,7 +68,7 @@ namespace lwscript
         for (const auto &lib : mLibraries)
         {
             if (lib->name == libraryClass->name)
-                Logger::Error(L"Conflict library name {}", libraryClass->name);
+                Logger::Error(TEXT("Conflict library name {}"), libraryClass->name);
         }
 
         mLibraries.emplace_back(libraryClass);
@@ -81,15 +81,15 @@ namespace lwscript
 
     LibraryManager::LibraryManager()
     {
-        auto ioClass = new ClassObject(L"io");
-        ioClass->members[L"print"] = new NativeFunctionObject(PRINT_LAMBDA(Print));
-        ioClass->members[L"println"] = new NativeFunctionObject(PRINT_LAMBDA(Println));
+        auto ioClass = new ClassObject(TEXT("io"));
+        ioClass->members[TEXT("print")] = new NativeFunctionObject(PRINT_LAMBDA(Logger::Print));
+        ioClass->members[TEXT("println")] = new NativeFunctionObject(PRINT_LAMBDA(Logger::Println));
         mLibraries.emplace_back(ioClass);
 
         const auto SizeOfFunction = new NativeFunctionObject([](Value *args, uint32_t argCount, const Token *relatedToken, Value &result) -> bool
                                                              {
                                                                  if (args == nullptr || argCount > 1)
-                                                                     Logger::Error(relatedToken, L"[Native function 'sizeof']:Expect a argument.");
+                                                                     Logger::Error(relatedToken, TEXT("[Native function 'sizeof']:Expect a argument."));
 
                                                                  if (IS_ARRAY_VALUE(args[0]))
                                                                  {
@@ -107,26 +107,25 @@ namespace lwscript
                                                                      return true;
                                                                  }
                                                                  else
-                                                                     Logger::Error(relatedToken, L"[Native function 'sizeof']:Expect a array,dict ot string argument.");
+                                                                     Logger::Error(relatedToken, TEXT("[Native function 'sizeof']:Expect a array,dict ot string argument."));
 
-                                                                 return false;
-                                                             });
+                                                                 return false; });
 
         const auto InsertFunction = new NativeFunctionObject([](Value *args, uint32_t argCount, const Token *relatedToken, Value &result) -> bool
                                                              {
                                                                  if (args == nullptr || argCount != 3)
-                                                                     Logger::Error(relatedToken, L"[Native function 'insert']:Expect 3 arguments,the arg0 must be array,dict or string object.The arg1 is the index object.The arg2 is the value object.");
+                                                                     Logger::Error(relatedToken, TEXT("[Native function 'insert']:Expect 3 arguments,the arg0 must be array,dict or string object.The arg1 is the index object.The arg2 is the value object."));
 
                                                                  if (IS_ARRAY_VALUE(args[0]))
                                                                  {
                                                                      ArrayObject *array = TO_ARRAY_VALUE(args[0]);
                                                                      if (!IS_INT_VALUE(args[1]))
-                                                                         Logger::Error(relatedToken, L"[Native function 'insert']:Arg1 must be integer type while insert to a array");
+                                                                         Logger::Error(relatedToken, TEXT("[Native function 'insert']:Arg1 must be integer type while insert to a array"));
 
                                                                      int64_t iIndex = TO_INT_VALUE(args[1]);
 
                                                                      if (iIndex < 0 || iIndex >= (int64_t)array->elements.size())
-                                                                         Logger::Error(relatedToken, L"[Native function 'insert']:Index out of array's range");
+                                                                         Logger::Error(relatedToken, TEXT("[Native function 'insert']:Index out of array's range"));
 
                                                                      array->elements.insert(array->elements.begin() + iIndex, 1, args[2]);
                                                                  }
@@ -136,7 +135,7 @@ namespace lwscript
 
                                                                      for (auto [key, value] : dict->elements)
                                                                          if (key == args[1])
-                                                                             Logger::Error(relatedToken, L"[Native function 'insert']:Already exist value in the dict object of arg1" + args[1].ToString());
+                                                                             Logger::Error(relatedToken, TEXT("[Native function 'insert']:Already exist value in the dict object of arg1") + args[1].ToString());
 
                                                                      dict->elements[args[1]] = args[2];
                                                                  }
@@ -144,37 +143,36 @@ namespace lwscript
                                                                  {
                                                                      auto &string = TO_STR_VALUE(args[0])->value;
                                                                      if (!IS_INT_VALUE(args[1]))
-                                                                         Logger::Error(relatedToken, L"[Native function 'insert']:Arg1 must be integer type while insert to a array");
+                                                                         Logger::Error(relatedToken, TEXT("[Native function 'insert']:Arg1 must be integer type while insert to a array"));
 
                                                                      int64_t iIndex = TO_INT_VALUE(args[1]);
 
                                                                      if (iIndex < 0 || iIndex >= (int64_t)string.size())
-                                                                         Logger::Error(relatedToken, L"[Native function 'insert']:Index out of array's range");
+                                                                         Logger::Error(relatedToken, TEXT("[Native function 'insert']:Index out of array's range"));
 
                                                                      string.insert(iIndex, args[2].ToString());
                                                                  }
                                                                  else
-                                                                     Logger::Error(relatedToken, L"[Native function 'insert']:Expect a array,dict ot string argument.");
+                                                                     Logger::Error(relatedToken, TEXT("[Native function 'insert']:Expect a array,dict ot string argument."));
 
                                                                  result = args[0];
-                                                                 return true;
-                                                             });
+                                                                 return true; });
 
         const auto EraseFunction = new NativeFunctionObject([](Value *args, uint32_t argCount, const Token *relatedToken, Value &result) -> bool
                                                             {
                                                                 if (args == nullptr || argCount != 2)
-                                                                    Logger::Error(relatedToken, L"[Native function 'erase']:Expect 2 arguments,the arg0 must be array,dict or string object.The arg1 is the corresponding index object.");
+                                                                    Logger::Error(relatedToken, TEXT("[Native function 'erase']:Expect 2 arguments,the arg0 must be array,dict or string object.The arg1 is the corresponding index object."));
 
                                                                 if (IS_ARRAY_VALUE(args[0]))
                                                                 {
                                                                     ArrayObject *array = TO_ARRAY_VALUE(args[0]);
                                                                     if (!IS_INT_VALUE(args[1]))
-                                                                        Logger::Error(relatedToken, L"[Native function 'erase']:Arg1 must be integer type while insert to a array");
+                                                                        Logger::Error(relatedToken, TEXT("[Native function 'erase']:Arg1 must be integer type while insert to a array"));
 
                                                                     int64_t iIndex = TO_INT_VALUE(args[1]);
 
                                                                     if (iIndex < 0 || iIndex >= (int64_t)array->elements.size())
-                                                                        Logger::Error(relatedToken, L"[Native function 'erase']:Index out of array's range");
+                                                                        Logger::Error(relatedToken, TEXT("[Native function 'erase']:Index out of array's range"));
 
                                                                     array->elements.erase(array->elements.begin() + iIndex);
                                                                 }
@@ -193,58 +191,55 @@ namespace lwscript
                                                                         }
 
                                                                     if (!hasValue)
-                                                                        Logger::Error(relatedToken, L"[Native function 'erase']:No corresponding index in dict.");
+                                                                        Logger::Error(relatedToken, TEXT("[Native function 'erase']:No corresponding index in dict."));
                                                                 }
                                                                 else if (IS_STR_VALUE(args[0]))
                                                                 {
                                                                     auto &string = TO_STR_VALUE(args[0])->value;
                                                                     if (!IS_INT_VALUE(args[1]))
-                                                                        Logger::Error(relatedToken, L"[Native function 'erase']:Arg1 must be integer type while insert to a array");
+                                                                        Logger::Error(relatedToken, TEXT("[Native function 'erase']:Arg1 must be integer type while insert to a array"));
 
                                                                     int64_t iIndex = TO_INT_VALUE(args[1]);
 
                                                                     if (iIndex < 0 || iIndex >= (int64_t)string.size())
-                                                                        Logger::Error(relatedToken, L"[Native function 'erase']:Index out of array's range");
+                                                                        Logger::Error(relatedToken, TEXT("[Native function 'erase']:Index out of array's range"));
 
                                                                     string.erase(string.begin() + iIndex);
                                                                 }
                                                                 else
-                                                                    Logger::Error(relatedToken, L"[Native function 'erase']:Expect a array,dict ot string argument.");
+                                                                    Logger::Error(relatedToken, TEXT("[Native function 'erase']:Expect a array,dict ot string argument."));
 
                                                                 result = args[0];
-                                                                return true;
-                                                            });
+                                                                return true; });
 
-        auto dsClass = new ClassObject(L"ds");
-        dsClass->members[L"sizeof"] = SizeOfFunction;
-        dsClass->members[L"insert"] = InsertFunction;
-        dsClass->members[L"erase"] = EraseFunction;
+        auto dsClass = new ClassObject(TEXT("ds"));
+        dsClass->members[TEXT("sizeof")] = SizeOfFunction;
+        dsClass->members[TEXT("insert")] = InsertFunction;
+        dsClass->members[TEXT("erase")] = EraseFunction;
         mLibraries.emplace_back(dsClass);
 
         const auto AddressOfFunction = new NativeFunctionObject([](Value *args, uint32_t argCount, const Token *relatedToken, Value &result) -> bool
                                                                 {
-                                                                    if (args == nullptr || argCount != 1)
-                                                                        Logger::Error(relatedToken, L"[Native function 'addressof']:Expect 1 arguments.");
+            if (args == nullptr || argCount != 1)
+                                                                        Logger::Error(relatedToken, TEXT("[Native function 'addressof']:Expect 1 arguments."));
 
                                                                     if (!IS_OBJECT_VALUE(args[0]))
-                                                                        Logger::Error(relatedToken, L"[Native function 'addressof']:The arg0 is a value,only object has address.");
+                                                                        Logger::Error(relatedToken, TEXT("[Native function 'addressof']:The arg0 is a value,only object has address."));
 
                                                                     result = new StrObject(PointerAddressToString(args[0].object));
-                                                                    return true;
-                                                                });
+                                                                    return true; });
 
-        auto memClass = new ClassObject(L"mem");
-        memClass->members[L"addressof"] = AddressOfFunction;
+        auto memClass = new ClassObject(TEXT("mem"));
+        memClass->members[TEXT("addressof")] = AddressOfFunction;
         mLibraries.emplace_back(memClass);
 
         const auto ClockFunction = new NativeFunctionObject([](Value *args, uint32_t argCount, const Token *relatedToken, Value &result) -> bool
                                                             {
-                                                                result = Value((double)clock() / CLOCKS_PER_SEC);
-                                                                return true;
-                                                            });
+            result = Value((double)clock() / CLOCKS_PER_SEC);
+            return true; });
 
-        auto timeClass = new ClassObject(L"time");
-        timeClass->members[L"clock"] = ClockFunction;
+        auto timeClass = new ClassObject(TEXT("time"));
+        timeClass->members[TEXT("clock")] = ClockFunction;
         mLibraries.emplace_back(timeClass);
     }
 }

@@ -51,7 +51,7 @@ namespace lwscript
         UpValueObject *CaptureUpValue(Value *location);
         void ClosedUpValues(Value *end);
 
-        void SetValueFromStackTopOffset(int32_t offset,const Value& value);
+        void SetValueFromStackTopOffset(int32_t offset, const Value &value);
 
         Value *GetGlobalVariable(size_t idx);
         void SetGlobalVariable(size_t idx, const Value &v);
@@ -76,7 +76,7 @@ namespace lwscript
 
         UpValueObject *mOpenUpValues;
 
-        friend class Object;
+        friend struct Object;
 
         Object *mObjectChain;
         std::vector<Object *> mGrayObjects;
@@ -100,7 +100,7 @@ namespace lwscript
         object->marked = false;
         mObjectChain = object;
 #ifdef GC_DEBUG
-        std::cout << (void *)object << " has been add to gc record chain " << objBytes << " for " << object->type << std::endl;
+        Logger::Info(nullptr, TEXT("{} has been add to gc record chain {} for {}"), (void *)object, objBytes, object->kind);
 #endif
 
         return object;
@@ -110,7 +110,7 @@ namespace lwscript
     inline void Allocator::FreeObject(T *object)
     {
 #ifdef GC_DEBUG
-        Println(L"delete object(0x{})", (void *)object);
+        Logger::Println(TEXT("delete object(0x{})"), (void *)object);
 #endif
         mBytesAllocated -= sizeof(object);
         SAFE_DELETE(object);
@@ -127,7 +127,7 @@ namespace lwscript
 #define STACK() (Allocator::GetInstance()->Stack())
 #define SET_STACK_TOP(v) (Allocator::GetInstance()->SetStackTop(v))
 #define MOVE_STACK_TOP(idx) (Allocator::GetInstance()->MoveStackTop(idx))
-#define SET_VALUE_FROM_STACK_TOP_OFFSET(offset,v) (Allocator::GetInstance()->SetValueFromStackTopOffset(offset,v))
+#define SET_VALUE_FROM_STACK_TOP_OFFSET(offset, v) (Allocator::GetInstance()->SetValueFromStackTopOffset(offset, v))
 
 #define PUSH_CALL_FRAME(v) (Allocator::GetInstance()->PushCallFrame(v))
 #define POP_CALL_FRAME() (Allocator::GetInstance()->PopCallFrame())

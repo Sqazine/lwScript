@@ -29,7 +29,7 @@ namespace lwscript
 		std::vector<Value> returnValues;
 #ifndef NDEBUG
 		if (STACK_TOP() != STACK() + 1)
-			Logger::Error(new Token(), L"Stack occupancy exception.");
+			Logger::Error(new Token(), TEXT("Stack occupancy exception."));
 #endif
 
 		while (STACK_TOP() != STACK() + 1)
@@ -43,41 +43,41 @@ namespace lwscript
 	void VM::Execute()
 	{
 		//  - * /
-#define COMMON_BINARY(op)                                                                                                                                                                                    \
-	do                                                                                                                                                                                                       \
-	{                                                                                                                                                                                                        \
-		Value right = POP_STACK();                                                                                                                                                                           \
-		Value left = POP_STACK();                                                                                                                                                                            \
-		if (IS_REF_VALUE(left))                                                                                                                                                                              \
-			left = *TO_REF_VALUE(left)->pointer;                                                                                                                                                             \
-		if (IS_REF_VALUE(right))                                                                                                                                                                             \
-			right = *TO_REF_VALUE(right)->pointer;                                                                                                                                                           \
-		if (IS_INT_VALUE(left) && IS_INT_VALUE(right))                                                                                                                                                       \
-			PUSH_STACK(TO_INT_VALUE(left) op TO_INT_VALUE(right));                                                                                                                                           \
-		else if (IS_REAL_VALUE(left) && IS_REAL_VALUE(right))                                                                                                                                                \
-			PUSH_STACK(TO_REAL_VALUE(left) op TO_REAL_VALUE(right));                                                                                                                                         \
-		else if (IS_INT_VALUE(left) && IS_REAL_VALUE(right))                                                                                                                                                 \
-			PUSH_STACK(TO_INT_VALUE(left) op TO_REAL_VALUE(right));                                                                                                                                          \
-		else if (IS_REAL_VALUE(left) && IS_INT_VALUE(right))                                                                                                                                                 \
-			PUSH_STACK(TO_REAL_VALUE(left) op TO_INT_VALUE(right));                                                                                                                                          \
-		else                                                                                                                                                                                                 \
-			Logger::Error(relatedToken, L"Invalid binary op:{}{}{},only (&)int-(&)int,(&)real-(&)real,(&)int-(&)real or (&)real-(&)int type pair is available.", left.ToString(), (L#op), right.ToString()); \
+#define COMMON_BINARY(op)                                                                                                                                                                                            \
+	do                                                                                                                                                                                                               \
+	{                                                                                                                                                                                                                \
+		Value right = POP_STACK();                                                                                                                                                                                   \
+		Value left = POP_STACK();                                                                                                                                                                                    \
+		if (IS_REF_VALUE(left))                                                                                                                                                                                      \
+			left = *TO_REF_VALUE(left)->pointer;                                                                                                                                                                     \
+		if (IS_REF_VALUE(right))                                                                                                                                                                                     \
+			right = *TO_REF_VALUE(right)->pointer;                                                                                                                                                                   \
+		if (IS_INT_VALUE(left) && IS_INT_VALUE(right))                                                                                                                                                               \
+			PUSH_STACK(TO_INT_VALUE(left) op TO_INT_VALUE(right));                                                                                                                                                   \
+		else if (IS_REAL_VALUE(left) && IS_REAL_VALUE(right))                                                                                                                                                        \
+			PUSH_STACK(TO_REAL_VALUE(left) op TO_REAL_VALUE(right));                                                                                                                                                 \
+		else if (IS_INT_VALUE(left) && IS_REAL_VALUE(right))                                                                                                                                                         \
+			PUSH_STACK(TO_INT_VALUE(left) op TO_REAL_VALUE(right));                                                                                                                                                  \
+		else if (IS_REAL_VALUE(left) && IS_INT_VALUE(right))                                                                                                                                                         \
+			PUSH_STACK(TO_REAL_VALUE(left) op TO_INT_VALUE(right));                                                                                                                                                  \
+		else                                                                                                                                                                                                         \
+			Logger::Error(relatedToken, TEXT("Invalid binary op:{}{}{},only (&)int-(&)int,(&)real-(&)real,(&)int-(&)real or (&)real-(&)int type pair is available."), left.ToString(), TEXT(#op), right.ToString()); \
 	} while (0);
 
 // & | << >>
-#define INTEGER_BINARY(op)                                                                                                                                  \
-	do                                                                                                                                                      \
-	{                                                                                                                                                       \
-		Value right = POP_STACK();                                                                                                                          \
-		Value left = POP_STACK();                                                                                                                           \
-		if (IS_REF_VALUE(left))                                                                                                                             \
-			left = *TO_REF_VALUE(left)->pointer;                                                                                                            \
-		if (IS_REF_VALUE(right))                                                                                                                            \
-			right = *TO_REF_VALUE(right)->pointer;                                                                                                          \
-		if (IS_INT_VALUE(left) && IS_INT_VALUE(right))                                                                                                      \
-			PUSH_STACK(TO_INT_VALUE(left) op TO_INT_VALUE(right));                                                                                          \
-		else                                                                                                                                                \
-			Logger::Error(relatedToken, L"Invalid binary op:{}{}{},only (&)int-(&)int type pair is available.", left.ToString(), (L#op), right.ToString()); \
+#define INTEGER_BINARY(op)                                                                                                                                          \
+	do                                                                                                                                                              \
+	{                                                                                                                                                               \
+		Value right = POP_STACK();                                                                                                                                  \
+		Value left = POP_STACK();                                                                                                                                   \
+		if (IS_REF_VALUE(left))                                                                                                                                     \
+			left = *TO_REF_VALUE(left)->pointer;                                                                                                                    \
+		if (IS_REF_VALUE(right))                                                                                                                                    \
+			right = *TO_REF_VALUE(right)->pointer;                                                                                                                  \
+		if (IS_INT_VALUE(left) && IS_INT_VALUE(right))                                                                                                              \
+			PUSH_STACK(TO_INT_VALUE(left) op TO_INT_VALUE(right));                                                                                                  \
+		else                                                                                                                                                        \
+			Logger::Error(relatedToken, TEXT("Invalid binary op:{}{}{},only (&)int-(&)int type pair is available."), left.ToString(), TEXT(#op), right.ToString()); \
 	} while (0);
 
 // > <
@@ -103,30 +103,30 @@ namespace lwscript
 	} while (0);
 
 // && ||
-#define LOGIC_BINARY(op)                                                                                                                                      \
-	do                                                                                                                                                        \
-	{                                                                                                                                                         \
-		Value right = POP_STACK();                                                                                                                            \
-		Value left = POP_STACK();                                                                                                                             \
-		if (IS_REF_VALUE(left))                                                                                                                               \
-			left = *TO_REF_VALUE(left)->pointer;                                                                                                              \
-		if (IS_REF_VALUE(right))                                                                                                                              \
-			right = *TO_REF_VALUE(right)->pointer;                                                                                                            \
-		if (IS_BOOL_VALUE(left) && IS_BOOL_VALUE(right))                                                                                                      \
-			PUSH_STACK(TO_BOOL_VALUE(left) op TO_BOOL_VALUE(right) ? Value(true) : Value(false));                                                             \
-		else                                                                                                                                                  \
-			Logger::Error(relatedToken, L"Invalid binary op:{}{}{},only (&)bool-(&)bool type pair is available.", left.ToString(), (L#op), right.ToString()); \
+#define LOGIC_BINARY(op)                                                                                                                                              \
+	do                                                                                                                                                                \
+	{                                                                                                                                                                 \
+		Value right = POP_STACK();                                                                                                                                    \
+		Value left = POP_STACK();                                                                                                                                     \
+		if (IS_REF_VALUE(left))                                                                                                                                       \
+			left = *TO_REF_VALUE(left)->pointer;                                                                                                                      \
+		if (IS_REF_VALUE(right))                                                                                                                                      \
+			right = *TO_REF_VALUE(right)->pointer;                                                                                                                    \
+		if (IS_BOOL_VALUE(left) && IS_BOOL_VALUE(right))                                                                                                              \
+			PUSH_STACK(TO_BOOL_VALUE(left) op TO_BOOL_VALUE(right) ? Value(true) : Value(false));                                                                     \
+		else                                                                                                                                                          \
+			Logger::Error(relatedToken, TEXT("Invalid binary op:{}{}{},only (&)bool-(&)bool type pair is available."), left.ToString(), TEXT(#op), right.ToString()); \
 	} while (0);
 
 #define READ_INS() (*frame->ip++)
 
 #define CHECK_IDX_RANGE(v, idx)                 \
 	if (idx < 0 || idx >= (uint64_t)(v).size()) \
-		Logger::Error(relatedToken, L"Idx out of range.");
+		Logger::Error(relatedToken, TEXT("Idx out of range."));
 
 #define CHECK_IDX_VALID(idxValue) \
 	if (!IS_INT_VALUE(idxValue))  \
-		Logger::Error(relatedToken, L"Invalid idx type for array or string,only integer is available.");
+		Logger::Error(relatedToken, TEXT("Invalid idx type for array or string,only integer is available."));
 
 		while (1)
 		{
@@ -271,7 +271,7 @@ namespace lwscript
 				else if (IS_STR_VALUE(left) && IS_STR_VALUE(right))
 					PUSH_STACK(Allocator::GetInstance()->CreateObject<StrObject>(TO_STR_VALUE(left)->value + TO_STR_VALUE(right)->value));
 				else
-					Logger::Error(relatedToken, L"Invalid binary op:{}+{},only (&)int-(&)int,(&)real-(&)real,(&)int-(&)real or (&)real-(&)int type pair is available.", left.ToString(), right.ToString());
+					Logger::Error(relatedToken, TEXT("Invalid binary op:{}+{},only (&)int-(&)int,(&)real-(&)real,(&)int-(&)real or (&)real-(&)int type pair is available."), left.ToString(), right.ToString());
 				break;
 			}
 			case OP_SUB:
@@ -330,7 +330,7 @@ namespace lwscript
 				if (IS_REF_VALUE(value))
 					value = *TO_REF_VALUE(value)->pointer;
 				if (!IS_BOOL_VALUE(value))
-					Logger::Error(relatedToken, L"Invalid op:!{}, only bool type is available.", value.ToString());
+					Logger::Error(relatedToken, TEXT("Invalid op:!{}, only bool type is available."), value.ToString());
 				PUSH_STACK(!TO_BOOL_VALUE(value));
 				break;
 			}
@@ -355,7 +355,7 @@ namespace lwscript
 				else if (IS_REAL_VALUE(value))
 					PUSH_STACK(-TO_REAL_VALUE(value));
 				else
-					Logger::Error(relatedToken, L"Invalid op:-{}, only -(int||real expr) is available.", value.ToString());
+					Logger::Error(relatedToken, TEXT("Invalid op:-{}, only -(int||real expr) is available."), value.ToString());
 				break;
 			}
 			case OP_FACTORIAL:
@@ -366,7 +366,7 @@ namespace lwscript
 				if (IS_INT_VALUE(value))
 					PUSH_STACK(Factorial(TO_INT_VALUE(value)));
 				else
-					Logger::Error(relatedToken, L"Invalid op:{}!, only (int expr)! is available.", value.ToString());
+					Logger::Error(relatedToken, TEXT("Invalid op:{}!, only (int expr)! is available."), value.ToString());
 				break;
 			}
 			case OP_ARRAY:
@@ -428,7 +428,7 @@ namespace lwscript
 					if (iter != dict->elements.end())
 						PUSH_STACK(iter->second);
 					else
-						Logger::Error(relatedToken, L"No key in dict");
+						Logger::Error(relatedToken, TEXT("No key in dict"));
 				}
 				break;
 			}
@@ -453,7 +453,7 @@ namespace lwscript
 					CHECK_IDX_RANGE(strObj->value, intIdx)
 
 					if (!IS_STR_VALUE(newValue))
-						Logger::Error(relatedToken, L"Cannot insert a non string clip:{} to string:{}", newValue.ToString(), strObj->value);
+						Logger::Error(relatedToken, TEXT("Cannot insert a non string clip:{} to string:{}"), newValue.ToString(), strObj->value);
 
 					strObj->value.append(TO_STR_VALUE(newValue)->value, intIdx, TO_STR_VALUE(newValue)->value.size());
 				}
@@ -524,7 +524,7 @@ namespace lwscript
 					PUSH_STACK(Allocator::GetInstance()->CreateObject<RefObject>(&(array->elements[intIdx])));
 				}
 				else
-					Logger::Error(relatedToken, L"Invalid indexed reference type:{} not a dict or array value.", globalValue->ToString());
+					Logger::Error(relatedToken, TEXT("Invalid indexed reference type:{} not a dict or array value."), globalValue->ToString());
 				break;
 			}
 			case OP_REF_INDEX_LOCAL:
@@ -543,7 +543,7 @@ namespace lwscript
 					PUSH_STACK(Allocator::GetInstance()->CreateObject<RefObject>(&array->elements[intIdx]));
 				}
 				else
-					Logger::Error(relatedToken, L"Invalid indexed reference type:{} not a dict or array value.", v->ToString());
+					Logger::Error(relatedToken, TEXT("Invalid indexed reference type:{} not a dict or array value."), v->ToString());
 				break;
 			}
 			case OP_REF_INDEX_UPVALUE:
@@ -562,7 +562,7 @@ namespace lwscript
 					PUSH_STACK(Allocator::GetInstance()->CreateObject<RefObject>(&array->elements[intIdx]));
 				}
 				else
-					Logger::Error(relatedToken, L"Invalid indexed reference type: {}  not a dict or array value.", v->ToString());
+					Logger::Error(relatedToken, TEXT("Invalid indexed reference type: {}  not a dict or array value."), v->ToString());
 				break;
 			}
 			case OP_CALL:
@@ -595,7 +595,7 @@ namespace lwscript
 									argCount = arity - 1;
 							}
 							else
-								Logger::Error(relatedToken, L"No matching argument count.");
+								Logger::Error(relatedToken, TEXT("No matching argument count."));
 						}
 						else if (argCount >= arity)
 						{
@@ -617,7 +617,7 @@ namespace lwscript
 						}
 					}
 					else if (argCount != TO_CLOSURE_VALUE(callee)->function->arity)
-						Logger::Error(relatedToken, L"No matching argument count.");
+						Logger::Error(relatedToken, TEXT("No matching argument count."));
 
 					std::vector<Value> args(STACK_TOP() - argCount, STACK_TOP());
 					std::vector<Value> rets;
@@ -651,7 +651,7 @@ namespace lwscript
 					{
 						auto iter = klass->constructors.find(argCount);
 						if (iter == klass->constructors.end())
-							Logger::Error(relatedToken, L"Not matching argument count of class: {}'s constructors.", klass->name);
+							Logger::Error(relatedToken, TEXT("Not matching argument count of class: {}'s constructors."), klass->name);
 
 						auto ctor = iter->second;
 						// init a new frame
@@ -675,7 +675,7 @@ namespace lwscript
 						PUSH_STACK(Value());
 				}
 				else
-					Logger::Error(relatedToken, L"Invalid callee,Only function is available: {}", callee.ToString());
+					Logger::Error(relatedToken, TEXT("Invalid callee,Only function is available: {}"), callee.ToString());
 				break;
 			}
 			case OP_CLASS:
@@ -725,7 +725,7 @@ namespace lwscript
 			case OP_STRUCT:
 			{
 				auto eCount = READ_INS();
-				std::unordered_map<std::wstring, Value> elements;
+				std::unordered_map<STD_STRING, Value> elements;
 				for (int64_t i = 0; i < (int64_t)eCount; ++i)
 				{
 					auto key = TO_STR_VALUE(POP_STACK())->value;
@@ -760,7 +760,7 @@ namespace lwscript
 						break;
 					}
 					else
-						Logger::Error(relatedToken, L"No member: {} in class object:{}", propName, klass->name);
+						Logger::Error(relatedToken, TEXT("No member: {} in class object:{}"), propName, klass->name);
 				}
 				else if (IS_ENUM_VALUE(peekValue))
 				{
@@ -774,14 +774,14 @@ namespace lwscript
 						break;
 					}
 					else
-						Logger::Error(relatedToken, L"No member: {} in enum object: {}", propName, enumObj->name);
+						Logger::Error(relatedToken, TEXT("No member: {} in enum object: {}"), propName, enumObj->name);
 				}
 				else if (IS_STRUCT_VALUE(peekValue))
 				{
 					auto structObj = TO_STRUCT_VALUE(peekValue);
 					auto iter = structObj->elements.find(propName);
 					if (iter == structObj->elements.end())
-						Logger::Error(relatedToken, L"No property: {} in struct object:{}.", propName, structObj->ToString());
+						Logger::Error(relatedToken, TEXT("No property: {} in struct object:{}."), propName, structObj->ToString());
 					POP_STACK(); // pop struct object
 					PUSH_STACK(iter->second);
 					break;
@@ -797,10 +797,10 @@ namespace lwscript
 						break;
 					}
 					else
-						Logger::Error(relatedToken, L"No member: {} in module: {}", propName, moduleObj->name);
+						Logger::Error(relatedToken, TEXT("No member: {} in module: {}"), propName, moduleObj->name);
 				}
 				else
-					Logger::Error(relatedToken, L"Invalid call:not a valid class,enum or struct object instance: {}", peekValue.ToString());
+					Logger::Error(relatedToken, TEXT("Invalid call:not a valid class,enum or struct object instance: {}"), peekValue.ToString());
 
 				break;
 			}
@@ -821,39 +821,39 @@ namespace lwscript
 					if (klass->GetMember(propName, member))
 					{
 						if (member.privilege == Privilege::IMMUTABLE)
-							Logger::Error(relatedToken, L"Constant cannot be assigned twice: {}'s member: {} is a constant value", klass->name, propName);
+							Logger::Error(relatedToken, TEXT("Constant cannot be assigned twice: {}'s member: {} is a constant value"), klass->name, propName);
 						else
 							klass->members[propName] = PEEK_STACK(0);
 					}
 					else
-						Logger::Error(relatedToken, L"No member named: {} in class: {}", propName, klass->name);
+						Logger::Error(relatedToken, TEXT("No member named: {} in class: {}"), propName, klass->name);
 				}
 				else if (IS_STRUCT_VALUE(peekValue))
 				{
 					auto structObj = TO_STRUCT_VALUE(peekValue);
 					auto iter = structObj->elements.find(propName);
 					if (iter == structObj->elements.end())
-						Logger::Error(relatedToken, L"No property: {} in struct object:{}", propName, structObj->ToString());
+						Logger::Error(relatedToken, TEXT("No property: {} in struct object:{}"), propName, structObj->ToString());
 					POP_STACK(); // pop struct object
 					structObj->elements[iter->first] = PEEK_STACK(0);
 					break;
 				}
 				else if (IS_ENUM_VALUE(peekValue))
-					Logger::Error(relatedToken, L"Invalid call:cannot assign value to a enum object member.");
+					Logger::Error(relatedToken, TEXT("Invalid call:cannot assign value to a enum object member."));
 				else
-					Logger::Error(relatedToken, L"Invalid call:not a valid class or struct object instance.");
+					Logger::Error(relatedToken, TEXT("Invalid call:not a valid class or struct object instance."));
 				break;
 			}
 			case OP_GET_BASE:
 			{
 				if (!IS_CLASS_VALUE(PEEK_STACK(1)))
-					Logger::Error(relatedToken, L"Invalid class call:not a valid class instance.");
+					Logger::Error(relatedToken, TEXT("Invalid class call:not a valid class instance."));
 				auto propName = TO_STR_VALUE(POP_STACK())->value;
 				auto klass = TO_CLASS_VALUE(POP_STACK());
 				Value member;
 				bool hasValue = klass->GetParentMember(propName, member);
 				if (!hasValue)
-					Logger::Error(relatedToken, L"No member: {} in class: {}'s parent class(es).", propName, klass->name);
+					Logger::Error(relatedToken, TEXT("No member: {} in class: {}'s parent class(es)."), propName, klass->name);
 				PUSH_STACK(member);
 				break;
 			}

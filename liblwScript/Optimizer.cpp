@@ -311,8 +311,8 @@ namespace lwscript
 
 				if (leftLiteral->literalType == LiteralExpr::Type::FLOATING && rightLiteral->literalType == LiteralExpr::Type::FLOATING)
 				{
-#define BIN_EXPR(x)       \
-	if (infix->op == L#x) \
+#define BIN_EXPR(x)            \
+	if (infix->op == TEXT(#x)) \
 	newExpr = new LiteralExpr(tagToken, leftLiteral->dValue x rightLiteral->dValue)
 
 					BIN_EXPR(+);
@@ -326,17 +326,15 @@ namespace lwscript
 					else BIN_EXPR(<);
 					else BIN_EXPR(<=);
 					else needToDelete = false;
-
 #undef BIN_EXPR
-
 					if (needToDelete)
 						SAFE_DELETE(infix);
 					return newExpr;
 				}
 				else if (leftLiteral->literalType == LiteralExpr::Type::INTEGER && rightLiteral->literalType == LiteralExpr::Type::INTEGER)
 				{
-#define BIN_EXPR(x)       \
-	if (infix->op == L#x) \
+#define BIN_EXPR(x)            \
+	if (infix->op == TEXT(#x)) \
 	newExpr = new LiteralExpr(tagToken, leftLiteral->iValue x rightLiteral->iValue)
 
 					BIN_EXPR(+);
@@ -356,17 +354,15 @@ namespace lwscript
 					else BIN_EXPR(<<);
 					else BIN_EXPR(>>);
 					else needToDelete = false;
-
 #undef BIN_EXPR
-
 					if (needToDelete)
 						SAFE_DELETE(infix);
 					return newExpr;
 				}
 				else if (leftLiteral->literalType == LiteralExpr::Type::INTEGER && rightLiteral->literalType == LiteralExpr::Type::FLOATING)
 				{
-#define BIN_EXPR(x)       \
-	if (infix->op == L#x) \
+#define BIN_EXPR(x)            \
+	if (infix->op == TEXT(#x)) \
 	newExpr = new LiteralExpr(tagToken, leftLiteral->iValue x rightLiteral->dValue)
 
 					BIN_EXPR(+);
@@ -380,9 +376,7 @@ namespace lwscript
 					else BIN_EXPR(<);
 					else BIN_EXPR(<=);
 					else needToDelete = false;
-
 #undef BIN_EXPR
-
 					if (needToDelete)
 						SAFE_DELETE(infix);
 					return newExpr;
@@ -390,8 +384,8 @@ namespace lwscript
 				else if (leftLiteral->literalType == LiteralExpr::Type::FLOATING && rightLiteral->literalType == LiteralExpr::Type::INTEGER)
 				{
 
-#define BIN_EXPR(x)       \
-	if (infix->op == L#x) \
+#define BIN_EXPR(x)            \
+	if (infix->op == TEXT(#x)) \
 	newExpr = new LiteralExpr(tagToken, leftLiteral->dValue x rightLiteral->iValue)
 
 					BIN_EXPR(+);
@@ -405,9 +399,7 @@ namespace lwscript
 					else BIN_EXPR(<);
 					else BIN_EXPR(<=);
 					else needToDelete = false;
-
 #undef BIN_EXPR
-
 					if (needToDelete)
 						SAFE_DELETE(infix);
 					return newExpr;
@@ -427,25 +419,25 @@ namespace lwscript
 			if (prefix->right->kind == AstKind::LITERAL)
 			{
 				auto rightLiteralExpr = ((LiteralExpr *)prefix->right);
-				if (rightLiteralExpr->literalType == LiteralExpr::Type::FLOATING && prefix->op == L"-")
+				if (rightLiteralExpr->literalType == LiteralExpr::Type::FLOATING && prefix->op == TEXT("-"))
 				{
 					auto numExpr = new LiteralExpr(prefix->tagToken, -rightLiteralExpr->dValue);
 					SAFE_DELETE(prefix);
 					return numExpr;
 				}
-				else if (rightLiteralExpr->literalType == LiteralExpr::Type::INTEGER && prefix->op == L"-")
+				else if (rightLiteralExpr->literalType == LiteralExpr::Type::INTEGER && prefix->op == TEXT("-"))
 				{
 					auto numExpr = new LiteralExpr(prefix->tagToken, -rightLiteralExpr->iValue);
 					SAFE_DELETE(prefix);
 					return numExpr;
 				}
-				else if (rightLiteralExpr->literalType == LiteralExpr::Type::BOOLEAN && prefix->op == L"!")
+				else if (rightLiteralExpr->literalType == LiteralExpr::Type::BOOLEAN && prefix->op == TEXT("!"))
 				{
 					auto boolExpr = new LiteralExpr(prefix->tagToken, !rightLiteralExpr->boolean);
 					SAFE_DELETE(prefix);
 					return boolExpr;
 				}
-				else if (rightLiteralExpr->literalType == LiteralExpr::Type::INTEGER && prefix->op == L"~")
+				else if (rightLiteralExpr->literalType == LiteralExpr::Type::INTEGER && prefix->op == TEXT("~"))
 				{
 					auto numExpr = new LiteralExpr(prefix->tagToken, ~rightLiteralExpr->iValue);
 					SAFE_DELETE(prefix);
@@ -459,7 +451,7 @@ namespace lwscript
 			if (postfix->left->kind == AstKind::LITERAL)
 			{
 				auto leftLiteralExpr = (LiteralExpr *)postfix->left;
-				if (postfix->op == L"!")
+				if (postfix->op == TEXT("!"))
 				{
 					auto numExpr = new LiteralExpr(postfix->tagToken, Factorial(leftLiteralExpr->iValue));
 					SAFE_DELETE(postfix);

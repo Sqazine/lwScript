@@ -30,24 +30,24 @@ namespace lwscript
     {
     }
 
-    std::wstring Value::ToString() const
+    STD_STRING Value::ToString() const
     {
         switch (kind)
         {
         case ValueKind::INT:
-            return std::to_wstring(integer);
+            return TO_STRING(integer);
         case ValueKind::REAL:
-            return std::to_wstring(realnum);
+            return TO_STRING(realnum);
         case ValueKind::BOOL:
-            return boolean ? L"true" : L"false";
+            return boolean ? TEXT("true") : TEXT("false");
         case ValueKind::NIL:
-            return L"null";
+            return TEXT("null");
         case ValueKind::OBJECT:
             return object->ToString();
         default:
-            return L"null";
+            return TEXT("null");
         }
-        return L"null";
+        return TEXT("null");
     }
     void Value::Mark() const
     {

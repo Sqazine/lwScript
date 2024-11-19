@@ -9,6 +9,7 @@ namespace lwscript
 {
     class LWSCRIPT_API VM
     {
+        NON_COPYABLE(VM)
     public:
         VM() = default;
         ~VM() = default;

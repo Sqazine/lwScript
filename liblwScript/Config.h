@@ -1,6 +1,5 @@
 #pragma once
 
-#define CONSTANT_MAX 512
 #define STACK_MAX 512
 #define GLOBAL_VARIABLE_MAX 512
 
@@ -8,11 +7,9 @@
 
 #define GC_HEAP_GROW_FACTOR 2
 
-#define MAIN_ENTRY_FUNCTION_NAME L"_main_start_up"
-
 #ifndef NDEBUG
-//#define GC_DEBUG
-//#define GC_STRESS
+#define GC_DEBUG
+#define GC_STRESS
 #define PRINT_FUNCTION_CACHE
 #endif
 
@@ -28,8 +25,39 @@
 #else
 #define LWSCRIPT_API
 #endif
-
 #endif
+
+#ifdef USE_UTF8_ENCODE
+#define STR(x) L##x
+#define TEXT(x) STR(x)
+#define TCHAR(x) STR(x)
+#define CHAR_T wchar_t
+#define STD_STRING std::wstring
+#define STD_STRING_VIEW std::wstring_view
+#define STD_OSTREAM std::wostream
+#define STD_STRING_STREAM std::wstringstream
+#define STD_IFSTREAM std::wifstream
+#define TO_STRING(x) std::to_wstring(x)
+#define COUT std::wcout
+#define CIN std::wcin
+#define STRCMP wcscmp
+#else
+#define STR(x) x
+#define TEXT(x) STR(x)
+#define TCHAR(x) STR(x)
+#define CHAR_T char
+#define STD_STRING std::string
+#define STD_STRING_VIEW std::string_view
+#define STD_OSTREAM std::ostream
+#define STD_STRING_STREAM std::stringstream
+#define STD_IFSTREAM std::ifstream
+#define TO_STRING(x) std::to_string(x)
+#define COUT std::cout
+#define CIN std::cin
+#define STRCMP strcmp
+#endif
+
+#define MAIN_ENTRY_FUNCTION_NAME TEXT("_main_start_up")
 
 #define NON_COPYABLE(T)                     \
     T(const T &) = delete;                  \

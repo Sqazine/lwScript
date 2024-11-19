@@ -22,6 +22,8 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY_RELEASE ${CMAKE_BINARY_DIR}/Bin/Release)
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY_DEBUG ${CMAKE_BINARY_DIR}/Bin/Debug)
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY_RELEASE ${CMAKE_BINARY_DIR}/Bin/Release)
 
+option(USE_UTF8_ENCODE "use utf8 encode" OFF)
+
 set(EXE_NAME lwScript)
 
 if(MSVC)
@@ -43,12 +45,14 @@ set_target_properties(${EXE_NAME} PROPERTIES DEBUG_POSTFIX ${CMAKE_DEBUG_POSTFIX
 target_include_directories(${EXE_NAME} PUBLIC ${CMAKE_SOURCE_DIR}/liblwscript)
 target_link_libraries(${EXE_NAME} PRIVATE ${LIB_NAME})
 
-if(MSVC)
-    target_compile_definitions(${LIB_NAME} PUBLIC NOMINMAX)
-    target_compile_definitions(${EXE_NAME} PUBLIC NOMINMAX)
+if(USE_UTF8_ENCODE)
+    target_compile_definitions(${LIB_NAME} PUBLIC USE_UTF8_ENCODE)
+    target_compile_definitions(${EXE_NAME} PUBLIC USE_UTF8_ENCODE)
+endif()
 
-    target_compile_definitions(${LIB_NAME} PUBLIC _CRT_SECURE_NO_WARNINGS)
-    target_compile_definitions(${EXE_NAME} PUBLIC _CRT_SECURE_NO_WARNINGS)
+if(MSVC)
+    target_compile_definitions(${LIB_NAME} PUBLIC NOMINMAX _CRT_SECURE_NO_WARNINGS _SILENCE_CXX17_CODECVT_HEADER_DEPRECATION_WARNING)
+    target_compile_definitions(${EXE_NAME} PUBLIC NOMINMAX _CRT_SECURE_NO_WARNINGS _SILENCE_CXX17_CODECVT_HEADER_DEPRECATION_WARNING)
 
     target_compile_options(${LIB_NAME} PRIVATE "/wd4251;" "/bigobj;" "/MD;")
     target_compile_options(${EXE_NAME} PRIVATE "/wd4251;" "/bigobj;" "/MD;")

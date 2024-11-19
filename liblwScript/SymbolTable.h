@@ -28,7 +28,7 @@ namespace lwscript
 
     struct Symbol
     {
-        std::wstring name;
+        STD_STRING name;
         SymbolKind kind = SymbolKind::GLOBAL;
         Privilege privilege = Privilege::MUTABLE;
         uint8_t index = 0;
@@ -44,9 +44,9 @@ namespace lwscript
         SymbolTable();
         SymbolTable(SymbolTable *enclosing);
 
-        Symbol Define(const Token *relatedToken, Privilege privilege, const std::wstring &name, const FunctionSymbolInfo &functionInfo = {});
+        Symbol Define(const Token *relatedToken, Privilege privilege, const STD_STRING &name, const FunctionSymbolInfo &functionInfo = {});
 
-        Symbol Resolve(const Token *relatedToken, const std::wstring &name, int8_t paramCount = -1, int8_t d = 0);
+        Symbol Resolve(const Token *relatedToken, const STD_STRING &name, int8_t paramCount = -1, int8_t d = 0);
 
         std::array<Symbol, UINT8_COUNT> mSymbols;
         uint8_t mSymbolCount;

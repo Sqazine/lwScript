@@ -4,6 +4,7 @@
 #include <vector>
 #include <array>
 #include "Config.h"
+#include "Logger.h"
 namespace lwscript
 {
 #define SAFE_DELETE(x)   \
@@ -16,25 +17,25 @@ namespace lwscript
         }                \
     } while (false);
 
-    enum Privilege
-    {
-        MUTABLE,
-        IMMUTABLE,
-    };
+	enum Privilege
+	{
+		MUTABLE,
+		IMMUTABLE,
+	};
 
-    enum VarArg
-    {
-        NONE = 0,
-        WITHOUT_NAME,
-        WITH_NAME,
-    };
+	enum VarArg
+	{
+		NONE = 0,
+		WITHOUT_NAME,
+		WITH_NAME,
+	};
 
-    std::wstring LWSCRIPT_API ReadFile(std::string_view path);
+	STD_STRING LWSCRIPT_API ReadFile(std::string_view path);
 
-    std::wstring PointerAddressToString(void *pointer);
+	STD_STRING PointerAddressToString(void *pointer);
 
-    int64_t Factorial(int64_t v, int64_t tmp = 1);
+	int64_t Factorial(int64_t v, int64_t tmp = 1);
 
-    std::string Utf8Encode(const std::wstring &str);
-    std::wstring Utf8Decode(const std::string &str);
+	std::string Utf8Encode(const std::wstring &str);
+	std::wstring Utf8Decode(const std::string &str);
 }

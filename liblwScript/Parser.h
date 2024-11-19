@@ -41,7 +41,7 @@ namespace lwscript
 	{
 		ClassInfo *enclosing = nullptr;
 		bool hasSuperClass = false;
-		std::wstring name;
+		STD_STRING name;
 	};
 
 	class Parser;
@@ -52,6 +52,7 @@ namespace lwscript
 
 	class LWSCRIPT_API Parser
 	{
+		NON_COPYABLE(Parser)
 	public:
 		Parser();
 		~Parser();
@@ -119,8 +120,8 @@ namespace lwscript
 		bool IsMatchNextToken(TokenKind kind);
 		bool IsMatchNextTokenAndStepOnce(TokenKind kind);
 
-		Token *Consume(TokenKind kind, std::wstring_view errMsg);
-		Token *Consume(const std::vector<TokenKind> &kinds, std::wstring_view errMsg);
+		Token *Consume(TokenKind kind, STD_STRING_VIEW errMsg);
+		Token *Consume(const std::vector<TokenKind> &kinds, STD_STRING_VIEW errMsg);
 
 		bool IsAtEnd();
 

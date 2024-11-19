@@ -210,7 +210,7 @@ namespace lwscript
 		else if (tType == TokenKind::CONST)
 			varStmt->privilege = Privilege::IMMUTABLE;
 
-		Consume(tType, L"Expect 'let' or 'const' key word");
+		Consume(tType, TEXT("Expect 'let' or 'const' key word"));
 
 		do
 		{
@@ -228,7 +228,7 @@ namespace lwscript
 
 		} while (IsMatchCurTokenAndStepOnce(TokenKind::COMMA));
 
-		Consume(TokenKind::SEMICOLON, L"Expect ';' after let or const declaration.");
+		Consume(TokenKind::SEMICOLON, TEXT("Expect ';' after let or const declaration."));
 
 		return varStmt;
 	}
@@ -247,7 +247,7 @@ namespace lwscript
 					funcStmt->functionKind = FunctionKind::CLASS_CONSTRUCTOR;
 			}
 
-			Consume(TokenKind::LPAREN, L"Expect '(' after 'fn' keyword");
+			Consume(TokenKind::LPAREN, TEXT("Expect '(' after 'fn' keyword"));
 
 			if (!IsMatchCurToken(TokenKind::RPAREN)) // has parameter
 			{
@@ -257,7 +257,7 @@ namespace lwscript
 				} while (IsMatchCurTokenAndStepOnce(TokenKind::COMMA));
 			}
 
-			Consume(TokenKind::RPAREN, L"Expect ')' after function stmt's '('");
+			Consume(TokenKind::RPAREN, TEXT("Expect ')' after function stmt's '('"));
 
 			funcStmt->body = (ScopeStmt *)ParseScopeStmt();
 
@@ -275,7 +275,7 @@ namespace lwscript
 	{
 		auto classStmt = new ClassStmt(GetCurToken());
 
-		Consume(TokenKind::CLASS, L"Expect 'class' keyword");
+		Consume(TokenKind::CLASS, TEXT("Expect 'class' keyword"));
 
 		classStmt->name = ((IdentifierExpr *)ParseIdentifierExpr())->literal;
 
@@ -295,7 +295,7 @@ namespace lwscript
 			mCurClassInfo->hasSuperClass = true;
 		}
 
-		Consume(TokenKind::LBRACE, L"Expect '{' after class name or parent class name");
+		Consume(TokenKind::LBRACE, TEXT("Expect '{' after class name or parent class name"));
 
 		while (!IsMatchCurToken(TokenKind::RBRACE))
 		{
@@ -305,7 +305,7 @@ namespace lwscript
 			{
 				auto fn = (FunctionStmt *)ParseFunctionDecl();
 				if (fn->name->literal == classStmt->name)
-					Logger::Error(fn->name->tagToken, L"The class member function name :{} conflicts with its class:{}, only constructor function name is allowed to same with its class's name", fn->name->literal);
+					Logger::Error(fn->name->tagToken, TEXT("The class member function name :{} conflicts with its class:{}, only constructor function name is allowed to same with its class's name"), fn->name->literal);
 				classStmt->fnItems.emplace_back(fn);
 			}
 			else if (IsMatchCurToken(TokenKind::ENUM))
@@ -316,10 +316,10 @@ namespace lwscript
 				classStmt->constructors.emplace_back(fn);
 			}
 			else
-				Consume({TokenKind::LET, TokenKind::FUNCTION, TokenKind::CONST}, L"UnExpect identifier '" + GetCurToken()->literal + L"'.");
+				Consume({TokenKind::LET, TokenKind::FUNCTION, TokenKind::CONST}, TEXT("UnExpect identifier '") + GetCurToken()->literal + TEXT("'."));
 		}
 
-		Consume(TokenKind::RBRACE, L"Expect '}' after class stmt's '{'");
+		Consume(TokenKind::RBRACE, TEXT("Expect '}' after class stmt's '{'"));
 
 		mCurClassInfo = mCurClassInfo->enclosing;
 
@@ -329,9 +329,9 @@ namespace lwscript
 	{
 		auto enumStmt = new EnumStmt(GetCurToken());
 
-		Consume(TokenKind::ENUM, L"Expect 'enum' keyword.");
+		Consume(TokenKind::ENUM, TEXT("Expect 'enum' keyword."));
 		enumStmt->name = (IdentifierExpr *)ParseIdentifierExpr();
-		Consume(TokenKind::LBRACE, L"Expect '{' after 'enum' keyword.");
+		Consume(TokenKind::LBRACE, TEXT("Expect '{' after 'enum' keyword."));
 
 		std::unordered_map<IdentifierExpr *, Expr *> items;
 
@@ -348,10 +348,10 @@ namespace lwscript
 			items[name] = value;
 
 			if (IsMatchCurToken(TokenKind::COMMA))
-				Consume(TokenKind::COMMA, L"Expect ',' after enum item.");
+				Consume(TokenKind::COMMA, TEXT("Expect ',' after enum item."));
 		}
 
-		Consume(TokenKind::RBRACE, L"Expect '}' at the end of the 'enum' stmt.");
+		Consume(TokenKind::RBRACE, TEXT("Expect '}' at the end of the 'enum' stmt."));
 
 		enumStmt->enumItems = items;
 
@@ -360,13 +360,13 @@ namespace lwscript
 
 	Stmt *Parser::ParseModuleDecl()
 	{
-		auto token = Consume(TokenKind::MODULE, L"Expect 'module' keyword.");
+		auto token = Consume(TokenKind::MODULE, TEXT("Expect 'module' keyword."));
 
 		auto moduleDecl = new ModuleStmt(token);
 
 		moduleDecl->name = (IdentifierExpr *)ParseIdentifierExpr();
 
-		Consume(TokenKind::LBRACE, L"Expect '{' after module name.");
+		Consume(TokenKind::LBRACE, TEXT("Expect '{' after module name."));
 
 		while (!IsMatchCurToken(TokenKind::RBRACE))
 		{
@@ -390,11 +390,11 @@ namespace lwscript
 				moduleDecl->moduleItems.emplace_back((ModuleStmt *)ParseModuleDecl());
 				break;
 			default:
-				Logger::Error(GetCurToken(), L"Only let,const,function,class,enum and module is available in module scope");
+				Logger::Error(GetCurToken(), TEXT("Only let,const,function,class,enum and module is available in module scope"));
 			}
 		}
 
-		Consume(TokenKind::RBRACE, L"Expect '}'.");
+		Consume(TokenKind::RBRACE, TEXT("Expect '}'."));
 
 		return moduleDecl;
 	}
@@ -429,7 +429,7 @@ namespace lwscript
 		auto exprStmt = new ExprStmt(GetCurToken());
 		exprStmt->expr = ParseExpr();
 
-		Consume(TokenKind::SEMICOLON, L"Expect ';' after expr stmt.");
+		Consume(TokenKind::SEMICOLON, TEXT("Expect ';' after expr stmt."));
 		return exprStmt;
 	}
 
@@ -437,7 +437,7 @@ namespace lwscript
 	{
 		auto returnStmt = new ReturnStmt(GetCurToken());
 
-		Consume(TokenKind::RETURN, L"Expect 'return' key word.");
+		Consume(TokenKind::RETURN, TEXT("Expect 'return' key word."));
 
 		if (!IsMatchCurToken(TokenKind::SEMICOLON))
 		{
@@ -457,7 +457,7 @@ namespace lwscript
 				returnStmt->expr = returnExprs[0];
 		}
 
-		Consume(TokenKind::SEMICOLON, L"Expect ';' after return stmt");
+		Consume(TokenKind::SEMICOLON, TEXT("Expect ';' after return stmt"));
 		return returnStmt;
 	}
 
@@ -465,12 +465,12 @@ namespace lwscript
 	{
 		auto ifStmt = new IfStmt(GetCurToken());
 
-		Consume(TokenKind::IF, L"Expect 'if' key word.");
-		Consume(TokenKind::LPAREN, L"Expect '(' after 'if'.");
+		Consume(TokenKind::IF, TEXT("Expect 'if' key word."));
+		Consume(TokenKind::LPAREN, TEXT("Expect '(' after 'if'."));
 
 		ifStmt->condition = ParseExpr();
 
-		Consume(TokenKind::RPAREN, L"Expect ')' after if condition");
+		Consume(TokenKind::RPAREN, TEXT("Expect ')' after if condition"));
 
 		ifStmt->thenBranch = ParseStmt();
 
@@ -484,10 +484,10 @@ namespace lwscript
 	{
 		auto scopeStmt = new ScopeStmt(GetCurToken());
 
-		Consume(TokenKind::LBRACE, L"Expect '{'.");
+		Consume(TokenKind::LBRACE, TEXT("Expect '{'."));
 		while (!IsMatchCurToken(TokenKind::RBRACE))
 			scopeStmt->stmts.emplace_back(ParseDecl());
-		Consume(TokenKind::RBRACE, L"Expect '}'.");
+		Consume(TokenKind::RBRACE, TEXT("Expect '}'."));
 		return scopeStmt;
 	}
 
@@ -495,12 +495,12 @@ namespace lwscript
 	{
 		auto whileStmt = new WhileStmt(GetCurToken());
 
-		Consume(TokenKind::WHILE, L"Expect 'while' keyword.");
-		Consume(TokenKind::LPAREN, L"Expect '(' after 'while'.");
+		Consume(TokenKind::WHILE, TEXT("Expect 'while' keyword."));
+		Consume(TokenKind::LPAREN, TEXT("Expect '(' after 'while'."));
 
 		whileStmt->condition = ParseExpr();
 
-		Consume(TokenKind::RPAREN, L"Expect ')' after while stmt's condition.");
+		Consume(TokenKind::RPAREN, TEXT("Expect ')' after while stmt's condition."));
 
 		if (IsMatchCurToken(TokenKind::LBRACE)) // scope stmt:while(a<10){a=a+1;}
 			whileStmt->body = (ScopeStmt *)ParseScopeStmt();
@@ -542,8 +542,8 @@ namespace lwscript
 
 		auto scopeStmt = new ScopeStmt(token);
 
-		Consume(TokenKind::FOR, L"Expect 'for' keyword.");
-		Consume(TokenKind::LPAREN, L"Expect '(' after 'for'.");
+		Consume(TokenKind::FOR, TEXT("Expect 'for' keyword."));
+		Consume(TokenKind::LPAREN, TEXT("Expect '(' after 'for'."));
 
 		// initializer
 		if (IsMatchCurToken(TokenKind::LET) || IsMatchCurToken(TokenKind::CONST))
@@ -557,13 +557,13 @@ namespace lwscript
 					scopeStmt->stmts.emplace_back(new ExprStmt(GetCurToken(), ParseExpr()));
 				} while (IsMatchCurTokenAndStepOnce(TokenKind::COMMA));
 			}
-			Consume(TokenKind::SEMICOLON, L"Expect ';' after for stmt's initializer stmt");
+			Consume(TokenKind::SEMICOLON, TEXT("Expect ';' after for stmt's initializer stmt"));
 		}
 
 		Expr *condition = nullptr;
 		if (!IsMatchCurToken(TokenKind::SEMICOLON))
 			condition = ParseExpr();
-		Consume(TokenKind::SEMICOLON, L"Expect ';' after for stmt's condition expr.");
+		Consume(TokenKind::SEMICOLON, TEXT("Expect ';' after for stmt's condition expr."));
 
 		std::vector<Expr *> increment;
 		auto incrementToken = GetCurToken();
@@ -574,7 +574,7 @@ namespace lwscript
 				increment.emplace_back(ParseExpr());
 			} while (IsMatchCurTokenAndStepOnce(TokenKind::COMMA));
 		}
-		Consume(TokenKind::RPAREN, L"Expect ')' after for stmt's increment expr(s)");
+		Consume(TokenKind::RPAREN, TEXT("Expect ')' after for stmt's increment expr(s)"));
 		auto scopeToken = GetCurToken();
 		std::vector<Stmt *> whileBodyStmts;
 		if (IsMatchCurToken(TokenKind::LBRACE)) // scope stmt for 'for' stmt:like for(a=0;a<10;a=a+1){println("{}",a);}
@@ -602,8 +602,8 @@ namespace lwscript
 	{
 		auto breakStmt = new BreakStmt(GetCurToken());
 
-		Consume(TokenKind::BREAK, L"Expect 'break' keyword.");
-		Consume(TokenKind::SEMICOLON, L"Expect ';' after 'break' keyword.");
+		Consume(TokenKind::BREAK, TEXT("Expect 'break' keyword."));
+		Consume(TokenKind::SEMICOLON, TEXT("Expect ';' after 'break' keyword."));
 		return breakStmt;
 	}
 
@@ -611,8 +611,8 @@ namespace lwscript
 	{
 		auto continueStmt = new ContinueStmt(GetCurToken());
 
-		Consume(TokenKind::CONTINUE, L"Expect 'continue' keyword");
-		Consume(TokenKind::SEMICOLON, L"Expect ';' after 'continue' keyword.");
+		Consume(TokenKind::CONTINUE, TEXT("Expect 'continue' keyword"));
+		Consume(TokenKind::SEMICOLON, TEXT("Expect ';' after 'continue' keyword."));
 		return continueStmt;
 	}
 
@@ -620,13 +620,13 @@ namespace lwscript
 	{
 		auto ifStmt = new IfStmt(GetCurToken());
 
-		Consume(TokenKind::SWITCH, L"Expect 'switch' keyword.");
-		Consume(TokenKind::LPAREN, L"Expect '(' after 'switch' keyword.");
+		Consume(TokenKind::SWITCH, TEXT("Expect 'switch' keyword."));
+		Consume(TokenKind::LPAREN, TEXT("Expect '(' after 'switch' keyword."));
 
 		auto switchExpr = ParseIdentifierExpr();
 
-		Consume(TokenKind::RPAREN, L"Expect ')' after switch's expression.");
-		Consume(TokenKind::LBRACE, L"Expect '{' after 'switch' keyword.");
+		Consume(TokenKind::RPAREN, TEXT("Expect ')' after switch's expression."));
+		Consume(TokenKind::LBRACE, TEXT("Expect '{' after 'switch' keyword."));
 
 		using Item = std::pair<std::vector<Expr *>, ScopeStmt *>;
 
@@ -636,14 +636,14 @@ namespace lwscript
 		{
 			if (IsMatchCurTokenAndStepOnce(TokenKind::DEFAULT))
 			{
-				Consume(TokenKind::COLON, L"Expect ':' after condition expr.");
+				Consume(TokenKind::COLON, TEXT("Expect ':' after condition expr."));
 				defaultScopeStmt = new ScopeStmt(GetCurToken());
 
 				if (IsMatchCurTokenAndStepOnce(TokenKind::LBRACE))
 				{
 					while (!IsMatchCurToken(TokenKind::RBRACE))
 						defaultScopeStmt->stmts.emplace_back(ParseStmt());
-					Consume(TokenKind::RBRACE, L"Expect '}' at the end of default block while has multiple statement");
+					Consume(TokenKind::RBRACE, TEXT("Expect '}' at the end of default block while has multiple statement"));
 				}
 				else
 					defaultScopeStmt->stmts.emplace_back(ParseStmt());
@@ -656,10 +656,10 @@ namespace lwscript
 				do
 				{
 					auto valueCompareExpr = ParseExpr();
-					auto caseCondition = new InfixExpr(GetCurToken(), L"==", switchExpr, valueCompareExpr);
+					auto caseCondition = new InfixExpr(GetCurToken(), TEXT("=="), switchExpr, valueCompareExpr);
 					conditions.emplace_back(caseCondition);
 				} while (IsMatchCurTokenAndStepOnce(TokenKind::COMMA));
-				Consume(TokenKind::COLON, L"Expect ':' after condition expr.");
+				Consume(TokenKind::COLON, TEXT("Expect ':' after condition expr."));
 
 				item.first = conditions;
 				item.second = new ScopeStmt(GetCurToken());
@@ -668,7 +668,7 @@ namespace lwscript
 				{
 					while (!IsMatchCurToken(TokenKind::RBRACE))
 						item.second->stmts.emplace_back(ParseStmt());
-					Consume(TokenKind::RBRACE, L"Expect '}' at the end of block while has multiple statements.");
+					Consume(TokenKind::RBRACE, TEXT("Expect '}' at the end of block while has multiple statements."));
 				}
 				else
 					item.second->stmts.emplace_back(ParseStmt());
@@ -677,7 +677,7 @@ namespace lwscript
 			}
 		}
 
-		Consume(TokenKind::RBRACE, L"Expect '}' after switch stmt");
+		Consume(TokenKind::RBRACE, TEXT("Expect '}' after switch stmt"));
 
 		if (items.empty() && defaultScopeStmt != nullptr)
 			return defaultScopeStmt;
@@ -692,7 +692,7 @@ namespace lwscript
 				{
 					Expr *condition = items[i].first[0];
 					for (size_t j = 1; j < items[i].first.size(); ++j)
-						condition = new InfixExpr(condition->tagToken, L"||", condition, items[i].first[j]);
+						condition = new InfixExpr(condition->tagToken, TEXT("||"), condition, items[i].first[j]);
 					loopIfStmt->condition = condition;
 				}
 				loopIfStmt->thenBranch = items[i].second;
@@ -713,8 +713,8 @@ namespace lwscript
 	{
 		auto lambdaExpr = new LambdaExpr(GetCurToken());
 
-		Consume(TokenKind::FUNCTION, L"Expect 'fn' keyword");
-		Consume(TokenKind::LPAREN, L"Expect '(' after 'fn' keyword");
+		Consume(TokenKind::FUNCTION, TEXT("Expect 'fn' keyword"));
+		Consume(TokenKind::LPAREN, TEXT("Expect '(' after 'fn' keyword"));
 
 		if (!IsMatchCurToken(TokenKind::RPAREN)) // has parameter
 		{
@@ -723,7 +723,7 @@ namespace lwscript
 				lambdaExpr->parameters.emplace_back((VarDescExpr *)ParseVarDescExpr());
 			} while (IsMatchCurTokenAndStepOnce(TokenKind::COMMA));
 		}
-		Consume(TokenKind::RPAREN, L"Expect ')' after lambda expr's '('");
+		Consume(TokenKind::RPAREN, TEXT("Expect ')' after lambda expr's '('"));
 
 		lambdaExpr->body = (ScopeStmt *)ParseScopeStmt();
 
@@ -734,7 +734,7 @@ namespace lwscript
 	{
 		auto newExpr = new NewExpr(GetCurToken());
 
-		Consume(TokenKind::NEW, L"Expect 'new' keyword");
+		Consume(TokenKind::NEW, TEXT("Expect 'new' keyword"));
 		Expr *callee = ParseExpr();
 		newExpr->callee = callee;
 		return newExpr;
@@ -742,26 +742,26 @@ namespace lwscript
 
 	Expr *Parser::ParseThisExpr()
 	{
-		auto token = Consume(TokenKind::THIS, L"Expect 'this' keyword");
+		auto token = Consume(TokenKind::THIS, TEXT("Expect 'this' keyword"));
 
 		auto thisExpr = new ThisExpr(token);
 
 		if (!mCurClassInfo)
-			Logger::Error(thisExpr->tagToken, L"Invalid 'this' keyword:Cannot use 'this' outside class.");
+			Logger::Error(thisExpr->tagToken, TEXT("Invalid 'this' keyword:Cannot use 'this' outside class."));
 
 		return thisExpr;
 	}
 
 	Expr *Parser::ParseBaseExpr()
 	{
-		auto token = Consume(TokenKind::BASE, L"Expect 'base' keyword");
+		auto token = Consume(TokenKind::BASE, TEXT("Expect 'base' keyword"));
 
-		Consume(TokenKind::DOT, L"Expect '.' after base keyword");
+		Consume(TokenKind::DOT, TEXT("Expect '.' after base keyword"));
 
 		auto baseExpr = new BaseExpr(token, (IdentifierExpr *)ParseIdentifierExpr());
 
 		if (!mCurClassInfo)
-			Logger::Error(baseExpr->tagToken, L"Invalid 'base' keyword:Cannot use 'base' outside class.");
+			Logger::Error(baseExpr->tagToken, TEXT("Invalid 'base' keyword:Cannot use 'base' outside class."));
 
 		return baseExpr;
 	}
@@ -770,13 +770,13 @@ namespace lwscript
 	{
 		Expr *defaultBranch = nullptr;
 
-		auto matchToken = Consume(TokenKind::MATCH, L"Expect 'match' keyword.");
-		Consume(TokenKind::LPAREN, L"Expect '(' after 'match' keyword.");
+		auto matchToken = Consume(TokenKind::MATCH, TEXT("Expect 'match' keyword."));
+		Consume(TokenKind::LPAREN, TEXT("Expect '(' after 'match' keyword."));
 
 		auto judgeExpr = ParseExpr();
 
-		Consume(TokenKind::RPAREN, L"Expect ')' after match's expression.");
-		Consume(TokenKind::LBRACE, L"Expect '{' after 'match' keyword.");
+		Consume(TokenKind::RPAREN, TEXT("Expect ')' after match's expression."));
+		Consume(TokenKind::LBRACE, TEXT("Expect '{' after 'match' keyword."));
 
 		using Item = std::pair<std::vector<Expr *>, Expr *>;
 
@@ -789,11 +789,11 @@ namespace lwscript
 				if (IsMatchCurToken(TokenKind::DEFAULT))
 				{
 					if (hasDefaultBranch)
-						Logger::Error(GetCurToken(), L"Already exists a default branch.only a default branch is available in a match expr.");
+						Logger::Error(GetCurToken(), TEXT("Already exists a default branch.only a default branch is available in a match expr."));
 
 					GetCurTokenAndStepOnce();
 
-					Consume(TokenKind::COLON, L"Expect ':' after default's condition expr.");
+					Consume(TokenKind::COLON, TEXT("Expect ':' after default's condition expr."));
 					defaultBranch = ParseExpr();
 					hasDefaultBranch = true;
 				}
@@ -806,10 +806,10 @@ namespace lwscript
 					do
 					{
 						auto valueCompareExpr = ParseExpr();
-						auto caseCondition = new InfixExpr(GetCurToken(), L"==", judgeExpr, valueCompareExpr);
+						auto caseCondition = new InfixExpr(GetCurToken(), TEXT("=="), judgeExpr, valueCompareExpr);
 						conditions.emplace_back(caseCondition);
 					} while (IsMatchCurTokenAndStepOnce(TokenKind::COMMA));
-					Consume(TokenKind::COLON, L"Expect ':' after match item's condition expr.");
+					Consume(TokenKind::COLON, TEXT("Expect ':' after match item's condition expr."));
 
 					item.first = conditions;
 					item.second = ParseExpr();
@@ -819,7 +819,7 @@ namespace lwscript
 			} while (IsMatchCurTokenAndStepOnce(TokenKind::COMMA));
 		}
 
-		Consume(TokenKind::RBRACE, L"Expect '}' after match expr");
+		Consume(TokenKind::RBRACE, TEXT("Expect '}' after match expr"));
 
 		auto conditionExpr = new ConditionExpr(matchToken);
 		auto loopConditionExpr = conditionExpr;
@@ -831,7 +831,7 @@ namespace lwscript
 			{
 				Expr *fullCondition = items[i].first[0];
 				for (size_t j = 1; j < items[i].first.size(); ++j)
-					fullCondition = new InfixExpr(fullCondition->tagToken, L"||", fullCondition, items[i].first[j]);
+					fullCondition = new InfixExpr(fullCondition->tagToken, TEXT("||"), fullCondition, items[i].first[j]);
 				loopConditionExpr->condition = fullCondition;
 			}
 
@@ -851,7 +851,7 @@ namespace lwscript
 
 	Expr *Parser::ParseCompoundExpr()
 	{
-		auto token = Consume(TokenKind::LPAREN_LBRACE, L"Expect '({'.");
+		auto token = Consume(TokenKind::LPAREN_LBRACE, TEXT("Expect '({'."));
 
 		mSkippingConsumeTokenKindStack.emplace_back(TokenKind::SEMICOLON);
 
@@ -861,14 +861,14 @@ namespace lwscript
 		do
 		{
 			if (IsMatchCurToken(TokenKind::RBRACE_RPAREN))
-				Logger::Error(GetCurToken(), L"Expr required at the end of block expression.");
+				Logger::Error(GetCurToken(), TEXT("Expr required at the end of block expression."));
 			stmts.emplace_back(ParseDecl());
 		} while (IsMatchCurTokenAndStepOnce(TokenKind::SEMICOLON));
 
 		mSkippingConsumeTokenKindStack.pop_back();
 
 		if (stmts.back()->kind != AstKind::EXPR)
-			Logger::Error(stmts.back()->tagToken, L"Expr required at the end of block expression.");
+			Logger::Error(stmts.back()->tagToken, TEXT("Expr required at the end of block expression."));
 
 		auto expr = ((ExprStmt *)stmts.back())->expr;
 		stmts.pop_back();
@@ -876,7 +876,7 @@ namespace lwscript
 		blockExpr->stmts = stmts;
 		blockExpr->endExpr = expr;
 
-		Consume(TokenKind::RBRACE_RPAREN, L"Expect '})'.");
+		Consume(TokenKind::RBRACE_RPAREN, TEXT("Expect '})'."));
 
 		return blockExpr;
 	}
@@ -886,7 +886,7 @@ namespace lwscript
 		if (mPrefixFunctions.find(GetCurToken()->kind) == mPrefixFunctions.end())
 		{
 			auto token = GetCurTokenAndStepOnce();
-			Logger::Error(token, L"no prefix definition for:{}", token->literal);
+			Logger::Error(token, TEXT("no prefix definition for:{}"), token->literal);
 
 			auto nullExpr = new LiteralExpr(token);
 
@@ -918,7 +918,7 @@ namespace lwscript
 
 	Expr *Parser::ParseIdentifierExpr()
 	{
-		auto token = Consume(TokenKind::IDENTIFIER, L"Unexpect Identifier'" + GetCurToken()->literal + L"'.");
+		auto token = Consume(TokenKind::IDENTIFIER, TEXT("Unexpect Identifier'") + GetCurToken()->literal + TEXT("'."));
 		auto identifierExpr = new IdentifierExpr(token);
 		identifierExpr->literal = token->literal;
 		return identifierExpr;
@@ -931,7 +931,7 @@ namespace lwscript
 		{
 			auto literal = token->literal;
 			Expr *numExpr = nullptr;
-			if (literal.find('.') != std::wstring::npos)
+			if (literal.find('.') != STD_STRING::npos)
 				numExpr = new LiteralExpr(token, std::stod(literal));
 			else
 				numExpr = new LiteralExpr(token, std::stoll(literal));
@@ -946,22 +946,22 @@ namespace lwscript
 		else if (token->kind == TokenKind::FALSE)
 			return new LiteralExpr(token, false);
 
-		Logger::Error(token, L"Unknown Literal.");
+		Logger::Error(token, TEXT("Unknown Literal."));
 		return nullptr;
 	}
 
 	Expr *Parser::ParseGroupExpr()
 	{
-		auto token = Consume(TokenKind::LPAREN, L"Expect '('.");
+		auto token = Consume(TokenKind::LPAREN, TEXT("Expect '('."));
 		auto groupExpr = new GroupExpr(token);
 		groupExpr->expr = ParseExpr();
-		Consume(TokenKind::RPAREN, L"Expect ')'.");
+		Consume(TokenKind::RPAREN, TEXT("Expect ')'."));
 		return groupExpr;
 	}
 
 	Expr *Parser::ParseArrayExpr()
 	{
-		auto token = Consume(TokenKind::LBRACKET, L"Expect '['.");
+		auto token = Consume(TokenKind::LBRACKET, TEXT("Expect '['."));
 		auto arrayExpr = new ArrayExpr(token);
 		if (!IsMatchCurToken(TokenKind::RBRACKET))
 		{
@@ -974,13 +974,13 @@ namespace lwscript
 			} while (IsMatchCurTokenAndStepOnce(TokenKind::COMMA));
 		}
 
-		Consume(TokenKind::RBRACKET, L"Expect ']'.");
+		Consume(TokenKind::RBRACKET, TEXT("Expect ']'."));
 		return arrayExpr;
 	}
 
 	Expr *Parser::ParseDictExpr()
 	{
-		auto token = Consume(TokenKind::LBRACE, L"Expect '{'.");
+		auto token = Consume(TokenKind::LBRACE, TEXT("Expect '{'."));
 		auto dictExpr = new DictExpr(token);
 
 		if (!IsMatchCurToken(TokenKind::RBRACE))
@@ -992,26 +992,26 @@ namespace lwscript
 					break;
 
 				Expr *key = ParseExpr();
-				Consume(TokenKind::COLON, L"Expect ':' after dict key.");
+				Consume(TokenKind::COLON, TEXT("Expect ':' after dict key."));
 				Expr *value = ParseExpr();
 				elements.emplace_back(std::make_pair(key, value));
 			} while (IsMatchCurTokenAndStepOnce(TokenKind::COMMA));
 
 			dictExpr->elements = elements;
 		}
-		Consume(TokenKind::RBRACE, L"Expect '}' after dict.");
+		Consume(TokenKind::RBRACE, TEXT("Expect '}' after dict."));
 		return dictExpr;
 	}
 
 	Expr *Parser::ParseStructExpr()
 	{
-		auto token = Consume(TokenKind::STRUCT, L"Expect 'struct' keyword.");
-		Consume(TokenKind::LBRACE, L"Expect '{' after 'struct' keyword.");
+		auto token = Consume(TokenKind::STRUCT, TEXT("Expect 'struct' keyword."));
+		Consume(TokenKind::LBRACE, TEXT("Expect '{' after 'struct' keyword."));
 		auto structExpr = new StructExpr(token);
 
 		if (!IsMatchCurToken(TokenKind::RBRACE))
 		{
-			std::vector<std::pair<std::wstring, Expr *>> elements;
+			std::vector<std::pair<STD_STRING, Expr *>> elements;
 			do
 			{
 				if (IsMatchCurToken(TokenKind::RBRACE))
@@ -1020,16 +1020,16 @@ namespace lwscript
 				Expr *key = ParseExpr();
 
 				if (key->kind != AstKind::IDENTIFIER)
-					Logger::Error(key->tagToken, L"Struct object require key must be a valid identifier.");
+					Logger::Error(key->tagToken, TEXT("Struct object require key must be a valid identifier."));
 
-				Consume(TokenKind::COLON, L"Expect ':' after struct object's key.");
+				Consume(TokenKind::COLON, TEXT("Expect ':' after struct object's key."));
 				Expr *value = ParseExpr();
 				elements.emplace_back(((IdentifierExpr *)key)->literal, value);
 			} while (IsMatchCurTokenAndStepOnce(TokenKind::COMMA));
 
 			structExpr->elements = elements;
 		}
-		Consume(TokenKind::RBRACE, L"Expect '}' after struct object.");
+		Consume(TokenKind::RBRACE, TEXT("Expect '}' after struct object."));
 		return structExpr;
 	}
 
@@ -1043,7 +1043,7 @@ namespace lwscript
 
 	Expr *Parser::ParseRefExpr()
 	{
-		auto token = Consume(TokenKind::AMPERSAND, L"Expect '&'.");
+		auto token = Consume(TokenKind::AMPERSAND, TEXT("Expect '&'."));
 		auto refExpr = new RefExpr(token);
 		refExpr->refExpr = ParseExpr(Precedence::PREFIX);
 		return refExpr;
@@ -1071,9 +1071,9 @@ namespace lwscript
 	{
 		ConditionExpr *conditionExpr = new ConditionExpr(GetCurToken());
 		conditionExpr->condition = prefixExpr;
-		Consume(TokenKind::QUESTION, L"Expect '?'.");
+		Consume(TokenKind::QUESTION, TEXT("Expect '?'."));
 		conditionExpr->trueBranch = ParseExpr(Precedence::CONDITION);
-		Consume(TokenKind::COLON, L"Expect ':' in condition expr");
+		Consume(TokenKind::COLON, TEXT("Expect ':' in condition expr"));
 		conditionExpr->falseBranch = ParseExpr(Precedence::CONDITION);
 		return conditionExpr;
 	}
@@ -1081,10 +1081,10 @@ namespace lwscript
 	Expr *Parser::ParseIndexExpr(Expr *prefixExpr)
 	{
 		auto indexExpr = new IndexExpr(GetCurToken());
-		Consume(TokenKind::LBRACKET, L"Expect '['.");
+		Consume(TokenKind::LBRACKET, TEXT("Expect '['."));
 		indexExpr->ds = prefixExpr;
 		indexExpr->index = ParseExpr();
-		Consume(TokenKind::RBRACKET, L"Expect ']'.");
+		Consume(TokenKind::RBRACKET, TEXT("Expect ']'."));
 		return indexExpr;
 	}
 
@@ -1092,7 +1092,7 @@ namespace lwscript
 	{
 		auto callExpr = new CallExpr(GetCurToken());
 		callExpr->callee = prefixExpr;
-		Consume(TokenKind::LPAREN, L"Expect '('.");
+		Consume(TokenKind::LPAREN, TEXT("Expect '('."));
 		if (!IsMatchCurToken(TokenKind::RPAREN)) // has arguments
 		{
 			do
@@ -1100,7 +1100,7 @@ namespace lwscript
 				callExpr->arguments.emplace_back(ParseExpr());
 			} while (IsMatchCurTokenAndStepOnce(TokenKind::COMMA));
 		}
-		Consume(TokenKind::RPAREN, L"Expect ')'.");
+		Consume(TokenKind::RPAREN, TEXT("Expect ')'."));
 
 		return callExpr;
 	}
@@ -1108,7 +1108,7 @@ namespace lwscript
 	Expr *Parser::ParseDotExpr(Expr *prefixExpr)
 	{
 		auto dotExpr = new DotExpr(GetCurToken());
-		Consume(TokenKind::DOT, L"Expect '.'.");
+		Consume(TokenKind::DOT, TEXT("Expect '.'."));
 		dotExpr->callee = prefixExpr;
 		dotExpr->callMember = (IdentifierExpr *)ParseIdentifierExpr();
 		return dotExpr;
@@ -1116,7 +1116,7 @@ namespace lwscript
 
 	Expr *Parser::ParseFactorialExpr(Expr *prefixExpr)
 	{
-		auto token = Consume(TokenKind::BANG, L"Expect '!'");
+		auto token = Consume(TokenKind::BANG, TEXT("Expect '!'"));
 		return new FactorialExpr(token, prefixExpr);
 	}
 
@@ -1129,7 +1129,7 @@ namespace lwscript
 			expr = (IdentifierExpr *)ParseIdentifierExpr(); // variable name
 
 		// variable type
-		std::wstring type = L"any";
+		STD_STRING type = TEXT("any");
 		if (IsMatchCurToken(TokenKind::COLON))
 		{
 			GetCurTokenAndStepOnce();
@@ -1142,7 +1142,7 @@ namespace lwscript
 
 	Expr *Parser::ParseVarArgExpr()
 	{
-		Consume(TokenKind::ELLIPSIS, L"Expect '...'");
+		Consume(TokenKind::ELLIPSIS, TEXT("Expect '...'"));
 
 		auto varArgExpr = new VarArgExpr(GetCurToken());
 
@@ -1156,7 +1156,7 @@ namespace lwscript
 
 	std::pair<Expr *, Expr *> Parser::ParseDestructuringAssignmentExpr()
 	{
-		Consume(TokenKind::LBRACKET, L"Expect '['");
+		Consume(TokenKind::LBRACKET, TEXT("Expect '['"));
 
 		auto arrayExpr = new ArrayExpr(GetCurToken());
 
@@ -1167,18 +1167,18 @@ namespace lwscript
 				break;
 
 			auto varDescExpr = (VarDescExpr *)ParseVarDescExpr();
-			if (varDescExpr->name->kind == AstKind::VAR_ARG) //check if has var arg
+			if (varDescExpr->name->kind == AstKind::VAR_ARG) // check if has var arg
 			{
 				varArgCount++;
 				if (varArgCount > 1)
-					Logger::Error(varDescExpr->tagToken, L"only 1 variable arg decl is available in var declaration.");
+					Logger::Error(varDescExpr->tagToken, TEXT("only 1 variable arg decl is available in var declaration."));
 			}
 
 			arrayExpr->elements.emplace_back(varDescExpr);
 
 		} while (IsMatchCurTokenAndStepOnce(TokenKind::COMMA));
 
-		Consume(TokenKind::RBRACKET, L"Expect ']' destructuring assignment expr.");
+		Consume(TokenKind::RBRACKET, TEXT("Expect ']' destructuring assignment expr."));
 
 		if (varArgCount == 1)
 		{
@@ -1187,7 +1187,7 @@ namespace lwscript
 				if (((VarDescExpr *)arrayExpr->elements[i])->name->kind == AstKind::VAR_ARG)
 				{
 					if (i < arrayExpr->elements.size() - 1)
-						Logger::Error(arrayExpr->elements[i]->tagToken, L"variable arg decl must be located at the end of destructing assignment declaration.");
+						Logger::Error(arrayExpr->elements[i]->tagToken, TEXT("variable arg decl must be located at the end of destructing assignment declaration."));
 				}
 			}
 		}
@@ -1212,7 +1212,7 @@ namespace lwscript
 				else if (((VarDescExpr *)arrayExpr->elements.back())->name->kind == AstKind::VAR_ARG)
 					initializeList->elements = ((ArrayExpr *)value)->elements;
 				else
-					Logger::Error(GetCurToken(), L"variable less than value.");
+					Logger::Error(GetCurToken(), TEXT("variable less than value."));
 			}
 			else if (value->kind == AstKind::CALL)
 				return std::make_pair(arrayExpr, value);
@@ -1308,19 +1308,19 @@ namespace lwscript
 		return false;
 	}
 
-	Token *Parser::Consume(TokenKind kind, std::wstring_view errMsg)
+	Token *Parser::Consume(TokenKind kind, STD_STRING_VIEW errMsg)
 	{
 		if (mSkippingConsumeTokenKindStack.empty() || kind != mSkippingConsumeTokenKindStack.back())
 		{
 			if (IsMatchCurToken(kind))
 				return GetCurTokenAndStepOnce();
 			Token *token = GetCurToken();
-			Logger::Error(token, L"{}", errMsg);
+			Logger::Error(token, TEXT("{}"), errMsg);
 		}
 		return nullptr;
 	}
 
-	Token *Parser::Consume(const std::vector<TokenKind> &kinds, std::wstring_view errMsg)
+	Token *Parser::Consume(const std::vector<TokenKind> &kinds, STD_STRING_VIEW errMsg)
 	{
 		if (!mSkippingConsumeTokenKindStack.empty())
 			for (const auto &kind : kinds)
@@ -1331,7 +1331,7 @@ namespace lwscript
 			if (IsMatchCurToken(kind))
 				return GetCurTokenAndStepOnce();
 		Token *token = GetCurToken();
-		Logger::Error(token, L"{}", errMsg);
+		Logger::Error(token, TEXT("{}"), errMsg);
 		return nullptr;
 	}
 
