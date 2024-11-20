@@ -40,6 +40,23 @@ namespace lwscript
         return Factorial(v - 1, v * tmp);
     }
 
+    uint64_t NormalizeIdx(int64_t idx, size_t dsSize)
+    {
+        bool isNeg = false;
+        if (idx < 0)
+        {
+            isNeg = true;
+            idx = abs(idx);
+        }
+
+        idx = idx % (int64_t)dsSize;
+
+        if (isNeg)
+            idx = dsSize - idx;
+
+        return idx;
+    }
+
     std::string Utf8Encode(const std::wstring &str)
     {
         std::wstring_convert<std::codecvt_utf8<wchar_t>> converter;

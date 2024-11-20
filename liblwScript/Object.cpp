@@ -65,13 +65,6 @@ namespace lwscript
 		return new StrObject(value);
 	}
 
-	uint64_t StrObject::NormalizeIdx(int64_t idx)
-	{
-		if (idx < 0)
-			idx = (int64_t)value.size() + idx;
-		return idx;
-	}
-
 	ArrayObject::ArrayObject()
 		: Object(ObjectKind::ARRAY)
 	{
@@ -127,13 +120,6 @@ namespace lwscript
 		for (int32_t i = 0; i < eles.size(); ++i)
 			eles[i] = this->elements[i].Clone();
 		return new ArrayObject(eles);
-	}
-
-	uint64_t ArrayObject::NormalizeIdx(int64_t idx)
-	{
-		if (idx < 0)
-			idx = (int64_t)elements.size() + idx;
-		return idx;
 	}
 
 	DictObject::DictObject()

@@ -26,10 +26,6 @@ namespace lwscript
     {
     }
 
-    Value::~Value()
-    {
-    }
-
     STD_STRING Value::ToString() const
     {
         switch (kind)
@@ -63,22 +59,22 @@ namespace lwscript
     Value Value::Clone() const
     {
         Value result;
-        result.kind = this->kind;
+        result.kind = kind;
         switch (kind)
         {
         case ValueKind::INT:
-            result.integer = this->integer;
+            result.integer = integer;
             break;
         case ValueKind::REAL:
-            result.realnum = this->realnum;
+            result.realnum = realnum;
             break;
         case ValueKind::BOOL:
-            result.boolean = this->boolean;
+            result.boolean = boolean;
             break;
         case ValueKind::NIL:
             break;
         case ValueKind::OBJECT:
-            result.object = this->object->Clone();
+            result.object = object->Clone();
             break;
         default:
             break;

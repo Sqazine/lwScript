@@ -37,21 +37,21 @@
     size_t pos = content.find(TEXT("\\n"));                                                                   \
     while (pos != STD_STRING::npos)                                                                           \
     {                                                                                                         \
-        content[pos] = TCHAR('\n');                                                                            \
+        content[pos] = TCHAR('\n');                                                                           \
         content.replace(pos + 1, 1, TEXT("")); /*erase a char*/                                               \
         pos = content.find(TEXT("\\n"));                                                                      \
     }                                                                                                         \
     pos = content.find(TEXT("\\t"));                                                                          \
     while (pos != STD_STRING::npos)                                                                           \
     {                                                                                                         \
-        content[pos] = TCHAR('\t');                                                                            \
+        content[pos] = TCHAR('\t');                                                                           \
         content.replace(pos + 1, 1, TEXT("")); /*erase a char*/                                               \
         pos = content.find(TEXT("\\t"));                                                                      \
     }                                                                                                         \
     pos = content.find(TEXT("\\r"));                                                                          \
     while (pos != STD_STRING::npos)                                                                           \
     {                                                                                                         \
-        content[pos] = TCHAR('\r');                                                                            \
+        content[pos] = TCHAR('\r');                                                                           \
         content.replace(pos + 1, 1, TEXT("")); /*erase a char*/                                               \
         pos = content.find(TEXT("\\r"));                                                                      \
     }                                                                                                         \
@@ -81,11 +81,6 @@ namespace lwscript
 
     LibraryManager::LibraryManager()
     {
-        auto ioClass = new ClassObject(TEXT("io"));
-        ioClass->members[TEXT("print")] = new NativeFunctionObject(PRINT_LAMBDA(Logger::Print));
-        ioClass->members[TEXT("println")] = new NativeFunctionObject(PRINT_LAMBDA(Logger::Println));
-        mLibraries.emplace_back(ioClass);
-
         const auto SizeOfFunction = new NativeFunctionObject([](Value *args, uint32_t argCount, const Token *relatedToken, Value &result) -> bool
                                                              {
                                                                  if (args == nullptr || argCount > 1)
@@ -109,7 +104,8 @@ namespace lwscript
                                                                  else
                                                                      Logger::Error(relatedToken, TEXT("[Native function 'sizeof']:Expect a array,dict ot string argument."));
 
-                                                                 return false; });
+                                                                 return false;
+                                                             });
 
         const auto InsertFunction = new NativeFunctionObject([](Value *args, uint32_t argCount, const Token *relatedToken, Value &result) -> bool
                                                              {
@@ -156,7 +152,8 @@ namespace lwscript
                                                                      Logger::Error(relatedToken, TEXT("[Native function 'insert']:Expect a array,dict ot string argument."));
 
                                                                  result = args[0];
-                                                                 return true; });
+                                                                 return true;
+                                                             });
 
         const auto EraseFunction = new NativeFunctionObject([](Value *args, uint32_t argCount, const Token *relatedToken, Value &result) -> bool
                                                             {
@@ -210,36 +207,46 @@ namespace lwscript
                                                                     Logger::Error(relatedToken, TEXT("[Native function 'erase']:Expect a array,dict ot string argument."));
 
                                                                 result = args[0];
-                                                                return true; });
-
-        auto dsClass = new ClassObject(TEXT("ds"));
-        dsClass->members[TEXT("sizeof")] = SizeOfFunction;
-        dsClass->members[TEXT("insert")] = InsertFunction;
-        dsClass->members[TEXT("erase")] = EraseFunction;
-        mLibraries.emplace_back(dsClass);
+                                                                return true;
+                                                            });
 
         const auto AddressOfFunction = new NativeFunctionObject([](Value *args, uint32_t argCount, const Token *relatedToken, Value &result) -> bool
                                                                 {
-            if (args == nullptr || argCount != 1)
+                                                                    if (args == nullptr || argCount != 1)
                                                                         Logger::Error(relatedToken, TEXT("[Native function 'addressof']:Expect 1 arguments."));
 
                                                                     if (!IS_OBJECT_VALUE(args[0]))
                                                                         Logger::Error(relatedToken, TEXT("[Native function 'addressof']:The arg0 is a value,only object has address."));
 
                                                                     result = new StrObject(PointerAddressToString(args[0].object));
-                                                                    return true; });
-
-        auto memClass = new ClassObject(TEXT("mem"));
-        memClass->members[TEXT("addressof")] = AddressOfFunction;
-        mLibraries.emplace_back(memClass);
+                                                                    return true;
+                                                                });
 
         const auto ClockFunction = new NativeFunctionObject([](Value *args, uint32_t argCount, const Token *relatedToken, Value &result) -> bool
                                                             {
-            result = Value((double)clock() / CLOCKS_PER_SEC);
-            return true; });
+                                                                result = Value((double)clock() / CLOCKS_PER_SEC);
+                                                                return true;
+                                                            });
 
+        auto ioClass = new ClassObject(TEXT("io"));
+        auto dsClass = new ClassObject(TEXT("ds"));
+        auto memClass = new ClassObject(TEXT("mem"));
         auto timeClass = new ClassObject(TEXT("time"));
+
+        ioClass->members[TEXT("print")] = new NativeFunctionObject(PRINT_LAMBDA(Logger::Print));
+        ioClass->members[TEXT("println")] = new NativeFunctionObject(PRINT_LAMBDA(Logger::Println));
+
+        dsClass->members[TEXT("sizeof")] = SizeOfFunction;
+        dsClass->members[TEXT("insert")] = InsertFunction;
+        dsClass->members[TEXT("erase")] = EraseFunction;
+
+        memClass->members[TEXT("addressof")] = AddressOfFunction;
+
         timeClass->members[TEXT("clock")] = ClockFunction;
+
+        mLibraries.emplace_back(ioClass);
+        mLibraries.emplace_back(dsClass);
+        mLibraries.emplace_back(memClass);
         mLibraries.emplace_back(timeClass);
     }
 }

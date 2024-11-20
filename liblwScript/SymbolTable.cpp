@@ -15,6 +15,10 @@ namespace lwscript
         mTableDepth = enclosing->mTableDepth + 1;
     }
 
+    SymbolTable::~SymbolTable()
+    {
+    }
+
     Symbol SymbolTable::Define(const Token *relatedToken, Privilege privilege, const STD_STRING &name, const FunctionSymbolInfo &functionInfo)
     {
         if (mSymbolCount >= mSymbols.size())

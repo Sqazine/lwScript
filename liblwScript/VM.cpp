@@ -406,7 +406,7 @@ namespace lwscript
 					auto array = TO_ARRAY_VALUE(dsValue);
 					CHECK_IDX_VALID(idxValue);
 
-					auto intIdx = array->NormalizeIdx(TO_INT_VALUE(idxValue));
+					auto intIdx = NormalizeIdx(TO_INT_VALUE(idxValue), array->elements.size());
 					CHECK_IDX_RANGE(array->elements, intIdx);
 
 					PUSH_STACK(array->elements[intIdx]);
@@ -415,7 +415,7 @@ namespace lwscript
 				{
 					auto strObj = TO_STR_VALUE(dsValue);
 					CHECK_IDX_VALID(idxValue)
-					auto intIdx = strObj->NormalizeIdx(TO_INT_VALUE(idxValue));
+					auto intIdx = NormalizeIdx(TO_INT_VALUE(idxValue), strObj->value.size());
 					CHECK_IDX_RANGE(strObj->value, intIdx);
 					PUSH_STACK(Allocator::GetInstance()->CreateObject<StrObject>(strObj->value.substr(intIdx, 1)));
 				}
@@ -441,7 +441,7 @@ namespace lwscript
 				{
 					auto array = TO_ARRAY_VALUE(dsValue);
 					CHECK_IDX_VALID(idxValue);
-					auto intIdx = array->NormalizeIdx(TO_INT_VALUE(idxValue));
+					auto intIdx = NormalizeIdx(TO_INT_VALUE(idxValue), array->elements.size());
 					CHECK_IDX_RANGE(array->elements, intIdx);
 					array->elements[intIdx] = newValue;
 				}
@@ -449,7 +449,7 @@ namespace lwscript
 				{
 					auto strObj = TO_STR_VALUE(dsValue);
 					CHECK_IDX_VALID(idxValue)
-					auto intIdx = strObj->NormalizeIdx(TO_INT_VALUE(idxValue));
+					auto intIdx = NormalizeIdx(TO_INT_VALUE(idxValue), strObj->value.size());
 					CHECK_IDX_RANGE(strObj->value, intIdx)
 
 					if (!IS_STR_VALUE(newValue))
@@ -519,7 +519,7 @@ namespace lwscript
 				{
 					auto array = TO_ARRAY_VALUE(*globalValue);
 					CHECK_IDX_VALID(idxValue)
-					auto intIdx = array->NormalizeIdx(TO_INT_VALUE(idxValue));
+					auto intIdx = NormalizeIdx(TO_INT_VALUE(idxValue), array->elements.size());
 					CHECK_IDX_RANGE(array->elements, intIdx);
 					PUSH_STACK(Allocator::GetInstance()->CreateObject<RefObject>(&(array->elements[intIdx])));
 				}
@@ -538,7 +538,7 @@ namespace lwscript
 				{
 					auto array = TO_ARRAY_VALUE((*v));
 					CHECK_IDX_VALID(idxValue)
-					auto intIdx = array->NormalizeIdx(TO_INT_VALUE(idxValue));
+					auto intIdx = NormalizeIdx(TO_INT_VALUE(idxValue), array->elements.size());
 					CHECK_IDX_RANGE(array->elements, intIdx);
 					PUSH_STACK(Allocator::GetInstance()->CreateObject<RefObject>(&array->elements[intIdx]));
 				}
@@ -557,7 +557,7 @@ namespace lwscript
 				{
 					auto array = TO_ARRAY_VALUE((*v));
 					CHECK_IDX_VALID(idxValue)
-					auto intIdx = array->NormalizeIdx(TO_INT_VALUE(idxValue));
+					auto intIdx = NormalizeIdx(TO_INT_VALUE(idxValue), array->elements.size());
 					CHECK_IDX_RANGE(array->elements, intIdx)
 					PUSH_STACK(Allocator::GetInstance()->CreateObject<RefObject>(&array->elements[intIdx]));
 				}

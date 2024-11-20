@@ -7,8 +7,8 @@ namespace lwscript
     class LWSCRIPT_API ConstantFolder
     {
     public:
-        ConstantFolder();
-        ~ConstantFolder();
+        ConstantFolder() =default;
+        ~ConstantFolder()=default;
 
         Stmt *Fold(Stmt *stmt);
 

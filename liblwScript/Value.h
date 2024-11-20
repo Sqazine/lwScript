@@ -5,7 +5,7 @@
 #include "Utils.h"
 namespace lwscript
 {
-	enum ValueKind:uint8_t
+	enum ValueKind : uint8_t
 	{
 		NIL,
 		INT,
@@ -21,7 +21,7 @@ namespace lwscript
 		Value(double number);
 		Value(bool boolean);
 		Value(struct Object *object);
-		~Value();
+		~Value() = default;
 
 		STD_STRING ToString() const;
 		void Mark() const;

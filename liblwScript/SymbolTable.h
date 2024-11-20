@@ -43,6 +43,7 @@ namespace lwscript
     public:
         SymbolTable();
         SymbolTable(SymbolTable *enclosing);
+        ~SymbolTable();
 
         Symbol Define(const Token *relatedToken, Privilege privilege, const STD_STRING &name, const FunctionSymbolInfo &functionInfo = {});
 

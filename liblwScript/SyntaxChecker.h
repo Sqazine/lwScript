@@ -9,7 +9,7 @@ namespace lwscript
     {
     public:
         SyntaxChecker();
-        ~SyntaxChecker();
+        ~SyntaxChecker() = default;
 
         Stmt *Check(Stmt *stmt);
 

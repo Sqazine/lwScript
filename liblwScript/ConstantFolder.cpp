@@ -3,13 +3,6 @@
 
 namespace lwscript
 {
-	ConstantFolder::ConstantFolder()
-	{
-	}
-	ConstantFolder::~ConstantFolder()
-	{
-	}
-
 	Stmt *ConstantFolder::Fold(Stmt *stmt)
 	{
 		return FoldStmt(stmt);

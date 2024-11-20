@@ -72,7 +72,8 @@ namespace lwscript
 			{Precedence::MUL_DIV_MOD, Associativity::L2R},
 			{Precedence::PREFIX, Associativity::R2L},
 			{Precedence::INFIX, Associativity::L2R},
-			{Precedence::POSTFIX, Associativity::L2R}};
+			{Precedence::POSTFIX, Associativity::L2R},
+	};
 
 	std::unordered_map<TokenKind, PrefixFn> Parser::mPrefixFunctions =
 		{

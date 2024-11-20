@@ -8,9 +8,6 @@ namespace lwscript
         : mLoopDepth(0), mVarArgScopeDepth(false), mClassScopeDepth(0)
     {
     }
-    SyntaxChecker::~SyntaxChecker()
-    {
-    }
 
     Stmt *SyntaxChecker::Check(Stmt *stmt)
     {

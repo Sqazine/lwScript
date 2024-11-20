@@ -36,6 +36,8 @@ namespace lwscript
 
 	int64_t Factorial(int64_t v, int64_t tmp = 1);
 
+	uint64_t NormalizeIdx(int64_t idx,size_t dsSize);
+
 	std::string Utf8Encode(const std::wstring &str);
 	std::wstring Utf8Decode(const std::string &str);
 }

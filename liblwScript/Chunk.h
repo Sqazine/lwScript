@@ -66,9 +66,9 @@ namespace lwscript
     class LWSCRIPT_API Chunk
     {
     public:
-        Chunk();
+        Chunk() = default;
         Chunk(const OpCodes &opcodes, const std::vector<Value> &constants);
-        ~Chunk();
+        ~Chunk() = default;
 
         STD_STRING ToString() const;
         std::vector<uint8_t> Serialization() const;

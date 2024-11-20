@@ -13,7 +13,7 @@ namespace lwscript
 	{
 	public:
 		Lexer();
-		~Lexer();
+		~Lexer() = default;
 
 		const std::vector<Token *> &ScanTokens(STD_STRING_VIEW src);
 

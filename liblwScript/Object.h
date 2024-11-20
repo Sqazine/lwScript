@@ -117,8 +117,6 @@ namespace lwscript
         bool IsEqualTo(Object *other) override;
         Object *Clone() const override;
 
-        uint64_t NormalizeIdx(int64_t idx);
-
         STD_STRING value{};
     };
 
@@ -132,8 +130,6 @@ namespace lwscript
         void Blacken() override;
         bool IsEqualTo(Object *other) override;
         Object *Clone() const override;
-
-        uint64_t NormalizeIdx(int64_t idx);
 
         std::vector<struct Value> elements{};
     };
@@ -257,7 +253,7 @@ namespace lwscript
         bool IsEqualTo(Object *other) override;
         Object *Clone() const override;
 
-        Value *pointer{};
+        Value *pointer{nullptr};
     };
 
     struct LWSCRIPT_API ClassObject : public Object
@@ -293,8 +289,8 @@ namespace lwscript
         bool IsEqualTo(Object *other) override;
         Object *Clone() const override;
 
-        Value receiver;
-        ClosureObject *closure;
+        Value receiver{};
+        ClosureObject *closure{nullptr};
     };
 
     struct LWSCRIPT_API EnumObject : public Object
@@ -311,8 +307,8 @@ namespace lwscript
 
         bool GetMember(const STD_STRING &name, Value &retV);
 
-        STD_STRING name;
-        std::unordered_map<STD_STRING, Value> pairs;
+        STD_STRING name{};
+        std::unordered_map<STD_STRING, Value> pairs{};
     };
 
     struct LWSCRIPT_API ModuleObject : public Object
@@ -329,7 +325,7 @@ namespace lwscript
 
         bool GetMember(const STD_STRING &name, Value &retV);
 
-        STD_STRING name;
-        std::unordered_map<STD_STRING, Value> values;
+        STD_STRING name{};
+        std::unordered_map<STD_STRING, Value> values{};
     };
 }

@@ -52,9 +52,6 @@ namespace lwscript
 	{
 		ResetStatus();
 	}
-	Lexer::~Lexer()
-	{
-	}
 
 	const std::vector<Token *> &Lexer::ScanTokens(STD_STRING_VIEW src)
 	{
@@ -359,7 +356,7 @@ namespace lwscript
 	{
 		if (!isAscii)
 			return true;
-		return (c >= TCHAR('A') && c <= TCHAR('Z')) || (c >= TCHAR('a') && c <= TCHAR('z'))|| c == TCHAR('_');
+		return (c >= TCHAR('A') && c <= TCHAR('Z')) || (c >= TCHAR('a') && c <= TCHAR('z')) || c == TCHAR('_');
 	}
 	bool Lexer::IsLetterOrNumber(CHAR_T c, bool isAscii)
 	{
