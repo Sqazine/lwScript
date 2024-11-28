@@ -69,8 +69,9 @@ namespace lwscript
         Chunk() = default;
         Chunk(const OpCodes &opcodes, const std::vector<Value> &constants);
         ~Chunk() = default;
-
+#ifndef NDEBUG
         STD_STRING ToString() const;
+#endif
         std::vector<uint8_t> Serialization() const;
 
         OpCodes opCodes;

@@ -11,6 +11,7 @@ namespace lwscript
 	{
 	}
 
+#ifndef NDEBUG
 	STD_STRING Chunk::ToString() const
 	{
 		STD_STRING result;
@@ -22,6 +23,8 @@ namespace lwscript
 		}
 		return result;
 	}
+#endif
+
 	std::vector<uint8_t> Chunk::Serialization() const
 	{
 		return {};
