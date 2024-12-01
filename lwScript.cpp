@@ -8,8 +8,6 @@
 
 lwscript::Lexer *gLexer{nullptr};
 lwscript::Parser *gParser{nullptr};
-lwscript::ConstantFolder *gConstantFolder{nullptr};
-lwscript::SyntaxChecker *gSyntaxChecker{nullptr};
 lwscript::Compiler *gCompiler{nullptr};
 lwscript::VM *gVm{nullptr};
 
@@ -21,14 +19,6 @@ void Run(STD_STRING_VIEW content)
 		lwscript::Logger::Println(TEXT("{}"), *token);
 #endif
 	auto stmt = gParser->Parse(tokens);
-#ifndef NDEBUG
-	lwscript::Logger::Println(TEXT("{}"), stmt->ToString());
-#endif
-	stmt = gConstantFolder->Fold(stmt);
-#ifndef NDEBUG
-	lwscript::Logger::Println(TEXT("{}"), stmt->ToString());
-#endif
-	stmt = gSyntaxChecker->Check(stmt);
 #ifndef NDEBUG
 	lwscript::Logger::Println(TEXT("{}"), stmt->ToString());
 #endif
@@ -69,6 +59,7 @@ int32_t PrintUsage()
 	lwscript::Logger::Info(TEXT("-h or --help:show usage info."));
 	lwscript::Logger::Info(TEXT("-f or --file:run source file with a valid file path,like : lwscript -f examples/array.cd."));
 	lwscript::Logger::Info(TEXT("-fc or --function-cache:cache function execute result."));
+	lwscript::Logger::Info(TEXT("-cf or --constant-fold:use constant fold optimize on parsing stage."));
 	return EXIT_FAILURE;
 }
 
@@ -91,14 +82,15 @@ int main(int argc, const char *argv[])
 		if (strcmp(argv[i], "-fc") == 0 || strcmp(argv[i], "--function-cache") == 0)
 			lwscript::Config::GetInstance()->SetIsUseFunctionCache(true);
 
+		if (strcmp(argv[i], "-cf") == 0 || strcmp(argv[i], "--constant-fold") == 0)
+			lwscript::Config::GetInstance()->SetIsUseConstantFold(true);
+
 		if (strcmp(argv[i], "-h") == 0 || strcmp(argv[i], "--help") == 0)
 			return PrintUsage();
 	}
 
 	gLexer = new lwscript::Lexer();
 	gParser = new lwscript::Parser();
-	gConstantFolder = new lwscript::ConstantFolder();
-	gSyntaxChecker = new lwscript::SyntaxChecker();
 	gCompiler = new lwscript::Compiler();
 	gVm = new lwscript::VM();
 
@@ -109,8 +101,6 @@ int main(int argc, const char *argv[])
 
 	SAFE_DELETE(gLexer);
 	SAFE_DELETE(gParser);
-	SAFE_DELETE(gConstantFolder);
-	SAFE_DELETE(gSyntaxChecker);
 	SAFE_DELETE(gCompiler);
 	SAFE_DELETE(gVm);
 

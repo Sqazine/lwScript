@@ -7,7 +7,5 @@
 #include "Ast.h"
 #include "Lexer.h"
 #include "Parser.h"
-#include "ConstantFolder.h"
-#include "SyntaxChecker.h"
 #include "Compiler.h"
 #include "VM.h"

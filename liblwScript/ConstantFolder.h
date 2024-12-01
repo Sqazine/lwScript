@@ -4,7 +4,7 @@
 
 namespace lwscript
 {
-    class LWSCRIPT_API ConstantFolder
+    class ConstantFolder
     {
     public:
         ConstantFolder() =default;

@@ -13,4 +13,13 @@ namespace lwscript
     {
         return mUseFunctionCache;
     }
+
+    void Config::SetIsUseConstantFold(bool v)
+    {
+        mUseConstandFold = v;
+    }
+    bool Config::IsUseConstantFold() const
+    {
+        return mUseConstandFold;
+    }
 }

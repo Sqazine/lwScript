@@ -6,9 +6,8 @@
 #include "Token.h"
 #include "Ast.h"
 #include "Utils.h"
-#include "ConstantFolder.h"
 #include "SyntaxChecker.h"
-
+#include "ParseOptimizer.h"
 namespace lwscript
 {
 	enum class Precedence
@@ -33,8 +32,8 @@ namespace lwscript
 
 	enum class Associativity
 	{
-		L2R, //left->right
-		R2L	 //right->left
+		L2R, // left->right
+		R2L	 // right->left
 	};
 
 	struct ClassInfo
@@ -125,9 +124,12 @@ namespace lwscript
 
 		bool IsAtEnd();
 
+		ParseOptimizer mParseOptimizer;
+		SyntaxChecker mSyntaxChecker;
+
 		ClassInfo *mCurClassInfo;
 
-		std::vector<TokenKind> mSkippingConsumeTokenKindStack; //skip token while call consume function
+		std::vector<TokenKind> mSkippingConsumeTokenKindStack; // skip token while call consume function
 
 		int64_t mCurPos;
 		std::vector<Token *> mTokens;
