@@ -269,11 +269,6 @@ namespace lwscript
 	}
 	FunctionObject::~FunctionObject()
 	{
-#ifdef PRINT_FUNCTION_CACHE
-		if (!caches.empty())
-			PrintCache();
-		caches.clear();
-#endif
 	}
 
 	STD_STRING FunctionObject::ToString() const
@@ -349,21 +344,6 @@ namespace lwscript
 
 		return false;
 	}
-#ifdef PRINT_FUNCTION_CACHE
-	void FunctionObject::PrintCache()
-	{
-		Logger::Println(TEXT("{}:"), name);
-		for (const auto &[k, v] : caches)
-		{
-			for (int32_t i = 0; i < k.size() - 1; ++i)
-				Logger::Print(TEXT("\t{},"), k[i].ToString());
-			Logger::Print(TEXT("\t{}:"), k.back().ToString());
-			for (int32_t i = 0; i < v.size() - 1; ++i)
-				Logger::Print(TEXT("{},"), v[i].ToString());
-			Logger::Println(TEXT("{}"), v.back().ToString());
-		}
-	}
-#endif
 
 	UpValueObject::UpValueObject()
 		: Object(ObjectKind::UPVALUE), location(nullptr), nextUpValue(nullptr)

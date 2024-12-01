@@ -10,7 +10,6 @@
 #ifndef NDEBUG
 #define GC_DEBUG
 #define GC_STRESS
-#define PRINT_FUNCTION_CACHE
 #endif
 
 #if defined(_WIN32) || defined(_WIN64)
