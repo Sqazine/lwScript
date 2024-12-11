@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Version.h"
 #include "Utils.h"
 #include "Config.h"
 #include "Logger.h"

@@ -11,6 +11,12 @@ lwscript::Parser *gParser{nullptr};
 lwscript::Compiler *gCompiler{nullptr};
 lwscript::VM *gVm{nullptr};
 
+int32_t PrintVersion()
+{
+	lwscript::Logger::Info(TEXT(LWSCRIPT_VERSION));
+	return EXIT_FAILURE;
+}
+
 void Run(STD_STRING_VIEW content)
 {
 	auto tokens = gLexer->ScanTokens(content);
@@ -35,6 +41,8 @@ void Repl()
 	STD_STRING line;
 	STD_STRING allLines;
 
+	PrintVersion();
+
 	lwscript::Logger::Print(TEXT(">> "));
 	while (getline(CIN, line))
 	{
@@ -43,7 +51,7 @@ void Repl()
 			allLines = TEXT("");
 		else
 			Run(allLines);
-		lwscript::Logger::Println(TEXT(">> "));
+		lwscript::Logger::Print(TEXT(">> "));
 	}
 }
 
@@ -57,6 +65,7 @@ int32_t PrintUsage()
 {
 	lwscript::Logger::Info(TEXT("Usage: lwscript [option]:"));
 	lwscript::Logger::Info(TEXT("-h or --help:show usage info."));
+	lwscript::Logger::Info(TEXT("-v or --version:show current lwscript version"));
 	lwscript::Logger::Info(TEXT("-f or --file:run source file with a valid file path,like : lwscript -f examples/array.cd."));
 	lwscript::Logger::Info(TEXT("-fc or --function-cache:cache function execute result."));
 	lwscript::Logger::Info(TEXT("-cf or --constant-fold:use constant fold optimize on parsing stage."));
@@ -87,6 +96,9 @@ int main(int argc, const char *argv[])
 
 		if (strcmp(argv[i], "-h") == 0 || strcmp(argv[i], "--help") == 0)
 			return PrintUsage();
+
+		if (strcmp(argv[i], "-v") == 0 || strcmp(argv[i], "--version") == 0)
+			return PrintVersion();
 	}
 
 	gLexer = new lwscript::Lexer();
