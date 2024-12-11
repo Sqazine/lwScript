@@ -65,7 +65,7 @@ namespace lwscript
 			ScanToken();
 		}
 
-		AddToken(TokenKind::END, TEXT("EOF"));
+		AddToken(TokenKind::END, TEXT("END"));
 
 		return mTokens;
 	}
@@ -336,11 +336,21 @@ namespace lwscript
 	void Lexer::AddToken(TokenKind type)
 	{
 		auto literal = mSource.substr(mStartPos, mCurPos - mStartPos);
-		mTokens.push_back(new Token(type, literal, mLine, mColumn - literal.size(), mCurPos - literal.size())); //+1 means that the column beginning front 1
+
+		SourceLocation srcLoc;
+		srcLoc.line = mLine;
+		srcLoc.column = mColumn - literal.size();
+		srcLoc.pos = mCurPos - literal.size();
+
+		mTokens.push_back(new Token(type, literal, srcLoc));
 	}
 	void Lexer::AddToken(TokenKind type, STD_STRING_VIEW literal)
 	{
-		mTokens.push_back(new Token(type, literal, mLine, mColumn - literal.size(), mCurPos - literal.size()));
+		SourceLocation srcLoc;
+		srcLoc.line = mLine;
+		srcLoc.column = mColumn - literal.size();
+		srcLoc.pos = mCurPos - literal.size();
+		mTokens.push_back(new Token(type, literal, srcLoc));
 	}
 
 	bool Lexer::IsAtEnd()

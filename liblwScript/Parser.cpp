@@ -202,16 +202,16 @@ namespace lwscript
 		}
 	}
 
-	Stmt *Parser::ParseVarDecl(TokenKind tType)
+	Stmt *Parser::ParseVarDecl(TokenKind kind)
 	{
 		auto varStmt = new VarStmt(GetCurToken());
 
-		if (tType == TokenKind::LET)
+		if (kind == TokenKind::LET)
 			varStmt->privilege = Privilege::MUTABLE;
-		else if (tType == TokenKind::CONST)
+		else if (kind == TokenKind::CONST)
 			varStmt->privilege = Privilege::IMMUTABLE;
 
-		Consume(tType, TEXT("Expect 'let' or 'const' key word"));
+		Consume(kind, TEXT("Expect 'let' or 'const' key word"));
 
 		do
 		{

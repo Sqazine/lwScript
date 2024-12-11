@@ -62,7 +62,7 @@ namespace lwscript
 		void ResetStatus();
 
 		Stmt *ParseDecl();
-		Stmt *ParseVarDecl(TokenKind tType);
+		Stmt *ParseVarDecl(TokenKind kind);
 		Stmt *ParseFunctionDecl();
 		Stmt *ParseClassDecl();
 		Stmt *ParseEnumDecl();

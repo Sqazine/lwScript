@@ -121,7 +121,7 @@ namespace lwscript
         template <typename... Args>
         inline void Error(const Token *tok, const STD_STRING &fmt, const Args &...args)
         {
-            AssemblyLogInfo(TEXT("[ERROR]"), TEXT("31"), tok->line, tok->column, tok->pos, fmt, args...);
+            AssemblyLogInfo(TEXT("[ERROR]"), TEXT("31"), tok->sourceLocation.line, tok->sourceLocation.column, tok->sourceLocation.pos, fmt, args...);
 #ifndef NDEBUG
             assert(0);
 #else
@@ -149,7 +149,7 @@ namespace lwscript
         template <typename... Args>
         void Warn(const Token *tok, const STD_STRING &fmt, const Args &...args)
         {
-            AssemblyLogInfo(TEXT("[WARN]"), TEXT("33"), tok->line, tok->column, tok->pos, fmt, args...);
+            AssemblyLogInfo(TEXT("[WARN]"), TEXT("33"), tok->sourceLocation.line, tok->sourceLocation.column, tok->sourceLocation.pos, fmt, args...);
         }
 
         template <typename... Args>
@@ -172,7 +172,7 @@ namespace lwscript
         template <typename... Args>
         void Info(const Token *tok, const STD_STRING &fmt, const Args &...args)
         {
-            AssemblyLogInfo(TEXT("[INFO]"), TEXT("32"), tok->line, tok->column, tok->pos, fmt, args...);
+            AssemblyLogInfo(TEXT("[INFO]"), TEXT("32"), tok->sourceLocation.line, tok->sourceLocation.column, tok->sourceLocation.pos, fmt, args...);
         }
     }
 }

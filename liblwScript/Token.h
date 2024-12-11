@@ -102,21 +102,26 @@ namespace lwscript
 		END,
 	};
 
+	struct SourceLocation
+	{
+		uint64_t line{1};
+		uint64_t column{1};
+		uint64_t pos{1};
+	};
+
 	struct LWSCRIPT_API Token
 	{
-		Token() : kind(TokenKind::END), literal(TEXT("")), line(-1), column(-1), pos(-1) {}
-		Token(TokenKind kind, STD_STRING_VIEW literal, uint64_t line, uint64_t column, uint64_t pos) : kind(kind), literal(literal), line(line), column(column), pos(pos) {}
+		Token() : kind(TokenKind::END), literal(TEXT("")) {}
+		Token(TokenKind kind, STD_STRING_VIEW literal, const SourceLocation &srcLoc) : kind(kind), literal(literal), sourceLocation(srcLoc) {}
 
 		STD_STRING ToString() const
 		{
-			return TEXT("\"") + literal + TEXT("\"(") + TO_STRING(line) + TEXT(",") + TO_STRING(column) + TEXT(")");
+			return TEXT("\"") + literal + TEXT("\"(") + TO_STRING(sourceLocation.line) + TEXT(",") + TO_STRING(sourceLocation.line) + TEXT(")");
 		}
 
 		TokenKind kind;
 		STD_STRING literal;
-		uint64_t line;
-		uint64_t column;
-		uint64_t pos;
+		SourceLocation sourceLocation;
 	};
 
 	inline STD_OSTREAM &operator<<(STD_OSTREAM &stream, const Token &token)
