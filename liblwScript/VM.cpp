@@ -155,7 +155,7 @@ namespace lwscript
 					if (Config::GetInstance()->IsUseFunctionCache())
 					{
 						auto callFrameTop = PEEK_CALL_FRAME(0);
-						callFrameTop->closure->function->SetCache(callFrameTop->arguments, {Value()});
+						callFrameTop->closure->function->SetCache(callFrameTop->argumentsHash, {Value()});
 					}
 
 					PUSH_STACK(Value());
@@ -166,7 +166,7 @@ namespace lwscript
 					{
 						auto callFrameTop = PEEK_CALL_FRAME(0);
 						std::vector<Value> rets(retValues, retValues + retCount);
-						callFrameTop->closure->function->SetCache(callFrameTop->arguments, rets);
+						callFrameTop->closure->function->SetCache(callFrameTop->argumentsHash, rets);
 					}
 
 					uint8_t i = 0;
@@ -619,9 +619,9 @@ namespace lwscript
 					else if (argCount != TO_CLOSURE_VALUE(callee)->function->arity)
 						Logger::Error(relatedToken, TEXT("No matching argument count."));
 
-					std::vector<Value> args(STACK_TOP() - argCount, STACK_TOP());
+					auto argsHash = HashValueList(STACK_TOP() - argCount, STACK_TOP());
 					std::vector<Value> rets;
-					if (Config::GetInstance()->IsUseFunctionCache() && TO_CLOSURE_VALUE(callee)->function->GetCache(args, rets))
+					if (Config::GetInstance()->IsUseFunctionCache() && TO_CLOSURE_VALUE(callee)->function->GetCache(argsHash, rets))
 					{
 						MOVE_STACK_TOP(-(argCount + 1));
 						for (int32_t i = 0; i < rets.size(); ++i)
@@ -635,7 +635,7 @@ namespace lwscript
 						newframe.ip = newframe.closure->function->chunk.opCodes.data();
 						newframe.slots = STACK_TOP() - argCount - 1;
 						if (Config::GetInstance()->IsUseFunctionCache())
-							newframe.arguments = args;
+							newframe.argumentsHash = argsHash;
 						PUSH_CALL_FRAME(newframe);
 					}
 				}

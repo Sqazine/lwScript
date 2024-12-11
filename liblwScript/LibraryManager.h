@@ -8,7 +8,6 @@ namespace lwscript
 {
     class LWSCRIPT_API LibraryManager
     {
-        NON_COPYABLE(LibraryManager)
     public:
         SINGLETON_DECL(LibraryManager)
 

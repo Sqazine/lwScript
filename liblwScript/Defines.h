@@ -65,7 +65,10 @@
     const T &operator=(T &&) = delete;
 
 //  Meyers' Singleton
-#define SINGLETON_DECL(T) static T *GetInstance() noexcept;
+#define SINGLETON_DECL(T)             \
+    static T *GetInstance() noexcept; \
+    NON_COPYABLE(T)
+
 #define SINGLETON_IMPL(T)        \
     T *T::GetInstance() noexcept \
     {                            \

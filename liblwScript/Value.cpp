@@ -131,30 +131,40 @@ namespace lwscript
         return !(left == right);
     }
 
-    size_t ValueHash::operator()(const Value &v) const
+    size_t ValueHash::operator()(const Value *v) const
     {
-        switch (v.kind)
+        switch (v->kind)
         {
         case ValueKind::NIL:
-            return std::hash<ValueKind>()(v.kind);
+            return std::hash<ValueKind>()(v->kind);
         case ValueKind::INT:
-            return std::hash<ValueKind>()(v.kind) ^ std::hash<int64_t>()(v.integer);
+            return std::hash<ValueKind>()(v->kind) ^ std::hash<int64_t>()(v->integer);
         case ValueKind::REAL:
-            return std::hash<ValueKind>()(v.kind) ^ std::hash<double>()(v.realnum);
+            return std::hash<ValueKind>()(v->kind) ^ std::hash<double>()(v->realnum);
         case ValueKind::BOOL:
-            return std::hash<ValueKind>()(v.kind) ^ std::hash<bool>()(v.boolean);
+            return std::hash<ValueKind>()(v->kind) ^ std::hash<bool>()(v->boolean);
         case ValueKind::OBJECT:
-            return std::hash<ValueKind>()(v.kind) ^ std::hash<Object *>()(v.object);
+            return std::hash<ValueKind>()(v->kind) ^ std::hash<Object *>()(v->object);
         default:
-            return std::hash<ValueKind>()(v.kind);
+            return std::hash<ValueKind>()(v->kind);
         }
     }
 
-    size_t ValueVecHash::operator()(const std::vector<Value> &vec) const
+    size_t ValueHash::operator()(const Value &v) const
     {
-        std::size_t seed = vec.size();
-        for (auto &v : vec)
-            seed ^= ValueHash()(v) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
+        return ValueHash()(&v);
+    }
+
+    size_t HashValueList(Value *start, size_t count)
+    {
+        std::size_t seed = count;
+        for (size_t i = 0; i < count; ++i)
+            seed ^= ValueHash()((start + i)) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
         return seed;
+    }
+
+    size_t HashValueList(Value *start, Value *end)
+    {
+        return HashValueList(start, end - start);
     }
 }

@@ -45,14 +45,12 @@ namespace lwscript
 
 	struct LWSCRIPT_API ValueHash
 	{
+		size_t operator()(const Value *v) const;
 		size_t operator()(const Value &v) const;
 	};
 
-	struct LWSCRIPT_API ValueVecHash
-	{
-		size_t operator()(const std::vector<Value> &vec) const;
-	};
-
 	using ValueUnorderedMap = std::unordered_map<Value, Value, ValueHash>;
-	using ValueVecUnorderedMap = std::unordered_map<std::vector<Value>, std::vector<Value>, ValueVecHash>;
+
+	size_t HashValueList(Value* start,size_t count);
+	size_t HashValueList(Value* start,Value* end);
 }

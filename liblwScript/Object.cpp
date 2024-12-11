@@ -291,8 +291,6 @@ namespace lwscript
 		{
 			for (auto &[key, value] : caches)
 			{
-				for (auto &keyElement : key)
-					keyElement.Mark();
 				for (auto &valueElement : value)
 					valueElement.Mark();
 			}
@@ -329,13 +327,13 @@ namespace lwscript
 		return funcObj;
 	}
 
-	void FunctionObject::SetCache(const std::vector<Value> &arguments, const std::vector<Value> &result)
+	void FunctionObject::SetCache(size_t hash, const std::vector<Value> &result)
 	{
-		caches[arguments] = result;
+		caches[hash] = result;
 	}
-	bool FunctionObject::GetCache(const std::vector<Value> &arguments, std::vector<Value> &result) const
+	bool FunctionObject::GetCache(size_t hash,std::vector<Value> &result) const
 	{
-		auto iter2 = caches.find(arguments);
+		auto iter2 = caches.find(hash);
 		if (iter2 != caches.end())
 		{
 			result = iter2->second;

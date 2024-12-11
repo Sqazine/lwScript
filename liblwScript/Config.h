@@ -4,7 +4,6 @@ namespace lwscript
 {
     class LWSCRIPT_API Config
     {
-        NON_COPYABLE(Config)
     public:
         SINGLETON_DECL(Config)
 

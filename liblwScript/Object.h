@@ -180,8 +180,8 @@ namespace lwscript
         Object *Clone() const override;
 
         // Function Cache Functions
-        void SetCache(const std::vector<Value> &arguments, const std::vector<Value> &result);
-        bool GetCache(const std::vector<Value> &arguments, std::vector<Value> &result) const;
+        void SetCache(size_t hash, const std::vector<Value> &result);
+        bool GetCache(size_t hash, std::vector<Value> &result) const;
         void PrintCache();
         // Function Cache Functions
 
@@ -191,7 +191,7 @@ namespace lwscript
         Chunk chunk{};
         STD_STRING name{};
 
-        ValueVecUnorderedMap caches;
+        std::unordered_map<size_t,std::vector<Value>> caches;
     };
 
     struct LWSCRIPT_API UpValueObject : public Object

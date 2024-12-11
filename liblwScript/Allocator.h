@@ -12,18 +12,14 @@ namespace lwscript
         uint8_t *ip = nullptr;
         Value *slots = nullptr;
 
-        // Function Cache arguments
-        std::vector<Value> arguments;
-        // Function Cache arguments
+        // Function Cache arguments list hash
+        size_t argumentsHash;
+        // Function Cache arguments list hash
     };
     class LWSCRIPT_API Allocator
     {
-        NON_COPYABLE(Allocator)
     public:
         SINGLETON_DECL(Allocator)
-
-        Allocator();
-        ~Allocator();
 
         void ResetStatus();
 
@@ -57,6 +53,9 @@ namespace lwscript
         void SetGlobalVariable(size_t idx, const Value &v);
 
     private:
+        Allocator();
+        ~Allocator();
+
         template <class T>
         void FreeObject(T *object);
         void FreeObjects();
