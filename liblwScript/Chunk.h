@@ -5,7 +5,7 @@
 #include "Token.h"
 namespace lwscript
 {
-    enum OpCode
+    enum OpCode : uint8_t
     {
         OP_CONSTANT,
         OP_NULL,
@@ -72,7 +72,8 @@ namespace lwscript
 #ifndef NDEBUG
         STD_STRING ToString() const;
 #endif
-        std::vector<uint8_t> Serialization() const;
+        std::vector<uint8_t> Serialize() const;
+        void Deserialize(const std::vector<uint8_t> &data);
 
         OpCodes opCodes;
         std::vector<Value> constants;

@@ -28,6 +28,9 @@ namespace lwscript
 		void UnMark() const;
 		Value Clone() const;
 
+		std::vector<uint8_t> Serialize() const;
+		void Deserialize(const std::vector<uint8_t> &data);
+
 		ValueKind kind;
 		Privilege privilege = Privilege::MUTABLE;
 
@@ -51,6 +54,6 @@ namespace lwscript
 
 	using ValueUnorderedMap = std::unordered_map<Value, Value, ValueHash>;
 
-	size_t HashValueList(Value* start,size_t count);
-	size_t HashValueList(Value* start,Value* end);
+	size_t HashValueList(Value *start, size_t count);
+	size_t HashValueList(Value *start, Value *end);
 }

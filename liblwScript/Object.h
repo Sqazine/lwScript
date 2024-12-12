@@ -101,6 +101,7 @@ namespace lwscript
         void UnMark();
         virtual void Blacken();
         virtual bool IsEqualTo(Object *other) = 0;
+        virtual std::vector<uint8_t> Serialize() const = 0;
         virtual Object *Clone() const = 0;
 
         const ObjectKind kind;
@@ -115,6 +116,7 @@ namespace lwscript
 
         STD_STRING ToString() const override;
         bool IsEqualTo(Object *other) override;
+        std::vector<uint8_t> Serialize() const override;
         Object *Clone() const override;
 
         STD_STRING value{};
@@ -129,6 +131,7 @@ namespace lwscript
         STD_STRING ToString() const override;
         void Blacken() override;
         bool IsEqualTo(Object *other) override;
+        std::vector<uint8_t> Serialize() const override;
         Object *Clone() const override;
 
         std::vector<struct Value> elements{};
@@ -144,6 +147,7 @@ namespace lwscript
 
         void Blacken() override;
         bool IsEqualTo(Object *other) override;
+        std::vector<uint8_t> Serialize() const override;
         Object *Clone() const override;
 
         ValueUnorderedMap elements{};
@@ -159,6 +163,7 @@ namespace lwscript
 
         void Blacken() override;
         bool IsEqualTo(Object *other) override;
+        std::vector<uint8_t> Serialize() const override;
         Object *Clone() const override;
 
         std::unordered_map<STD_STRING, Value> elements{};
@@ -177,6 +182,7 @@ namespace lwscript
 
         void Blacken() override;
         bool IsEqualTo(Object *other) override;
+        std::vector<uint8_t> Serialize() const override;
         Object *Clone() const override;
 
         // Function Cache Functions
@@ -191,7 +197,7 @@ namespace lwscript
         Chunk chunk{};
         STD_STRING name{};
 
-        std::unordered_map<size_t,std::vector<Value>> caches;
+        std::unordered_map<size_t, std::vector<Value>> caches;
     };
 
     struct LWSCRIPT_API UpValueObject : public Object
@@ -204,6 +210,7 @@ namespace lwscript
 
         void Blacken() override;
         bool IsEqualTo(Object *other) override;
+        std::vector<uint8_t> Serialize() const override;
         Object *Clone() const override;
 
         Value *location{nullptr};
@@ -221,6 +228,7 @@ namespace lwscript
 
         void Blacken() override;
         bool IsEqualTo(Object *other) override;
+        std::vector<uint8_t> Serialize() const override;
         Object *Clone() const override;
 
         FunctionObject *function{nullptr};
@@ -238,6 +246,7 @@ namespace lwscript
         STD_STRING ToString() const override;
 
         bool IsEqualTo(Object *other) override;
+        std::vector<uint8_t> Serialize() const override;
         Object *Clone() const override;
 
         NativeFunction fn{};
@@ -251,6 +260,7 @@ namespace lwscript
         STD_STRING ToString() const override;
 
         bool IsEqualTo(Object *other) override;
+        std::vector<uint8_t> Serialize() const override;
         Object *Clone() const override;
 
         Value *pointer{nullptr};
@@ -266,6 +276,7 @@ namespace lwscript
 
         void Blacken() override;
         bool IsEqualTo(Object *other) override;
+        std::vector<uint8_t> Serialize() const override;
         Object *Clone() const override;
 
         bool GetMember(const STD_STRING &name, Value &retV);
@@ -287,6 +298,7 @@ namespace lwscript
 
         void Blacken() override;
         bool IsEqualTo(Object *other) override;
+        std::vector<uint8_t> Serialize() const override;
         Object *Clone() const override;
 
         Value receiver{};
@@ -303,6 +315,7 @@ namespace lwscript
 
         void Blacken() override;
         bool IsEqualTo(Object *other) override;
+        std::vector<uint8_t> Serialize() const override;
         Object *Clone() const override;
 
         bool GetMember(const STD_STRING &name, Value &retV);
@@ -321,6 +334,7 @@ namespace lwscript
 
         void Blacken() override;
         bool IsEqualTo(Object *other) override;
+        std::vector<uint8_t> Serialize() const override;
         Object *Clone() const override;
 
         bool GetMember(const STD_STRING &name, Value &retV);

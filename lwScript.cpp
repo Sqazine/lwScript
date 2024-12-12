@@ -11,6 +11,11 @@ lwscript::Parser *gParser{nullptr};
 lwscript::Compiler *gCompiler{nullptr};
 lwscript::VM *gVm{nullptr};
 
+std::string_view gSourceFilePath;
+
+bool gIsSerializeBinaryChunk{false};
+std::string_view gSerializeBinaryFilePath;
+
 int32_t PrintVersion()
 {
 	lwscript::Logger::Info(TEXT(LWSCRIPT_VERSION));
@@ -29,11 +34,21 @@ void Run(STD_STRING_VIEW content)
 	lwscript::Logger::Println(TEXT("{}"), stmt->ToString());
 #endif
 	auto mainFunc = gCompiler->Compile(stmt);
+
 #ifndef NDEBUG
 	auto str = mainFunc->ToStringWithChunk();
 	lwscript::Logger::Println(TEXT("{}"), str);
 #endif
-	gVm->Run(mainFunc);
+
+	if (gIsSerializeBinaryChunk)
+	{
+		auto data = mainFunc->chunk.Serialize();
+		lwscript::WriteBinaryFile(gSerializeBinaryFilePath, data);
+	}
+	else
+	{
+		gVm->Run(mainFunc);
+	}
 }
 
 void Repl()
@@ -66,6 +81,7 @@ int32_t PrintUsage()
 	lwscript::Logger::Info(TEXT("Usage: lwscript [option]:"));
 	lwscript::Logger::Info(TEXT("-h or --help:show usage info."));
 	lwscript::Logger::Info(TEXT("-v or --version:show current lwscript version"));
+	lwscript::Logger::Info(TEXT("-s or --serialize: serialize source file as bytecode binary file"));
 	lwscript::Logger::Info(TEXT("-f or --file:run source file with a valid file path,like : lwscript -f examples/array.cd."));
 	lwscript::Logger::Info(TEXT("-fc or --function-cache:cache function execute result."));
 	lwscript::Logger::Info(TEXT("-cf or --constant-fold:use constant fold optimize on parsing stage."));
@@ -77,13 +93,23 @@ int main(int argc, const char *argv[])
 #if defined(_WIN32) || defined(_WIN64)
 	system("chcp 65001");
 #endif
-	std::string_view sourceFilePath;
 	for (size_t i = 0; i < argc; ++i)
 	{
 		if (strcmp(argv[i], "-f") == 0 || strcmp(argv[i], "--file") == 0)
 		{
 			if (i + 1 < argc)
-				sourceFilePath = argv[++i];
+				gSourceFilePath = argv[++i];
+			else
+				return PrintUsage();
+		}
+
+		if (strcmp(argv[i], "-s") == 0 || strcmp(argv[i], "--serialize") == 0)
+		{
+			if (i + 1 < argc)
+			{
+				gIsSerializeBinaryChunk = true;
+				gSerializeBinaryFilePath = argv[++i];
+			}
 			else
 				return PrintUsage();
 		}
@@ -106,8 +132,8 @@ int main(int argc, const char *argv[])
 	gCompiler = new lwscript::Compiler();
 	gVm = new lwscript::VM();
 
-	if (!sourceFilePath.empty())
-		RunFile(sourceFilePath);
+	if (!gSourceFilePath.empty())
+		RunFile(gSourceFilePath);
 	else
 		Repl();
 

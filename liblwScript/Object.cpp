@@ -60,6 +60,11 @@ namespace lwscript
 		return value == TO_STR_OBJ(other)->value;
 	}
 
+	std::vector<uint8_t> StrObject::Serialize() const
+	{
+		return std::vector<uint8_t>();
+	}
+
 	Object *StrObject::Clone() const
 	{
 		return new StrObject(value);
@@ -112,6 +117,11 @@ namespace lwscript
 				return false;
 
 		return true;
+	}
+
+	std::vector<uint8_t> ArrayObject::Serialize() const
+	{
+		return std::vector<uint8_t>();
 	}
 
 	Object *ArrayObject::Clone() const
@@ -179,6 +189,11 @@ namespace lwscript
 		return true;
 	}
 
+	std::vector<uint8_t> DictObject::Serialize() const
+	{
+		return std::vector<uint8_t>();
+	}
+
 	Object *DictObject::Clone() const
 	{
 		ValueUnorderedMap m;
@@ -244,6 +259,10 @@ namespace lwscript
 		}
 
 		return true;
+	}
+	std::vector<uint8_t> StructObject::Serialize() const
+	{
+		return std::vector<uint8_t>();
 	}
 	Object *StructObject::Clone() const
 	{
@@ -314,6 +333,11 @@ namespace lwscript
 		return true;
 	}
 
+	std::vector<uint8_t> FunctionObject::Serialize() const
+	{
+		return std::vector<uint8_t>();
+	}
+
 	Object *FunctionObject::Clone() const
 	{
 		FunctionObject *funcObj = new FunctionObject();
@@ -382,6 +406,11 @@ namespace lwscript
 		return true;
 	}
 
+	std::vector<uint8_t> UpValueObject::Serialize() const
+	{
+		return std::vector<uint8_t>();
+	}
+
 	Object *UpValueObject::Clone() const
 	{
 		UpValueObject *result = new UpValueObject();
@@ -435,6 +464,11 @@ namespace lwscript
 		return true;
 	}
 
+	std::vector<uint8_t> ClosureObject::Serialize() const
+	{
+		return std::vector<uint8_t>();
+	}
+
 	Object *ClosureObject::Clone() const
 	{
 		ClosureObject *result = new ClosureObject();
@@ -469,6 +503,11 @@ namespace lwscript
 		return true;
 	}
 
+	std::vector<uint8_t> NativeFunctionObject::Serialize() const
+	{
+		return std::vector<uint8_t>();
+	}
+
 	Object *NativeFunctionObject::Clone() const
 	{
 		return new NativeFunctionObject(fn);
@@ -492,6 +531,11 @@ namespace lwscript
 		if (!IS_REF_OBJ(other))
 			return false;
 		return *pointer == *TO_REF_OBJ(other)->pointer;
+	}
+
+	std::vector<uint8_t> RefObject::Serialize() const
+	{
+		return std::vector<uint8_t>();
 	}
 
 	Object *RefObject::Clone() const
@@ -554,6 +598,11 @@ namespace lwscript
 		if (parents != klass->parents)
 			return false;
 		return true;
+	}
+
+	std::vector<uint8_t> ClassObject::Serialize() const
+	{
+		return std::vector<uint8_t>();
 	}
 
 	Object *ClassObject::Clone() const
@@ -652,6 +701,11 @@ namespace lwscript
 		return true;
 	}
 
+	std::vector<uint8_t> ClassClosureBindObject::Serialize() const
+	{
+		return std::vector<uint8_t>();
+	}
+
 	Object *ClassClosureBindObject::Clone() const
 	{
 		ClassClosureBindObject *result = new ClassClosureBindObject();
@@ -715,6 +769,11 @@ namespace lwscript
 		return true;
 	}
 
+	std::vector<uint8_t> EnumObject::Serialize() const
+	{
+		return std::vector<uint8_t>();
+	}
+
 	Object *EnumObject::Clone() const
 	{
 		EnumObject *enumObj = new EnumObject();
@@ -767,6 +826,11 @@ namespace lwscript
 		if (values != eo->values)
 			return false;
 		return true;
+	}
+
+	std::vector<uint8_t> ModuleObject::Serialize() const
+	{
+		return std::vector<uint8_t>();
 	}
 
 	Object *ModuleObject::Clone() const

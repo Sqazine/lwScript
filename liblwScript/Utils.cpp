@@ -22,7 +22,50 @@ namespace lwscript
 
         STD_STRING_STREAM sstream;
         sstream << file.rdbuf();
+        file.close();
         return sstream.str();
+    }
+
+    void WriteBinaryFile(std::string_view path, const std::vector<uint8_t> &content)
+    {
+        std::ofstream file;
+        file.open(path.data(), std::ios::out | std::ios::binary);
+        if (!file.is_open())
+#ifdef USE_UTF8_ENCODE
+        {
+            auto utf8Path = Utf8Decode(path.data());
+            Logger::Error(TEXT("Failed to open file:{}"), utf8Path);
+        }
+#else
+            Logger::Error(TEXT("Failed to open file:{}"), path);
+#endif
+        file.write((const char *)content.data(), content.size());
+        file.close();
+    }
+
+    std::vector<uint8_t> LWSCRIPT_API ReadBinaryFile(std::string_view path)
+    {
+        std::ifstream file;
+        file.open(path.data(), std::ios::in | std::ios::binary);
+        if (!file.is_open())
+#ifdef USE_UTF8_ENCODE
+        {
+            auto utf8Path = Utf8Decode(path.data());
+            Logger::Error(TEXT("Failed to open file:{}"), utf8Path);
+        }
+#else
+            Logger::Error(TEXT("Failed to open file:{}"), path);
+#endif
+
+        std::stringstream sstream;
+        sstream << file.rdbuf();
+        file.close();
+        auto str = sstream.str();
+
+        std::vector<uint8_t> result;
+        result.assign(str.begin(), str.end());
+
+        return result;
     }
 
     STD_STRING PointerAddressToString(void *pointer)

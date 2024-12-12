@@ -50,7 +50,6 @@ target_include_directories(${EXE_NAME} PUBLIC ${CMAKE_SOURCE_DIR}/liblwscript)
 target_include_directories(${EXE_NAME} PRIVATE ${GENERATED_DIR})
 target_link_libraries(${EXE_NAME} PRIVATE ${LIB_NAME})
 
-
 if(USE_UTF8_ENCODE)
     target_compile_definitions(${LIB_NAME} PUBLIC USE_UTF8_ENCODE)
     target_compile_definitions(${EXE_NAME} PUBLIC USE_UTF8_ENCODE)
