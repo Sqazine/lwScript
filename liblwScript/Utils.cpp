@@ -9,7 +9,7 @@ namespace lwscript
     STD_STRING ReadFile(std::string_view path)
     {
 #ifdef USE_UTF8_ENCODE
-        auto utf8Path = Utf8Decode(path.data());
+        auto utf8Path = Utf8::Decode(path.data());
         Logger::Record::mCurFilePath = utf8Path;
 #else
         Logger::Record::mCurFilePath = path;
@@ -33,7 +33,7 @@ namespace lwscript
         if (!file.is_open())
 #ifdef USE_UTF8_ENCODE
         {
-            auto utf8Path = Utf8Decode(path.data());
+            auto utf8Path = Utf8::Decode(path.data());
             Logger::Error(TEXT("Failed to open file:{}"), utf8Path);
         }
 #else
@@ -50,7 +50,7 @@ namespace lwscript
         if (!file.is_open())
 #ifdef USE_UTF8_ENCODE
         {
-            auto utf8Path = Utf8Decode(path.data());
+            auto utf8Path = Utf8::Decode(path.data());
             Logger::Error(TEXT("Failed to open file:{}"), utf8Path);
         }
 #else
@@ -100,15 +100,61 @@ namespace lwscript
         return idx;
     }
 
-    std::string Utf8Encode(const std::wstring &str)
+    namespace Utf8
     {
-        std::wstring_convert<std::codecvt_utf8<wchar_t>> converter;
-        return converter.to_bytes(str);
-    }
 
-    std::wstring Utf8Decode(const std::string &str)
+        std::string Encode(const std::wstring &str)
+        {
+            std::wstring_convert<std::codecvt_utf8<wchar_t>> converter;
+            return converter.to_bytes(str);
+        }
+
+        std::wstring Decode(const std::string &str)
+        {
+            std::wstring_convert<std::codecvt_utf8<wchar_t>> converter;
+            return converter.from_bytes(str);
+        }
+    }
+    namespace ByteConverter
     {
-        std::wstring_convert<std::codecvt_utf8<wchar_t>> converter;
-        return converter.from_bytes(str);
+        std::array<uint8_t, 8> ToU64ByteList(int64_t integer)
+        {
+            std::array<uint8_t, 8> result{};
+            result[0] = (uint8_t((integer & 0xFF00000000000000) >> 56));
+            result[1] = (uint8_t((integer & 0x00FF000000000000) >> 48));
+            result[2] = (uint8_t((integer & 0x0000FF0000000000) >> 40));
+            result[3] = (uint8_t((integer & 0x000000FF00000000) >> 32));
+            result[4] = (uint8_t((integer & 0x00000000FF000000) >> 24));
+            result[5] = (uint8_t((integer & 0x0000000000FF0000) >> 16));
+            result[6] = (uint8_t((integer & 0x000000000000FF00) >> 8));
+            result[7] = (uint8_t((integer & 0x00000000000000FF) >> 0));
+            return result;
+        }
+
+        uint64_t GetU64Integer(const std::vector<uint8_t> data, uint32_t start)
+        {
+            uint64_t v{0};
+            for (int32_t i = 0; i < 8; ++i)
+                v |= ((uint64_t)(data[start + i] & 0x00000000000000FF) << ((7 - i) * 8));
+            return v;
+        }
+
+        std::array<uint8_t, 4> ToU32ByteList(int32_t integer)
+        {
+            std::array<uint8_t, 4> result{};
+            result[0] = (uint8_t((integer & 0xFF000000) >> 24));
+            result[1] = (uint8_t((integer & 0x00FF0000) >> 16));
+            result[2] = (uint8_t((integer & 0x0000FF00) >> 8));
+            result[3] = (uint8_t((integer & 0x000000FF) >> 0));
+            return result;
+        }
+
+        uint32_t GetU32Integer(const std::vector<uint8_t> data, uint32_t start)
+        {
+            uint32_t v{0};
+            for (int32_t i = 0; i < 4; ++i)
+                v |= ((uint32_t)(data[start + i] & 0x000000FF) << ((3 - i) * 8));
+            return v;
+        }
     }
 }

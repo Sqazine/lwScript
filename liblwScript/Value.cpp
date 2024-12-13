@@ -89,16 +89,10 @@ namespace lwscript
         result.emplace_back(kind);
         result.emplace_back(privilege);
 
-        if (IS_INT_VALUE(*this))
+        if (IS_INT_VALUE(*this) || IS_REAL_VALUE(*this) || IS_BOOL_VALUE(*this))
         {
-            result.emplace_back(uint8_t((integer & 0xFF00000000000000) >> 56));
-            result.emplace_back(uint8_t((integer & 0x00FF000000000000) >> 48));
-            result.emplace_back(uint8_t((integer & 0x0000FF0000000000) >> 40));
-            result.emplace_back(uint8_t((integer & 0x000000FF00000000) >> 32));
-            result.emplace_back(uint8_t((integer & 0x00000000FF000000) >> 24));
-            result.emplace_back(uint8_t((integer & 0x0000000000FF0000) >> 16));
-            result.emplace_back(uint8_t((integer & 0x000000000000FF00) >> 8));
-            result.emplace_back(uint8_t((integer & 0x00000000000000FF) >> 0));
+            auto byteList = ByteConverter::ToU64ByteList(integer);
+            result.insert(result.end(), byteList.begin(), byteList.end());
         }
 
         return result;
@@ -109,17 +103,8 @@ namespace lwscript
         kind = (ValueKind)data[0];
         privilege = (Privilege)data[1];
 
-        if (IS_INT_VALUE(*this))
-        {
-            integer = ((data[2] & 0x00000000000000FF) << 56) |
-                      ((data[3] & 0x00000000000000FF) << 48) |
-                      ((data[4] & 0x00000000000000FF) << 40) |
-                      ((data[5] & 0x00000000000000FF) << 32) |
-                      ((data[6] & 0x00000000000000FF) << 24) |
-                      ((data[7] & 0x00000000000000FF) << 16) |
-                      ((data[8] & 0x00000000000000FF) << 8) |
-                      ((data[9] & 0x00000000000000FF) << 0);
-        }
+        if (IS_INT_VALUE(*this) || IS_REAL_VALUE(*this)|| IS_BOOL_VALUE(*this))
+            integer = ByteConverter::GetU64Integer(data, 2);
     }
 
     bool operator==(const Value &left, const Value &right)

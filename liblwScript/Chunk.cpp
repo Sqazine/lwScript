@@ -29,39 +29,27 @@ namespace lwscript
 	std::vector<uint8_t> Chunk::Serialize() const
 	{
 		std::vector<uint8_t> result;
-		result.emplace_back(uint8_t((LWSCRIPT_BINARY_FILE_MAGIC_NUMBER & 0xFF000000) >> 24));
-		result.emplace_back(uint8_t((LWSCRIPT_BINARY_FILE_MAGIC_NUMBER & 0x00FF0000) >> 16));
-		result.emplace_back(uint8_t((LWSCRIPT_BINARY_FILE_MAGIC_NUMBER & 0x0000FF00) >> 8));
-		result.emplace_back(uint8_t((LWSCRIPT_BINARY_FILE_MAGIC_NUMBER & 0x000000FF) >> 0));
 
-		result.emplace_back(uint8_t((LWSCRIPT_VERSION_BINARY & 0xFF000000) >> 24));
-		result.emplace_back(uint8_t((LWSCRIPT_VERSION_BINARY & 0x00FF0000) >> 16));
-		result.emplace_back(uint8_t((LWSCRIPT_VERSION_BINARY & 0x0000FF00) >> 8));
-		result.emplace_back(uint8_t((LWSCRIPT_VERSION_BINARY & 0x000000FF) >> 0));
+		auto magNumberBytes =  ByteConverter::ToU32ByteList(LWSCRIPT_BINARY_FILE_MAGIC_NUMBER);
+		result.insert(result.end(), magNumberBytes.begin(), magNumberBytes.end());
 
-		auto opCodeCount = opCodes.size();
-		result.emplace_back(uint8_t((opCodeCount & 0xFF000000) >> 24));
-		result.emplace_back(uint8_t((opCodeCount & 0x00FF0000) >> 16));
-		result.emplace_back(uint8_t((opCodeCount & 0x0000FF00) >> 8));
-		result.emplace_back(uint8_t((opCodeCount & 0x000000FF) >> 0));
+		auto versionBytes =  ByteConverter::ToU32ByteList(LWSCRIPT_VERSION_BINARY);
+		result.insert(result.end(), versionBytes.begin(), versionBytes.end());
+
+		auto opCodeCount =  ByteConverter::ToU32ByteList(opCodes.size());
+		result.insert(result.end(), opCodeCount.begin(), opCodeCount.end());
 
 		result.insert(result.end(), opCodes.begin(), opCodes.end());
 
-		auto constantsCount = constants.size();
-		result.emplace_back((constantsCount & 0xFF000000) >> 24);
-		result.emplace_back((constantsCount & 0x00FF0000) >> 16);
-		result.emplace_back((constantsCount & 0x0000FF00) >> 8);
-		result.emplace_back((constantsCount & 0x000000FF) >> 0);
+		auto constantsCount =  ByteConverter::ToU32ByteList(constants.size());
+		result.insert(result.end(), constantsCount.begin(), constantsCount.end());
 
 		for (const auto &constant : constants)
 		{
 			auto bytes = constant.Serialize();
 
-			auto size = bytes.size();
-			result.emplace_back((size & 0xFF000000) >> 24);
-			result.emplace_back((size & 0x00FF0000) >> 16);
-			result.emplace_back((size & 0x0000FF00) >> 8);
-			result.emplace_back((size & 0x000000FF) >> 0);
+			auto size =  ByteConverter::ToU32ByteList(bytes.size());
+			result.insert(result.end(), size.begin(), size.end());
 
 			result.insert(result.end(), bytes.begin(), bytes.end());
 		}
@@ -71,41 +59,25 @@ namespace lwscript
 
 	void Chunk::Deserialize(const std::vector<uint8_t> &data)
 	{
-		auto magicNumber = ((data[0] & 0x000000FF) << 24) |
-						   ((data[1] & 0x000000FF) << 16) |
-						   ((data[2] & 0x000000FF) << 8) |
-						   ((data[3] & 0x000000FF) << 0);
+		auto magicNumber = ByteConverter::GetU32Integer(data,0);
 		if (magicNumber != LWSCRIPT_BINARY_FILE_MAGIC_NUMBER)
 			Logger::Error(TEXT("Invalid lwscript binary file,cannot deserialize from this file"));
 
-		auto versionNumber = ((data[4] & 0x000000FF) << 24) |
-							 ((data[5] & 0x000000FF) << 16) |
-							 ((data[6] & 0x000000FF) << 8) |
-							 ((data[7] & 0x000000FF) << 0);
-
+		auto versionNumber = ByteConverter::GetU32Integer(data,4);
 		if (versionNumber != LWSCRIPT_VERSION_BINARY)
 			Logger::Error(TEXT("Invalid lwscript binary file version of {},current version is {}"), versionNumber, LWSCRIPT_VERSION_BINARY);
 
-		auto opCodesCount = ((data[8] & 0x000000FF) << 24) |
-							((data[9] & 0x000000FF) << 16) |
-							((data[10] & 0x000000FF) << 8) |
-							((data[11] & 0x000000FF) << 0);
+		auto opCodesCount = ByteConverter::GetU32Integer(data,8);
 
 		opCodes.insert(opCodes.end(), data.begin() + 12, data.begin() + 12 + opCodesCount);
 
 		auto idx = 12 + opCodesCount;
 
-		auto constantsCount = ((data[idx + 0] & 0x000000FF) << 24) |
-							  ((data[idx + 1] & 0x000000FF) << 16) |
-							  ((data[idx + 2] & 0x000000FF) << 8) |
-							  ((data[idx + 3] & 0x000000FF) << 0);
+		auto constantsCount =  ByteConverter::GetU32Integer(data,idx);
 		idx += 4;
 		for (int32_t i = 0; i < constantsCount; ++i)
 		{
-			auto constantSize = ((data[idx + 0] & 0x000000FF) << 24) |
-								((data[idx + 1] & 0x000000FF) << 16) |
-								((data[idx + 2] & 0x000000FF) << 8) |
-								((data[idx + 3] & 0x000000FF) << 0);
+			auto constantSize = ByteConverter::GetU32Integer(data,idx);
 			idx += 4;
 
 			std::vector<uint8_t> constantBytes(data.begin() + idx, data.begin() + idx + constantSize);

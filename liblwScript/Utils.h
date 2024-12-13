@@ -40,6 +40,18 @@ namespace lwscript
 
 	uint64_t NormalizeIdx(int64_t idx, size_t dsSize);
 
-	std::string Utf8Encode(const std::wstring &str);
-	std::wstring Utf8Decode(const std::string &str);
+	namespace Utf8
+	{
+		std::string Encode(const std::wstring &str);
+		std::wstring Decode(const std::string &str);
+	}
+
+	namespace ByteConverter
+	{
+		std::array<uint8_t, 8> ToU64ByteList(int64_t integer);
+		uint64_t GetU64Integer(const std::vector<uint8_t> data, uint32_t start);
+
+		std::array<uint8_t, 4> ToU32ByteList(int32_t integer);
+		uint32_t GetU32Integer(const std::vector<uint8_t> data, uint32_t start);
+	}
 }
