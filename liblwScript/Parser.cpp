@@ -187,7 +187,7 @@ namespace lwscript
 		{
 		case TokenKind::LET:
 		case TokenKind::CONST:
-			return ParseVarDecl(GetCurToken()->kind);
+			return ParseVarDecl();
 		case TokenKind::FUNCTION:
 			GetCurTokenAndStepOnce();
 			return ParseFunctionDecl();
@@ -202,9 +202,12 @@ namespace lwscript
 		}
 	}
 
-	Stmt *Parser::ParseVarDecl(TokenKind kind)
+	Stmt *Parser::ParseVarDecl()
 	{
-		auto varStmt = new VarStmt(GetCurToken());
+		auto curToken = GetCurToken();
+		auto kind=curToken->kind;
+
+		auto varStmt = new VarStmt(curToken);
 
 		if (kind == TokenKind::LET)
 			varStmt->privilege = Privilege::MUTABLE;
@@ -301,7 +304,7 @@ namespace lwscript
 		while (!IsMatchCurToken(TokenKind::RBRACE))
 		{
 			if (IsMatchCurToken(TokenKind::LET) || IsMatchCurToken(TokenKind::CONST))
-				classStmt->varItems.emplace_back((VarStmt *)ParseVarDecl(GetCurToken()->kind));
+				classStmt->varItems.emplace_back((VarStmt *)ParseVarDecl());
 			else if (IsMatchCurTokenAndStepOnce(TokenKind::FUNCTION))
 			{
 				auto fn = (FunctionStmt *)ParseFunctionDecl();
@@ -375,7 +378,7 @@ namespace lwscript
 			{
 			case TokenKind::LET:
 			case TokenKind::CONST:
-				moduleDecl->varItems.emplace_back((VarStmt *)ParseVarDecl(GetCurToken()->kind));
+				moduleDecl->varItems.emplace_back((VarStmt *)ParseVarDecl());
 				break;
 			case TokenKind::FUNCTION:
 				GetCurTokenAndStepOnce();
@@ -548,7 +551,7 @@ namespace lwscript
 
 		// initializer
 		if (IsMatchCurToken(TokenKind::LET) || IsMatchCurToken(TokenKind::CONST))
-			scopeStmt->stmts.emplace_back(ParseVarDecl(GetCurToken()->kind));
+			scopeStmt->stmts.emplace_back(ParseVarDecl());
 		else
 		{
 			if (!IsMatchCurToken(TokenKind::SEMICOLON))
