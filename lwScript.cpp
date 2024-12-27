@@ -83,8 +83,8 @@ int32_t PrintUsage()
 	lwscript::Logger::Info(TEXT("-v or --version:show current lwscript version"));
 	lwscript::Logger::Info(TEXT("-s or --serialize: serialize source file as bytecode binary file"));
 	lwscript::Logger::Info(TEXT("-f or --file:run source file with a valid file path,like : lwscript -f examples/array.cd."));
-	lwscript::Logger::Info(TEXT("-fc or --function-cache:cache function execute result."));
-	lwscript::Logger::Info(TEXT("-cf or --constant-fold:use constant fold optimize on parsing stage."));
+	lwscript::Logger::Info(TEXT("-nfc or --no-function-cache:cache function execute result."));
+	lwscript::Logger::Info(TEXT("-ncf or --no-constant-fold:use constant fold optimize on parsing stage."));
 	return EXIT_FAILURE;
 }
 
@@ -114,11 +114,11 @@ int main(int argc, const char *argv[])
 				return PrintUsage();
 		}
 
-		if (strcmp(argv[i], "-fc") == 0 || strcmp(argv[i], "--function-cache") == 0)
-			lwscript::Config::GetInstance()->SetIsUseFunctionCache(true);
+		if (strcmp(argv[i], "-nfc") == 0 || strcmp(argv[i], "--no-function-cache") == 0)
+			lwscript::Config::GetInstance()->SetIsUseFunctionCache(false);
 
-		if (strcmp(argv[i], "-cf") == 0 || strcmp(argv[i], "--constant-fold") == 0)
-			lwscript::Config::GetInstance()->SetIsUseConstantFold(true);
+		if (strcmp(argv[i], "-ncf") == 0 || strcmp(argv[i], "--no-constant-fold") == 0)
+			lwscript::Config::GetInstance()->SetIsUseConstantFold(false);
 
 		if (strcmp(argv[i], "-h") == 0 || strcmp(argv[i], "--help") == 0)
 			return PrintUsage();

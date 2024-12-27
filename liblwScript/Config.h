@@ -17,7 +17,7 @@ namespace lwscript
         Config() = default;
         ~Config() = default;
 
-        bool mUseFunctionCache{false};
-        bool mUseConstandFold{false};
+        bool mUseFunctionCache{true};
+        bool mUseConstandFold{true};
     };
 }
