@@ -702,10 +702,10 @@ namespace lwscript
 
 	void Compiler::CompileDictExpr(DictExpr *expr)
 	{
-		for (int32_t i = (int32_t)expr->elements.size() - 1; i >= 0; --i)
+		for (auto i = 0;i<expr->elements.size();++i)
 		{
-			CompileExpr(expr->elements[i].second);
 			CompileExpr(expr->elements[i].first);
+			CompileExpr(expr->elements[i].second);
 		}
 		EmitOpCode(OP_DICT, expr->tagToken);
 		uint8_t pos = static_cast<uint8_t>(expr->elements.size());
@@ -724,7 +724,6 @@ namespace lwscript
 
 	void Compiler::CompileNewExpr(NewExpr *expr)
 	{
-
 		auto callee = (CallExpr *)expr->callee;
 		CompileExpr(callee->callee, RWState::READ);
 		EmitOpCode(OP_CALL, expr->callee->tagToken);

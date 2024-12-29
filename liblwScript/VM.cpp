@@ -386,12 +386,13 @@ namespace lwscript
 			}
 			case OP_DICT:
 			{
-				auto eCount = READ_INS();
+				auto count = READ_INS();
 				ValueUnorderedMap elements;
-				for (int64_t i = 0; i < (int64_t)eCount; ++i)
+	
+				for (auto e = STACK_TOP() - count * 2; e < STACK_TOP(); e+=2)
 				{
-					auto key = POP_STACK();
-					auto value = POP_STACK();
+					auto key = *e;
+					auto value = *(e+1);
 					elements[key] = value;
 				}
 				PUSH_STACK(Allocator::GetInstance()->CreateObject<DictObject>(elements));

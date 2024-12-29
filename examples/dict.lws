@@ -16,4 +16,4 @@ let name="john";
 let score=100;
 
 let dict={name:score};
-io.println("{}",dict[name]);
+io.println("{}",dict[name]);//100
