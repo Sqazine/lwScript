@@ -377,10 +377,10 @@ namespace lwscript
 				size_t i = 0;
 				for (auto e = STACK_TOP() - count; e < STACK_TOP(); ++e, ++i)
 					elements[i] = *e;
-				auto arrayObject = Allocator::GetInstance()->CreateObject<ArrayObject>(elements);
 
 				MOVE_STACK_TOP(-count);
 
+				auto arrayObject = Allocator::GetInstance()->CreateObject<ArrayObject>(elements);
 				PUSH_STACK(arrayObject);
 				break;
 			}
@@ -687,6 +687,8 @@ namespace lwscript
 				auto parentClassCount = READ_INS();
 
 				auto classObj = Allocator::GetInstance()->CreateObject<ClassObject>();
+				PUSH_STACK(classObj);
+				
 				classObj->name = TO_STR_VALUE(name)->value;
 				POP_STACK(); // pop name strobject
 
@@ -718,8 +720,6 @@ namespace lwscript
 					v.privilege = Privilege::IMMUTABLE;
 					classObj->members[TO_STR_VALUE(name)->value] = v;
 				}
-
-				PUSH_STACK(classObj);
 				break;
 			}
 			case OP_STRUCT:
@@ -863,6 +863,7 @@ namespace lwscript
 				auto func = TO_FUNCTION_VALUE(frame->closure->function->chunk.constants[pos]);
 				REGISTER_TO_GC_RECORD_CHAIN(func);
 				auto closure = Allocator::GetInstance()->CreateObject<ClosureObject>(func);
+				PUSH_STACK(closure);
 
 				for (int32_t i = 0; i < closure->upvalues.size(); ++i)
 				{
@@ -877,7 +878,6 @@ namespace lwscript
 						closure->upvalues[i] = frame->closure->upvalues[index];
 				}
 
-				PUSH_STACK(closure);
 				break;
 			}
 			case OP_APPREGATE_RESOLVE:
