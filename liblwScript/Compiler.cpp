@@ -456,8 +456,14 @@ namespace lwscript
 				else
 				{
 					if (expr->right->kind == AstKind::ARRAY)
-						if (assignee->elements.size() < ((ArrayExpr *)expr->right)->elements.size())
-							Logger::Error(((ArrayExpr *)expr->right)->elements[assignee->elements.size()]->tagToken, TEXT("variable less than value"));
+					{
+						auto assigneeElements = assignee->elements;
+						auto rightElements = ((ArrayExpr *)expr->right)->elements;
+						if (assigneeElements.size() < rightElements.size())
+							Logger::Warn(rightElements[assigneeElements.size()]->tagToken, TEXT("variable count less than value count,ignore the rest value"));
+						else if (assigneeElements.size() > rightElements.size())
+							Logger::Warn(assigneeElements[rightElements.size()]->tagToken, TEXT("variable count greater than value count,rest value set as null"));
+					}
 				}
 
 				CurOpCodes()[appregateOpCodeAddress] = appregateOpCode;

@@ -660,6 +660,8 @@ namespace lwscript
 						newframe.closure = ctor;
 						newframe.ip = newframe.closure->function->chunk.opCodes.data();
 						newframe.slots = STACK_TOP() - argCount - 1;
+
+						PUSH_CALL_FRAME(newframe);
 					}
 				}
 				else if (IS_NATIVE_FUNCTION_VALUE(callee)) // native function
@@ -688,7 +690,6 @@ namespace lwscript
 				auto parentClassCount = READ_INS();
 
 				auto classObj = Allocator::GetInstance()->CreateObject<ClassObject>();
-				PUSH_STACK(classObj);
 				
 				classObj->name = TO_STR_VALUE(name)->value;
 				POP_STACK(); // pop name strobject
@@ -721,6 +722,8 @@ namespace lwscript
 					v.privilege = Privilege::IMMUTABLE;
 					classObj->members[TO_STR_VALUE(name)->value] = v;
 				}
+
+				PUSH_STACK(classObj);
 				break;
 			}
 			case OP_STRUCT:

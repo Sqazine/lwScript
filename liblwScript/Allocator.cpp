@@ -75,10 +75,18 @@ namespace lwscript
 
     void Allocator::PushStack(const Value &value)
     {
+#ifndef NDEBUG
+        if (mStackTop - mValueStack >= STACK_MAX)
+            Logger::Error(TEXT("Stack overflow."));
+#endif
         *(mStackTop++) = value;
     }
     Value Allocator::PopStack()
     {
+#ifndef NDEBUG
+        if (mStackTop - mValueStack <= 0)
+            Logger::Error(TEXT("Stack underflow."));
+#endif
         return *(--mStackTop);
     }
     Value Allocator::PeekStack(int32_t distance)
