@@ -9,8 +9,6 @@ namespace lwscript
 {
 	std::vector<Value> VM::Run(FunctionObject *mainFunc)
 	{
-		REGISTER_TO_GC_RECORD_CHAIN(mainFunc);
-
 		PUSH_STACK(mainFunc);
 		auto closure = Allocator::GetInstance()->CreateObject<ClosureObject>(mainFunc);
 		POP_STACK();
@@ -185,7 +183,6 @@ namespace lwscript
 			{
 				auto pos = READ_INS();
 				auto v = frame->closure->function->chunk.constants[pos];
-				REGISTER_TO_GC_RECORD_CHAIN(v);
 				PUSH_STACK(v);
 				break;
 			}
@@ -864,8 +861,11 @@ namespace lwscript
 			{
 				auto pos = READ_INS();
 				auto func = TO_FUNCTION_VALUE(frame->closure->function->chunk.constants[pos]);
-				REGISTER_TO_GC_RECORD_CHAIN(func);
+				PUSH_STACK(func);// push function object for avoiding gc
+				
 				auto closure = Allocator::GetInstance()->CreateObject<ClosureObject>(func);
+				POP_STACK(); // pop function object
+
 				PUSH_STACK(closure);
 
 				for (int32_t i = 0; i < closure->upvalues.size(); ++i)

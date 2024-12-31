@@ -53,26 +53,6 @@ namespace lwscript
 #endif
     }
 
-    void Allocator::RegisterToGCRecordChain(const Value &value)
-    {
-        if (IS_OBJECT_VALUE(value) && value.object->next == nullptr) // check is null to judge if is a unique object
-        {
-            size_t objBytes = sizeof(*value.object);
-            mBytesAllocated += objBytes;
-#ifdef GC_STRESS
-            GC();
-#endif
-            if (mBytesAllocated > mNextGCByteSize)
-                GC();
-            value.object->marked = false;
-            value.object->next = mObjectChain;
-            mObjectChain = value.object;
-#ifdef GC_DEBUG
-            Logger::Info(TEXT("{} has been add to gc record chain {} for {}"), (void *)value.object, objBytes, value.object->kind);
-#endif
-        }
-    }
-
     void Allocator::PushStack(const Value &value)
     {
 #ifndef NDEBUG

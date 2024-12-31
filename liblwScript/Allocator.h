@@ -26,8 +26,6 @@ namespace lwscript
         template <class T, typename... Args>
         T *CreateObject(Args &&...params);
 
-        void RegisterToGCRecordChain(const Value &value);
-
         void PushStack(const Value &value);
         Value PopStack();
         Value PeekStack(int32_t distance);
@@ -114,8 +112,6 @@ namespace lwscript
         mBytesAllocated -= sizeof(object);
         SAFE_DELETE(object);
     }
-
-#define REGISTER_TO_GC_RECORD_CHAIN(v) (Allocator::GetInstance()->RegisterToGCRecordChain(v))
 
 #define GET_GLOBAL_VARIABLE(idx) (Allocator::GetInstance()->GetGlobalVariable(idx))
 
