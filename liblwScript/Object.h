@@ -102,7 +102,6 @@ namespace lwscript
         virtual void Blacken();
         virtual bool IsEqualTo(Object *other) = 0;
         virtual std::vector<uint8_t> Serialize() const = 0;
-        virtual Object *Clone() const = 0;
 
         const ObjectKind kind;
         bool marked{false};
@@ -117,7 +116,6 @@ namespace lwscript
         STD_STRING ToString() const override;
         bool IsEqualTo(Object *other) override;
         std::vector<uint8_t> Serialize() const override;
-        Object *Clone() const override;
 
         STD_STRING value{};
     };
@@ -132,7 +130,6 @@ namespace lwscript
         void Blacken() override;
         bool IsEqualTo(Object *other) override;
         std::vector<uint8_t> Serialize() const override;
-        Object *Clone() const override;
 
         std::vector<struct Value> elements{};
     };
@@ -148,7 +145,6 @@ namespace lwscript
         void Blacken() override;
         bool IsEqualTo(Object *other) override;
         std::vector<uint8_t> Serialize() const override;
-        Object *Clone() const override;
 
         ValueUnorderedMap elements{};
     };
@@ -164,7 +160,6 @@ namespace lwscript
         void Blacken() override;
         bool IsEqualTo(Object *other) override;
         std::vector<uint8_t> Serialize() const override;
-        Object *Clone() const override;
 
         std::unordered_map<STD_STRING, Value> elements{};
     };
@@ -183,7 +178,6 @@ namespace lwscript
         void Blacken() override;
         bool IsEqualTo(Object *other) override;
         std::vector<uint8_t> Serialize() const override;
-        Object *Clone() const override;
 
         // Function Cache Functions
         void SetCache(size_t hash, const std::vector<Value> &result);
@@ -211,7 +205,6 @@ namespace lwscript
         void Blacken() override;
         bool IsEqualTo(Object *other) override;
         std::vector<uint8_t> Serialize() const override;
-        Object *Clone() const override;
 
         Value *location{nullptr};
         Value closed{};
@@ -229,7 +222,6 @@ namespace lwscript
         void Blacken() override;
         bool IsEqualTo(Object *other) override;
         std::vector<uint8_t> Serialize() const override;
-        Object *Clone() const override;
 
         FunctionObject *function{nullptr};
         std::vector<UpValueObject *> upvalues{};
@@ -247,7 +239,6 @@ namespace lwscript
 
         bool IsEqualTo(Object *other) override;
         std::vector<uint8_t> Serialize() const override;
-        Object *Clone() const override;
 
         NativeFunction fn{};
     };
@@ -261,7 +252,6 @@ namespace lwscript
 
         bool IsEqualTo(Object *other) override;
         std::vector<uint8_t> Serialize() const override;
-        Object *Clone() const override;
 
         Value *pointer{nullptr};
     };
@@ -277,7 +267,6 @@ namespace lwscript
         void Blacken() override;
         bool IsEqualTo(Object *other) override;
         std::vector<uint8_t> Serialize() const override;
-        Object *Clone() const override;
 
         bool GetMember(const STD_STRING &name, Value &retV);
         bool GetParentMember(const STD_STRING &name, Value &retV);
@@ -299,7 +288,6 @@ namespace lwscript
         void Blacken() override;
         bool IsEqualTo(Object *other) override;
         std::vector<uint8_t> Serialize() const override;
-        Object *Clone() const override;
 
         Value receiver{};
         ClosureObject *closure{nullptr};
@@ -316,7 +304,6 @@ namespace lwscript
         void Blacken() override;
         bool IsEqualTo(Object *other) override;
         std::vector<uint8_t> Serialize() const override;
-        Object *Clone() const override;
 
         bool GetMember(const STD_STRING &name, Value &retV);
 
@@ -335,7 +322,6 @@ namespace lwscript
         void Blacken() override;
         bool IsEqualTo(Object *other) override;
         std::vector<uint8_t> Serialize() const override;
-        Object *Clone() const override;
 
         bool GetMember(const STD_STRING &name, Value &retV);
 

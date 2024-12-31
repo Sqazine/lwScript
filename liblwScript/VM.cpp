@@ -185,9 +185,8 @@ namespace lwscript
 			{
 				auto pos = READ_INS();
 				auto v = frame->closure->function->chunk.constants[pos];
-				auto vClone = v.Clone();
-				REGISTER_TO_GC_RECORD_CHAIN(vClone);
-				PUSH_STACK(vClone);
+				REGISTER_TO_GC_RECORD_CHAIN(v);
+				PUSH_STACK(v);
 				break;
 			}
 			case OP_NULL:

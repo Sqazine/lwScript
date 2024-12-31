@@ -32,7 +32,7 @@ namespace lwscript
         memset(mGlobalVariableList, 0, sizeof(Value) * GLOBAL_VARIABLE_MAX);
 
         for (int32_t i = 0; i < LibraryManager::GetInstance()->GetLibraries().size(); ++i)
-            mGlobalVariableList[i] = LibraryManager::GetInstance()->GetLibraries()[i]->Clone();
+            mGlobalVariableList[i] = LibraryManager::GetInstance()->GetLibraries()[i];
     }
 
     void Allocator::FreeObjects()

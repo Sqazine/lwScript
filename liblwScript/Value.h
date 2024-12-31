@@ -26,7 +26,6 @@ namespace lwscript
 		STD_STRING ToString() const;
 		void Mark() const;
 		void UnMark() const;
-		Value Clone() const;
 
 		std::vector<uint8_t> Serialize() const;
 		void Deserialize(const std::vector<uint8_t> &data);

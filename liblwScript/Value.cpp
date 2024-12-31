@@ -55,33 +55,7 @@ namespace lwscript
         if (kind == ValueKind::OBJECT)
             object->UnMark();
     }
-
-    Value Value::Clone() const
-    {
-        Value result;
-        result.kind = kind;
-        switch (kind)
-        {
-        case ValueKind::INT:
-            result.integer = integer;
-            break;
-        case ValueKind::REAL:
-            result.realnum = realnum;
-            break;
-        case ValueKind::BOOL:
-            result.boolean = boolean;
-            break;
-        case ValueKind::NIL:
-            break;
-        case ValueKind::OBJECT:
-            result.object = object->Clone();
-            break;
-        default:
-            break;
-        }
-        return result;
-    }
-
+    
     std::vector<uint8_t> Value::Serialize() const
     {
         std::vector<uint8_t> result;

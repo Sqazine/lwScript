@@ -65,11 +65,6 @@ namespace lwscript
 		return std::vector<uint8_t>();
 	}
 
-	Object *StrObject::Clone() const
-	{
-		return new StrObject(value);
-	}
-
 	ArrayObject::ArrayObject()
 		: Object(ObjectKind::ARRAY)
 	{
@@ -122,14 +117,6 @@ namespace lwscript
 	std::vector<uint8_t> ArrayObject::Serialize() const
 	{
 		return std::vector<uint8_t>();
-	}
-
-	Object *ArrayObject::Clone() const
-	{
-		std::vector<Value> eles(this->elements.size());
-		for (int32_t i = 0; i < eles.size(); ++i)
-			eles[i] = this->elements[i].Clone();
-		return new ArrayObject(eles);
 	}
 
 	DictObject::DictObject()
@@ -194,20 +181,6 @@ namespace lwscript
 		return std::vector<uint8_t>();
 	}
 
-	Object *DictObject::Clone() const
-	{
-		ValueUnorderedMap m;
-		for (auto [k, v] : elements)
-		{
-			auto kCopy = k.Clone();
-			auto vCopy = v.Clone();
-
-			m[kCopy] = vCopy;
-		}
-
-		return new DictObject(m);
-	}
-
 	StructObject::StructObject()
 		: Object(ObjectKind::STRUCT)
 	{
@@ -263,19 +236,6 @@ namespace lwscript
 	std::vector<uint8_t> StructObject::Serialize() const
 	{
 		return std::vector<uint8_t>();
-	}
-	Object *StructObject::Clone() const
-	{
-		std::unordered_map<STD_STRING, Value> m;
-		for (auto [k, v] : elements)
-		{
-			auto kCopy = k;
-			auto vCopy = v.Clone();
-
-			m[kCopy] = vCopy;
-		}
-
-		return new StructObject(m);
 	}
 
 	FunctionObject::FunctionObject()
@@ -338,19 +298,6 @@ namespace lwscript
 		return std::vector<uint8_t>();
 	}
 
-	Object *FunctionObject::Clone() const
-	{
-		FunctionObject *funcObj = new FunctionObject();
-		funcObj->name = this->name;
-		funcObj->arity = this->arity;
-		funcObj->upValueCount = this->upValueCount;
-		funcObj->chunk.opCodes = this->chunk.opCodes;
-		funcObj->chunk.constants.resize(this->chunk.constants.size());
-		for (int32_t i = 0; i < funcObj->chunk.constants.size(); ++i)
-			funcObj->chunk.constants[i] = this->chunk.constants[i].Clone();
-		return funcObj;
-	}
-
 	void FunctionObject::SetCache(size_t hash, const std::vector<Value> &result)
 	{
 		caches[hash] = result;
@@ -411,16 +358,6 @@ namespace lwscript
 		return std::vector<uint8_t>();
 	}
 
-	Object *UpValueObject::Clone() const
-	{
-		UpValueObject *result = new UpValueObject();
-		auto tmp = location->Clone();
-		result->location = &tmp;
-		result->closed = closed.Clone();
-		result->nextUpValue = (UpValueObject *)nextUpValue->Clone();
-		return result;
-	}
-
 	ClosureObject::ClosureObject()
 		: Object(ObjectKind::CLOSURE), function(nullptr)
 	{
@@ -469,16 +406,6 @@ namespace lwscript
 		return std::vector<uint8_t>();
 	}
 
-	Object *ClosureObject::Clone() const
-	{
-		ClosureObject *result = new ClosureObject();
-		result->function = (FunctionObject *)function->Clone();
-		result->upvalues.resize(upvalues.size());
-		for (int32_t i = 0; i < result->upvalues.size(); ++i)
-			result->upvalues[i] = (UpValueObject *)upvalues[i]->Clone();
-		return result;
-	}
-
 	NativeFunctionObject::NativeFunctionObject()
 		: Object(ObjectKind::NATIVE_FUNCTION)
 	{
@@ -508,11 +435,6 @@ namespace lwscript
 		return std::vector<uint8_t>();
 	}
 
-	Object *NativeFunctionObject::Clone() const
-	{
-		return new NativeFunctionObject(fn);
-	}
-
 	RefObject::RefObject(Value *pointer)
 		: Object(ObjectKind::REF), pointer(pointer)
 	{
@@ -536,12 +458,6 @@ namespace lwscript
 	std::vector<uint8_t> RefObject::Serialize() const
 	{
 		return std::vector<uint8_t>();
-	}
-
-	Object *RefObject::Clone() const
-	{
-		auto tmp = pointer->Clone();
-		return new RefObject(&tmp);
 	}
 
 	ClassObject::ClassObject()
@@ -603,17 +519,6 @@ namespace lwscript
 	std::vector<uint8_t> ClassObject::Serialize() const
 	{
 		return std::vector<uint8_t>();
-	}
-
-	Object *ClassObject::Clone() const
-	{
-		ClassObject *classObj = new ClassObject();
-		classObj->name = this->name;
-		for (auto [k, v] : members)
-			classObj->members[k] = v.Clone();
-		for (auto [k, v] : parents)
-			classObj->parents[k] = (ClassObject *)v->Clone();
-		return classObj;
 	}
 
 	bool ClassObject::GetMember(const STD_STRING &name, Value &retV)
@@ -706,14 +611,6 @@ namespace lwscript
 		return std::vector<uint8_t>();
 	}
 
-	Object *ClassClosureBindObject::Clone() const
-	{
-		ClassClosureBindObject *result = new ClassClosureBindObject();
-		result->receiver = receiver.Clone();
-		result->closure = (ClosureObject *)this->closure->Clone();
-		return result;
-	}
-
 	EnumObject::EnumObject()
 		: Object(ObjectKind::ENUM)
 	{
@@ -774,15 +671,6 @@ namespace lwscript
 		return std::vector<uint8_t>();
 	}
 
-	Object *EnumObject::Clone() const
-	{
-		EnumObject *enumObj = new EnumObject();
-		enumObj->name = name;
-		for (auto [k, v] : pairs)
-			enumObj->pairs[k] = v.Clone();
-		return enumObj;
-	}
-
 	ModuleObject::ModuleObject()
 		: Object(ObjectKind::MODULE)
 	{
@@ -831,15 +719,6 @@ namespace lwscript
 	std::vector<uint8_t> ModuleObject::Serialize() const
 	{
 		return std::vector<uint8_t>();
-	}
-
-	Object *ModuleObject::Clone() const
-	{
-		ModuleObject *moduleObj = new ModuleObject();
-		moduleObj->name = name;
-		for (auto [k, v] : values)
-			moduleObj->values[k] = v.Clone();
-		return moduleObj;
 	}
 
 	bool ModuleObject::GetMember(const STD_STRING &name, Value &retV)
