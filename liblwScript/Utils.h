@@ -3,7 +3,6 @@
 #include <string>
 #include <vector>
 #include <array>
-#include "Config.h"
 #include "Logger.h"
 namespace lwscript
 {

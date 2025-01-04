@@ -168,10 +168,7 @@ namespace lwscript
 		while (!IsMatchCurToken(TokenKind::END))
 			astStmts->stmts.emplace_back(ParseDecl());
 
-		auto stmt = mParseOptimizer.ParseOptimize(astStmts);
-		stmt = mSyntaxChecker.Check(stmt);
-
-		return stmt;
+		return astStmts;
 	}
 
 	void Parser::ResetStatus()

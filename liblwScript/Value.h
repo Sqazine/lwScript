@@ -1,7 +1,6 @@
 #pragma once
 #include <string>
 #include <unordered_map>
-#include "Config.h"
 #include "Utils.h"
 namespace lwscript
 {
@@ -16,12 +15,12 @@ namespace lwscript
 
 	struct LWSCRIPT_API Value
 	{
-		Value();
-		Value(int64_t integer);
-		Value(double number);
-		Value(bool boolean);
-		Value(struct Object *object);
-		~Value() = default;
+		constexpr Value() noexcept;
+		constexpr Value(int64_t integer) noexcept;
+		constexpr Value(double number) noexcept;
+		constexpr Value(bool boolean) noexcept;
+		constexpr Value(struct Object *object) noexcept; 
+		constexpr ~Value() noexcept = default;
 
 		STD_STRING ToString() const;
 		void Mark() const;

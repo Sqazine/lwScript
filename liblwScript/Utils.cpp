@@ -8,7 +8,7 @@ namespace lwscript
 {
     STD_STRING ReadFile(std::string_view path)
     {
-#ifdef USE_UTF8_ENCODE
+#ifdef UTF8_ENCODE
         auto utf8Path = Utf8::Decode(path.data());
         Logger::Record::mCurFilePath = utf8Path;
 #else
@@ -31,7 +31,7 @@ namespace lwscript
         std::ofstream file;
         file.open(path.data(), std::ios::out | std::ios::binary);
         if (!file.is_open())
-#ifdef USE_UTF8_ENCODE
+#ifdef UTF8_ENCODE
         {
             auto utf8Path = Utf8::Decode(path.data());
             Logger::Error(TEXT("Failed to open file:{}"), utf8Path);
@@ -48,7 +48,7 @@ namespace lwscript
         std::ifstream file;
         file.open(path.data(), std::ios::in | std::ios::binary);
         if (!file.is_open())
-#ifdef USE_UTF8_ENCODE
+#ifdef UTF8_ENCODE
         {
             auto utf8Path = Utf8::Decode(path.data());
             Logger::Error(TEXT("Failed to open file:{}"), utf8Path);

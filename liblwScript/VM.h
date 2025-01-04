@@ -1,7 +1,6 @@
 #pragma once
 #include <iostream>
 #include <vector>
-#include "Config.h"
 #include "Chunk.h"
 #include "Object.h"
 #include "LibraryManager.h"
@@ -11,14 +10,14 @@ namespace lwscript
     {
         NON_COPYABLE(VM)
     public:
-        VM() = default;
-        ~VM() = default;
+        constexpr VM() noexcept = default;
+        constexpr ~VM() noexcept = default;
 
-        std::vector<Value> Run(FunctionObject *mainFunc);
+        std::vector<Value> Run(FunctionObject *mainFunc) noexcept;
 
     private:
         void Execute();
 
-        bool IsFalsey(const Value &v);
+        bool IsFalsey(const Value &v) noexcept;
     };
 }

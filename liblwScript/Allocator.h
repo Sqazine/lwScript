@@ -12,9 +12,9 @@ namespace lwscript
         uint8_t *ip = nullptr;
         Value *slots = nullptr;
 
-        // Function Cache arguments list hash
+#ifdef FUNCTION_CACHE_OPT
         size_t argumentsHash;
-        // Function Cache arguments list hash
+#endif
     };
     class LWSCRIPT_API Allocator
     {

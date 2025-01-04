@@ -6,8 +6,6 @@
 #include "Token.h"
 #include "Ast.h"
 #include "Utils.h"
-#include "SyntaxChecker.h"
-#include "ParseOptimizer.h"
 namespace lwscript
 {
 	enum class Precedence
@@ -123,9 +121,6 @@ namespace lwscript
 		Token *Consume(const std::vector<TokenKind> &kinds, STD_STRING_VIEW errMsg);
 
 		bool IsAtEnd();
-
-		ParseOptimizer mParseOptimizer;
-		SyntaxChecker mSyntaxChecker;
 
 		ClassInfo *mCurClassInfo;
 

@@ -7,11 +7,6 @@
 
 #define GC_HEAP_GROW_FACTOR 2
 
-#ifndef NDEBUG
-#define GC_DEBUG
-#define GC_STRESS
-#endif
-
 #if defined(_WIN32) || defined(_WIN64)
 #ifdef LWSCRIPT_BUILD_DLL
 #define LWSCRIPT_API __declspec(dllexport)
@@ -26,7 +21,7 @@
 #endif
 #endif
 
-#ifdef USE_UTF8_ENCODE
+#ifdef UTF8_ENCODE
 #define STR(x) L##x
 #define TEXT(x) STR(x)
 #define TCHAR(x) STR(x)

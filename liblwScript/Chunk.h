@@ -1,6 +1,5 @@
 #pragma once
 #include <vector>
-#include "Config.h"
 #include "Value.h"
 #include "Token.h"
 namespace lwscript

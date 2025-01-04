@@ -7,7 +7,7 @@
 #include "Logger.h"
 namespace lwscript
 {
-	std::vector<Value> VM::Run(FunctionObject *mainFunc)
+	std::vector<Value> VM::Run(FunctionObject *mainFunc) noexcept
 	{
 		PUSH_STACK(mainFunc);
 		auto closure = Allocator::GetInstance()->CreateObject<ClosureObject>(mainFunc);
@@ -150,22 +150,24 @@ namespace lwscript
 
 				if (retCount == 0)
 				{
-					if (Config::GetInstance()->IsUseFunctionCache())
+#ifdef FUNCTION_CACHE_OPT
 					{
 						auto callFrameTop = PEEK_CALL_FRAME(0);
 						callFrameTop->closure->function->SetCache(callFrameTop->argumentsHash, {Value()});
 					}
+#endif
 
 					PUSH_STACK(Value());
 				}
 				else
 				{
-					if (Config::GetInstance()->IsUseFunctionCache())
+#ifdef FUNCTION_CACHE_OPT
 					{
 						auto callFrameTop = PEEK_CALL_FRAME(0);
 						std::vector<Value> rets(retValues, retValues + retCount);
 						callFrameTop->closure->function->SetCache(callFrameTop->argumentsHash, rets);
 					}
+#endif
 
 					uint8_t i = 0;
 					while (i < retCount)
@@ -250,24 +252,29 @@ namespace lwscript
 			}
 			case OP_ADD:
 			{
-				Value left = POP_STACK();
-				Value right = POP_STACK();
+				Value left = PEEK_STACK(0);
+				Value right = PEEK_STACK(1);
+				Value result;
 				if (IS_REF_VALUE(left))
 					left = *TO_REF_VALUE(left)->pointer;
 				if (IS_REF_VALUE(right))
 					right = *TO_REF_VALUE(right)->pointer;
 				if (IS_INT_VALUE(left) && IS_INT_VALUE(right))
-					PUSH_STACK(TO_INT_VALUE(left) + TO_INT_VALUE(right));
+					result = TO_INT_VALUE(left) + TO_INT_VALUE(right);
 				else if (IS_REAL_VALUE(left) && IS_REAL_VALUE(right))
-					PUSH_STACK(TO_REAL_VALUE(left) + TO_REAL_VALUE(right));
+					result = TO_REAL_VALUE(left) + TO_REAL_VALUE(right);
 				else if (IS_INT_VALUE(left) && IS_REAL_VALUE(right))
-					PUSH_STACK(TO_INT_VALUE(left) + TO_REAL_VALUE(right));
+					result = TO_INT_VALUE(left) + TO_REAL_VALUE(right);
 				else if (IS_REAL_VALUE(left) && IS_INT_VALUE(right))
-					PUSH_STACK(TO_REAL_VALUE(left) + TO_INT_VALUE(right));
+					result = TO_REAL_VALUE(left) + TO_INT_VALUE(right);
 				else if (IS_STR_VALUE(left) && IS_STR_VALUE(right))
-					PUSH_STACK(Allocator::GetInstance()->CreateObject<StrObject>(TO_STR_VALUE(left)->value + TO_STR_VALUE(right)->value));
+					result = Allocator::GetInstance()->CreateObject<StrObject>(TO_STR_VALUE(left)->value + TO_STR_VALUE(right)->value);
 				else
 					Logger::Error(relatedToken, TEXT("Invalid binary op:{}+{},only (&)int-(&)int,(&)real-(&)real,(&)int-(&)real or (&)real-(&)int type pair is available."), left.ToString(), right.ToString());
+
+				MOVE_STACK_TOP(-2);
+				PUSH_STACK(result);
+
 				break;
 			}
 			case OP_SUB:
@@ -374,9 +381,10 @@ namespace lwscript
 				for (auto e = STACK_TOP() - count; e < STACK_TOP(); ++e, ++i)
 					elements[i] = *e;
 
+				auto arrayObject = Allocator::GetInstance()->CreateObject<ArrayObject>(elements);
+
 				MOVE_STACK_TOP(-count);
 
-				auto arrayObject = Allocator::GetInstance()->CreateObject<ArrayObject>(elements);
 				PUSH_STACK(arrayObject);
 				break;
 			}
@@ -384,14 +392,19 @@ namespace lwscript
 			{
 				auto count = READ_INS();
 				ValueUnorderedMap elements;
-	
-				for (auto e = STACK_TOP() - count * 2; e < STACK_TOP(); e+=2)
+
+				auto dict = Allocator::GetInstance()->CreateObject<DictObject>(elements);
+
+				for (auto e = STACK_TOP() - count * 2; e < STACK_TOP(); e += 2)
 				{
 					auto key = *e;
-					auto value = *(e+1);
-					elements[key] = value;
+					auto value = *(e + 1);
+					dict->elements[key] = value;
 				}
-				PUSH_STACK(Allocator::GetInstance()->CreateObject<DictObject>(elements));
+
+				MOVE_STACK_TOP(-count * 2);
+
+				PUSH_STACK(dict);
 				break;
 			}
 			case OP_GET_INDEX:
@@ -618,21 +631,24 @@ namespace lwscript
 
 					auto argsHash = HashValueList(STACK_TOP() - argCount, STACK_TOP());
 					std::vector<Value> rets;
-					if (Config::GetInstance()->IsUseFunctionCache() && TO_CLOSURE_VALUE(callee)->function->GetCache(argsHash, rets))
+#ifdef FUNCTION_CACHE_OPT
+					if (TO_CLOSURE_VALUE(callee)->function->GetCache(argsHash, rets))
 					{
 						MOVE_STACK_TOP(-(argCount + 1));
 						for (int32_t i = 0; i < rets.size(); ++i)
 							PUSH_STACK(rets[i]);
 					}
 					else
+#endif
 					{
 						// init a new frame
 						CallFrame newframe;
 						newframe.closure = TO_CLOSURE_VALUE(callee);
 						newframe.ip = newframe.closure->function->chunk.opCodes.data();
 						newframe.slots = STACK_TOP() - argCount - 1;
-						if (Config::GetInstance()->IsUseFunctionCache())
-							newframe.argumentsHash = argsHash;
+#ifdef FUNCTION_CACHE_OPT
+						newframe.argumentsHash = argsHash;
+#endif
 						PUSH_CALL_FRAME(newframe);
 					}
 				}
@@ -686,7 +702,7 @@ namespace lwscript
 				auto parentClassCount = READ_INS();
 
 				auto classObj = Allocator::GetInstance()->CreateObject<ClassObject>();
-				
+
 				classObj->name = TO_STR_VALUE(name)->value;
 				POP_STACK(); // pop name strobject
 
@@ -725,14 +741,14 @@ namespace lwscript
 			case OP_STRUCT:
 			{
 				auto eCount = READ_INS();
-				std::unordered_map<STD_STRING, Value> elements;
+				auto structObj = Allocator::GetInstance()->CreateObject<StructObject>();
 				for (int64_t i = 0; i < (int64_t)eCount; ++i)
 				{
 					auto key = TO_STR_VALUE(POP_STACK())->value;
 					auto value = POP_STACK();
-					elements[key] = value;
+					structObj->elements[key] = value;
 				}
-				PUSH_STACK(Allocator::GetInstance()->CreateObject<StructObject>(elements));
+				PUSH_STACK(structObj);
 				break;
 			}
 			case OP_GET_PROPERTY:
@@ -752,10 +768,8 @@ namespace lwscript
 					{
 						POP_STACK(); // pop class object
 						if (IS_CLOSURE_VALUE(member))
-						{
-							ClassClosureBindObject *binding = Allocator::GetInstance()->CreateObject<ClassClosureBindObject>(klass, TO_CLOSURE_VALUE(member));
-							member = Value(binding);
-						}
+							member = Allocator::GetInstance()->CreateObject<ClassClosureBindObject>(klass, TO_CLOSURE_VALUE(member));
+
 						PUSH_STACK(member);
 						break;
 					}
@@ -861,8 +875,8 @@ namespace lwscript
 			{
 				auto pos = READ_INS();
 				auto func = TO_FUNCTION_VALUE(frame->closure->function->chunk.constants[pos]);
-				PUSH_STACK(func);// push function object for avoiding gc
-				
+
+				PUSH_STACK(func); // push function object for avoiding gc
 				auto closure = Allocator::GetInstance()->CreateObject<ClosureObject>(func);
 				POP_STACK(); // pop function object
 
@@ -923,18 +937,21 @@ namespace lwscript
 			case OP_APPREGATE_RESOLVE_VAR_ARG:
 			{
 				auto count = READ_INS();
-				auto value = POP_STACK();
+				auto value = PEEK_STACK(0);
 				if (IS_ARRAY_VALUE(value))
 				{
 					auto arrayObj = TO_ARRAY_VALUE(value);
 					if (count >= arrayObj->elements.size())
 					{
-						auto diff = count - arrayObj->elements.size();
+						ArrayObject *varArgArray = Allocator::GetInstance()->CreateObject<ArrayObject>();
 
+						POP_STACK(); // pop value object
+
+						auto diff = count - arrayObj->elements.size();
 						for (int32_t i = static_cast<int32_t>(diff); i > 0; --i)
 						{
 							if (i == diff)
-								PUSH_STACK(Allocator::GetInstance()->CreateObject<ArrayObject>());
+								PUSH_STACK(varArgArray);
 							else
 								PUSH_STACK(Value());
 						}
@@ -945,6 +962,9 @@ namespace lwscript
 					else
 					{
 						ArrayObject *varArgArray = Allocator::GetInstance()->CreateObject<ArrayObject>();
+
+						POP_STACK(); // pop value object
+
 						for (int32_t i = count - 1; i < arrayObj->elements.size(); ++i)
 							varArgArray->elements.emplace_back(arrayObj->elements[i]);
 						PUSH_STACK(varArgArray);
@@ -955,6 +975,10 @@ namespace lwscript
 				}
 				else
 				{
+					auto arrayObj = Allocator::GetInstance()->CreateObject<ArrayObject>();
+
+					POP_STACK(); // pop value object
+
 					auto diff = count - 2;
 					while (diff > 0)
 					{
@@ -962,7 +986,7 @@ namespace lwscript
 						diff--;
 					}
 
-					PUSH_STACK(Allocator::GetInstance()->CreateObject<ArrayObject>());
+					PUSH_STACK(arrayObj);
 					PUSH_STACK(value);
 				}
 				break;
@@ -982,6 +1006,7 @@ namespace lwscript
 				for (int32_t i = 0; i < constCount; ++i)
 				{
 					name = POP_STACK();
+					nameStr = TO_STR_VALUE(name)->value;
 					auto v = POP_STACK();
 					v.privilege = Privilege::IMMUTABLE;
 					moduleObj->values[nameStr] = v;
@@ -990,6 +1015,7 @@ namespace lwscript
 				for (int32_t i = 0; i < varCount; ++i)
 				{
 					name = POP_STACK();
+					nameStr = TO_STR_VALUE(name)->value;
 					auto v = POP_STACK();
 					v.privilege = Privilege::MUTABLE;
 					moduleObj->values[nameStr] = v;
@@ -1021,7 +1047,7 @@ namespace lwscript
 		}
 	}
 
-	bool VM::IsFalsey(const Value &v)
+	bool VM::IsFalsey(const Value &v) noexcept
 	{
 		return IS_NULL_VALUE(v) || (IS_BOOL_VALUE(v) && !TO_BOOL_VALUE(v));
 	}

@@ -1,58 +1,26 @@
-#include "ConstantFolder.h"
+#include "ConstantFoldPass.h"
 #include "Utils.h"
 
 namespace lwscript
 {
-	Stmt *ConstantFolder::Fold(Stmt *stmt)
-	{
-		return FoldStmt(stmt);
-	}
-
-	Stmt *ConstantFolder::FoldStmt(Stmt *stmt)
-	{
-		switch (stmt->kind)
-		{
-		case AstKind::ASTSTMTS:
-			return FoldAstStmts((AstStmts *)stmt);
-		case AstKind::RETURN:
-			return FoldReturnStmt((ReturnStmt *)stmt);
-		case AstKind::EXPR:
-			return FoldExprStmt((ExprStmt *)stmt);
-		case AstKind::VAR:
-			return FoldVarStmt((VarStmt *)stmt);
-		case AstKind::SCOPE:
-			return FoldScopeStmt((ScopeStmt *)stmt);
-		case AstKind::IF:
-			return FoldIfStmt((IfStmt *)stmt);
-		case AstKind::WHILE:
-			return FoldWhileStmt((WhileStmt *)stmt);
-		case AstKind::FUNCTION:
-			return FoldFunctionStmt((FunctionStmt *)stmt);
-		case AstKind::CLASS:
-			return FoldClassStmt((ClassStmt *)stmt);
-		case AstKind::MODULE:
-			return FoldModuleStmt((ModuleStmt *)stmt);
-		default:
-			return stmt;
-		}
-	}
-	Stmt *ConstantFolder::FoldAstStmts(AstStmts *stmt)
+#ifdef CONSTANT_FOLD_OPT
+	Stmt *ConstantFoldPass::ExecuteAstStmts(AstStmts *stmt)
 	{
 		for (auto &s : stmt->stmts)
-			s = FoldStmt(s);
+			s = ExecuteStmt(s);
 		return stmt;
 	}
-	Stmt *ConstantFolder::FoldExprStmt(ExprStmt *stmt)
+	Stmt *ConstantFoldPass::ExecuteExprStmt(ExprStmt *stmt)
 	{
-		stmt->expr = FoldExpr(stmt->expr);
+		stmt->expr = ExecuteExpr(stmt->expr);
 		return stmt;
 	}
-	Stmt *ConstantFolder::FoldIfStmt(IfStmt *stmt)
+	Stmt *ConstantFoldPass::ExecuteIfStmt(IfStmt *stmt)
 	{
-		stmt->condition = FoldExpr(stmt->condition);
-		stmt->thenBranch = FoldStmt(stmt->thenBranch);
+		stmt->condition = ExecuteExpr(stmt->condition);
+		stmt->thenBranch = ExecuteStmt(stmt->thenBranch);
 		if (stmt->elseBranch)
-			stmt->elseBranch = FoldStmt(stmt->elseBranch);
+			stmt->elseBranch = ExecuteStmt(stmt->elseBranch);
 
 		if (stmt->condition->kind == AstKind::LITERAL && ((LiteralExpr *)stmt->condition)->literalType == LiteralExpr::Type::BOOLEAN)
 		{
@@ -64,114 +32,88 @@ namespace lwscript
 
 		return stmt;
 	}
-	Stmt *ConstantFolder::FoldScopeStmt(ScopeStmt *stmt)
+	Stmt *ConstantFoldPass::ExecuteScopeStmt(ScopeStmt *stmt)
 	{
 		for (auto &s : stmt->stmts)
-			s = FoldStmt(s);
+			s = ExecuteStmt(s);
 		return stmt;
 	}
-	Stmt *ConstantFolder::FoldWhileStmt(WhileStmt *stmt)
+	Stmt *ConstantFoldPass::ExecuteWhileStmt(WhileStmt *stmt)
 	{
-		stmt->condition = FoldExpr(stmt->condition);
-		stmt->body = (ScopeStmt *)FoldScopeStmt(stmt->body);
+		stmt->condition = ExecuteExpr(stmt->condition);
+		stmt->body = (ScopeStmt *)ExecuteScopeStmt(stmt->body);
 		return stmt;
 	}
-	Stmt *ConstantFolder::FoldEnumStmt(EnumStmt *stmt)
+	Stmt *ConstantFoldPass::ExecuteEnumStmt(EnumStmt *stmt)
 	{
 		for (auto &[k, v] : stmt->enumItems)
-			v = FoldExpr(v);
+			v = ExecuteExpr(v);
 		return stmt;
 	}
-	Stmt *ConstantFolder::FoldReturnStmt(ReturnStmt *stmt)
+	Stmt *ConstantFoldPass::ExecuteReturnStmt(ReturnStmt *stmt)
 	{
 		return stmt;
 	}
-	Stmt *ConstantFolder::FoldVarStmt(VarStmt *stmt)
+	Stmt *ConstantFoldPass::ExecuteVarStmt(VarStmt *stmt)
 	{
 		for (auto &[k, v] : stmt->variables)
-			v = FoldExpr(v);
+			v = ExecuteExpr(v);
 		return stmt;
 	}
 
-	Stmt *ConstantFolder::FoldFunctionStmt(FunctionStmt *stmt)
+	Stmt *ConstantFoldPass::ExecuteFunctionStmt(FunctionStmt *stmt)
 	{
 		for (auto &e : stmt->parameters)
-			e = (VarDescExpr *)FoldVarDescExpr(e);
+			e = (VarDescExpr *)ExecuteVarDescExpr(e);
 
-		stmt->body = (ScopeStmt *)FoldScopeStmt(stmt->body);
+		stmt->body = (ScopeStmt *)ExecuteScopeStmt(stmt->body);
 
 		return stmt;
 	}
 
-	Stmt *ConstantFolder::FoldClassStmt(ClassStmt *stmt)
+	Stmt *ConstantFoldPass::ExecuteClassStmt(ClassStmt *stmt)
 	{
 		for (auto &varStmt : stmt->varItems)
-			varStmt = (VarStmt *)FoldVarStmt(varStmt);
+			varStmt = (VarStmt *)ExecuteVarStmt(varStmt);
 
 		for (auto &fnStmt : stmt->fnItems)
-			fnStmt = (FunctionStmt *)FoldFunctionStmt(fnStmt);
+			fnStmt = (FunctionStmt *)ExecuteFunctionStmt(fnStmt);
 
 		return stmt;
 	}
 
-	Stmt *ConstantFolder::FoldModuleStmt(ModuleStmt *stmt)
+	Stmt *ConstantFoldPass::ExecuteBreakStmt(BreakStmt *stmt)
 	{
 		return stmt;
 	}
 
-	Expr *ConstantFolder::FoldExpr(Expr *expr)
+	Stmt *ConstantFoldPass::ExecuteContinueStmt(ContinueStmt *stmt)
 	{
-		switch (expr->kind)
-		{
-		case AstKind::LITERAL:
-			return FoldLiteralExpr((LiteralExpr *)expr);
-		case AstKind::IDENTIFIER:
-			return FoldIdentifierExpr((IdentifierExpr *)expr);
-		case AstKind::GROUP:
-			return FoldGroupExpr((GroupExpr *)expr);
-		case AstKind::ARRAY:
-			return FoldArrayExpr((ArrayExpr *)expr);
-		case AstKind::INDEX:
-			return FoldIndexExpr((IndexExpr *)expr);
-		case AstKind::PREFIX:
-			return FoldPrefixExpr((PrefixExpr *)expr);
-		case AstKind::INFIX:
-			return FoldInfixExpr((InfixExpr *)expr);
-		case AstKind::POSTFIX:
-			return FoldPostfixExpr((PostfixExpr *)expr);
-		case AstKind::CONDITION:
-			return FoldConditionExpr((ConditionExpr *)expr);
-		case AstKind::REF:
-			return FoldRefExpr((RefExpr *)expr);
-		case AstKind::CALL:
-			return FoldCallExpr((CallExpr *)expr);
-		case AstKind::DOT:
-			return FoldDotExpr((DotExpr *)expr);
-		case AstKind::LAMBDA:
-			return FoldLambdaExpr((LambdaExpr *)expr);
-		case AstKind::FACTORIAL:
-			return FoldFactorialExpr((FactorialExpr *)expr);
-		default:
-			return expr;
-		}
+		return stmt;
 	}
-	Expr *ConstantFolder::FoldInfixExpr(InfixExpr *expr)
+
+	Stmt *ConstantFoldPass::ExecuteModuleStmt(ModuleStmt *stmt)
 	{
-		expr->left = FoldExpr(expr->left);
-		expr->right = FoldExpr(expr->right);
+		return stmt;
+	}
+
+	Expr *ConstantFoldPass::ExecuteInfixExpr(InfixExpr *expr)
+	{
+		expr->left = ExecuteExpr(expr->left);
+		expr->right = ExecuteExpr(expr->right);
 
 		return ConstantFold(expr);
 	}
-	Expr *ConstantFolder::FoldPostfixExpr(PostfixExpr *expr)
+	Expr *ConstantFoldPass::ExecutePostfixExpr(PostfixExpr *expr)
 	{
-		expr->left = FoldExpr(expr->left);
+		expr->left = ExecuteExpr(expr->left);
 		return ConstantFold(expr);
 	}
-	Expr *ConstantFolder::FoldConditionExpr(ConditionExpr *expr)
+	Expr *ConstantFoldPass::ExecuteConditionExpr(ConditionExpr *expr)
 	{
-		expr->condition = FoldExpr(expr->condition);
-		expr->trueBranch = FoldExpr(expr->trueBranch);
-		expr->falseBranch = FoldExpr(expr->falseBranch);
+		expr->condition = ExecuteExpr(expr->condition);
+		expr->trueBranch = ExecuteExpr(expr->trueBranch);
+		expr->falseBranch = ExecuteExpr(expr->falseBranch);
 
 		if (expr->condition->kind == AstKind::LITERAL && ((LiteralExpr *)expr->condition)->literalType == LiteralExpr::Type::BOOLEAN)
 		{
@@ -183,80 +125,89 @@ namespace lwscript
 
 		return expr;
 	}
-	Expr *ConstantFolder::FoldLiteralExpr(LiteralExpr *expr)
+	Expr *ConstantFoldPass::ExecuteLiteralExpr(LiteralExpr *expr)
 	{
 		return expr;
 	}
 
-	Expr *ConstantFolder::FoldPrefixExpr(PrefixExpr *expr)
+	Expr *ConstantFoldPass::ExecutePrefixExpr(PrefixExpr *expr)
 	{
-		expr->right = FoldExpr(expr->right);
+		expr->right = ExecuteExpr(expr->right);
 		return ConstantFold(expr);
 	}
 
-	Expr *ConstantFolder::FoldGroupExpr(GroupExpr *expr)
+	Expr *ConstantFoldPass::ExecuteGroupExpr(GroupExpr *expr)
 	{
-		return FoldExpr(expr->expr);
+		return ExecuteExpr(expr->expr);
 	}
-	Expr *ConstantFolder::FoldArrayExpr(ArrayExpr *expr)
+	Expr *ConstantFoldPass::ExecuteArrayExpr(ArrayExpr *expr)
 	{
 		for (auto &e : expr->elements)
-			e = FoldExpr(e);
+			e = ExecuteExpr(e);
 		return expr;
 	}
-	Expr *ConstantFolder::FoldDictExpr(DictExpr *expr)
+	Expr *ConstantFoldPass::ExecuteAppregateExpr(AppregateExpr *expr)
+	{
+		return expr;
+	}
+	Expr *ConstantFoldPass::ExecuteDictExpr(DictExpr *expr)
 	{
 		for (auto &[k, v] : expr->elements)
 		{
-			k = FoldExpr(k);
-			v = FoldExpr(v);
+			k = ExecuteExpr(k);
+			v = ExecuteExpr(v);
 		}
 		return expr;
 	}
-	Expr *ConstantFolder::FoldIndexExpr(IndexExpr *expr)
+	Expr *ConstantFoldPass::ExecuteIndexExpr(IndexExpr *expr)
 	{
-		expr->ds = FoldExpr(expr->ds);
-		expr->index = FoldExpr(expr->index);
+		expr->ds = ExecuteExpr(expr->ds);
+		expr->index = ExecuteExpr(expr->index);
 		return expr;
 	}
-	Expr *ConstantFolder::FoldIdentifierExpr(IdentifierExpr *expr)
+	Expr *ConstantFoldPass::ExecuteIdentifierExpr(IdentifierExpr *expr)
 	{
 		return expr;
 	}
-	Expr *ConstantFolder::FoldLambdaExpr(LambdaExpr *expr)
+	Expr *ConstantFoldPass::ExecuteLambdaExpr(LambdaExpr *expr)
 	{
 		for (auto &e : expr->parameters)
-			e = (VarDescExpr *)FoldVarDescExpr(e);
-		expr->body = (ScopeStmt *)FoldScopeStmt(expr->body);
+			e = (VarDescExpr *)ExecuteVarDescExpr(e);
+		expr->body = (ScopeStmt *)ExecuteScopeStmt(expr->body);
 		return expr;
 	}
 
-	Expr *ConstantFolder::FoldDotExpr(DotExpr *expr)
+	Expr *ConstantFoldPass::ExecuteCompoundExpr(CompoundExpr *expr)
 	{
 		return expr;
 	}
 
-	Expr *ConstantFolder::FoldCallExpr(CallExpr *expr)
+	Expr *ConstantFoldPass::ExecuteDotExpr(DotExpr *expr)
 	{
-		expr->callee = FoldExpr(expr->callee);
+		return expr;
+	}
+
+	Expr *ConstantFoldPass::ExecuteCallExpr(CallExpr *expr)
+	{
+		expr->callee = ExecuteExpr(expr->callee);
 		for (auto &arg : expr->arguments)
-			arg = FoldExpr(arg);
+			arg = ExecuteExpr(arg);
 		return expr;
 	}
-	Expr *ConstantFolder::FoldNewExpr(NewExpr *expr)
+	Expr *ConstantFoldPass::ExecuteNewExpr(NewExpr *expr)
 	{
 		return expr;
 	}
-	Expr *ConstantFolder::FoldThisExpr(ThisExpr *expr)
+	Expr *ConstantFoldPass::ExecuteThisExpr(ThisExpr *expr)
 	{
 		return expr;
 	}
-	Expr *ConstantFolder::FoldBaseExpr(BaseExpr *expr)
+	Expr *ConstantFoldPass::ExecuteBaseExpr(BaseExpr *expr)
 	{
 		return expr;
 	}
 
-	Expr *ConstantFolder::FoldFactorialExpr(FactorialExpr *expr)
+	Expr *ConstantFoldPass::ExecuteFactorialExpr(FactorialExpr *expr)
 	{
 		if (expr->expr->kind == AstKind::LITERAL && ((LiteralExpr *)expr->expr)->literalType == LiteralExpr::Type::INTEGER)
 		{
@@ -266,23 +217,33 @@ namespace lwscript
 		}
 		else
 		{
-			expr->expr = FoldExpr(expr->expr);
+			expr->expr = ExecuteExpr(expr->expr);
 			return expr;
 		}
 	}
 
-	Expr *ConstantFolder::FoldVarDescExpr(VarDescExpr *expr)
+	Expr *ConstantFoldPass::ExecuteVarDescExpr(VarDescExpr *expr)
 	{
 		return expr;
 	}
 
-	Expr *ConstantFolder::FoldRefExpr(RefExpr *expr)
+	Expr *ConstantFoldPass::ExecuteRefExpr(RefExpr *expr)
 	{
-		expr->refExpr = (IdentifierExpr *)FoldExpr(expr->refExpr);
+		expr->refExpr = (IdentifierExpr *)ExecuteExpr(expr->refExpr);
 		return expr;
 	}
 
-	Expr *ConstantFolder::ConstantFold(Expr *expr)
+	Expr *ConstantFoldPass::ExecuteStructExpr(StructExpr *expr)
+	{
+		return expr;
+	}
+
+	Expr *ConstantFoldPass::ExecuteVarArgExpr(VarArgExpr *expr)
+	{
+		return expr;
+	}
+
+	Expr *ConstantFoldPass::ConstantFold(Expr *expr)
 	{
 		if (expr->kind == AstKind::INFIX)
 		{
@@ -449,4 +410,6 @@ namespace lwscript
 
 		return expr;
 	}
+
+#endif
 }

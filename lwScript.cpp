@@ -8,13 +8,18 @@
 
 lwscript::Lexer *gLexer{nullptr};
 lwscript::Parser *gParser{nullptr};
+
+lwscript::AstPassManager *gAstPassManager;
+
 lwscript::Compiler *gCompiler{nullptr};
 lwscript::VM *gVm{nullptr};
 
-std::string_view gSourceFilePath;
-
-bool gIsSerializeBinaryChunk{false};
-std::string_view gSerializeBinaryFilePath;
+struct Config
+{
+	std::string_view sourceFilePath;
+	bool isSerializeBinaryChunk{false};
+	std::string_view serializeBinaryFilePath;
+} gConfig;
 
 int32_t PrintVersion()
 {
@@ -30,6 +35,9 @@ void Run(STD_STRING_VIEW content)
 		lwscript::Logger::Println(TEXT("{}"), *token);
 #endif
 	auto stmt = gParser->Parse(tokens);
+
+	gAstPassManager->Execute(stmt);
+
 #ifndef NDEBUG
 	lwscript::Logger::Println(TEXT("{}"), stmt->ToString());
 #endif
@@ -40,10 +48,10 @@ void Run(STD_STRING_VIEW content)
 	lwscript::Logger::Println(TEXT("{}"), str);
 #endif
 
-	if (gIsSerializeBinaryChunk)
+	if (gConfig.isSerializeBinaryChunk)
 	{
 		auto data = mainFunc->chunk.Serialize();
-		lwscript::WriteBinaryFile(gSerializeBinaryFilePath, data);
+		lwscript::WriteBinaryFile(gConfig.serializeBinaryFilePath, data);
 	}
 	else
 	{
@@ -83,12 +91,10 @@ int32_t PrintUsage()
 	lwscript::Logger::Info(TEXT("-v or --version:show current lwscript version"));
 	lwscript::Logger::Info(TEXT("-s or --serialize: serialize source file as bytecode binary file"));
 	lwscript::Logger::Info(TEXT("-f or --file:run source file with a valid file path,like : lwscript -f examples/array.cd."));
-	lwscript::Logger::Info(TEXT("-nfc or --no-function-cache:cache function execute result."));
-	lwscript::Logger::Info(TEXT("-ncf or --no-constant-fold:use constant fold optimize on parsing stage."));
 	return EXIT_FAILURE;
 }
 
-int main(int argc, const char *argv[])
+int32_t main(int32_t argc, const char *argv[])
 {
 #if defined(_WIN32) || defined(_WIN64)
 	system("chcp 65001");
@@ -98,7 +104,7 @@ int main(int argc, const char *argv[])
 		if (strcmp(argv[i], "-f") == 0 || strcmp(argv[i], "--file") == 0)
 		{
 			if (i + 1 < argc)
-				gSourceFilePath = argv[++i];
+				gConfig.sourceFilePath = argv[++i];
 			else
 				return PrintUsage();
 		}
@@ -107,18 +113,12 @@ int main(int argc, const char *argv[])
 		{
 			if (i + 1 < argc)
 			{
-				gIsSerializeBinaryChunk = true;
-				gSerializeBinaryFilePath = argv[++i];
+				gConfig.isSerializeBinaryChunk = true;
+				gConfig.serializeBinaryFilePath = argv[++i];
 			}
 			else
 				return PrintUsage();
 		}
-
-		if (strcmp(argv[i], "-nfc") == 0 || strcmp(argv[i], "--no-function-cache") == 0)
-			lwscript::Config::GetInstance()->SetIsUseFunctionCache(false);
-
-		if (strcmp(argv[i], "-ncf") == 0 || strcmp(argv[i], "--no-constant-fold") == 0)
-			lwscript::Config::GetInstance()->SetIsUseConstantFold(false);
 
 		if (strcmp(argv[i], "-h") == 0 || strcmp(argv[i], "--help") == 0)
 			return PrintUsage();
@@ -129,16 +129,24 @@ int main(int argc, const char *argv[])
 
 	gLexer = new lwscript::Lexer();
 	gParser = new lwscript::Parser();
+	gAstPassManager = new lwscript::AstPassManager();
 	gCompiler = new lwscript::Compiler();
 	gVm = new lwscript::VM();
 
-	if (!gSourceFilePath.empty())
-		RunFile(gSourceFilePath);
+	gAstPassManager
+#ifdef CONSTANT_FOLD_OPT
+		->Add<lwscript::ConstantFoldPass>()
+#endif
+		->Add<lwscript::SyntaxCheckPass>();
+
+	if (!gConfig.sourceFilePath.empty())
+		RunFile(gConfig.sourceFilePath);
 	else
 		Repl();
 
 	SAFE_DELETE(gLexer);
 	SAFE_DELETE(gParser);
+	SAFE_DELETE(gAstPassManager);
 	SAFE_DELETE(gCompiler);
 	SAFE_DELETE(gVm);
 

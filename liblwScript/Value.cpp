@@ -3,25 +3,25 @@
 #include "VM.h"
 namespace lwscript
 {
-    Value::Value()
+    constexpr Value::Value() noexcept
         : kind(ValueKind::NIL), object(nullptr)
     {
     }
-    Value::Value(double number)
+    constexpr Value::Value(double number) noexcept
         : realnum(number), kind(ValueKind::REAL)
     {
     }
 
-    Value::Value(int64_t integer)
+    constexpr Value::Value(int64_t integer) noexcept
         : integer(integer), kind(ValueKind::INT)
     {
     }
-    Value::Value(bool boolean)
+    constexpr Value::Value(bool boolean) noexcept
         : boolean(boolean), kind(ValueKind::BOOL)
     {
     }
 
-    Value::Value(Object *object)
+    constexpr Value::Value(Object *object) noexcept
         : object(object), kind(ValueKind::OBJECT)
     {
     }
@@ -55,7 +55,7 @@ namespace lwscript
         if (kind == ValueKind::OBJECT)
             object->UnMark();
     }
-    
+
     std::vector<uint8_t> Value::Serialize() const
     {
         std::vector<uint8_t> result;
@@ -77,7 +77,7 @@ namespace lwscript
         kind = (ValueKind)data[0];
         privilege = (Privilege)data[1];
 
-        if (IS_INT_VALUE(*this) || IS_REAL_VALUE(*this)|| IS_BOOL_VALUE(*this))
+        if (IS_INT_VALUE(*this) || IS_REAL_VALUE(*this) || IS_BOOL_VALUE(*this))
             integer = ByteConverter::GetU64Integer(data, 2);
     }
 

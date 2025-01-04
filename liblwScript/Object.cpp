@@ -266,7 +266,8 @@ namespace lwscript
 		Object::Blacken();
 		for (auto &c : chunk.constants)
 			c.Mark();
-		if (Config::GetInstance()->IsUseFunctionCache())
+
+#ifdef FUNCTION_CACHE_OPT
 		{
 			for (auto &[key, value] : caches)
 			{
@@ -274,6 +275,7 @@ namespace lwscript
 					valueElement.Mark();
 			}
 		}
+#endif
 	}
 
 	bool FunctionObject::IsEqualTo(Object *other)
@@ -298,11 +300,12 @@ namespace lwscript
 		return std::vector<uint8_t>();
 	}
 
+#ifdef FUNCTION_CACHE_OPT
 	void FunctionObject::SetCache(size_t hash, const std::vector<Value> &result)
 	{
 		caches[hash] = result;
 	}
-	bool FunctionObject::GetCache(size_t hash,std::vector<Value> &result) const
+	bool FunctionObject::GetCache(size_t hash, std::vector<Value> &result) const
 	{
 		auto iter2 = caches.find(hash);
 		if (iter2 != caches.end())
@@ -313,6 +316,7 @@ namespace lwscript
 
 		return false;
 	}
+#endif
 
 	UpValueObject::UpValueObject()
 		: Object(ObjectKind::UPVALUE), location(nullptr), nextUpValue(nullptr)

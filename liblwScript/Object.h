@@ -179,19 +179,19 @@ namespace lwscript
         bool IsEqualTo(Object *other) override;
         std::vector<uint8_t> Serialize() const override;
 
-        // Function Cache Functions
+#ifdef FUNCTION_CACHE_OPT
         void SetCache(size_t hash, const std::vector<Value> &result);
         bool GetCache(size_t hash, std::vector<Value> &result) const;
         void PrintCache();
-        // Function Cache Functions
+
+        std::unordered_map<size_t, std::vector<Value>> caches;
+#endif
 
         uint8_t arity{0};
         VarArg varArg{VarArg::NONE};
         int8_t upValueCount{0};
         Chunk chunk{};
         STD_STRING name{};
-
-        std::unordered_map<size_t, std::vector<Value>> caches;
     };
 
     struct LWSCRIPT_API UpValueObject : public Object

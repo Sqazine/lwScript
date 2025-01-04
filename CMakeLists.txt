@@ -25,7 +25,11 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY_RELEASE ${CMAKE_BINARY_DIR}/bin/release)
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY_DEBUG ${CMAKE_BINARY_DIR}/bin/debug)
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY_RELEASE ${CMAKE_BINARY_DIR}/bin/release)
 
-option(USE_UTF8_ENCODE "use utf8 encode" ON)
+option(UTF8_ENCODE "use utf8 encode" ON)
+option(GC_DEBUG "output gc debug information" OFF)
+option(GC_STRESS "force call gc after creating object in runtime" OFF)
+option(FUNCTION_CACHE_OPT "use runtime optimize feature:function cache" ON)
+option(CONSTANT_FOLD_OPT "use ast optimize feature:constant fold" ON)
 
 set(EXE_NAME lwScript)
 
@@ -50,9 +54,29 @@ target_include_directories(${EXE_NAME} PUBLIC ${CMAKE_SOURCE_DIR}/liblwscript)
 target_include_directories(${EXE_NAME} PRIVATE ${GENERATED_DIR})
 target_link_libraries(${EXE_NAME} PRIVATE ${LIB_NAME})
 
-if(USE_UTF8_ENCODE)
-    target_compile_definitions(${LIB_NAME} PUBLIC USE_UTF8_ENCODE)
-    target_compile_definitions(${EXE_NAME} PUBLIC USE_UTF8_ENCODE)
+if(UTF8_ENCODE)
+    target_compile_definitions(${LIB_NAME} PUBLIC UTF8_ENCODE)
+    target_compile_definitions(${EXE_NAME} PUBLIC UTF8_ENCODE)
+endif()
+
+if(GC_DEBUG)
+    target_compile_definitions(${LIB_NAME} PUBLIC GC_DEBUG)
+    target_compile_definitions(${EXE_NAME} PUBLIC GC_DEBUG)
+endif()
+
+if(GC_STRESS)
+    target_compile_definitions(${LIB_NAME} PUBLIC GC_STRESS)
+    target_compile_definitions(${EXE_NAME} PUBLIC GC_STRESS)
+endif()
+
+if(FUNCTION_CACHE_OPT)
+    target_compile_definitions(${LIB_NAME} PUBLIC FUNCTION_CACHE_OPT)
+    target_compile_definitions(${EXE_NAME} PUBLIC FUNCTION_CACHE_OPT)
+endif()
+
+if(CONSTANT_FOLD_OPT)
+    target_compile_definitions(${LIB_NAME} PUBLIC CONSTANT_FOLD_OPT)
+    target_compile_definitions(${EXE_NAME} PUBLIC CONSTANT_FOLD_OPT)
 endif()
 
 if(MSVC)
