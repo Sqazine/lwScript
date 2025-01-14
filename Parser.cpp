@@ -202,7 +202,7 @@ namespace lwscript
 	Stmt *Parser::ParseVarDecl()
 	{
 		auto curToken = GetCurToken();
-		auto kind=curToken->kind;
+		auto kind = curToken->kind;
 
 		auto varStmt = new VarStmt(curToken);
 
@@ -260,6 +260,21 @@ namespace lwscript
 
 			Consume(TokenKind::RPAREN, TEXT("Expect ')' after function stmt's '('"));
 
+			std::vector<Type> functionReturnTypes;
+			{
+				// TODO: parse function return type
+				if (IsMatchCurToken(TokenKind::COLON))
+				{
+					GetCurTokenAndStepOnce();
+					do
+					{
+						auto type = ParseType();
+						functionReturnTypes.emplace_back(type);
+					} while (IsMatchCurTokenAndStepOnce(TokenKind::COMMA));
+				}
+			}
+
+			funcStmt->returnTypes = functionReturnTypes;
 			funcStmt->body = (ScopeStmt *)ParseScopeStmt();
 
 			if (funcStmt->body->stmts.back()->kind != AstKind::RETURN && funcStmt->functionKind != FunctionKind::CLASS_CONSTRUCTOR)
@@ -1130,11 +1145,11 @@ namespace lwscript
 			expr = (IdentifierExpr *)ParseIdentifierExpr(); // variable name
 
 		// variable type
-		STD_STRING type = TEXT("any");
+		auto type = Type();
 		if (IsMatchCurToken(TokenKind::COLON))
 		{
 			GetCurTokenAndStepOnce();
-			type = GetCurTokenAndStepOnce()->literal;
+			type = ParseType();
 		}
 
 		auto varDescExpr = new VarDescExpr(expr->tagToken, type, expr);
@@ -1227,6 +1242,13 @@ namespace lwscript
 		}
 
 		return std::make_pair(arrayExpr, initializeList);
+	}
+
+	Type Parser::ParseType()
+	{
+		//TODO:only support basic single word type
+		auto token = GetCurTokenAndStepOnce();
+		return Type(token->literal,token->sourceLocation);
 	}
 
 	Token *Parser::GetCurToken()

@@ -22,7 +22,7 @@ namespace lwscript
 		if (stmt->elseBranch)
 			stmt->elseBranch = ExecuteStmt(stmt->elseBranch);
 
-		if (stmt->condition->kind == AstKind::LITERAL && ((LiteralExpr *)stmt->condition)->literalType == LiteralExpr::Type::BOOLEAN)
+		if (stmt->condition->kind == AstKind::LITERAL && ((LiteralExpr *)stmt->condition)->type.IsBoolean())
 		{
 			if (((LiteralExpr *)stmt->condition)->boolean == true)
 				return stmt->thenBranch;
@@ -115,7 +115,7 @@ namespace lwscript
 		expr->trueBranch = ExecuteExpr(expr->trueBranch);
 		expr->falseBranch = ExecuteExpr(expr->falseBranch);
 
-		if (expr->condition->kind == AstKind::LITERAL && ((LiteralExpr *)expr->condition)->literalType == LiteralExpr::Type::BOOLEAN)
+		if (expr->condition->kind == AstKind::LITERAL && ((LiteralExpr *)expr->condition)->type.IsBoolean())
 		{
 			if (((LiteralExpr *)expr->condition)->boolean == true)
 				return expr->trueBranch;
@@ -209,9 +209,10 @@ namespace lwscript
 
 	Expr *ConstantFoldPass::ExecuteFactorialExpr(FactorialExpr *expr)
 	{
-		if (expr->expr->kind == AstKind::LITERAL && ((LiteralExpr *)expr->expr)->literalType == LiteralExpr::Type::INTEGER)
+		if (expr->expr->kind == AstKind::LITERAL && ((LiteralExpr *)expr->expr)->type.IsInteger())
 		{
-			auto intExpr = new LiteralExpr(expr->tagToken, Factorial(((LiteralExpr *)expr->expr)->iValue));
+			auto literalExpr=(LiteralExpr *)expr->expr;
+			auto intExpr = new LiteralExpr(expr->tagToken, Factorial(literalExpr->i64Value));
 			SAFE_DELETE(expr);
 			return intExpr;
 		}
@@ -257,11 +258,11 @@ namespace lwscript
 				auto leftLiteral = ((LiteralExpr *)infix->left);
 				auto rightLiteral = ((LiteralExpr *)infix->right);
 
-				if (leftLiteral->literalType == LiteralExpr::Type::FLOATING && rightLiteral->literalType == LiteralExpr::Type::FLOATING)
+				if (leftLiteral->type.IsFloating() && rightLiteral->type.IsFloating())
 				{
 #define BIN_EXPR(x)            \
 	if (infix->op == TEXT(#x)) \
-	newExpr = new LiteralExpr(tagToken, leftLiteral->dValue x rightLiteral->dValue)
+	newExpr = new LiteralExpr(tagToken, leftLiteral->f64Value x rightLiteral->f64Value)
 
 					BIN_EXPR(+);
 					else BIN_EXPR(-);
@@ -279,11 +280,11 @@ namespace lwscript
 						SAFE_DELETE(infix);
 					return newExpr;
 				}
-				else if (leftLiteral->literalType == LiteralExpr::Type::INTEGER && rightLiteral->literalType == LiteralExpr::Type::INTEGER)
+				else if (leftLiteral->type.IsInteger() && rightLiteral->type.IsInteger())
 				{
 #define BIN_EXPR(x)            \
 	if (infix->op == TEXT(#x)) \
-	newExpr = new LiteralExpr(tagToken, leftLiteral->iValue x rightLiteral->iValue)
+	newExpr = new LiteralExpr(tagToken, leftLiteral->i64Value x rightLiteral->i64Value)
 
 					BIN_EXPR(+);
 					else BIN_EXPR(-);
@@ -307,11 +308,11 @@ namespace lwscript
 						SAFE_DELETE(infix);
 					return newExpr;
 				}
-				else if (leftLiteral->literalType == LiteralExpr::Type::INTEGER && rightLiteral->literalType == LiteralExpr::Type::FLOATING)
+				else if (leftLiteral->type.IsInteger() && rightLiteral->type.IsFloating())
 				{
 #define BIN_EXPR(x)            \
 	if (infix->op == TEXT(#x)) \
-	newExpr = new LiteralExpr(tagToken, leftLiteral->iValue x rightLiteral->dValue)
+	newExpr = new LiteralExpr(tagToken, leftLiteral->i64Value x rightLiteral->f64Value)
 
 					BIN_EXPR(+);
 					else BIN_EXPR(-);
@@ -329,12 +330,12 @@ namespace lwscript
 						SAFE_DELETE(infix);
 					return newExpr;
 				}
-				else if (leftLiteral->literalType == LiteralExpr::Type::FLOATING && rightLiteral->literalType == LiteralExpr::Type::INTEGER)
+				else if (leftLiteral->type.IsFloating() && rightLiteral->type.IsInteger())
 				{
 
 #define BIN_EXPR(x)            \
 	if (infix->op == TEXT(#x)) \
-	newExpr = new LiteralExpr(tagToken, leftLiteral->dValue x rightLiteral->iValue)
+	newExpr = new LiteralExpr(tagToken, leftLiteral->f64Value x rightLiteral->i64Value)
 
 					BIN_EXPR(+);
 					else BIN_EXPR(-);
@@ -352,7 +353,7 @@ namespace lwscript
 						SAFE_DELETE(infix);
 					return newExpr;
 				}
-				else if (leftLiteral->literalType == LiteralExpr::Type::STRING && rightLiteral->literalType == LiteralExpr::Type::STRING)
+				else if (leftLiteral->type.IsString() && rightLiteral->type.IsString())
 				{
 					auto strExpr = new LiteralExpr(infix->tagToken, leftLiteral->str + rightLiteral->str);
 					SAFE_DELETE(infix);
@@ -367,27 +368,27 @@ namespace lwscript
 			if (prefix->right->kind == AstKind::LITERAL)
 			{
 				auto rightLiteralExpr = ((LiteralExpr *)prefix->right);
-				if (rightLiteralExpr->literalType == LiteralExpr::Type::FLOATING && prefix->op == TEXT("-"))
+				if (rightLiteralExpr->type.IsFloating() && prefix->op == TEXT("-"))
 				{
-					auto numExpr = new LiteralExpr(prefix->tagToken, -rightLiteralExpr->dValue);
+					auto numExpr = new LiteralExpr(prefix->tagToken, -rightLiteralExpr->f64Value);
 					SAFE_DELETE(prefix);
 					return numExpr;
 				}
-				else if (rightLiteralExpr->literalType == LiteralExpr::Type::INTEGER && prefix->op == TEXT("-"))
+				else if (rightLiteralExpr->type.IsInteger() && prefix->op == TEXT("-"))
 				{
-					auto numExpr = new LiteralExpr(prefix->tagToken, -rightLiteralExpr->iValue);
+					auto numExpr = new LiteralExpr(prefix->tagToken, -rightLiteralExpr->i64Value);
 					SAFE_DELETE(prefix);
 					return numExpr;
 				}
-				else if (rightLiteralExpr->literalType == LiteralExpr::Type::BOOLEAN && prefix->op == TEXT("!"))
+				else if (rightLiteralExpr->type.IsBoolean() && prefix->op == TEXT("!"))
 				{
 					auto boolExpr = new LiteralExpr(prefix->tagToken, !rightLiteralExpr->boolean);
 					SAFE_DELETE(prefix);
 					return boolExpr;
 				}
-				else if (rightLiteralExpr->literalType == LiteralExpr::Type::INTEGER && prefix->op == TEXT("~"))
+				else if (rightLiteralExpr->type.IsInteger() && prefix->op == TEXT("~"))
 				{
-					auto numExpr = new LiteralExpr(prefix->tagToken, ~rightLiteralExpr->iValue);
+					auto numExpr = new LiteralExpr(prefix->tagToken, ~rightLiteralExpr->i64Value);
 					SAFE_DELETE(prefix);
 					return numExpr;
 				}
@@ -401,7 +402,7 @@ namespace lwscript
 				auto leftLiteralExpr = (LiteralExpr *)postfix->left;
 				if (postfix->op == TEXT("!"))
 				{
-					auto numExpr = new LiteralExpr(postfix->tagToken, Factorial(leftLiteralExpr->iValue));
+					auto numExpr = new LiteralExpr(postfix->tagToken, Factorial(leftLiteralExpr->i64Value));
 					SAFE_DELETE(postfix);
 					return numExpr;
 				}

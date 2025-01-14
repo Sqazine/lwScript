@@ -9,6 +9,7 @@
 #include "Parser.h"
 #include "AstPass.h"
 #include "ConstantFoldPass.h"
+#include "TypeCheckPass.h"
 #include "SyntaxCheckPass.h"
 #include "Compiler.h"
 #include "VM.h"

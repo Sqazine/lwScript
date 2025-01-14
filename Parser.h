@@ -6,6 +6,7 @@
 #include "Token.h"
 #include "Ast.h"
 #include "Utils.h"
+#include "Type.h"
 namespace lwscript
 {
 	enum class Precedence
@@ -102,6 +103,8 @@ namespace lwscript
 		Expr *ParseVarDescExpr();
 		Expr *ParseVarArgExpr();
 		std::pair<Expr *, Expr *> ParseDestructuringAssignmentExpr();
+
+		Type ParseType();
 
 		Token *GetCurToken();
 		Token *GetCurTokenAndStepOnce();

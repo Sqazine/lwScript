@@ -2,13 +2,11 @@
 #include "Logger.h"
 namespace lwscript
 {
-	struct Keyword
+	constexpr struct
 	{
 		const CHAR_T *name;
 		TokenKind type;
-	};
-
-	constexpr Keyword keywords[] = {
+	} keywords[] = {
 		{TEXT("let"), TokenKind::LET},
 		{TEXT("if"), TokenKind::IF},
 		{TEXT("else"), TokenKind::ELSE},
@@ -40,9 +38,12 @@ namespace lwscript
 		{TEXT("i16"), TokenKind::I16},
 		{TEXT("i32"), TokenKind::I32},
 		{TEXT("i64"), TokenKind::I64},
+		{TEXT("f32"), TokenKind::F32},
+		{TEXT("f64"), TokenKind::F64},
 		{TEXT("bool"), TokenKind::BOOL},
 		{TEXT("char"), TokenKind::CHAR},
 		{TEXT("void"), TokenKind::VOID},
+		{TEXT("any"), TokenKind::ANY},
 		{TEXT("as"), TokenKind::AS},
 		{TEXT("new"), TokenKind::NEW},
 		{TEXT("struct"), TokenKind::STRUCT},

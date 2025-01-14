@@ -3,6 +3,7 @@
 #include <unordered_map>
 #include <vector>
 #include <memory>
+#include "Type.h"
 #include "Token.h"
 #include "Utils.h"
 namespace lwscript
@@ -75,16 +76,6 @@ namespace lwscript
 
 	struct LiteralExpr : public Expr
 	{
-		enum class Type
-		{
-			NIL,
-			INTEGER,
-			FLOATING,
-			BOOLEAN,
-			CHARACTER,
-			STRING
-		};
-
 		LiteralExpr(Token *tagToken);
 		LiteralExpr(Token *tagToken, int64_t value);
 		LiteralExpr(Token *tagToken, double value);
@@ -93,12 +84,12 @@ namespace lwscript
 		~LiteralExpr() override;
 		STD_STRING ToString() override;
 
-		Type literalType;
+		Type type;
 
 		union
 		{
-			int64_t iValue;
-			double dValue;
+			int64_t i64Value;
+			double f64Value;
 			bool boolean;
 			CHAR_T character;
 			STD_STRING str;
@@ -118,11 +109,11 @@ namespace lwscript
 	struct VarDescExpr : public Expr
 	{
 		VarDescExpr(Token *tagToken);
-		VarDescExpr(Token *tagToken, STD_STRING_VIEW typeDesc, Expr *name);
+		VarDescExpr(Token *tagToken, const Type& type, Expr *name);
 		~VarDescExpr() override;
 		STD_STRING ToString() override;
 
-		STD_STRING typeDesc;
+		Type type;
 		Expr *name;
 	};
 
@@ -431,6 +422,7 @@ namespace lwscript
 		IdentifierExpr *name;
 		std::vector<VarDescExpr *> parameters;
 		ScopeStmt *body;
+		std::vector<Type> returnTypes;
 	};
 
 	struct ClassStmt : public Stmt

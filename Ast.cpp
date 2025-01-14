@@ -5,23 +5,23 @@ namespace lwscript
 	//----------------------Expressions-----------------------------
 
 	LiteralExpr::LiteralExpr(Token *tagToken)
-		: Expr(tagToken, AstKind::LITERAL), literalType(Type::NIL)
+		: Expr(tagToken, AstKind::LITERAL)
 	{
 	}
 	LiteralExpr::LiteralExpr(Token *tagToken, int64_t value)
-		: Expr(tagToken, AstKind::LITERAL), literalType(Type::INTEGER), iValue(value)
+		: Expr(tagToken, AstKind::LITERAL), type(TEXT("i64"), tagToken->sourceLocation), i64Value(value)
 	{
 	}
 	LiteralExpr::LiteralExpr(Token *tagToken, double value)
-		: Expr(tagToken, AstKind::LITERAL), literalType(Type::FLOATING), dValue(value)
+		: Expr(tagToken, AstKind::LITERAL), type(TEXT("f64"), tagToken->sourceLocation), f64Value(value)
 	{
 	}
 	LiteralExpr::LiteralExpr(Token *tagToken, bool value)
-		: Expr(tagToken, AstKind::LITERAL), literalType(Type::BOOLEAN), boolean(value)
+		: Expr(tagToken, AstKind::LITERAL), type(TEXT("bool"), tagToken->sourceLocation), boolean(value)
 	{
 	}
 	LiteralExpr::LiteralExpr(Token *tagToken, STD_STRING_VIEW value)
-		: Expr(tagToken, AstKind::LITERAL), literalType(Type::STRING), str(value)
+		: Expr(tagToken, AstKind::LITERAL), type(TEXT("string"), tagToken->sourceLocation), str(value)
 	{
 	}
 	LiteralExpr::~LiteralExpr()
@@ -30,17 +30,25 @@ namespace lwscript
 
 	STD_STRING LiteralExpr::ToString()
 	{
-		switch (literalType)
+		switch (type.GetKind())
 		{
-		case Type::INTEGER:
-			return TO_STRING(iValue);
-		case Type::FLOATING:
-			return TO_STRING(dValue);
-		case Type::BOOLEAN:
+		case TypeKind::I8:
+		case TypeKind::I16:
+		case TypeKind::I32:
+		case TypeKind::I64:
+		case TypeKind::U8:
+		case TypeKind::U16:
+		case TypeKind::U32:
+		case TypeKind::U64:
+			return TO_STRING(i64Value);
+		case TypeKind::F32:
+		case TypeKind::F64:
+			return TO_STRING(f64Value);
+		case TypeKind::BOOL:
 			return boolean ? TEXT("true") : TEXT("false");
-		case Type::CHARACTER:
+		case TypeKind::CHAR:
 			return STD_STRING({character});
-		case Type::STRING:
+		case TypeKind::STRING:
 			return str;
 		default:
 			return TEXT("null");
@@ -65,11 +73,11 @@ namespace lwscript
 	}
 
 	VarDescExpr::VarDescExpr(Token *tagToken)
-		: Expr(tagToken, AstKind::VAR_DESC), name(nullptr)
+		: Expr(tagToken, AstKind::VAR_DESC), name(nullptr), type(Type(TEXT("any")))
 	{
 	}
-	VarDescExpr::VarDescExpr(Token *tagToken, STD_STRING_VIEW typeDesc, Expr *name)
-		: Expr(tagToken, AstKind::VAR_DESC), name(name), typeDesc(typeDesc)
+	VarDescExpr::VarDescExpr(Token *tagToken, const Type &type, Expr *name)
+		: Expr(tagToken, AstKind::VAR_DESC), name(name), type(type)
 	{
 	}
 	VarDescExpr::~VarDescExpr()
@@ -79,7 +87,7 @@ namespace lwscript
 
 	STD_STRING VarDescExpr::ToString()
 	{
-		return name->ToString() + TEXT(":") + typeDesc;
+		return name->ToString() + TEXT(":") + STD_STRING(type.GetName().data());
 	}
 
 	ArrayExpr::ArrayExpr(Token *tagToken)
@@ -631,7 +639,7 @@ namespace lwscript
 
 	STD_STRING WhileStmt::ToString()
 	{
-		STD_STRING result = TEXT("while(") + condition->ToString() + TEXT("){" )+ body->ToString();
+		STD_STRING result = TEXT("while(") + condition->ToString() + TEXT("){") + body->ToString();
 		if (increment)
 			result += increment->ToString();
 		return result += TEXT("}");

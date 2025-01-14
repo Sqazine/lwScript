@@ -55,6 +55,8 @@ file(GLOB SRC ${GENERATED_DIR}/Version.h
               SymbolTable.h SymbolTable.cpp
               SyntaxCheckPass.h SyntaxCheckPass.cpp
               Token.h
+              Type.h Type.cpp
+              TypeCheckPass.h TypeCheckPass.cpp
               Utils.h Utils.cpp
               Value.h Value.cpp
               VM.h VM.cpp

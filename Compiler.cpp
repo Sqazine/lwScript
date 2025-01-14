@@ -104,15 +104,15 @@ namespace lwscript
 			if (v->kind == AstKind::LITERAL)
 			{
 				LiteralExpr *literalExpr = (LiteralExpr *)v;
-				if (literalExpr->literalType == LiteralExpr::Type::INTEGER)
-					enumValue = literalExpr->iValue;
-				else if (literalExpr->literalType == LiteralExpr::Type::FLOATING)
-					enumValue = literalExpr->dValue;
-				else if (literalExpr->literalType == LiteralExpr::Type::BOOLEAN)
+				if (literalExpr->type.IsInteger())
+					enumValue = literalExpr->i64Value;
+				else if (literalExpr->type.IsFloating())
+					enumValue = literalExpr->f64Value;
+				else if (literalExpr->type.IsBoolean())
 					enumValue = literalExpr->boolean;
-				else if (literalExpr->literalType == LiteralExpr::Type::STRING)
+				else if (literalExpr->type.IsString())
 					enumValue = new StrObject(literalExpr->str);
-				else if (literalExpr->literalType == LiteralExpr::Type::CHARACTER)
+				else if (literalExpr->type.IsChar())
 				{
 					// TODO...
 				}
@@ -594,21 +594,29 @@ namespace lwscript
 
 	void Compiler::CompileLiteralExpr(LiteralExpr *expr)
 	{
-		switch (expr->literalType)
+		switch (expr->type.GetKind())
 		{
-		case LiteralExpr::Type::INTEGER:
-			EmitConstant(expr->iValue, expr->tagToken);
+		case TypeKind::I8:
+		case TypeKind::U8:
+		case TypeKind::I16:
+		case TypeKind::U16:
+		case TypeKind::I32:
+		case TypeKind::U32:
+		case TypeKind::I64:
+		case TypeKind::U64:
+			EmitConstant(expr->i64Value, expr->tagToken);
 			break;
-		case LiteralExpr::Type::FLOATING:
-			EmitConstant(expr->dValue, expr->tagToken);
+		case TypeKind::F32:
+		case TypeKind::F64:
+			EmitConstant(expr->f64Value, expr->tagToken);
 			break;
-		case LiteralExpr::Type::BOOLEAN:
+		case TypeKind::BOOL:
 			EmitConstant(expr->boolean, expr->tagToken);
 			break;
-		case LiteralExpr::Type::STRING:
+		case TypeKind::STRING:
 			EmitConstant(new StrObject(expr->str), expr->tagToken);
 			break;
-		case LiteralExpr::Type::CHARACTER:
+		case TypeKind::CHAR:
 			break; // TODO:...
 		default:
 			EmitOpCode(OP_NULL, expr->tagToken);
@@ -708,7 +716,7 @@ namespace lwscript
 
 	void Compiler::CompileDictExpr(DictExpr *expr)
 	{
-		for (auto i = 0;i<expr->elements.size();++i)
+		for (auto i = 0; i < expr->elements.size(); ++i)
 		{
 			CompileExpr(expr->elements[i].first);
 			CompileExpr(expr->elements[i].second);
