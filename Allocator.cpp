@@ -48,7 +48,7 @@ namespace lwscript
             object = next;
         }
 
-#ifdef GC_DEBUG
+#ifdef LWSCRIPT_GC_DEBUG
         Logger::Info(TEXT("collected {} bytes (from {} to {}) next gc bytes {}"), bytes - mBytesAllocated, bytes, mNextGCByteSize);
 #endif
     }
@@ -171,7 +171,7 @@ namespace lwscript
 
     void Allocator::GC()
     {
-#ifdef GC_DEBUG
+#ifdef LWSCRIPT_GC_DEBUG
         Logger::Info(TEXT("begin gc"));
         size_t bytes = mBytesAllocated;
 #endif
@@ -181,7 +181,7 @@ namespace lwscript
         Sweep();
         mNextGCByteSize = mBytesAllocated * GC_HEAP_GROW_FACTOR;
 
-#ifdef GC_DEBUG
+#ifdef LWSCRIPT_GC_DEBUG
         Logger::Info(TEXT("end gc"));
         Logger::Info(TEXT("    collected {} bytes (from {} to {}) next gc bytes {}"), bytes - mBytesAllocated, bytes, mNextGCByteSize);
 #endif

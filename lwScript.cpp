@@ -1,6 +1,6 @@
 #include <string>
 #include <string_view>
-#include "liblwscript/lwScript.h"
+#include "lwscript.h"
 
 #if defined(_WIN32) || defined(_WIN64)
 #pragma warning(disable : 4996)
@@ -23,7 +23,17 @@ struct Config
 
 int32_t PrintVersion()
 {
-	lwscript::Logger::Info(TEXT(LWSCRIPT_VERSION));
+	lwscript::Logger::Info(LWSCRIPT_VERSION);
+	return EXIT_FAILURE;
+}
+
+int32_t PrintUsage()
+{
+	lwscript::Logger::Info(TEXT("Usage: lwscript [option]:"));
+	lwscript::Logger::Info(TEXT("-h or --help:show usage info."));
+	lwscript::Logger::Info(TEXT("-v or --version:show current lwscript version"));
+	lwscript::Logger::Info(TEXT("-s or --serialize: serialize source file as bytecode binary file"));
+	lwscript::Logger::Info(TEXT("-f or --file:run source file with a valid file path,like : lwscript -f examples/array.cd."));
 	return EXIT_FAILURE;
 }
 
@@ -84,21 +94,8 @@ void RunFile(std::string_view path)
 	Run(content);
 }
 
-int32_t PrintUsage()
+int32_t ParseArgs(int32_t argc, const char *argv[])
 {
-	lwscript::Logger::Info(TEXT("Usage: lwscript [option]:"));
-	lwscript::Logger::Info(TEXT("-h or --help:show usage info."));
-	lwscript::Logger::Info(TEXT("-v or --version:show current lwscript version"));
-	lwscript::Logger::Info(TEXT("-s or --serialize: serialize source file as bytecode binary file"));
-	lwscript::Logger::Info(TEXT("-f or --file:run source file with a valid file path,like : lwscript -f examples/array.cd."));
-	return EXIT_FAILURE;
-}
-
-int32_t main(int32_t argc, const char *argv[])
-{
-#if defined(_WIN32) || defined(_WIN64)
-	system("chcp 65001");
-#endif
 	for (size_t i = 0; i < argc; ++i)
 	{
 		if (strcmp(argv[i], "-f") == 0 || strcmp(argv[i], "--file") == 0)
@@ -127,6 +124,17 @@ int32_t main(int32_t argc, const char *argv[])
 			return PrintVersion();
 	}
 
+	return EXIT_SUCCESS;
+}
+
+int32_t main(int32_t argc, const char *argv[])
+{
+#if defined(_WIN32) || defined(_WIN64)
+	system("chcp 65001");
+#endif
+	if (ParseArgs(argc, argv) == EXIT_FAILURE)
+		return EXIT_FAILURE;
+
 	gLexer = new lwscript::Lexer();
 	gParser = new lwscript::Parser();
 	gAstPassManager = new lwscript::AstPassManager();
@@ -134,7 +142,7 @@ int32_t main(int32_t argc, const char *argv[])
 	gVm = new lwscript::VM();
 
 	gAstPassManager
-#ifdef CONSTANT_FOLD_OPT
+#ifdef LWSCRIPT_CONSTANT_FOLD_OPT
 		->Add<lwscript::ConstantFoldPass>()
 #endif
 		->Add<lwscript::SyntaxCheckPass>();
@@ -150,5 +158,5 @@ int32_t main(int32_t argc, const char *argv[])
 	SAFE_DELETE(gCompiler);
 	SAFE_DELETE(gVm);
 
-	return 0;
+	return EXIT_SUCCESS;
 }

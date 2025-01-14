@@ -3,7 +3,7 @@
 #include <string>
 #include <string_view>
 #include <ostream>
-#include "Defines.h"
+#include "Utils.h"
 namespace lwscript
 {
 	enum class TokenKind

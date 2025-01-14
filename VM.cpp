@@ -150,7 +150,7 @@ namespace lwscript
 
 				if (retCount == 0)
 				{
-#ifdef FUNCTION_CACHE_OPT
+#ifdef LWSCRIPT_FUNCTION_CACHE_OPT
 					{
 						auto callFrameTop = PEEK_CALL_FRAME(0);
 						callFrameTop->closure->function->SetCache(callFrameTop->argumentsHash, {Value()});
@@ -161,7 +161,7 @@ namespace lwscript
 				}
 				else
 				{
-#ifdef FUNCTION_CACHE_OPT
+#ifdef LWSCRIPT_FUNCTION_CACHE_OPT
 					{
 						auto callFrameTop = PEEK_CALL_FRAME(0);
 						std::vector<Value> rets(retValues, retValues + retCount);
@@ -631,7 +631,7 @@ namespace lwscript
 
 					auto argsHash = HashValueList(STACK_TOP() - argCount, STACK_TOP());
 					std::vector<Value> rets;
-#ifdef FUNCTION_CACHE_OPT
+#ifdef LWSCRIPT_FUNCTION_CACHE_OPT
 					if (TO_CLOSURE_VALUE(callee)->function->GetCache(argsHash, rets))
 					{
 						MOVE_STACK_TOP(-(argCount + 1));
@@ -646,7 +646,7 @@ namespace lwscript
 						newframe.closure = TO_CLOSURE_VALUE(callee);
 						newframe.ip = newframe.closure->function->chunk.opCodes.data();
 						newframe.slots = STACK_TOP() - argCount - 1;
-#ifdef FUNCTION_CACHE_OPT
+#ifdef LWSCRIPT_FUNCTION_CACHE_OPT
 						newframe.argumentsHash = argsHash;
 #endif
 						PUSH_CALL_FRAME(newframe);

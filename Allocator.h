@@ -2,7 +2,8 @@
 #include <vector>
 #include "Object.h"
 #include "Value.h"
-#include "Defines.h"
+#include "Utils.h"
+#include "Logger.h"
 
 namespace lwscript
 {
@@ -12,7 +13,7 @@ namespace lwscript
         uint8_t *ip = nullptr;
         Value *slots = nullptr;
 
-#ifdef FUNCTION_CACHE_OPT
+#ifdef LWSCRIPT_FUNCTION_CACHE_OPT
         size_t argumentsHash;
 #endif
     };
@@ -87,7 +88,7 @@ namespace lwscript
         T *object = new T(std::forward<Args>(params)...);
         size_t objBytes = sizeof(*object);
         mBytesAllocated += objBytes;
-#ifdef GC_STRESS
+#ifdef LWSCRIPT_GC_STRESS
         GC();
 #endif
         if (mBytesAllocated > mNextGCByteSize)
@@ -96,7 +97,7 @@ namespace lwscript
         object->next = mObjectChain;
         object->marked = false;
         mObjectChain = object;
-#ifdef GC_DEBUG
+#ifdef LWSCRIPT_GC_DEBUG
         Logger::Info(TEXT("{} has been add to gc record chain {} for {}"), (void *)object, objBytes, object->kind);
 #endif
 
@@ -106,7 +107,7 @@ namespace lwscript
     template <class T>
     inline void Allocator::FreeObject(T *object)
     {
-#ifdef GC_DEBUG
+#ifdef LWSCRIPT_GC_DEBUG
         Logger::Info(TEXT("delete object(0x{})"), (void *)object);
 #endif
         mBytesAllocated -= sizeof(object);

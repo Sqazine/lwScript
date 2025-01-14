@@ -179,7 +179,7 @@ namespace lwscript
         bool IsEqualTo(Object *other) override;
         std::vector<uint8_t> Serialize() const override;
 
-#ifdef FUNCTION_CACHE_OPT
+#ifdef LWSCRIPT_FUNCTION_CACHE_OPT
         void SetCache(size_t hash, const std::vector<Value> &result);
         bool GetCache(size_t hash, std::vector<Value> &result) const;
         void PrintCache();

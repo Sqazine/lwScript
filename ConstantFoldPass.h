@@ -5,7 +5,7 @@
 
 namespace lwscript
 {
-#ifdef CONSTANT_FOLD_OPT
+#ifdef LWSCRIPT_CONSTANT_FOLD_OPT
     class LWSCRIPT_API ConstantFoldPass : public AstPass
     {
     public:

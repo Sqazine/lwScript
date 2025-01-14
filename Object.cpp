@@ -18,7 +18,7 @@ namespace lwscript
 	{
 		if (marked)
 			return;
-#ifdef GC_DEBUG
+#ifdef LWSCRIPT_GC_DEBUG
 		Logger::Info(TEXT("(0x{}) mark: {}"), (void *)this, ToString());
 #endif
 		marked = true;
@@ -28,7 +28,7 @@ namespace lwscript
 	{
 		if (!marked)
 			return;
-#ifdef GC_DEBUG
+#ifdef LWSCRIPT_GC_DEBUG
 		Logger::Info(TEXT("(0x{}) unMark: {}"), (void *)this, ToString());
 #endif
 		marked = false;
@@ -36,7 +36,7 @@ namespace lwscript
 
 	void Object::Blacken()
 	{
-#ifdef GC_DEBUG
+#ifdef LWSCRIPT_GC_DEBUG
 		Logger::Info(TEXT("(0x{}) blacken: {}"), (void *)this, ToString());
 #endif
 	}
@@ -267,7 +267,7 @@ namespace lwscript
 		for (auto &c : chunk.constants)
 			c.Mark();
 
-#ifdef FUNCTION_CACHE_OPT
+#ifdef LWSCRIPT_FUNCTION_CACHE_OPT
 		{
 			for (auto &[key, value] : caches)
 			{
@@ -300,7 +300,7 @@ namespace lwscript
 		return std::vector<uint8_t>();
 	}
 
-#ifdef FUNCTION_CACHE_OPT
+#ifdef LWSCRIPT_FUNCTION_CACHE_OPT
 	void FunctionObject::SetCache(size_t hash, const std::vector<Value> &result)
 	{
 		caches[hash] = result;

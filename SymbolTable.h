@@ -1,7 +1,7 @@
 #pragma once
 #include <string>
 #include <array>
-#include "Defines.h"
+#include "Utils.h"
 #include "Value.h"
 #include "Token.h"
 namespace lwscript
