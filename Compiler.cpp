@@ -45,7 +45,7 @@ namespace lwscript
 		mSymbolTable = new SymbolTable();
 
 		auto symbol = &mSymbolTable->mSymbols[mSymbolTable->mSymbolCount++];
-		symbol->kind = SymbolKind::LOCAL;
+		symbol->location = SymbolLocation::LOCAL;
 		symbol->index = mSymbolTable->mLocalSymbolCount++;
 		symbol->privilege = Privilege::IMMUTABLE;
 		symbol->scopeDepth = 0;
@@ -766,17 +766,17 @@ namespace lwscript
 	{
 		OpCode getOp, setOp;
 		auto symbol = mSymbolTable->Resolve(expr->tagToken, expr->literal, paramCount);
-		if (symbol.kind == SymbolKind::GLOBAL)
+		if (symbol.location == SymbolLocation::GLOBAL)
 		{
 			getOp = OP_GET_GLOBAL;
 			setOp = OP_SET_GLOBAL;
 		}
-		else if (symbol.kind == SymbolKind::LOCAL)
+		else if (symbol.location == SymbolLocation::LOCAL)
 		{
 			getOp = OP_GET_LOCAL;
 			setOp = OP_SET_LOCAL;
 		}
-		else if (symbol.kind == SymbolKind::UPVALUE)
+		else if (symbol.location == SymbolLocation::UPVALUE)
 		{
 			getOp = OP_GET_UPVALUE;
 			setOp = OP_SET_UPVALUE;
@@ -787,7 +787,7 @@ namespace lwscript
 			if (symbol.privilege == Privilege::MUTABLE)
 			{
 				EmitOpCode(setOp, expr->tagToken);
-				if (symbol.kind == SymbolKind::UPVALUE)
+				if (symbol.location == SymbolLocation::UPVALUE)
 					Emit(symbol.upvalue.index);
 				else
 					Emit(symbol.index);
@@ -798,7 +798,7 @@ namespace lwscript
 		else
 		{
 			EmitOpCode(getOp, expr->tagToken);
-			if (symbol.kind == SymbolKind::UPVALUE)
+			if (symbol.location == SymbolLocation::UPVALUE)
 				Emit(symbol.upvalue.index);
 			else
 				Emit(symbol.index);
@@ -878,17 +878,17 @@ namespace lwscript
 			auto refIdxExpr = ((IndexExpr *)expr->refExpr);
 			CompileExpr(refIdxExpr->index);
 			symbol = mSymbolTable->Resolve(refIdxExpr->ds->tagToken, refIdxExpr->ds->ToString());
-			if (symbol.kind == SymbolKind::GLOBAL)
+			if (symbol.location == SymbolLocation::GLOBAL)
 			{
 				EmitOpCode(OP_REF_INDEX_GLOBAL, symbol.relatedToken);
 				Emit(symbol.index);
 			}
-			else if (symbol.kind == SymbolKind::LOCAL)
+			else if (symbol.location == SymbolLocation::LOCAL)
 			{
 				EmitOpCode(OP_REF_INDEX_LOCAL, symbol.relatedToken);
 				Emit(symbol.index);
 			}
-			else if (symbol.kind == SymbolKind::UPVALUE)
+			else if (symbol.location == SymbolLocation::UPVALUE)
 			{
 				EmitOpCode(OP_REF_INDEX_UPVALUE, symbol.relatedToken);
 				Emit(symbol.upvalue.index);
@@ -897,17 +897,17 @@ namespace lwscript
 		else
 		{
 			symbol = mSymbolTable->Resolve(expr->refExpr->tagToken, expr->refExpr->ToString());
-			if (symbol.kind == SymbolKind::GLOBAL)
+			if (symbol.location == SymbolLocation::GLOBAL)
 			{
 				EmitOpCode(OP_REF_GLOBAL, symbol.relatedToken);
 				Emit(symbol.index);
 			}
-			else if (symbol.kind == SymbolKind::LOCAL)
+			else if (symbol.location == SymbolLocation::LOCAL)
 			{
 				EmitOpCode(OP_REF_LOCAL, symbol.relatedToken);
 				Emit(symbol.index);
 			}
-			else if (symbol.kind == SymbolKind::UPVALUE)
+			else if (symbol.location == SymbolLocation::UPVALUE)
 			{
 				EmitOpCode(OP_REF_UPVALUE, symbol.relatedToken);
 				Emit(symbol.upvalue.index);
@@ -1059,7 +1059,7 @@ namespace lwscript
 								continue;
 						}
 
-						if (symbol.kind == SymbolKind::GLOBAL)
+						if (symbol.location == SymbolLocation::GLOBAL)
 						{
 							EmitOpCode(OP_SET_GLOBAL, symbol.relatedToken);
 							Emit(symbol.index);
@@ -1101,7 +1101,7 @@ namespace lwscript
 					}
 
 					auto symbol = mSymbolTable->Define(token, stmt->privilege, literal);
-					if (symbol.kind == SymbolKind::GLOBAL)
+					if (symbol.location == SymbolLocation::GLOBAL)
 					{
 						EmitOpCode(OP_SET_GLOBAL, symbol.relatedToken);
 						Emit(symbol.index);
@@ -1267,13 +1267,13 @@ namespace lwscript
 
 	void Compiler::EmitSymbol(const Symbol &symbol)
 	{
-		if (symbol.kind == SymbolKind::GLOBAL)
+		if (symbol.location == SymbolLocation::GLOBAL)
 		{
 			EmitOpCode(OP_SET_GLOBAL, symbol.relatedToken);
 			Emit(symbol.index);
 			EmitOpCode(OP_POP, symbol.relatedToken);
 		}
-		else if (symbol.kind == SymbolKind::LOCAL)
+		else if (symbol.location == SymbolLocation::LOCAL)
 		{
 			EmitOpCode(OP_SET_LOCAL, symbol.relatedToken);
 			Emit(symbol.index);
@@ -1291,14 +1291,14 @@ namespace lwscript
 		for (int32_t i = 0; i < mSymbolTable->mSymbols.size(); ++i)
 		{
 			Symbol *symbol = &mSymbolTable->mSymbols[i];
-			if (symbol->kind == SymbolKind::LOCAL &&
+			if (symbol->location == SymbolLocation::LOCAL &&
 				symbol->scopeDepth > mSymbolTable->mScopeDepth)
 			{
 				if (symbol->isCaptured)
 					EmitOpCode(OP_CLOSE_UPVALUE, symbol->relatedToken);
 				else
 					EmitOpCode(OP_POP, symbol->relatedToken);
-				symbol->kind = SymbolKind::GLOBAL; // mark as global to avoid second pop
+				symbol->location = SymbolLocation::GLOBAL; // mark as global to avoid second pop
 			}
 		}
 	}

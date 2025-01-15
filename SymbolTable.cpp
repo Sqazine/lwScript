@@ -40,12 +40,12 @@ namespace lwscript
 
         if (mScopeDepth == 0)
         {
-            symbol->kind = SymbolKind::GLOBAL;
+            symbol->location = SymbolLocation::GLOBAL;
             symbol->index = mGlobalSymbolCount++;
         }
         else
         {
-            symbol->kind = SymbolKind::LOCAL;
+            symbol->location = SymbolLocation::LOCAL;
             symbol->index = mLocalSymbolCount++;
         }
         symbol->scopeDepth = mScopeDepth;
@@ -76,9 +76,9 @@ namespace lwscript
         if (enclosing)
         {
             Symbol result = enclosing->Resolve(relatedToken, name, paramCount, ++d);
-            if (d > 0 && result.kind != SymbolKind::GLOBAL)
+            if (d > 0 && result.location != SymbolLocation::GLOBAL)
             {
-                result.kind = SymbolKind::UPVALUE;
+                result.location = SymbolLocation::UPVALUE;
                 result.upvalue = AddUpValue(relatedToken, result.index, enclosing->mTableDepth);
             }
             return result;
