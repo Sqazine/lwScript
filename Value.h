@@ -15,12 +15,12 @@ namespace lwscript
 
 	struct LWSCRIPT_API Value
 	{
-		constexpr Value() noexcept;
-		constexpr Value(int64_t integer) noexcept;
-		constexpr Value(double number) noexcept;
-		constexpr Value(bool boolean) noexcept;
-		constexpr Value(struct Object *object) noexcept; 
-		constexpr ~Value() noexcept = default;
+		Value() noexcept;
+		Value(int64_t integer) noexcept;
+		Value(double number) noexcept;
+		Value(bool boolean) noexcept;
+		Value(struct Object *object) noexcept;
+		~Value() noexcept = default;
 
 		STD_STRING ToString() const;
 		void Mark() const;

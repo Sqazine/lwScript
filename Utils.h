@@ -11,6 +11,7 @@
 
 #define GC_HEAP_GROW_FACTOR 2
 
+#ifndef LWSCRIPT_BUILD_STATIC
 #if defined(_WIN32) || defined(_WIN64)
 #ifdef LWSCRIPT_BUILD_DLL
 #define LWSCRIPT_API __declspec(dllexport)
@@ -23,6 +24,9 @@
 #else
 #define LWSCRIPT_API
 #endif
+#endif
+#else
+#define LWSCRIPT_API
 #endif
 
 #ifdef LWSCRIPT_UTF8_ENCODE

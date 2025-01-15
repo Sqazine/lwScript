@@ -15,22 +15,27 @@ set(CMAKE_C_STANDARD_REQUIRED OFF)
 
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
-set(CMAKE_DEBUG_POSTFIX "_d") 
-set(CMAKE_RELEASE_POSTFIX "")
-
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG ${CMAKE_BINARY_DIR}/bin/debug)
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE ${CMAKE_BINARY_DIR}/bin/release)
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY_DEBUG ${CMAKE_BINARY_DIR}/bin/debug)
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY_RELEASE ${CMAKE_BINARY_DIR}/bin/release)
-set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY_DEBUG ${CMAKE_BINARY_DIR}/bin/debug)
-set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY_RELEASE ${CMAKE_BINARY_DIR}/bin/release)
-
+set(LWSCRIPT_DEBUG_POSTFIX "_d" CACHE STRING "library or executable debug version postfix")
+set(LWSCRIPT_RELEASE_POSTFIX "" CACHE STRING "library or executable release version postfix")
+option(LWSCRIPT_STATIC_BUILD "build lwscript library as static library" OFF)
 option(LWSCRIPT_BUILD_EXECUTABLE "build lwscript executable file" ON)
 option(LWSCRIPT_UTF8_ENCODE "use utf8 encode" ON)
-option(LWSCRIPT_GC_DEBUG "output gc debug information" OFF)
-option(LWSCRIPT_GC_STRESS "force call gc after creating object in runtime" OFF)
 option(LWSCRIPT_FUNCTION_CACHE_OPT "use runtime optimize feature:function cache" ON)
 option(LWSCRIPT_CONSTANT_FOLD_OPT "use ast optimize feature:constant fold" ON)
+option(LWSCRIPT_GC_DEBUG "output gc debug information" OFF)
+option(LWSCRIPT_GC_STRESS "force call gc after creating object in runtime" OFF)
+
+set(CMAKE_DEBUG_POSTFIX ${LWSCRIPT_DEBUG_POSTFIX}) 
+set(CMAKE_RELEASE_POSTFIX ${LWSCRIPT_RELEASE_POSTFIX})
+
+set(LWSCRIPT_BINARY_DIR ${CMAKE_BINARY_DIR}/bin)
+
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG ${LWSCRIPT_BINARY_DIR})
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE ${LWSCRIPT_BINARY_DIR})
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY_DEBUG ${LWSCRIPT_BINARY_DIR})
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY_RELEASE ${LWSCRIPT_BINARY_DIR})
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY_DEBUG ${LWSCRIPT_BINARY_DIR})
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY_RELEASE ${LWSCRIPT_BINARY_DIR})
 
 
 if(MSVC)
@@ -39,33 +44,56 @@ else()
     set(LIB_NAME lwScript)
 endif()
 
-file(GLOB SRC ${GENERATED_DIR}/Version.h
-              lwscript.h
-              Allocator.h Allocator.cpp
-              Ast.h Ast.cpp
-              AstPass.h
-              Chunk.h Chunk.cpp
-              Compiler.h Compiler.cpp
-              ConstantFoldPass.h ConstantFoldPass.cpp
-              Lexer.h Lexer.cpp
-              LibraryManager.h LibraryManager.cpp
-              Logger.h
-              Object.h Object.cpp
-              Parser.h Parser.cpp
-              SymbolTable.h SymbolTable.cpp
-              SyntaxCheckPass.h SyntaxCheckPass.cpp
-              Token.h
-              Type.h Type.cpp
-              TypeCheckPass.h TypeCheckPass.cpp
-              Utils.h Utils.cpp
-              Value.h Value.cpp
-              VM.h VM.cpp
-    )
+set(LWSCRIPT_HEADER_FILES ${GENERATED_DIR}/Version.h
+                            lwscript.h
+                            Allocator.h
+                            Ast.h
+                            AstPass.h
+                            Chunk.h
+                            Compiler.h
+                            ConstantFoldPass.h
+                            Lexer.h
+                            LibraryManager.h
+                            Logger.h
+                            Object.h
+                            Parser.h 
+                            SymbolTable.h
+                            SyntaxCheckPass.h 
+                            Token.h
+                            Type.h
+                            TypeCheckPass.h
+                            Utils.h
+                            Value.h
+                            VM.h
+                            )
 
-source_group("src" FILES ${SRC})
-add_library(${LIB_NAME} SHARED ${SRC})
+set(LWSCRIPT_SOURCE_FILES Allocator.cpp
+                          Ast.cpp
+                          Chunk.cpp
+                          Compiler.cpp
+                          ConstantFoldPass.cpp
+                          Lexer.cpp
+                          LibraryManager.cpp
+                          Object.cpp
+                          Parser.cpp
+                          SymbolTable.cpp
+                          SyntaxCheckPass.cpp
+                          Type.cpp
+                          TypeCheckPass.cpp
+                          Utils.cpp
+                          Value.cpp
+                          VM.cpp
+                          )
+
+source_group("src" FILES ${LWSCRIPT_HEADER_FILES} ${LWSCRIPT_SOURCE_FILES})
+if(LWSCRIPT_STATIC_BUILD)
+    add_library(${LIB_NAME} STATIC ${LWSCRIPT_HEADER_FILES} ${LWSCRIPT_SOURCE_FILES})
+    target_compile_definitions(${LIB_NAME} PUBLIC LWSCRIPT_BUILD_STATIC)
+else()
+    add_library(${LIB_NAME} SHARED ${LWSCRIPT_HEADER_FILES} ${LWSCRIPT_SOURCE_FILES})
+    target_compile_definitions(${LIB_NAME} PUBLIC LWSCRIPT_BUILD_DLL)
+endif()
 target_include_directories(${LIB_NAME} PRIVATE ${GENERATED_DIR})
-target_compile_definitions(${LIB_NAME} PUBLIC LWSCRIPT_BUILD_DLL)
 
 if(LWSCRIPT_BUILD_EXECUTABLE)
     set(EXE_NAME lwScript)
@@ -132,3 +160,5 @@ else()
         target_compile_options(${EXE_NAME} PRIVATE "-fpermissive")
     endif()
 endif()
+
+file(COPY ${LWSCRIPT_HEADER_FILES} DESTINATION ${LWSCRIPT_BINARY_DIR}/inc)

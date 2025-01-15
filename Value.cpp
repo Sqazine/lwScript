@@ -1,27 +1,26 @@
 #include "Value.h"
 #include "Object.h"
-#include "VM.h"
 namespace lwscript
 {
-    constexpr Value::Value() noexcept
+    Value::Value() noexcept
         : kind(ValueKind::NIL), object(nullptr)
     {
     }
-    constexpr Value::Value(double number) noexcept
+    Value::Value(double number) noexcept
         : realnum(number), kind(ValueKind::REAL)
     {
     }
 
-    constexpr Value::Value(int64_t integer) noexcept
+    Value::Value(int64_t integer) noexcept
         : integer(integer), kind(ValueKind::INT)
     {
     }
-    constexpr Value::Value(bool boolean) noexcept
+    Value::Value(bool boolean) noexcept
         : boolean(boolean), kind(ValueKind::BOOL)
     {
     }
 
-    constexpr Value::Value(Object *object) noexcept
+    Value::Value(Object *object) noexcept
         : object(object), kind(ValueKind::OBJECT)
     {
     }
