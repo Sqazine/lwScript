@@ -57,7 +57,6 @@ set(LWSCRIPT_HEADER_FILES ${GENERATED_DIR}/Version.h
                             Logger.h
                             Object.h
                             Parser.h 
-                            SymbolTable.h
                             SyntaxCheckPass.h 
                             Token.h
                             Type.h
@@ -76,7 +75,6 @@ set(LWSCRIPT_SOURCE_FILES Allocator.cpp
                           LibraryManager.cpp
                           Object.cpp
                           Parser.cpp
-                          SymbolTable.cpp
                           SyntaxCheckPass.cpp
                           Type.cpp
                           TypeCheckPass.cpp
