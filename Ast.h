@@ -72,6 +72,8 @@ namespace lwscript
 		Expr(Token *tagToken, AstKind kind) : AstNode(tagToken, kind) {}
 		virtual ~Expr() {}
 		virtual STD_STRING ToString() = 0;
+
+		Type type;
 	};
 
 	struct LiteralExpr : public Expr
@@ -83,8 +85,6 @@ namespace lwscript
 		LiteralExpr(Token *tagToken, STD_STRING_VIEW value);
 		~LiteralExpr() override;
 		STD_STRING ToString() override;
-
-		Type type;
 
 		union
 		{
@@ -112,8 +112,7 @@ namespace lwscript
 		VarDescExpr(Token *tagToken, const Type& type, Expr *name);
 		~VarDescExpr() override;
 		STD_STRING ToString() override;
-
-		Type type;
+		
 		Expr *name;
 	};
 

@@ -210,11 +210,11 @@ namespace lwscript
 					enumValue = literalExpr->i64Value;
 				else if (literalExpr->type.IsFloating())
 					enumValue = literalExpr->f64Value;
-				else if (literalExpr->type.IsBoolean())
+				else if (literalExpr->type.Is(TypeKind::BOOL))
 					enumValue = literalExpr->boolean;
-				else if (literalExpr->type.IsString())
+				else if (literalExpr->type.Is(TypeKind::STRING))
 					enumValue = new StrObject(literalExpr->str);
-				else if (literalExpr->type.IsChar())
+				else if (literalExpr->type.Is(TypeKind::CHAR))
 				{
 					// TODO...
 				}

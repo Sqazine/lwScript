@@ -145,6 +145,7 @@ int32_t main(int32_t argc, const char *argv[])
 #ifdef LWSCRIPT_CONSTANT_FOLD_OPT
 		->Add<lwscript::ConstantFoldPass>()
 #endif
+		->Add<lwscript::TypeCheckPass>()
 		->Add<lwscript::SyntaxCheckPass>();
 
 	if (!gConfig.sourceFilePath.empty())

@@ -24,7 +24,7 @@ namespace lwscript
     };
 
     Type::Type() noexcept
-        : mKind(TypeKind::UNDEFINED), mCategory(TypeCategory::PRIMITIVE), mName(TEXT("undefined"))
+        : mKind(TypeKind::ANY), mName(TEXT("any"))
     {
     }
 
@@ -36,7 +36,6 @@ namespace lwscript
             {
                 mName = name;
                 mKind = p.kind;
-                mCategory = TypeCategory::PRIMITIVE;
                 mSourceLocation = scl;
                 return;
             }
@@ -46,11 +45,6 @@ namespace lwscript
     TypeKind Type::GetKind() const noexcept
     {
         return mKind;
-    }
-
-    bool Type::Is(TypeCategory category) const noexcept
-    {
-        return mCategory == category;
     }
 
     bool Type::IsNumeric() const noexcept
@@ -68,28 +62,18 @@ namespace lwscript
         return mKind == TypeKind::F32 || mKind == TypeKind::F64;
     }
 
-    bool Type::IsBoolean() const noexcept
-    {
-        return mKind == TypeKind::BOOL;
-    }
-
-    bool Type::IsString() const noexcept
-    {
-        return mKind == TypeKind::STRING;
-    }
-
-    bool Type::IsChar() const noexcept
-    {
-        return mKind == TypeKind::CHAR;
-    }
-
-    bool Type::IsAny() const noexcept
-    {
-        return mKind == TypeKind::ANY;
-    }
-
     STD_STRING_VIEW Type::GetName() const noexcept
     {
         return mName;
+    }
+
+    bool Type::IsPrimitiveType() const noexcept
+    {
+        return mKind >= TypeKind::I8 && mKind <= TypeKind::ANY;
+    }
+
+    bool Type::IsCompositeType() const noexcept
+    {
+        return !IsPrimitiveType();
     }
 }

@@ -20,7 +20,7 @@ namespace lwscript
             {
                 auto leftType = ((VarDescExpr *)k)->type;
 
-                if (leftType.IsAny())
+                if (leftType.Is(TypeKind::ANY))
                 {
                     return stmt;
                 }
@@ -78,134 +78,134 @@ namespace lwscript
     }
     Stmt *TypeCheckPass::ExecuteReturnStmt(ReturnStmt *stmt)
     {
-        return nullptr;
+        return stmt;
     }
     Stmt *TypeCheckPass::ExecuteIfStmt(IfStmt *stmt)
     {
-        return nullptr;
+        return stmt;
     }
     Stmt *TypeCheckPass::ExecuteScopeStmt(ScopeStmt *stmt)
     {
-        return nullptr;
+        return stmt;
     }
     Stmt *TypeCheckPass::ExecuteWhileStmt(WhileStmt *stmt)
     {
-        return nullptr;
+        return stmt;
     }
     Stmt *TypeCheckPass::ExecuteEnumStmt(EnumStmt *stmt)
     {
-        return nullptr;
+        return stmt;
     }
     Stmt *TypeCheckPass::ExecuteFunctionStmt(FunctionStmt *stmt)
     {
-        return nullptr;
+        return stmt;
     }
     Stmt *TypeCheckPass::ExecuteClassStmt(ClassStmt *stmt)
     {
-        return nullptr;
+        return stmt;
     }
     Stmt *TypeCheckPass::ExecuteBreakStmt(BreakStmt *stmt)
     {
-        return nullptr;
+        return stmt;
     }
     Stmt *TypeCheckPass::ExecuteContinueStmt(ContinueStmt *stmt)
     {
-        return nullptr;
+        return stmt;
     }
     Stmt *TypeCheckPass::ExecuteModuleStmt(ModuleStmt *stmt)
     {
-        return nullptr;
+        return stmt;
     }
     Expr *TypeCheckPass::ExecuteLiteralExpr(LiteralExpr *expr)
     {
-        return nullptr;
+        return expr;
     }
     Expr *TypeCheckPass::ExecuteInfixExpr(InfixExpr *expr)
     {
-        return nullptr;
+        return expr;
     }
     Expr *TypeCheckPass::ExecutePrefixExpr(PrefixExpr *expr)
     {
-        return nullptr;
+        return expr;
     }
     Expr *TypeCheckPass::ExecutePostfixExpr(PostfixExpr *expr)
     {
-        return nullptr;
+        return expr;
     }
     Expr *TypeCheckPass::ExecuteConditionExpr(ConditionExpr *expr)
     {
-        return nullptr;
+        return expr;
     }
     Expr *TypeCheckPass::ExecuteGroupExpr(GroupExpr *expr)
     {
-        return nullptr;
+        return expr;
     }
     Expr *TypeCheckPass::ExecuteArrayExpr(ArrayExpr *expr)
     {
-        return nullptr;
+        return expr;
     }
     Expr *TypeCheckPass::ExecuteAppregateExpr(AppregateExpr *expr)
     {
-        return nullptr;
+        return expr;
     }
     Expr *TypeCheckPass::ExecuteDictExpr(DictExpr *expr)
     {
-        return nullptr;
+        return expr;
     }
     Expr *TypeCheckPass::ExecuteIndexExpr(IndexExpr *expr)
     {
-        return nullptr;
+        return expr;
     }
     Expr *TypeCheckPass::ExecuteNewExpr(NewExpr *expr)
     {
-        return nullptr;
+        return expr;
     }
     Expr *TypeCheckPass::ExecuteThisExpr(ThisExpr *expr)
     {
-        return nullptr;
+        return expr;
     }
     Expr *TypeCheckPass::ExecuteBaseExpr(BaseExpr *expr)
     {
-        return nullptr;
+        return expr;
     }
     Expr *TypeCheckPass::ExecuteIdentifierExpr(IdentifierExpr *expr)
     {
-        return nullptr;
+        return expr;
     }
     Expr *TypeCheckPass::ExecuteLambdaExpr(LambdaExpr *expr)
     {
-        return nullptr;
+        return expr;
     }
     Expr *TypeCheckPass::ExecuteCompoundExpr(CompoundExpr *expr)
     {
-        return nullptr;
+        return expr;
     }
     Expr *TypeCheckPass::ExecuteCallExpr(CallExpr *expr)
     {
-        return nullptr;
+        return expr;
     }
     Expr *TypeCheckPass::ExecuteDotExpr(DotExpr *expr)
     {
-        return nullptr;
+        return expr;
     }
     Expr *TypeCheckPass::ExecuteRefExpr(RefExpr *expr)
     {
-        return nullptr;
+        return expr;
     }
     Expr *TypeCheckPass::ExecuteStructExpr(StructExpr *expr)
     {
-        return nullptr;
+        return expr;
     }
     Expr *TypeCheckPass::ExecuteVarArgExpr(VarArgExpr *expr)
     {
-        return nullptr;
+        return expr;
     }
     Expr *TypeCheckPass::ExecuteFactorialExpr(FactorialExpr *expr)
     {
-        return nullptr;
+        return expr;
     }
     Expr *TypeCheckPass::ExecuteVarDescExpr(VarDescExpr *expr)
     {
-        return nullptr;
+        return expr;
     }
 }

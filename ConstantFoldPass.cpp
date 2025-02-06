@@ -22,7 +22,7 @@ namespace lwscript
 		if (stmt->elseBranch)
 			stmt->elseBranch = ExecuteStmt(stmt->elseBranch);
 
-		if (stmt->condition->kind == AstKind::LITERAL && ((LiteralExpr *)stmt->condition)->type.IsBoolean())
+		if (stmt->condition->kind == AstKind::LITERAL && ((LiteralExpr *)stmt->condition)->type.Is(TypeKind::BOOL))
 		{
 			if (((LiteralExpr *)stmt->condition)->boolean == true)
 				return stmt->thenBranch;
@@ -115,7 +115,7 @@ namespace lwscript
 		expr->trueBranch = ExecuteExpr(expr->trueBranch);
 		expr->falseBranch = ExecuteExpr(expr->falseBranch);
 
-		if (expr->condition->kind == AstKind::LITERAL && ((LiteralExpr *)expr->condition)->type.IsBoolean())
+		if (expr->condition->kind == AstKind::LITERAL && ((LiteralExpr *)expr->condition)->type.Is(TypeKind::BOOL))
 		{
 			if (((LiteralExpr *)expr->condition)->boolean == true)
 				return expr->trueBranch;
@@ -353,7 +353,7 @@ namespace lwscript
 						SAFE_DELETE(infix);
 					return newExpr;
 				}
-				else if (leftLiteral->type.IsString() && rightLiteral->type.IsString())
+				else if (leftLiteral->type.Is(TypeKind::STRING) && rightLiteral->type.Is(TypeKind::STRING))
 				{
 					auto strExpr = new LiteralExpr(infix->tagToken, leftLiteral->str + rightLiteral->str);
 					SAFE_DELETE(infix);
@@ -380,7 +380,7 @@ namespace lwscript
 					SAFE_DELETE(prefix);
 					return numExpr;
 				}
-				else if (rightLiteralExpr->type.IsBoolean() && prefix->op == TEXT("!"))
+				else if (rightLiteralExpr->type.Is(TypeKind::BOOL) && prefix->op == TEXT("!"))
 				{
 					auto boolExpr = new LiteralExpr(prefix->tagToken, !rightLiteralExpr->boolean);
 					SAFE_DELETE(prefix);

@@ -12,21 +12,17 @@ namespace lwscript
         U32,
         I64,
         U64,
+        
         F32,
         F64,
+
         BOOL,
         CHAR,
         STRING,
-
         ANY,
 
-        UNDEFINED,
-    };
-
-    enum class TypeCategory
-    {
-        PRIMITIVE,
-        COMPOSITE
+        STRUCT,
+        CLASS,
     };
 
     class Type
@@ -38,21 +34,23 @@ namespace lwscript
 
         TypeKind GetKind() const noexcept;
 
-        bool Is(TypeCategory category) const noexcept;
         bool IsNumeric() const noexcept;
         bool IsInteger() const noexcept;
         bool IsFloating() const noexcept;
-        bool IsBoolean() const noexcept;
-        bool IsString() const noexcept;
-        bool IsChar() const noexcept;
-        bool IsAny() const noexcept;
+
+        bool Is(TypeKind kind)
+        {
+            return mKind == kind;
+        }
 
         STD_STRING_VIEW GetName() const noexcept;
+
+        bool IsPrimitiveType() const noexcept;
+        bool IsCompositeType() const noexcept;
 
     private:
         STD_STRING_VIEW mName;
         SourceLocation mSourceLocation;
         TypeKind mKind;
-        TypeCategory mCategory;
     };
 };

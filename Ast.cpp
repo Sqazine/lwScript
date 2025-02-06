@@ -9,20 +9,24 @@ namespace lwscript
 	{
 	}
 	LiteralExpr::LiteralExpr(Token *tagToken, int64_t value)
-		: Expr(tagToken, AstKind::LITERAL), type(TEXT("i64"), tagToken->sourceLocation), i64Value(value)
+		: Expr(tagToken, AstKind::LITERAL), i64Value(value)
 	{
+		type = Type(TEXT("i64"), tagToken->sourceLocation);
 	}
 	LiteralExpr::LiteralExpr(Token *tagToken, double value)
-		: Expr(tagToken, AstKind::LITERAL), type(TEXT("f64"), tagToken->sourceLocation), f64Value(value)
+		: Expr(tagToken, AstKind::LITERAL), f64Value(value)
 	{
+		type = Type(TEXT("f64"), tagToken->sourceLocation);
 	}
 	LiteralExpr::LiteralExpr(Token *tagToken, bool value)
-		: Expr(tagToken, AstKind::LITERAL), type(TEXT("bool"), tagToken->sourceLocation), boolean(value)
+		: Expr(tagToken, AstKind::LITERAL), boolean(value)
 	{
+		type = Type(TEXT("bool"), tagToken->sourceLocation);
 	}
 	LiteralExpr::LiteralExpr(Token *tagToken, STD_STRING_VIEW value)
-		: Expr(tagToken, AstKind::LITERAL), type(TEXT("string"), tagToken->sourceLocation), str(value)
+		: Expr(tagToken, AstKind::LITERAL), str(value)
 	{
+		type = Type(TEXT("string"), tagToken->sourceLocation);
 	}
 	LiteralExpr::~LiteralExpr()
 	{
@@ -73,12 +77,14 @@ namespace lwscript
 	}
 
 	VarDescExpr::VarDescExpr(Token *tagToken)
-		: Expr(tagToken, AstKind::VAR_DESC), name(nullptr), type(Type(TEXT("any")))
+		: Expr(tagToken, AstKind::VAR_DESC), name(nullptr)
 	{
+		type=Type(Type(TEXT("any")));
 	}
 	VarDescExpr::VarDescExpr(Token *tagToken, const Type &type, Expr *name)
-		: Expr(tagToken, AstKind::VAR_DESC), name(name), type(type)
+		: Expr(tagToken, AstKind::VAR_DESC), name(name)
 	{
+		this->type = type;
 	}
 	VarDescExpr::~VarDescExpr()
 	{
