@@ -78,12 +78,14 @@ namespace lwscript
 			uint8_t mTableDepth; // Depth of symbol table nesting(related to symboltable's enclosing)
 		};
 
-		void CompileDecl(Stmt *stmt);
-		void CompileVarDecl(VarStmt *stmt);
-		void CompileFunctionDecl(FunctionStmt *stmt);
-		void CompileClassDecl(ClassStmt *stmt);
-		void CompileEnumDecl(EnumStmt *stmt);
-		void CompileModuleDecl(ModuleStmt *stmt);
+		void CompileDecl(Decl *decl);
+		void CompileVarDecl(VarDecl * decl);
+		void CompileFunctionDecl(FunctionDecl * decl);
+		void CompileClassDecl(ClassDecl * decl);
+		void CompileEnumDecl(EnumDecl * decl);
+		void CompileModuleDecl(ModuleDecl * decl);
+
+		void CompileDeclAndStmt(Stmt *stmt);
 
 		void CompileStmt(Stmt *stmt);
 		void CompileExprStmt(ExprStmt *stmt);
@@ -118,9 +120,9 @@ namespace lwscript
 		void CompileVarArgExpr(VarArgExpr *expr, const RWState &state = RWState::READ);
 		void CompileFactorialExpr(FactorialExpr *expr, const RWState &state = RWState::READ);
 
-		Symbol CompileFunction(FunctionStmt *stmt);
-		uint32_t CompileVars(VarStmt *stmt, bool IsInClassOrModuleScope);
-		Symbol CompileClass(ClassStmt *stmt);
+		Symbol CompileFunction(FunctionDecl * decl);
+		uint32_t CompileVars(VarDecl * decl, bool IsInClassOrModuleScope);
+		Symbol CompileClass(ClassDecl * decl);
 
 		uint64_t EmitOpCode(OpCode opCode, const Token *token);
 		uint64_t Emit(uint8_t opcode);

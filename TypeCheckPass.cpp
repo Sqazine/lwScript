@@ -9,9 +9,9 @@ namespace lwscript
 
         return stmt;
     }
-    Stmt *TypeCheckPass::ExecuteVarStmt(VarStmt *stmt)
+    Decl *TypeCheckPass::ExecuteVarDecl(VarDecl * decl)
     {
-        for (auto &[k, v] : stmt->variables)
+        for (auto &[k, v] : decl->variables)
         {
             if (k->kind == AstKind::ARRAY)
             {
@@ -22,7 +22,7 @@ namespace lwscript
 
                 if (leftType.Is(TypeKind::ANY))
                 {
-                    return stmt;
+                    return decl;
                 }
 
                 if (v->kind != AstKind::LITERAL)
@@ -69,7 +69,7 @@ namespace lwscript
             }
         }
 
-        return stmt;
+        return decl;
     }
     Stmt *TypeCheckPass::ExecuteExprStmt(ExprStmt *stmt)
     {
@@ -92,17 +92,17 @@ namespace lwscript
     {
         return stmt;
     }
-    Stmt *TypeCheckPass::ExecuteEnumStmt(EnumStmt *stmt)
+    Decl *TypeCheckPass::ExecuteEnumDecl(EnumDecl * decl)
     {
-        return stmt;
+        return decl;
     }
-    Stmt *TypeCheckPass::ExecuteFunctionStmt(FunctionStmt *stmt)
+    Decl *TypeCheckPass::ExecuteFunctionDecl(FunctionDecl * decl)
     {
-        return stmt;
+        return decl;
     }
-    Stmt *TypeCheckPass::ExecuteClassStmt(ClassStmt *stmt)
+    Decl *TypeCheckPass::ExecuteClassDecl(ClassDecl * decl)
     {
-        return stmt;
+        return decl;
     }
     Stmt *TypeCheckPass::ExecuteBreakStmt(BreakStmt *stmt)
     {
@@ -112,9 +112,9 @@ namespace lwscript
     {
         return stmt;
     }
-    Stmt *TypeCheckPass::ExecuteModuleStmt(ModuleStmt *stmt)
+    Decl *TypeCheckPass::ExecuteModuleDecl(ModuleDecl * decl)
     {
-        return stmt;
+        return decl;
     }
     Expr *TypeCheckPass::ExecuteLiteralExpr(LiteralExpr *expr)
     {

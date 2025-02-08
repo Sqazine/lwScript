@@ -14,18 +14,20 @@ namespace lwscript
 
     protected:
         Stmt *ExecuteAstStmts(AstStmts *stmt) override;
-        Stmt *ExecuteVarStmt(VarStmt *stmt) override;
+
+        Decl *ExecuteVarDecl(VarDecl * decl) override;
+        Decl *ExecuteFunctionDecl(FunctionDecl * decl) override;
+        Decl *ExecuteModuleDecl(ModuleDecl * decl) override;
+        Decl *ExecuteEnumDecl(EnumDecl * decl) override;
+        Decl *ExecuteClassDecl(ClassDecl * decl) override;
+    
         Stmt *ExecuteExprStmt(ExprStmt *stmt) override;
         Stmt *ExecuteReturnStmt(ReturnStmt *stmt) override;
         Stmt *ExecuteIfStmt(IfStmt *stmt) override;
         Stmt *ExecuteScopeStmt(ScopeStmt *stmt) override;
         Stmt *ExecuteWhileStmt(WhileStmt *stmt) override;
-        Stmt *ExecuteEnumStmt(EnumStmt *stmt) override;
-        Stmt *ExecuteFunctionStmt(FunctionStmt *stmt) override;
-        Stmt *ExecuteClassStmt(ClassStmt *stmt) override;
         Stmt *ExecuteBreakStmt(BreakStmt *stmt) override;
         Stmt *ExecuteContinueStmt(ContinueStmt *stmt) override;
-        Stmt *ExecuteModuleStmt(ModuleStmt *stmt) override;
 
         Expr *ExecuteLiteralExpr(LiteralExpr *expr) override;
         Expr *ExecuteIdentifierExpr(IdentifierExpr *expr) override;

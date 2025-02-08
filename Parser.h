@@ -60,12 +60,14 @@ namespace lwscript
 	private:
 		void ResetStatus();
 
-		Stmt *ParseDecl();
-		Stmt *ParseVarDecl();
-		Stmt *ParseFunctionDecl();
-		Stmt *ParseClassDecl();
-		Stmt *ParseEnumDecl();
-		Stmt *ParseModuleDecl();
+		Decl *ParseDecl();
+		Decl *ParseVarDecl();
+		Decl *ParseFunctionDecl();
+		Decl *ParseClassDecl();
+		Decl *ParseEnumDecl();
+		Decl *ParseModuleDecl();
+
+		Stmt *ParseDeclAndStmt();
 
 		Stmt *ParseStmt();
 		Stmt *ParseExprStmt();

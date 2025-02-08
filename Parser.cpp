@@ -166,7 +166,7 @@ namespace lwscript
 		AstStmts *astStmts = new AstStmts(GetCurToken());
 
 		while (!IsMatchCurToken(TokenKind::END))
-			astStmts->stmts.emplace_back(ParseDecl());
+			astStmts->stmts.emplace_back(ParseDeclAndStmt());
 
 		return astStmts;
 	}
@@ -178,7 +178,7 @@ namespace lwscript
 		mCurClassInfo = nullptr;
 	}
 
-	Stmt *Parser::ParseDecl()
+	Decl *Parser::ParseDecl()
 	{
 		switch (GetCurToken()->kind)
 		{
@@ -195,16 +195,16 @@ namespace lwscript
 		case TokenKind::MODULE:
 			return ParseModuleDecl();
 		default:
-			return ParseStmt();
+			return nullptr;
 		}
 	}
 
-	Stmt *Parser::ParseVarDecl()
+	Decl *Parser::ParseVarDecl()
 	{
 		auto curToken = GetCurToken();
 		auto kind = curToken->kind;
 
-		auto varStmt = new VarStmt(curToken);
+		auto varStmt = new VarDecl(curToken);
 
 		if (kind == TokenKind::LET)
 			varStmt->privilege = Privilege::MUTABLE;
@@ -234,9 +234,9 @@ namespace lwscript
 		return varStmt;
 	}
 
-	Stmt *Parser::ParseFunctionDecl()
+	Decl *Parser::ParseFunctionDecl()
 	{
-		auto funcStmt = new FunctionStmt(GetCurToken());
+		auto funcStmt = new FunctionDecl(GetCurToken());
 
 		{
 			funcStmt->name = (IdentifierExpr *)ParseIdentifierExpr();
@@ -287,9 +287,9 @@ namespace lwscript
 		return funcStmt;
 	}
 
-	Stmt *Parser::ParseClassDecl()
+	Decl *Parser::ParseClassDecl()
 	{
-		auto classStmt = new ClassStmt(GetCurToken());
+		auto classStmt = new ClassDecl(GetCurToken());
 
 		Consume(TokenKind::CLASS, TEXT("Expect 'class' keyword"));
 
@@ -316,19 +316,19 @@ namespace lwscript
 		while (!IsMatchCurToken(TokenKind::RBRACE))
 		{
 			if (IsMatchCurToken(TokenKind::LET) || IsMatchCurToken(TokenKind::CONST))
-				classStmt->varItems.emplace_back((VarStmt *)ParseVarDecl());
+				classStmt->varItems.emplace_back((VarDecl *)ParseVarDecl());
 			else if (IsMatchCurTokenAndStepOnce(TokenKind::FUNCTION))
 			{
-				auto fn = (FunctionStmt *)ParseFunctionDecl();
+				auto fn = (FunctionDecl *)ParseFunctionDecl();
 				if (fn->name->literal == classStmt->name)
 					Logger::Error(fn->name->tagToken, TEXT("The class member function name :{} conflicts with its class:{}, only constructor function name is allowed to same with its class's name"), fn->name->literal);
 				classStmt->fnItems.emplace_back(fn);
 			}
 			else if (IsMatchCurToken(TokenKind::ENUM))
-				classStmt->enumItems.emplace_back((EnumStmt *)ParseEnumDecl());
+				classStmt->enumItems.emplace_back((EnumDecl *)ParseEnumDecl());
 			else if (GetCurToken()->literal == classStmt->name) // constructor
 			{
-				auto fn = (FunctionStmt *)ParseFunctionDecl();
+				auto fn = (FunctionDecl *)ParseFunctionDecl();
 				classStmt->constructors.emplace_back(fn);
 			}
 			else
@@ -341,9 +341,9 @@ namespace lwscript
 
 		return classStmt;
 	}
-	Stmt *Parser::ParseEnumDecl()
+	Decl *Parser::ParseEnumDecl()
 	{
-		auto enumStmt = new EnumStmt(GetCurToken());
+		auto enumStmt = new EnumDecl(GetCurToken());
 
 		Consume(TokenKind::ENUM, TEXT("Expect 'enum' keyword."));
 		enumStmt->name = (IdentifierExpr *)ParseIdentifierExpr();
@@ -374,11 +374,11 @@ namespace lwscript
 		return enumStmt;
 	}
 
-	Stmt *Parser::ParseModuleDecl()
+	Decl *Parser::ParseModuleDecl()
 	{
 		auto token = Consume(TokenKind::MODULE, TEXT("Expect 'module' keyword."));
 
-		auto moduleDecl = new ModuleStmt(token);
+		auto moduleDecl = new ModuleDecl(token);
 
 		moduleDecl->name = (IdentifierExpr *)ParseIdentifierExpr();
 
@@ -390,20 +390,20 @@ namespace lwscript
 			{
 			case TokenKind::LET:
 			case TokenKind::CONST:
-				moduleDecl->varItems.emplace_back((VarStmt *)ParseVarDecl());
+				moduleDecl->varItems.emplace_back((VarDecl *)ParseVarDecl());
 				break;
 			case TokenKind::FUNCTION:
 				GetCurTokenAndStepOnce();
-				moduleDecl->functionItems.emplace_back((FunctionStmt *)ParseFunctionDecl());
+				moduleDecl->functionItems.emplace_back((FunctionDecl *)ParseFunctionDecl());
 				break;
 			case TokenKind::CLASS:
-				moduleDecl->classItems.emplace_back((ClassStmt *)ParseClassDecl());
+				moduleDecl->classItems.emplace_back((ClassDecl *)ParseClassDecl());
 				break;
 			case TokenKind::ENUM:
-				moduleDecl->enumItems.emplace_back((EnumStmt *)ParseEnumDecl());
+				moduleDecl->enumItems.emplace_back((EnumDecl *)ParseEnumDecl());
 				break;
 			case TokenKind::MODULE:
-				moduleDecl->moduleItems.emplace_back((ModuleStmt *)ParseModuleDecl());
+				moduleDecl->moduleItems.emplace_back((ModuleDecl *)ParseModuleDecl());
 				break;
 			default:
 				Logger::Error(GetCurToken(), TEXT("Only let,const,function,class,enum and module is available in module scope"));
@@ -413,6 +413,14 @@ namespace lwscript
 		Consume(TokenKind::RBRACE, TEXT("Expect '}'."));
 
 		return moduleDecl;
+	}
+
+	Stmt* Parser::ParseDeclAndStmt()
+	{
+		Stmt* result = ParseDecl();
+		if(!result)
+			result = ParseStmt();
+		return result;
 	}
 
 	Stmt *Parser::ParseStmt()
@@ -502,7 +510,7 @@ namespace lwscript
 
 		Consume(TokenKind::LBRACE, TEXT("Expect '{'."));
 		while (!IsMatchCurToken(TokenKind::RBRACE))
-			scopeStmt->stmts.emplace_back(ParseDecl());
+			scopeStmt->stmts.emplace_back(ParseDeclAndStmt());
 		Consume(TokenKind::RBRACE, TEXT("Expect '}'."));
 		return scopeStmt;
 	}
@@ -878,7 +886,7 @@ namespace lwscript
 		{
 			if (IsMatchCurToken(TokenKind::RBRACE_RPAREN))
 				Logger::Error(GetCurToken(), TEXT("Expr required at the end of block expression."));
-			stmts.emplace_back(ParseDecl());
+			stmts.emplace_back(ParseDeclAndStmt());
 		} while (IsMatchCurTokenAndStepOnce(TokenKind::SEMICOLON));
 
 		mSkippingConsumeTokenKindStack.pop_back();

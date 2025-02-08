@@ -10,18 +10,20 @@ namespace lwscript
 
     protected:
         virtual Stmt *ExecuteAstStmts(AstStmts *stmt) override;
-        virtual Stmt *ExecuteVarStmt(VarStmt *stmt) override;
+
+        virtual Decl *ExecuteVarDecl(VarDecl * decl) override;
+        virtual Decl *ExecuteFunctionDecl(FunctionDecl * decl) override;
+        virtual Decl *ExecuteModuleDecl(ModuleDecl * decl) override;
+        virtual Decl *ExecuteEnumDecl(EnumDecl * decl) override;
+        virtual Decl *ExecuteClassDecl(ClassDecl * decl) override;
+        
         virtual Stmt *ExecuteExprStmt(ExprStmt *stmt) override;
         virtual Stmt *ExecuteReturnStmt(ReturnStmt *stmt) override;
         virtual Stmt *ExecuteIfStmt(IfStmt *stmt) override;
         virtual Stmt *ExecuteScopeStmt(ScopeStmt *stmt) override;
         virtual Stmt *ExecuteWhileStmt(WhileStmt *stmt) override;
-        virtual Stmt *ExecuteEnumStmt(EnumStmt *stmt) override;
-        virtual Stmt *ExecuteFunctionStmt(FunctionStmt *stmt) override;
-        virtual Stmt *ExecuteClassStmt(ClassStmt *stmt) override;
         virtual Stmt *ExecuteBreakStmt(BreakStmt *stmt) override;
         virtual Stmt *ExecuteContinueStmt(ContinueStmt *stmt) override;
-        virtual Stmt *ExecuteModuleStmt(ModuleStmt *stmt) override;
 
         virtual Expr *ExecuteLiteralExpr(LiteralExpr *expr) override;
         virtual Expr *ExecuteInfixExpr(InfixExpr *expr) override;

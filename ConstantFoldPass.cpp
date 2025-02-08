@@ -44,42 +44,42 @@ namespace lwscript
 		stmt->body = (ScopeStmt *)ExecuteScopeStmt(stmt->body);
 		return stmt;
 	}
-	Stmt *ConstantFoldPass::ExecuteEnumStmt(EnumStmt *stmt)
+	Decl *ConstantFoldPass::ExecuteEnumDecl(EnumDecl *decl)
 	{
-		for (auto &[k, v] : stmt->enumItems)
+		for (auto &[k, v] : decl->enumItems)
 			v = ExecuteExpr(v);
-		return stmt;
+		return decl;
 	}
 	Stmt *ConstantFoldPass::ExecuteReturnStmt(ReturnStmt *stmt)
 	{
 		return stmt;
 	}
-	Stmt *ConstantFoldPass::ExecuteVarStmt(VarStmt *stmt)
+	Decl *ConstantFoldPass::ExecuteVarDecl(VarDecl *decl)
 	{
-		for (auto &[k, v] : stmt->variables)
+		for (auto &[k, v] :decl->variables)
 			v = ExecuteExpr(v);
-		return stmt;
+		return decl;
 	}
 
-	Stmt *ConstantFoldPass::ExecuteFunctionStmt(FunctionStmt *stmt)
+	Decl *ConstantFoldPass::ExecuteFunctionDecl(FunctionDecl *decl)
 	{
-		for (auto &e : stmt->parameters)
+		for (auto &e : decl->parameters)
 			e = (VarDescExpr *)ExecuteVarDescExpr(e);
 
-		stmt->body = (ScopeStmt *)ExecuteScopeStmt(stmt->body);
+		decl->body = (ScopeStmt *)ExecuteScopeStmt(decl->body);
 
-		return stmt;
+		return decl;
 	}
 
-	Stmt *ConstantFoldPass::ExecuteClassStmt(ClassStmt *stmt)
+	Decl *ConstantFoldPass::ExecuteClassDecl(ClassDecl *decl)
 	{
-		for (auto &varStmt : stmt->varItems)
-			varStmt = (VarStmt *)ExecuteVarStmt(varStmt);
+		for (auto &varStmt : decl->varItems)
+			varStmt = (VarDecl *)ExecuteVarDecl(varStmt);
 
-		for (auto &fnStmt : stmt->fnItems)
-			fnStmt = (FunctionStmt *)ExecuteFunctionStmt(fnStmt);
+		for (auto &fnStmt : decl->fnItems)
+			fnStmt = (FunctionDecl *)ExecuteFunctionDecl(fnStmt);
 
-		return stmt;
+		return decl;
 	}
 
 	Stmt *ConstantFoldPass::ExecuteBreakStmt(BreakStmt *stmt)
@@ -92,9 +92,9 @@ namespace lwscript
 		return stmt;
 	}
 
-	Stmt *ConstantFoldPass::ExecuteModuleStmt(ModuleStmt *stmt)
+	Decl *ConstantFoldPass::ExecuteModuleDecl(ModuleDecl *decl)
 	{
-		return stmt;
+		return decl;
 	}
 
 	Expr *ConstantFoldPass::ExecuteInfixExpr(InfixExpr *expr)
@@ -211,7 +211,7 @@ namespace lwscript
 	{
 		if (expr->expr->kind == AstKind::LITERAL && ((LiteralExpr *)expr->expr)->type.IsInteger())
 		{
-			auto literalExpr=(LiteralExpr *)expr->expr;
+			auto literalExpr = (LiteralExpr *)expr->expr;
 			auto intExpr = new LiteralExpr(expr->tagToken, Factorial(literalExpr->i64Value));
 			SAFE_DELETE(expr);
 			return intExpr;

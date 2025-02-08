@@ -50,14 +50,6 @@ namespace lwscript
 		ASTSTMTS,
 	};
 
-#define AST_TEMPLATE(name, base)          \
-	struct name : public base             \
-	{                                     \
-		name(Token *tagToken);            \
-		~name() override;                 \
-		STD_STRING ToString() override; \
-	};
-
 	struct AstNode
 	{
 		AstNode(Token *tagToken, AstKind kind) : tagToken(tagToken), kind(kind) {}
@@ -109,10 +101,10 @@ namespace lwscript
 	struct VarDescExpr : public Expr
 	{
 		VarDescExpr(Token *tagToken);
-		VarDescExpr(Token *tagToken, const Type& type, Expr *name);
+		VarDescExpr(Token *tagToken, const Type &type, Expr *name);
 		~VarDescExpr() override;
 		STD_STRING ToString() override;
-		
+
 		Expr *name;
 	};
 
@@ -256,7 +248,12 @@ namespace lwscript
 		Expr *callee;
 	};
 
-	AST_TEMPLATE(ThisExpr, Expr)
+	struct ThisExpr : public Expr
+	{
+		ThisExpr(Token *tagToken);
+		~ThisExpr() override;
+		STD_STRING ToString() override;
+	};
 
 	struct BaseExpr : public Expr
 	{
@@ -332,17 +329,6 @@ namespace lwscript
 		Expr *expr;
 	};
 
-	struct VarStmt : public Stmt
-	{
-		VarStmt(Token *tagToken);
-		VarStmt(Token *tagToken, Privilege privilege, const std::vector<std::pair<Expr *, Expr *>> &variables);
-		~VarStmt() override;
-		STD_STRING ToString() override;
-
-		Privilege privilege;
-		std::vector<std::pair<Expr *, Expr *>> variables;
-	};
-
 	struct ReturnStmt : public Stmt
 	{
 		ReturnStmt(Token *tagToken);
@@ -387,14 +373,54 @@ namespace lwscript
 		ScopeStmt *increment;
 	};
 
-	AST_TEMPLATE(BreakStmt, Stmt)
-	AST_TEMPLATE(ContinueStmt, Stmt)
-
-	struct EnumStmt : public Stmt
+	struct BreakStmt : public Stmt
 	{
-		EnumStmt(Token *tagToken);
-		EnumStmt(Token *tagToken, IdentifierExpr *name, const std::unordered_map<IdentifierExpr *, Expr *> &enumItems);
-		~EnumStmt() override;
+		BreakStmt(Token *tagToken);
+		~BreakStmt() override;
+		STD_STRING ToString() override;
+	};
+
+	struct ContinueStmt : public Stmt
+	{
+		ContinueStmt(Token *tagToken);
+		~ContinueStmt() override;
+		STD_STRING ToString() override;
+	};
+
+		struct AstStmts : public Stmt
+	{
+		AstStmts(Token *tagToken);
+		AstStmts(Token *tagToken, std::vector<Stmt *> stmts);
+		~AstStmts() override;
+
+		STD_STRING ToString() override;
+
+		std::vector<Stmt *> stmts;
+	};
+
+	struct Decl : public Stmt
+	{
+		Decl(Token *tagToken, AstKind kind) : Stmt(tagToken, kind) {}
+		virtual ~Decl() {}
+		virtual STD_STRING ToString() = 0;
+	};
+
+	struct VarDecl : public Decl
+	{
+		VarDecl(Token *tagToken);
+		VarDecl(Token *tagToken, Privilege privilege, const std::vector<std::pair<Expr *, Expr *>> &variables);
+		~VarDecl() override;
+		STD_STRING ToString() override;
+
+		Privilege privilege;
+		std::vector<std::pair<Expr *, Expr *>> variables;
+	};
+
+	struct EnumDecl : public Decl
+	{
+		EnumDecl(Token *tagToken);
+		EnumDecl(Token *tagToken, IdentifierExpr *name, const std::unordered_map<IdentifierExpr *, Expr *> &enumItems);
+		~EnumDecl() override;
 
 		STD_STRING ToString() override;
 
@@ -409,11 +435,11 @@ namespace lwscript
 		FUNCTION,
 	};
 
-	struct FunctionStmt : public Stmt
+	struct FunctionDecl : public Decl
 	{
-		FunctionStmt(Token *tagToken);
-		FunctionStmt(Token *tagToken, FunctionKind kind, IdentifierExpr *name, const std::vector<VarDescExpr *> &parameters, ScopeStmt *body);
-		~FunctionStmt() override;
+		FunctionDecl(Token *tagToken);
+		FunctionDecl(Token *tagToken, FunctionKind kind, IdentifierExpr *name, const std::vector<VarDescExpr *> &parameters, ScopeStmt *body);
+		~FunctionDecl() override;
 
 		STD_STRING ToString() override;
 
@@ -424,57 +450,47 @@ namespace lwscript
 		std::vector<Type> returnTypes;
 	};
 
-	struct ClassStmt : public Stmt
+	struct ClassDecl : public Decl
 	{
-		ClassStmt(Token *tagToken);
-		ClassStmt(Token *tagToken,
+		ClassDecl(Token *tagToken);
+		ClassDecl(Token *tagToken,
 				  STD_STRING name,
-				  const std::vector<VarStmt *> &varItems,
-				  const std::vector<FunctionStmt *> &fnItems,
-				  const std::vector<EnumStmt *> &enumItems,
-				  const std::vector<FunctionStmt *> &constructors = {},
+				  const std::vector<VarDecl *> &varItems,
+				  const std::vector<FunctionDecl *> &fnItems,
+				  const std::vector<EnumDecl *> &enumItems,
+				  const std::vector<FunctionDecl *> &constructors = {},
 				  const std::vector<IdentifierExpr *> &parentClasses = {});
-		~ClassStmt() override;
+		~ClassDecl() override;
 
 		STD_STRING ToString() override;
 
 		STD_STRING name;
 		std::vector<IdentifierExpr *> parentClasses;
-		std::vector<FunctionStmt *> constructors;
-		std::vector<VarStmt *> varItems;
-		std::vector<FunctionStmt *> fnItems;
-		std::vector<EnumStmt *> enumItems;
+		std::vector<FunctionDecl *> constructors;
+		std::vector<VarDecl *> varItems;
+		std::vector<FunctionDecl *> fnItems;
+		std::vector<EnumDecl *> enumItems;
 	};
 
-	struct ModuleStmt : public Stmt
+	struct ModuleDecl : public Decl
 	{
-		ModuleStmt(Token *tagToken);
-		ModuleStmt(Token *tagToken,
+		ModuleDecl(Token *tagToken);
+		ModuleDecl(Token *tagToken,
 				   IdentifierExpr *name,
-				   const std::vector<VarStmt *> &varItems,
-				   const std::vector<ClassStmt *> &classItems,
-				   const std::vector<ModuleStmt *> &moduleItems,
-				   const std::vector<EnumStmt *> &enumItems,
-				   const std::vector<FunctionStmt *> &functionItems);
-		~ModuleStmt() override;
+				   const std::vector<VarDecl *> &varItems,
+				   const std::vector<ClassDecl *> &classItems,
+				   const std::vector<ModuleDecl *> &moduleItems,
+				   const std::vector<EnumDecl *> &enumItems,
+				   const std::vector<FunctionDecl *> &functionItems);
+		~ModuleDecl() override;
 
 		STD_STRING ToString() override;
 
 		IdentifierExpr *name;
-		std::vector<VarStmt *> varItems;
-		std::vector<ClassStmt *> classItems;
-		std::vector<ModuleStmt *> moduleItems;
-		std::vector<EnumStmt *> enumItems;
-		std::vector<FunctionStmt *> functionItems;
-	};
-	struct AstStmts : public Stmt
-	{
-		AstStmts(Token *tagToken);
-		AstStmts(Token *tagToken, std::vector<Stmt *> stmts);
-		~AstStmts() override;
-
-		STD_STRING ToString() override;
-
-		std::vector<Stmt *> stmts;
+		std::vector<VarDecl *> varItems;
+		std::vector<ClassDecl *> classItems;
+		std::vector<ModuleDecl *> moduleItems;
+		std::vector<EnumDecl *> enumItems;
+		std::vector<FunctionDecl *> functionItems;
 	};
 }

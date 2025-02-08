@@ -16,9 +16,9 @@ namespace lwscript
         return stmt;
     }
 
-    Stmt *SyntaxCheckPass::ExecuteVarStmt(VarStmt *stmt)
+    Decl *SyntaxCheckPass::ExecuteVarDecl(VarDecl *decl)
     {
-        for (auto &[k, v] : stmt->variables)
+        for (auto &[k, v] : decl->variables)
         {
             if (k->kind == AstKind::ARRAY)
             {
@@ -41,7 +41,7 @@ namespace lwscript
 
             v = ExecuteExpr(v);
         }
-        return stmt;
+        return decl;
     }
 
     Stmt *SyntaxCheckPass::ExecuteExprStmt(ExprStmt *stmt)
@@ -67,30 +67,30 @@ namespace lwscript
             stmt->increment = (ScopeStmt *)ExecuteScopeStmt(stmt->increment);
         return stmt;
     }
-    Stmt *SyntaxCheckPass::ExecuteEnumStmt(EnumStmt *stmt)
+    Decl *SyntaxCheckPass::ExecuteEnumDecl(EnumDecl *decl)
     {
-        stmt->name = (IdentifierExpr *)ExecuteIdentifierExpr(stmt->name);
-        for (auto &[k, v] : stmt->enumItems)
+        decl->name = (IdentifierExpr *)ExecuteIdentifierExpr(decl->name);
+        for (auto &[k, v] : decl->enumItems)
             v = ExecuteExpr(v);
-        return stmt;
+        return decl;
     }
-    Stmt *SyntaxCheckPass::ExecuteFunctionStmt(FunctionStmt *stmt)
+    Decl *SyntaxCheckPass::ExecuteFunctionDecl(FunctionDecl *decl)
     {
-        for (int32_t i = 0; i < stmt->parameters.size(); ++i)
+        for (int32_t i = 0; i < decl->parameters.size(); ++i)
         {
-            auto e = stmt->parameters[i];
+            auto e = decl->parameters[i];
             e = (VarDescExpr *)ExecuteVarDescExpr(e);
 
-            if (e->name->kind == AstKind::VAR_ARG && i != stmt->parameters.size() - 1)
+            if (e->name->kind == AstKind::VAR_ARG && i != decl->parameters.size() - 1)
                 Logger::Error(e->tagToken, TEXT("variable argument expr only available at the end of function parameter list."));
         }
 
-        stmt->body = (ScopeStmt *)ExecuteScopeStmt(stmt->body);
-        return stmt;
+        decl->body = (ScopeStmt *)ExecuteScopeStmt(decl->body);
+        return decl;
     }
-    Stmt *SyntaxCheckPass::ExecuteClassStmt(ClassStmt *stmt)
+    Decl *SyntaxCheckPass::ExecuteClassDecl(ClassDecl *decl)
     {
-        return stmt;
+        return decl;
     }
     Stmt *SyntaxCheckPass::ExecuteReturnStmt(ReturnStmt *stmt)
     {
@@ -107,9 +107,9 @@ namespace lwscript
         return stmt;
     }
 
-    Stmt *SyntaxCheckPass::ExecuteModuleStmt(ModuleStmt *stmt)
+    Decl *SyntaxCheckPass::ExecuteModuleDecl(ModuleDecl *decl)
     {
-        return stmt;
+        return decl;
     }
 
     Expr *SyntaxCheckPass::ExecuteInfixExpr(InfixExpr *expr)

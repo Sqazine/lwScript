@@ -79,7 +79,7 @@ namespace lwscript
 	VarDescExpr::VarDescExpr(Token *tagToken)
 		: Expr(tagToken, AstKind::VAR_DESC), name(nullptr)
 	{
-		type=Type(Type(TEXT("any")));
+		type = Type(Type(TEXT("any")));
 	}
 	VarDescExpr::VarDescExpr(Token *tagToken, const Type &type, Expr *name)
 		: Expr(tagToken, AstKind::VAR_DESC), name(name)
@@ -527,37 +527,6 @@ namespace lwscript
 		return expr->ToString() + TEXT(";");
 	}
 
-	VarStmt::VarStmt(Token *tagToken)
-		: Stmt(tagToken, AstKind::VAR), privilege(Privilege::MUTABLE)
-	{
-	}
-	VarStmt::VarStmt(Token *tagToken, Privilege privilege, const std::vector<std::pair<Expr *, Expr *>> &variables)
-		: Stmt(tagToken, AstKind::VAR), privilege(privilege), variables(variables)
-	{
-	}
-	VarStmt::~VarStmt()
-	{
-		std::vector<std::pair<Expr *, Expr *>>().swap(variables);
-	}
-
-	STD_STRING VarStmt::ToString()
-	{
-		STD_STRING result;
-
-		if (privilege == Privilege::IMMUTABLE)
-			result += TEXT("const ");
-		else
-			result += TEXT("let ");
-
-		if (!variables.empty())
-		{
-			for (auto [key, value] : variables)
-				result += key->ToString() + TEXT("=") + value->ToString() + TEXT(",");
-			result = result.substr(0, result.size() - 1);
-		}
-		return result + TEXT(";");
-	}
-
 	ReturnStmt::ReturnStmt(Token *tagToken)
 		: Stmt(tagToken, AstKind::RETURN), expr(nullptr)
 	{
@@ -677,157 +646,6 @@ namespace lwscript
 		return TEXT("continue;");
 	}
 
-	EnumStmt::EnumStmt(Token *tagToken)
-		: Stmt(tagToken, AstKind::ENUM), name(nullptr)
-	{
-	}
-	EnumStmt::EnumStmt(Token *tagToken, IdentifierExpr *name, const std::unordered_map<IdentifierExpr *, Expr *> &enumItems)
-		: Stmt(tagToken, AstKind::ENUM), name(name), enumItems(enumItems)
-	{
-	}
-	EnumStmt::~EnumStmt()
-	{
-		SAFE_DELETE(name);
-		std::unordered_map<IdentifierExpr *, Expr *>().swap(enumItems);
-	}
-	STD_STRING EnumStmt::ToString()
-	{
-		STD_STRING result = TEXT("enum ") + name->ToString() + TEXT("{");
-
-		if (!enumItems.empty())
-		{
-			for (auto [key, value] : enumItems)
-				result += key->ToString() + TEXT("=") + value->ToString() + TEXT(",");
-			result = result.substr(0, result.size() - 1);
-		}
-		return result + TEXT("}");
-	}
-
-	ModuleStmt::ModuleStmt(Token *tagToken)
-		: Stmt(tagToken, AstKind::MODULE), name(nullptr)
-	{
-	}
-	ModuleStmt::ModuleStmt(Token *tagToken,
-						   IdentifierExpr *name,
-						   const std::vector<VarStmt *> &varItems,
-						   const std::vector<ClassStmt *> &classItems,
-						   const std::vector<ModuleStmt *> &moduleItems,
-						   const std::vector<EnumStmt *> &enumItems,
-						   const std::vector<FunctionStmt *> &functionItems)
-		: Stmt(tagToken, AstKind::MODULE), name(name),
-		  varItems(varItems),
-		  classItems(classItems),
-		  moduleItems(moduleItems),
-		  enumItems(enumItems),
-		  functionItems(functionItems)
-	{
-	}
-	ModuleStmt::~ModuleStmt()
-	{
-		SAFE_DELETE(name);
-		std::vector<VarStmt *>().swap(varItems);
-		std::vector<ClassStmt *>().swap(classItems);
-		std::vector<ModuleStmt *>().swap(moduleItems);
-		std::vector<EnumStmt *>().swap(enumItems);
-		std::vector<FunctionStmt *>().swap(functionItems);
-	}
-
-	STD_STRING ModuleStmt::ToString()
-	{
-		STD_STRING result = TEXT("module ") + name->ToString() + TEXT("\n{\n");
-		for (const auto &item : varItems)
-			result += item->ToString() + TEXT("\n");
-		for (const auto &item : classItems)
-			result += item->ToString() + TEXT("\n");
-		for (const auto &item : moduleItems)
-			result += item->ToString() + TEXT("\n");
-		for (const auto &item : enumItems)
-			result += item->ToString() + TEXT("\n");
-		for (const auto &item : functionItems)
-			result += item->ToString() + TEXT("\n");
-		return result + TEXT("}\n");
-	}
-
-	FunctionStmt::FunctionStmt(Token *tagToken)
-		: Stmt(tagToken, AstKind::FUNCTION), name(nullptr), body(nullptr), functionKind(FunctionKind::FUNCTION)
-	{
-	}
-
-	FunctionStmt::FunctionStmt(Token *tagToken, FunctionKind kind, IdentifierExpr *name, const std::vector<VarDescExpr *> &parameters, ScopeStmt *body)
-		: Stmt(tagToken, AstKind::FUNCTION), functionKind(kind), name(name), parameters(parameters), body(body)
-	{
-	}
-
-	FunctionStmt::~FunctionStmt()
-	{
-		SAFE_DELETE(name);
-		std::vector<VarDescExpr *>().swap(parameters);
-		SAFE_DELETE(body);
-	}
-
-	STD_STRING FunctionStmt::ToString()
-	{
-		STD_STRING result = TEXT("fn ") + name->ToString() + TEXT("(");
-		if (!parameters.empty())
-		{
-			for (auto param : parameters)
-				result += param->ToString() + TEXT(",");
-			result = result.substr(0, result.size() - 1);
-		}
-		result += TEXT(")");
-		result += body->ToString();
-		return result;
-	}
-
-	ClassStmt::ClassStmt(Token *tagToken)
-		: Stmt(tagToken, AstKind::CLASS)
-	{
-	}
-	ClassStmt::ClassStmt(Token *tagToken,
-						 STD_STRING name,
-						 const std::vector<VarStmt *> &varItems,
-						 const std::vector<FunctionStmt *> &fnItems,
-						 const std::vector<EnumStmt *> &enumItems,
-						 const std::vector<FunctionStmt *> &constructors,
-						 const std::vector<IdentifierExpr *> &parentClasses)
-		: Stmt(tagToken, AstKind::CLASS),
-		  name(name),
-		  varItems(varItems),
-		  fnItems(fnItems),
-		  enumItems(enumItems),
-		  constructors(constructors),
-		  parentClasses(parentClasses)
-	{
-	}
-	ClassStmt::~ClassStmt()
-	{
-		std::vector<IdentifierExpr *>().swap(parentClasses);
-		std::vector<FunctionStmt *>().swap(constructors);
-		std::vector<VarStmt *>().swap(varItems);
-		std::vector<FunctionStmt *>().swap(fnItems);
-		std::vector<EnumStmt *>().swap(enumItems);
-	}
-
-	STD_STRING ClassStmt::ToString()
-	{
-		STD_STRING result = TEXT("class ") + name;
-		if (!parentClasses.empty())
-		{
-			result += TEXT(":");
-			for (const auto &parentClass : parentClasses)
-				result += parentClass->ToString() + TEXT(",");
-			result = result.substr(0, result.size() - 1);
-		}
-		result += TEXT("{");
-		for (auto enumStmt : enumItems)
-			result += enumStmt->ToString();
-		for (auto variableStmt : varItems)
-			result += variableStmt->ToString();
-		for (auto fnStmt : fnItems)
-			result += fnStmt->ToString();
-		return result + TEXT("}");
-	}
-
 	AstStmts::AstStmts(Token *tagToken)
 		: Stmt(tagToken, AstKind::ASTSTMTS)
 	{
@@ -848,5 +666,189 @@ namespace lwscript
 		for (const auto &stmt : stmts)
 			result += stmt->ToString();
 		return result;
+	}
+
+	//----------------------Declarations-----------------------------
+
+	VarDecl::VarDecl(Token *tagToken)
+		: Decl(tagToken, AstKind::VAR), privilege(Privilege::MUTABLE)
+	{
+	}
+	VarDecl::VarDecl(Token *tagToken, Privilege privilege, const std::vector<std::pair<Expr *, Expr *>> &variables)
+		: Decl(tagToken, AstKind::VAR), privilege(privilege), variables(variables)
+	{
+	}
+	VarDecl::~VarDecl()
+	{
+		std::vector<std::pair<Expr *, Expr *>>().swap(variables);
+	}
+
+	STD_STRING VarDecl::ToString()
+	{
+		STD_STRING result;
+
+		if (privilege == Privilege::IMMUTABLE)
+			result += TEXT("const ");
+		else
+			result += TEXT("let ");
+
+		if (!variables.empty())
+		{
+			for (auto [key, value] : variables)
+				result += key->ToString() + TEXT("=") + value->ToString() + TEXT(",");
+			result = result.substr(0, result.size() - 1);
+		}
+		return result + TEXT(";");
+	}
+
+	EnumDecl::EnumDecl(Token *tagToken)
+		: Decl(tagToken, AstKind::ENUM), name(nullptr)
+	{
+	}
+	EnumDecl::EnumDecl(Token *tagToken, IdentifierExpr *name, const std::unordered_map<IdentifierExpr *, Expr *> &enumItems)
+		: Decl(tagToken, AstKind::ENUM), name(name), enumItems(enumItems)
+	{
+	}
+	EnumDecl::~EnumDecl()
+	{
+		SAFE_DELETE(name);
+		std::unordered_map<IdentifierExpr *, Expr *>().swap(enumItems);
+	}
+	STD_STRING EnumDecl::ToString()
+	{
+		STD_STRING result = TEXT("enum ") + name->ToString() + TEXT("{");
+
+		if (!enumItems.empty())
+		{
+			for (auto [key, value] : enumItems)
+				result += key->ToString() + TEXT("=") + value->ToString() + TEXT(",");
+			result = result.substr(0, result.size() - 1);
+		}
+		return result + TEXT("}");
+	}
+
+	ModuleDecl::ModuleDecl(Token *tagToken)
+		: Decl(tagToken, AstKind::MODULE), name(nullptr)
+	{
+	}
+	ModuleDecl::ModuleDecl(Token *tagToken,
+						   IdentifierExpr *name,
+						   const std::vector<VarDecl *> &varItems,
+						   const std::vector<ClassDecl *> &classItems,
+						   const std::vector<ModuleDecl *> &moduleItems,
+						   const std::vector<EnumDecl *> &enumItems,
+						   const std::vector<FunctionDecl *> &functionItems)
+		: Decl(tagToken, AstKind::MODULE), name(name),
+		  varItems(varItems),
+		  classItems(classItems),
+		  moduleItems(moduleItems),
+		  enumItems(enumItems),
+		  functionItems(functionItems)
+	{
+	}
+	ModuleDecl::~ModuleDecl()
+	{
+		SAFE_DELETE(name);
+		std::vector<VarDecl *>().swap(varItems);
+		std::vector<ClassDecl *>().swap(classItems);
+		std::vector<ModuleDecl *>().swap(moduleItems);
+		std::vector<EnumDecl *>().swap(enumItems);
+		std::vector<FunctionDecl *>().swap(functionItems);
+	}
+
+	STD_STRING ModuleDecl::ToString()
+	{
+		STD_STRING result = TEXT("module ") + name->ToString() + TEXT("\n{\n");
+		for (const auto &item : varItems)
+			result += item->ToString() + TEXT("\n");
+		for (const auto &item : classItems)
+			result += item->ToString() + TEXT("\n");
+		for (const auto &item : moduleItems)
+			result += item->ToString() + TEXT("\n");
+		for (const auto &item : enumItems)
+			result += item->ToString() + TEXT("\n");
+		for (const auto &item : functionItems)
+			result += item->ToString() + TEXT("\n");
+		return result + TEXT("}\n");
+	}
+
+	FunctionDecl::FunctionDecl(Token *tagToken)
+		: Decl(tagToken, AstKind::FUNCTION), name(nullptr), body(nullptr), functionKind(FunctionKind::FUNCTION)
+	{
+	}
+
+	FunctionDecl::FunctionDecl(Token *tagToken, FunctionKind kind, IdentifierExpr *name, const std::vector<VarDescExpr *> &parameters, ScopeStmt *body)
+		: Decl(tagToken, AstKind::FUNCTION), functionKind(kind), name(name), parameters(parameters), body(body)
+	{
+	}
+
+	FunctionDecl::~FunctionDecl()
+	{
+		SAFE_DELETE(name);
+		std::vector<VarDescExpr *>().swap(parameters);
+		SAFE_DELETE(body);
+	}
+
+	STD_STRING FunctionDecl::ToString()
+	{
+		STD_STRING result = TEXT("fn ") + name->ToString() + TEXT("(");
+		if (!parameters.empty())
+		{
+			for (auto param : parameters)
+				result += param->ToString() + TEXT(",");
+			result = result.substr(0, result.size() - 1);
+		}
+		result += TEXT(")");
+		result += body->ToString();
+		return result;
+	}
+
+	ClassDecl::ClassDecl(Token *tagToken)
+		: Decl(tagToken, AstKind::CLASS)
+	{
+	}
+	ClassDecl::ClassDecl(Token *tagToken,
+						 STD_STRING name,
+						 const std::vector<VarDecl *> &varItems,
+						 const std::vector<FunctionDecl *> &fnItems,
+						 const std::vector<EnumDecl *> &enumItems,
+						 const std::vector<FunctionDecl *> &constructors,
+						 const std::vector<IdentifierExpr *> &parentClasses)
+		: Decl(tagToken, AstKind::CLASS),
+		  name(name),
+		  varItems(varItems),
+		  fnItems(fnItems),
+		  enumItems(enumItems),
+		  constructors(constructors),
+		  parentClasses(parentClasses)
+	{
+	}
+	ClassDecl::~ClassDecl()
+	{
+		std::vector<IdentifierExpr *>().swap(parentClasses);
+		std::vector<FunctionDecl *>().swap(constructors);
+		std::vector<VarDecl *>().swap(varItems);
+		std::vector<FunctionDecl *>().swap(fnItems);
+		std::vector<EnumDecl *>().swap(enumItems);
+	}
+
+	STD_STRING ClassDecl::ToString()
+	{
+		STD_STRING result = TEXT("class ") + name;
+		if (!parentClasses.empty())
+		{
+			result += TEXT(":");
+			for (const auto &parentClass : parentClasses)
+				result += parentClass->ToString() + TEXT(",");
+			result = result.substr(0, result.size() - 1);
+		}
+		result += TEXT("{");
+		for (auto enumStmt : enumItems)
+			result += enumStmt->ToString();
+		for (auto variableStmt : varItems)
+			result += variableStmt->ToString();
+		for (auto fnStmt : fnItems)
+			result += fnStmt->ToString();
+		return result + TEXT("}");
 	}
 }
