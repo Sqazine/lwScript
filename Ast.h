@@ -474,6 +474,7 @@ namespace lwscript
 
 	struct ModuleDecl : public Decl
 	{
+		
 		ModuleDecl(Token *tagToken);
 		ModuleDecl(Token *tagToken,
 				   IdentifierExpr *name,

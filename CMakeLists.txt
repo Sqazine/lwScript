@@ -44,44 +44,8 @@ else()
     set(LIB_NAME lwScript)
 endif()
 
-set(LWSCRIPT_HEADER_FILES ${GENERATED_DIR}/Version.h
-                            lwscript.h
-                            Allocator.h
-                            Ast.h
-                            AstPass.h
-                            Chunk.h
-                            Compiler.h
-                            ConstantFoldPass.h
-                            Lexer.h
-                            LibraryManager.h
-                            Logger.h
-                            Object.h
-                            Parser.h 
-                            SyntaxCheckPass.h 
-                            Token.h
-                            Type.h
-                            TypeCheckPass.h
-                            Utils.h
-                            Value.h
-                            VM.h
-                            )
-
-set(LWSCRIPT_SOURCE_FILES Allocator.cpp
-                          Ast.cpp
-                          Chunk.cpp
-                          Compiler.cpp
-                          ConstantFoldPass.cpp
-                          Lexer.cpp
-                          LibraryManager.cpp
-                          Object.cpp
-                          Parser.cpp
-                          SyntaxCheckPass.cpp
-                          Type.cpp
-                          TypeCheckPass.cpp
-                          Utils.cpp
-                          Value.cpp
-                          VM.cpp
-                          )
+file(GLOB LWSCRIPT_HEADER_FILES "${GENERATED_DIR}/*.h" "*.h")
+file(GLOB LWSCRIPT_SOURCE_FILES "${GENERATED_DIR}/*.cpp" "*.cpp")
 
 source_group("src" FILES ${LWSCRIPT_HEADER_FILES} ${LWSCRIPT_SOURCE_FILES})
 if(LWSCRIPT_STATIC_BUILD)
@@ -99,7 +63,7 @@ if(LWSCRIPT_BUILD_EXECUTABLE)
     file(GLOB EXAMPLES "${CMAKE_SOURCE_DIR}/examples/*.lws")
 
     source_group("examples" FILES ${EXAMPLES})
-    add_executable(${EXE_NAME} lwScript.cpp ${EXAMPLES})
+    add_executable(${EXE_NAME} lwScript.cc ${EXAMPLES})
     set_target_properties(${EXE_NAME} PROPERTIES DEBUG_POSTFIX ${CMAKE_DEBUG_POSTFIX})
     target_include_directories(${EXE_NAME} PUBLIC ${CMAKE_SOURCE_DIR}/liblwscript)
     target_include_directories(${EXE_NAME} PRIVATE ${GENERATED_DIR})
