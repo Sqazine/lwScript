@@ -243,9 +243,9 @@ namespace lwscript
 
 			if (mCurClassInfo)
 			{
-				funcStmt->functionKind = FunctionKind::CLASS_CLOSURE;
+				funcStmt->functionKind = FunctionDecl::Kind::CLASS_CLOSURE;
 				if (mCurClassInfo->name == funcStmt->name->literal)
-					funcStmt->functionKind = FunctionKind::CLASS_CONSTRUCTOR;
+					funcStmt->functionKind = FunctionDecl::Kind::CLASS_CONSTRUCTOR;
 			}
 
 			Consume(TokenKind::LPAREN, TEXT("Expect '(' after 'fn' keyword"));
@@ -277,7 +277,7 @@ namespace lwscript
 			funcStmt->returnTypes = functionReturnTypes;
 			funcStmt->body = (ScopeStmt *)ParseScopeStmt();
 
-			if (funcStmt->body->stmts.back()->kind != AstKind::RETURN && funcStmt->functionKind != FunctionKind::CLASS_CONSTRUCTOR)
+			if (funcStmt->body->stmts.back()->kind != AstKind::RETURN && funcStmt->functionKind != FunctionDecl::Kind::CLASS_CONSTRUCTOR)
 			{
 				auto tmpReturn = new ReturnStmt(GetCurToken());
 				funcStmt->body->stmts.emplace_back(tmpReturn);

@@ -428,22 +428,22 @@ namespace lwscript
 		std::unordered_map<IdentifierExpr *, Expr *> enumItems;
 	};
 
-	enum class FunctionKind
-	{
-		CLASS_CONSTRUCTOR,
-		CLASS_CLOSURE,
-		FUNCTION,
-	};
-
+	
 	struct FunctionDecl : public Decl
 	{
+		enum class Kind
+		{
+			CLASS_CONSTRUCTOR,
+			CLASS_CLOSURE,
+			FUNCTION,
+		};
 		FunctionDecl(Token *tagToken);
-		FunctionDecl(Token *tagToken, FunctionKind kind, IdentifierExpr *name, const std::vector<VarDescExpr *> &parameters, ScopeStmt *body);
+		FunctionDecl(Token *tagToken, Kind kind, IdentifierExpr *name, const std::vector<VarDescExpr *> &parameters, ScopeStmt *body);
 		~FunctionDecl() override;
 
 		STD_STRING ToString() override;
 
-		FunctionKind functionKind;
+		Kind functionKind;
 		IdentifierExpr *name;
 		std::vector<VarDescExpr *> parameters;
 		ScopeStmt *body;
@@ -474,7 +474,6 @@ namespace lwscript
 
 	struct ModuleDecl : public Decl
 	{
-		
 		ModuleDecl(Token *tagToken);
 		ModuleDecl(Token *tagToken,
 				   IdentifierExpr *name,

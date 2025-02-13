@@ -773,11 +773,11 @@ namespace lwscript
 	}
 
 	FunctionDecl::FunctionDecl(Token *tagToken)
-		: Decl(tagToken, AstKind::FUNCTION), name(nullptr), body(nullptr), functionKind(FunctionKind::FUNCTION)
+		: Decl(tagToken, AstKind::FUNCTION), name(nullptr), body(nullptr), functionKind(Kind::FUNCTION)
 	{
 	}
 
-	FunctionDecl::FunctionDecl(Token *tagToken, FunctionKind kind, IdentifierExpr *name, const std::vector<VarDescExpr *> &parameters, ScopeStmt *body)
+	FunctionDecl::FunctionDecl(Token *tagToken, Kind kind, IdentifierExpr *name, const std::vector<VarDescExpr *> &parameters, ScopeStmt *body)
 		: Decl(tagToken, AstKind::FUNCTION), functionKind(kind), name(name), parameters(parameters), body(body)
 	{
 	}

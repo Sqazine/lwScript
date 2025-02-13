@@ -1075,7 +1075,7 @@ namespace lwscript
 		mSymbolTable = new SymbolTable(mSymbolTable);
 
 		STD_STRING symbolName = decl->name->literal;
-		if (decl->functionKind == FunctionKind::CLASS_CLOSURE || decl->functionKind == FunctionKind::CLASS_CONSTRUCTOR)
+		if (decl->functionKind == FunctionDecl::Kind::CLASS_CLOSURE || decl->functionKind == FunctionDecl::Kind::CLASS_CONSTRUCTOR)
 			symbolName = TEXT("this");
 		mSymbolTable->Define(decl->tagToken, Privilege::IMMUTABLE, symbolName);
 
@@ -1099,7 +1099,7 @@ namespace lwscript
 
 		CompileScopeStmt(decl->body);
 
-		if (decl->functionKind == FunctionKind::CLASS_CONSTRUCTOR)
+		if (decl->functionKind == FunctionDecl::Kind::CLASS_CONSTRUCTOR)
 		{
 			EmitOpCode(OP_GET_LOCAL, decl->tagToken);
 			Emit(0);
