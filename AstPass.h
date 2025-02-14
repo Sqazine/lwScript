@@ -28,8 +28,6 @@ namespace lwscript
         {
             switch (stmt->kind)
             {
-            case AstKind::VAR:
-                return ExecuteVarDecl((VarDecl *)stmt);
             case AstKind::EXPR:
                 return ExecuteExprStmt((ExprStmt *)stmt);
             case AstKind::RETURN:
@@ -44,33 +42,50 @@ namespace lwscript
                 return ExecuteBreakStmt((BreakStmt *)stmt);
             case AstKind::CONTINUE:
                 return ExecuteContinueStmt((ContinueStmt *)stmt);
+            case AstKind::VAR:
             case AstKind::ENUM:
-                return ExecuteEnumDecl((EnumDecl *)stmt);
             case AstKind::FUNCTION:
-                return ExecuteFunctionDecl((FunctionDecl *)stmt);
             case AstKind::CLASS:
-                return ExecuteClassDecl((ClassDecl *)stmt);
             case AstKind::MODULE:
-                return ExecuteModuleDecl((ModuleDecl *)stmt);
+                return ExecuteDecl((Decl *)stmt);
             case AstKind::ASTSTMTS:
                 return ExecuteAstStmts((AstStmts *)stmt);
             default:
                 return stmt;
             }
         }
+
+        Decl *ExecuteDecl(Decl *decl)
+        {
+            switch (decl->kind)
+            {
+            case AstKind::VAR:
+                return ExecuteVarDecl((VarDecl *)decl);
+            case AstKind::ENUM:
+                return ExecuteEnumDecl((EnumDecl *)decl);
+            case AstKind::FUNCTION:
+                return ExecuteFunctionDecl((FunctionDecl *)decl);
+            case AstKind::CLASS:
+                return ExecuteClassDecl((ClassDecl *)decl);
+            case AstKind::MODULE:
+                return ExecuteModuleDecl((ModuleDecl *)decl);
+            default:
+                return decl;
+            }
+        }
         virtual Stmt *ExecuteAstStmts(AstStmts *stmt) { return stmt; }
-        
-        virtual Decl *ExecuteVarDecl(VarDecl * decl) { return decl; }
-        virtual Decl *ExecuteEnumDecl(EnumDecl * decl) { return decl; }
-        virtual Decl *ExecuteFunctionDecl(FunctionDecl * decl) { return decl; }
-        virtual Decl *ExecuteModuleDecl(ModuleDecl * decl) { return decl; }
-        
+
+        virtual Decl *ExecuteVarDecl(VarDecl *decl) { return decl; }
+        virtual Decl *ExecuteEnumDecl(EnumDecl *decl) { return decl; }
+        virtual Decl *ExecuteFunctionDecl(FunctionDecl *decl) { return decl; }
+        virtual Decl *ExecuteModuleDecl(ModuleDecl *decl) { return decl; }
+        virtual Decl *ExecuteClassDecl(ClassDecl *decl) { return decl; }
+
         virtual Stmt *ExecuteExprStmt(ExprStmt *stmt) { return stmt; }
         virtual Stmt *ExecuteReturnStmt(ReturnStmt *stmt) { return stmt; }
         virtual Stmt *ExecuteIfStmt(IfStmt *stmt) { return stmt; }
         virtual Stmt *ExecuteScopeStmt(ScopeStmt *stmt) { return stmt; }
         virtual Stmt *ExecuteWhileStmt(WhileStmt *stmt) { return stmt; }
-        virtual Stmt *ExecuteClassDecl(ClassDecl * decl) { return decl; }
         virtual Stmt *ExecuteBreakStmt(BreakStmt *stmt) { return stmt; }
         virtual Stmt *ExecuteContinueStmt(ContinueStmt *stmt) { return stmt; }
 
