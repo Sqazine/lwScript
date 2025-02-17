@@ -1,7 +1,81 @@
 #include "TypeCheckPass.h"
-
+#include "Logger.h"
 namespace lwscript
 {
+    struct TypeMapInfo
+    {
+        TypeKind leftKind;
+        TypeKind rightKind;
+        Logger::Kind logKind;
+        STD_STRING msg;
+    };
+
+    const TypeMapInfo TypeMaps[] =
+        {
+            {TypeKind::I8, TypeKind::I16, Logger::Kind::WARN, TEXT("Assignning a int16 value to a int8 value, it is a narrow conversion and may lose data.")},
+            {TypeKind::I8, TypeKind::I32, Logger::Kind::WARN, TEXT("Assignning a int32 value to a int8 value, it is a narrow conversion and may lose data.")},
+            {TypeKind::I8, TypeKind::I64, Logger::Kind::WARN, TEXT("Assignning a int32 value to a int8 value, it is a narrow conversion and may lose data.")},
+            {TypeKind::I8, TypeKind::U8,  Logger::Kind::WARN, TEXT("Assignning a uint8 value to a int8 value, it is a narrow conversion and may lose data.")},
+            {TypeKind::I8, TypeKind::U16, Logger::Kind::WARN, TEXT("Assignning a uint16 value to a int8 value, it is a narrow conversion and may lose data.")},
+            {TypeKind::I8, TypeKind::U32, Logger::Kind::WARN, TEXT("Assignning a uint32 value to a int8 value, it is a narrow conversion and may lose data.")},
+            {TypeKind::I8, TypeKind::U64, Logger::Kind::WARN, TEXT("Assignning a uint64 value to a int8 value, it is a narrow conversion and may lose data.")},
+            {TypeKind::I8, TypeKind::F32, Logger::Kind::WARN, TEXT("Assignning a floating32 value to a int8 value, it is a narrow conversion and may lose data.")},
+            {TypeKind::I8, TypeKind::F64, Logger::Kind::WARN, TEXT("Assignning a floating64 value to a int8 value, it is a narrow conversion and may lose data.")},
+
+            {TypeKind::I16, TypeKind::I8,  Logger::Kind::INFO, TEXT("Assignning a int8 value to a int16 value, it is a broadening conversion.")},
+            {TypeKind::I16, TypeKind::I32, Logger::Kind::WARN, TEXT("Assignning a int32 value to a int16 value, it is a narrow conversion and may lose data.")},
+            {TypeKind::I16, TypeKind::I64, Logger::Kind::WARN, TEXT("Assignning a int32 value to a int16 value, it is a narrow conversion and may lose data.")},
+            {TypeKind::I16, TypeKind::U8,  Logger::Kind::WARN, TEXT("Assignning a uint8 value to a int16 value, it is a broadening conversion and may lose data.")},
+            {TypeKind::I16, TypeKind::U16, Logger::Kind::WARN, TEXT("Assignning a uint16 value to a int16 value, it may lose data.")},
+            {TypeKind::I16, TypeKind::U32, Logger::Kind::WARN, TEXT("Assignning a uint32 value to a int16 value, it is a narrow conversion and may lose data.")},
+            {TypeKind::I16, TypeKind::U64, Logger::Kind::WARN, TEXT("Assignning a uint64 value to a int16 value, it is a narrow conversion and may lose data.")},
+            {TypeKind::I16, TypeKind::F32, Logger::Kind::WARN, TEXT("Assignning a floating32 value to a int16 value, it is a narrow conversion and may lose data.")},
+            {TypeKind::I16, TypeKind::F64, Logger::Kind::WARN, TEXT("Assignning a floating64 value to a int16 value, it is a narrow conversion and may lose data.")},
+
+            {TypeKind::I32, TypeKind::I8,  Logger::Kind::INFO, TEXT("Assignning a int8 value to a int32 value, it is a broadening conversion.")},
+            {TypeKind::I32, TypeKind::I16, Logger::Kind::INFO, TEXT("Assignning a int32 value to a int32 value, it is a broadening conversion.")},
+            {TypeKind::I32, TypeKind::I64, Logger::Kind::WARN, TEXT("Assignning a int32 value to a int32 value, it is a narrow conversion and may lose data.")},
+            {TypeKind::I32, TypeKind::U8,  Logger::Kind::WARN, TEXT("Assignning a uint8 value to a int32 value, it is a broadening conversion and may lose data.")},
+            {TypeKind::I32, TypeKind::U16, Logger::Kind::WARN, TEXT("Assignning a uint16 value to a int32 value, it is a broadening conversion and may lose data.")},
+            {TypeKind::I32, TypeKind::U32, Logger::Kind::WARN, TEXT("Assignning a uint32 value to a int32 value, it may lose data.")},
+            {TypeKind::I32, TypeKind::U64, Logger::Kind::WARN, TEXT("Assignning a uint64 value to a int32 value, it is a narrow conversion and may lose data.")},
+            {TypeKind::I32, TypeKind::F32, Logger::Kind::WARN, TEXT("Assignning a floating32 value to a int32 value, it may lose data.")},
+            {TypeKind::I32, TypeKind::F64, Logger::Kind::WARN, TEXT("Assignning a floating64 value to a int32 value, it is a narrow conversion and may lose data.")},
+
+            {TypeKind::I64, TypeKind::I8,  Logger::Kind::INFO, TEXT("Assignning a int8 value to a int64 value, it is a broadening conversion.")},
+            {TypeKind::I64, TypeKind::I16, Logger::Kind::INFO, TEXT("Assignning a int16 value to a int64 value, it is a broadening conversion.")},
+            {TypeKind::I64, TypeKind::I32, Logger::Kind::INFO, TEXT("Assignning a int32 value to a int64 value, it is a broadening conversion.")},
+            {TypeKind::I64, TypeKind::U8,  Logger::Kind::WARN, TEXT("Assignning a uint8 value to a int64 value, it may lose data.")},
+            {TypeKind::I64, TypeKind::U16, Logger::Kind::WARN, TEXT("Assignning a uint16 value to a int64 value, it may lose data.")},
+            {TypeKind::I64, TypeKind::U32, Logger::Kind::WARN, TEXT("Assignning a uint32 value to a int64 value, it may lose data.")},
+            {TypeKind::I64, TypeKind::U64, Logger::Kind::WARN, TEXT("Assignning a uint64 value to a int64 value, it may lose data.")},
+            {TypeKind::I64, TypeKind::F32, Logger::Kind::WARN, TEXT("Assignning a floating32 value to a int64 value, it may lose data.")},
+            {TypeKind::I64, TypeKind::F64, Logger::Kind::WARN, TEXT("Assignning a floating64 value to a int64 value, it may lose data.")},
+
+            {TypeKind::F64, TypeKind::I8,  Logger::Kind::WARN, TEXT("Assignning a int8 value to a floating64 value, it is a broadening conversion and may lose data.")},  
+            {TypeKind::F64, TypeKind::I16, Logger::Kind::WARN, TEXT("Assignning a int16 value to a floating64 value, it is a broadening conversion and may lose data.")},
+            {TypeKind::F64, TypeKind::I32, Logger::Kind::WARN, TEXT("Assignning a int32 value to a floating64 value, it is a broadening conversion and may lose data.")},
+            {TypeKind::F64, TypeKind::I64, Logger::Kind::WARN, TEXT("Assignning a int64 value to a floating64 value, it may lose data.")},
+            {TypeKind::F64, TypeKind::U8,  Logger::Kind::WARN, TEXT("Assignning a uint8 value to a floating64 value, it is a broadening conversion and may lose data.")},
+            {TypeKind::F64, TypeKind::U16, Logger::Kind::WARN, TEXT("Assignning a uint16 value to a floating64 value, it is a broadening conversion and may lose data.")},
+            {TypeKind::F64, TypeKind::U32, Logger::Kind::WARN, TEXT("Assignning a uint32 value to a floating64 value, it is a broadening conversion and may lose data.")},
+            {TypeKind::F64, TypeKind::U64, Logger::Kind::WARN, TEXT("Assignning a uint64 value to a floating64 value, it may lose data.")},
+            {TypeKind::F64, TypeKind::F32, Logger::Kind::WARN, TEXT("Assignning a floating32 value to a floating64 value, it is a broadening conversion.")},
+    };
+
+    bool FindTypeMapInfo(TypeKind left, TypeKind right, STD_STRING &msg)
+    {
+        for (const auto &t : TypeMaps)
+        {
+            if (t.leftKind == left && t.rightKind == right)
+            {
+                msg = t.msg;
+                return true;
+            }
+        }
+        return false;
+    }
+
     Stmt *TypeCheckPass::ExecuteAstStmts(AstStmts *stmt)
     {
         for (auto &s : stmt->stmts)
@@ -9,7 +83,7 @@ namespace lwscript
 
         return stmt;
     }
-    Decl *TypeCheckPass::ExecuteVarDecl(VarDecl * decl)
+    Decl *TypeCheckPass::ExecuteVarDecl(VarDecl *decl)
     {
         for (auto &[k, v] : decl->variables)
         {
@@ -21,51 +95,17 @@ namespace lwscript
                 auto leftType = ((VarDescExpr *)k)->type;
 
                 if (leftType.Is(TypeKind::ANY))
-                {
                     return decl;
-                }
 
                 if (v->kind != AstKind::LITERAL)
                     Logger::Error(TEXT("Now Only check Literal Expr type and named variable only."));
 
                 auto rightType = ((LiteralExpr *)v)->type;
 
-                if (leftType.GetKind() == TypeKind::I64)
-                {
-                    switch (rightType.GetKind())
-                    {
-                    case TypeKind::I8:
-                        Logger::Info(k->tagToken, TEXT("Assignning a int8 value to a int64 value, it is a broadening conversion."));
-                        break;
-                    case TypeKind::I16:
-                        Logger::Info(k->tagToken, TEXT("Assignning a int16 value to a int64 value, it is a broadening conversion."));
-                        break;
-                    case TypeKind::I32:
-                        Logger::Info(k->tagToken, TEXT("Assignning a int32 value to a int64 value, it is a broadening conversion."));
-                        break;
-                    case TypeKind::U8:
-                        Logger::Warn(k->tagToken, TEXT("Assignning a uint8 value to a int64 value, it is a broadening conversion and may lose data."));
-                        break;
-                    case TypeKind::U16:
-                        Logger::Warn(k->tagToken, TEXT("Assignning a uint16 value to a int64 value, it is a broadening conversion and may lose data."));
-                        break;
-                    case TypeKind::U32:
-                        Logger::Warn(k->tagToken, TEXT("Assignning a uint32 value to a int64 value, it is a broadening conversion and may lose data."));
-                        break;
-                    case TypeKind::U64:
-                        Logger::Warn(k->tagToken, TEXT("Assignning a uint64 value to a int64 value, it may lose data."));
-                        break;
-                    case TypeKind::F32:
-                        Logger::Warn(k->tagToken, TEXT("Assignning a floating32 value to a int64 value, it is a broadening conversion and may lose data."));
-                        break;
-                    case TypeKind::F64:
-                        Logger::Warn(k->tagToken, TEXT("Assignning a floating64 value to a int64 value, it may lose data."));
-                        break;
-                    case TypeKind::I64:
-                    default:
-                        break;
-                    }
-                }
+                STD_STRING msg;
+                auto flag = FindTypeMapInfo(leftType.GetKind(), rightType.GetKind(), msg);
+                if (flag)
+                    Logger::Info(k->tagToken, msg);
             }
         }
 
@@ -92,15 +132,15 @@ namespace lwscript
     {
         return stmt;
     }
-    Decl *TypeCheckPass::ExecuteEnumDecl(EnumDecl * decl)
+    Decl *TypeCheckPass::ExecuteEnumDecl(EnumDecl *decl)
     {
         return decl;
     }
-    Decl *TypeCheckPass::ExecuteFunctionDecl(FunctionDecl * decl)
+    Decl *TypeCheckPass::ExecuteFunctionDecl(FunctionDecl *decl)
     {
         return decl;
     }
-    Decl *TypeCheckPass::ExecuteClassDecl(ClassDecl * decl)
+    Decl *TypeCheckPass::ExecuteClassDecl(ClassDecl *decl)
     {
         return decl;
     }
@@ -112,7 +152,7 @@ namespace lwscript
     {
         return stmt;
     }
-    Decl *TypeCheckPass::ExecuteModuleDecl(ModuleDecl * decl)
+    Decl *TypeCheckPass::ExecuteModuleDecl(ModuleDecl *decl)
     {
         return decl;
     }

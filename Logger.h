@@ -12,6 +12,11 @@ namespace lwscript
 {
     namespace Logger
     {
+        enum class Kind{
+            INFO,
+            WARN,
+            ERROR
+        };
         namespace Record
         {
             inline STD_STRING mCurFilePath = TEXT("interpreter");
@@ -173,6 +178,63 @@ namespace lwscript
         void Info(const Token *tok, const STD_STRING &fmt, const Args &...args)
         {
             AssemblyLogInfo(TEXT("[INFO]"), TEXT("32"), tok->sourceLocation.line, tok->sourceLocation.column, tok->sourceLocation.pos, fmt, args...);
+        }
+
+        template <typename... Args>
+        void Log(Kind logKind,const STD_STRING &fmt, const Args &...args)
+        {
+            switch (logKind)
+            {
+            case Kind::INFO:
+                Info(fmt, args...);
+                break;
+            case Kind::WARN:
+                Warn(fmt, args...);
+                break;
+            case Kind::ERROR:
+                Error(fmt, args...);
+                break;
+            default:
+                break;
+            }
+        }
+
+        template <typename... Args>
+        void Log(Kind logKind, int32_t pos, const STD_STRING &fmt, const Args &...args)
+        {
+            switch (logKind)
+            {
+            case Kind::INFO:
+                Info(pos, fmt, args...);
+                break;
+            case Kind::WARN:
+                Warn(pos, fmt, args...);
+                break;
+            case Kind::ERROR:
+                Error(pos, fmt, args...);
+                break;
+            default:
+                break;
+            }
+        }
+
+        template <typename... Args>
+        void Log(Kind logKind, const Token *tok, const STD_STRING &fmt, const Args &...args)
+        {
+            switch (logKind)
+            {
+            case Kind::INFO:
+                Info(tok, fmt, args...);
+                break;
+            case Kind::WARN:
+                Warn(tok, fmt, args...);
+                break;
+            case Kind::ERROR:
+                Error(tok, fmt, args...);
+                break;
+            default:
+                break;
+            }
         }
     }
 }
