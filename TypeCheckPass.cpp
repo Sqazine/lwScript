@@ -7,73 +7,122 @@ namespace lwscript
         TypeKind leftKind;
         TypeKind rightKind;
         Logger::Kind logKind;
-        STD_STRING msg;
+        const CHAR_T* msg;
     };
 
-    const TypeMapInfo TypeMaps[] =
+    constexpr TypeMapInfo TypeMaps[] =
         {
             {TypeKind::I8, TypeKind::I16, Logger::Kind::WARN, TEXT("Assignning a int16 value to a int8 value, it is a narrow conversion and may lose data.")},
             {TypeKind::I8, TypeKind::I32, Logger::Kind::WARN, TEXT("Assignning a int32 value to a int8 value, it is a narrow conversion and may lose data.")},
-            {TypeKind::I8, TypeKind::I64, Logger::Kind::WARN, TEXT("Assignning a int32 value to a int8 value, it is a narrow conversion and may lose data.")},
+            {TypeKind::I8, TypeKind::I64, Logger::Kind::WARN, TEXT("Assignning a int64 value to a int8 value, it is a narrow conversion and may lose data.")},
             {TypeKind::I8, TypeKind::U8,  Logger::Kind::WARN, TEXT("Assignning a uint8 value to a int8 value, it is a narrow conversion and may lose data.")},
             {TypeKind::I8, TypeKind::U16, Logger::Kind::WARN, TEXT("Assignning a uint16 value to a int8 value, it is a narrow conversion and may lose data.")},
             {TypeKind::I8, TypeKind::U32, Logger::Kind::WARN, TEXT("Assignning a uint32 value to a int8 value, it is a narrow conversion and may lose data.")},
             {TypeKind::I8, TypeKind::U64, Logger::Kind::WARN, TEXT("Assignning a uint64 value to a int8 value, it is a narrow conversion and may lose data.")},
-            {TypeKind::I8, TypeKind::F32, Logger::Kind::WARN, TEXT("Assignning a floating32 value to a int8 value, it is a narrow conversion and may lose data.")},
-            {TypeKind::I8, TypeKind::F64, Logger::Kind::WARN, TEXT("Assignning a floating64 value to a int8 value, it is a narrow conversion and may lose data.")},
+            {TypeKind::I8, TypeKind::F32, Logger::Kind::WARN, TEXT("Assignning a float32 value to a int8 value, it is a narrow conversion and may lose data.")},
+            {TypeKind::I8, TypeKind::F64, Logger::Kind::WARN, TEXT("Assignning a float64 value to a int8 value, it is a narrow conversion and may lose data.")},
 
             {TypeKind::I16, TypeKind::I8,  Logger::Kind::INFO, TEXT("Assignning a int8 value to a int16 value, it is a broadening conversion.")},
             {TypeKind::I16, TypeKind::I32, Logger::Kind::WARN, TEXT("Assignning a int32 value to a int16 value, it is a narrow conversion and may lose data.")},
-            {TypeKind::I16, TypeKind::I64, Logger::Kind::WARN, TEXT("Assignning a int32 value to a int16 value, it is a narrow conversion and may lose data.")},
+            {TypeKind::I16, TypeKind::I64, Logger::Kind::WARN, TEXT("Assignning a int64 value to a int16 value, it is a narrow conversion and may lose data.")},
             {TypeKind::I16, TypeKind::U8,  Logger::Kind::WARN, TEXT("Assignning a uint8 value to a int16 value, it is a broadening conversion and may lose data.")},
             {TypeKind::I16, TypeKind::U16, Logger::Kind::WARN, TEXT("Assignning a uint16 value to a int16 value, it may lose data.")},
             {TypeKind::I16, TypeKind::U32, Logger::Kind::WARN, TEXT("Assignning a uint32 value to a int16 value, it is a narrow conversion and may lose data.")},
             {TypeKind::I16, TypeKind::U64, Logger::Kind::WARN, TEXT("Assignning a uint64 value to a int16 value, it is a narrow conversion and may lose data.")},
-            {TypeKind::I16, TypeKind::F32, Logger::Kind::WARN, TEXT("Assignning a floating32 value to a int16 value, it is a narrow conversion and may lose data.")},
-            {TypeKind::I16, TypeKind::F64, Logger::Kind::WARN, TEXT("Assignning a floating64 value to a int16 value, it is a narrow conversion and may lose data.")},
+            {TypeKind::I16, TypeKind::F32, Logger::Kind::WARN, TEXT("Assignning a float32 value to a int16 value, it is a narrow conversion and may lose data.")},
+            {TypeKind::I16, TypeKind::F64, Logger::Kind::WARN, TEXT("Assignning a float64 value to a int16 value, it is a narrow conversion and may lose data.")},
 
             {TypeKind::I32, TypeKind::I8,  Logger::Kind::INFO, TEXT("Assignning a int8 value to a int32 value, it is a broadening conversion.")},
-            {TypeKind::I32, TypeKind::I16, Logger::Kind::INFO, TEXT("Assignning a int32 value to a int32 value, it is a broadening conversion.")},
-            {TypeKind::I32, TypeKind::I64, Logger::Kind::WARN, TEXT("Assignning a int32 value to a int32 value, it is a narrow conversion and may lose data.")},
+            {TypeKind::I32, TypeKind::I16, Logger::Kind::INFO, TEXT("Assignning a int16 value to a int32 value, it is a broadening conversion.")},
+            {TypeKind::I32, TypeKind::I64, Logger::Kind::WARN, TEXT("Assignning a int64 value to a int32 value, it is a narrow conversion and may lose data.")},
             {TypeKind::I32, TypeKind::U8,  Logger::Kind::WARN, TEXT("Assignning a uint8 value to a int32 value, it is a broadening conversion and may lose data.")},
             {TypeKind::I32, TypeKind::U16, Logger::Kind::WARN, TEXT("Assignning a uint16 value to a int32 value, it is a broadening conversion and may lose data.")},
             {TypeKind::I32, TypeKind::U32, Logger::Kind::WARN, TEXT("Assignning a uint32 value to a int32 value, it may lose data.")},
             {TypeKind::I32, TypeKind::U64, Logger::Kind::WARN, TEXT("Assignning a uint64 value to a int32 value, it is a narrow conversion and may lose data.")},
-            {TypeKind::I32, TypeKind::F32, Logger::Kind::WARN, TEXT("Assignning a floating32 value to a int32 value, it may lose data.")},
-            {TypeKind::I32, TypeKind::F64, Logger::Kind::WARN, TEXT("Assignning a floating64 value to a int32 value, it is a narrow conversion and may lose data.")},
+            {TypeKind::I32, TypeKind::F32, Logger::Kind::WARN, TEXT("Assignning a float32 value to a int32 value, it may lose data.")},
+            {TypeKind::I32, TypeKind::F64, Logger::Kind::WARN, TEXT("Assignning a float64 value to a int32 value, it is a narrow conversion and may lose data.")},
 
             {TypeKind::I64, TypeKind::I8,  Logger::Kind::INFO, TEXT("Assignning a int8 value to a int64 value, it is a broadening conversion.")},
             {TypeKind::I64, TypeKind::I16, Logger::Kind::INFO, TEXT("Assignning a int16 value to a int64 value, it is a broadening conversion.")},
             {TypeKind::I64, TypeKind::I32, Logger::Kind::INFO, TEXT("Assignning a int32 value to a int64 value, it is a broadening conversion.")},
-            {TypeKind::I64, TypeKind::U8,  Logger::Kind::WARN, TEXT("Assignning a uint8 value to a int64 value, it may lose data.")},
-            {TypeKind::I64, TypeKind::U16, Logger::Kind::WARN, TEXT("Assignning a uint16 value to a int64 value, it may lose data.")},
-            {TypeKind::I64, TypeKind::U32, Logger::Kind::WARN, TEXT("Assignning a uint32 value to a int64 value, it may lose data.")},
-            {TypeKind::I64, TypeKind::U64, Logger::Kind::WARN, TEXT("Assignning a uint64 value to a int64 value, it may lose data.")},
-            {TypeKind::I64, TypeKind::F32, Logger::Kind::WARN, TEXT("Assignning a floating32 value to a int64 value, it may lose data.")},
-            {TypeKind::I64, TypeKind::F64, Logger::Kind::WARN, TEXT("Assignning a floating64 value to a int64 value, it may lose data.")},
+            {TypeKind::I64, TypeKind::U8,  Logger::Kind::WARN, TEXT("Assignning a uint8 value to a int64 value, it is a broadening conversion and may lose data.")},
+            {TypeKind::I64, TypeKind::U16, Logger::Kind::WARN, TEXT("Assignning a uint16 value to a int64 value, it is a broadening conversion and may lose data.")},
+            {TypeKind::I64, TypeKind::U32, Logger::Kind::WARN, TEXT("Assignning a uint32 value to a int64 value, it is a broadening conversion and may lose data.")},
+            {TypeKind::I64, TypeKind::U64, Logger::Kind::WARN, TEXT("Assignning a uint64 value to a int64 value, it is a broadening conversion and may lose data.")},
+            {TypeKind::I64, TypeKind::F32, Logger::Kind::WARN, TEXT("Assignning a float32 value to a int64 value, it is a broadening conversion and may lose data.")},
+            {TypeKind::I64, TypeKind::F64, Logger::Kind::WARN, TEXT("Assignning a float64 value to a int64 value, it is a broadening conversion and may lose data.")},
 
-            {TypeKind::F64, TypeKind::I8,  Logger::Kind::WARN, TEXT("Assignning a int8 value to a floating64 value, it is a broadening conversion and may lose data.")},  
-            {TypeKind::F64, TypeKind::I16, Logger::Kind::WARN, TEXT("Assignning a int16 value to a floating64 value, it is a broadening conversion and may lose data.")},
-            {TypeKind::F64, TypeKind::I32, Logger::Kind::WARN, TEXT("Assignning a int32 value to a floating64 value, it is a broadening conversion and may lose data.")},
-            {TypeKind::F64, TypeKind::I64, Logger::Kind::WARN, TEXT("Assignning a int64 value to a floating64 value, it may lose data.")},
-            {TypeKind::F64, TypeKind::U8,  Logger::Kind::WARN, TEXT("Assignning a uint8 value to a floating64 value, it is a broadening conversion and may lose data.")},
-            {TypeKind::F64, TypeKind::U16, Logger::Kind::WARN, TEXT("Assignning a uint16 value to a floating64 value, it is a broadening conversion and may lose data.")},
-            {TypeKind::F64, TypeKind::U32, Logger::Kind::WARN, TEXT("Assignning a uint32 value to a floating64 value, it is a broadening conversion and may lose data.")},
-            {TypeKind::F64, TypeKind::U64, Logger::Kind::WARN, TEXT("Assignning a uint64 value to a floating64 value, it may lose data.")},
-            {TypeKind::F64, TypeKind::F32, Logger::Kind::WARN, TEXT("Assignning a floating32 value to a floating64 value, it is a broadening conversion.")},
+            {TypeKind::U8, TypeKind::I8,  Logger::Kind::WARN, TEXT("Assignning a int8 value to a uint8 value, it may lose data.")},
+            {TypeKind::U8, TypeKind::I16, Logger::Kind::WARN, TEXT("Assignning a int16 value to a uint8 value, it is a narrow conversion and may lose data.")},
+            {TypeKind::U8, TypeKind::I32, Logger::Kind::WARN, TEXT("Assignning a int32 value to a uint8 value, it is a narrow conversion and may lose data.")},
+            {TypeKind::U8, TypeKind::I64, Logger::Kind::WARN, TEXT("Assignning a int64 value to a uint8 value, it is a narrow conversion and may lose data.")},
+            {TypeKind::U8, TypeKind::U16, Logger::Kind::WARN, TEXT("Assignning a uint16 value to a uint8 value, it is a narrow conversion and may lose data.")},
+            {TypeKind::U8, TypeKind::U32, Logger::Kind::WARN, TEXT("Assignning a uint32 value to a uint8 value, it is a narrow conversion and may lose data.")},
+            {TypeKind::U8, TypeKind::U64, Logger::Kind::WARN, TEXT("Assignning a uint64 value to a uint8 value, it is a narrow conversion and may lose data.")},
+            {TypeKind::U8, TypeKind::F32, Logger::Kind::WARN, TEXT("Assignning a float32 value to a uint8 value, it is a narrow conversion and may lose data.")},
+            {TypeKind::U8, TypeKind::F64, Logger::Kind::WARN, TEXT("Assignning a float64 value to a uint8 value, it is a narrow conversion and may lose data.")},
+
+            {TypeKind::U16, TypeKind::I8,  Logger::Kind::WARN, TEXT("Assignning a int8 value to a uint16 value, it is a broadening conversion and may lose data.")},
+            {TypeKind::U16, TypeKind::I16, Logger::Kind::WARN, TEXT("Assignning a int16 value to a uint16 value, it may lose data.")},
+            {TypeKind::U16, TypeKind::I32, Logger::Kind::WARN, TEXT("Assignning a int32 value to a uint16 value, it is a narrow conversion and may lose data.")},
+            {TypeKind::U16, TypeKind::I64, Logger::Kind::WARN, TEXT("Assignning a int64 value to a uint16 value, it is a narrow conversion and may lose data.")},
+            {TypeKind::U16, TypeKind::U8,  Logger::Kind::INFO, TEXT("Assignning a uint8 value to a uint16 value, it is a broadening conversion.")},
+            {TypeKind::U16, TypeKind::U32, Logger::Kind::WARN, TEXT("Assignning a uint32 value to a uint16 value, it is a narrow conversion and may lose data.")},
+            {TypeKind::U16, TypeKind::U64, Logger::Kind::WARN, TEXT("Assignning a uint64 value to a uint16 value, it is a narrow conversion and may lose data.")},
+            {TypeKind::U16, TypeKind::F32, Logger::Kind::WARN, TEXT("Assignning a float32 value to a uint16 value, it is a narrow conversion and may lose data.")},
+            {TypeKind::U16, TypeKind::F64, Logger::Kind::WARN, TEXT("Assignning a float64 value to a uint16 value, it is a narrow conversion and may lose data.")},
+
+            {TypeKind::U32, TypeKind::I8,  Logger::Kind::WARN, TEXT("Assignning a int8 value to a uint32 value, it is a broadening conversion and may lose data.")},
+            {TypeKind::U32, TypeKind::I16, Logger::Kind::WARN, TEXT("Assignning a int16 value to a uint32 value, it is a broadening conversion and may lose data.")},
+            {TypeKind::U32, TypeKind::I32, Logger::Kind::WARN, TEXT("Assignning a int32 value to a uint32 value, it may lose data.")},
+            {TypeKind::U32, TypeKind::I64, Logger::Kind::WARN, TEXT("Assignning a int64 value to a uint32 value, it is a narrow conversion and may lose data.")},
+            {TypeKind::U32, TypeKind::U8,  Logger::Kind::INFO, TEXT("Assignning a uint8 value to a uint32 value, it is a broadening conversion.")},
+            {TypeKind::U32, TypeKind::U16, Logger::Kind::INFO, TEXT("Assignning a uint16 value to a uint32 value, it is a broadening conversion.")},
+            {TypeKind::U32, TypeKind::U64, Logger::Kind::WARN, TEXT("Assignning a uint64 value to a uint32 value, it is a narrow conversion and may lose data.")},
+            {TypeKind::U32, TypeKind::F32, Logger::Kind::WARN, TEXT("Assignning a float32 value to a uint32 value, it may lose data.")},
+            {TypeKind::U32, TypeKind::F64, Logger::Kind::WARN, TEXT("Assignning a float64 value to a uint32 value, it is a narrow conversion and may lose data.")},
+
+            {TypeKind::U64, TypeKind::I8,  Logger::Kind::WARN, TEXT("Assignning a int8 value to a uint64 value, it is a broadening conversion and may lose data.")},
+            {TypeKind::U64, TypeKind::I16, Logger::Kind::WARN, TEXT("Assignning a int16 value to a uint64 value, it is a broadening conversion and may lose data.")},
+            {TypeKind::U64, TypeKind::I32, Logger::Kind::WARN, TEXT("Assignning a int32 value to a uint64 value, it is a broadening conversion and may lose data.")},
+            {TypeKind::U64, TypeKind::I64, Logger::Kind::WARN, TEXT("Assignning a int64 value to a uint64 value, it may lose data.")},
+            {TypeKind::U64, TypeKind::U8,  Logger::Kind::INFO, TEXT("Assignning a uint8 value to a uint64 value, it is a broadening conversion.")},
+            {TypeKind::U64, TypeKind::U16, Logger::Kind::INFO, TEXT("Assignning a uint16 value to a uint64 value, it is a broadening conversion.")},
+            {TypeKind::U64, TypeKind::U32, Logger::Kind::INFO, TEXT("Assignning a uint32 value to a uint64 value, it is a broadening conversion.")},
+            {TypeKind::U64, TypeKind::F32, Logger::Kind::WARN, TEXT("Assignning a float32 value to a uint64 value, it is a broadening conversion and may lose data.")},
+            {TypeKind::U64, TypeKind::F64, Logger::Kind::WARN, TEXT("Assignning a float64 value to a uint64 value, it may lose data.")},
+
+            {TypeKind::F32, TypeKind::I8,  Logger::Kind::WARN, TEXT("Assignning a int8 value to a float32 value, it is a broadening conversion and may lose data.")},
+            {TypeKind::F32, TypeKind::I16, Logger::Kind::WARN, TEXT("Assignning a int16 value to a float32 value, it is a broadening conversion and may lose data.")},
+            {TypeKind::F32, TypeKind::I32, Logger::Kind::WARN, TEXT("Assignning a int32 value to a float32 value, it is a broadening conversion and may lose data.")},
+            {TypeKind::F32, TypeKind::I64, Logger::Kind::WARN, TEXT("Assignning a int64 value to a float32 value, it is a narrow conversion and may lose data.")},
+            {TypeKind::F32, TypeKind::U8,  Logger::Kind::INFO, TEXT("Assignning a uint8 value to a float32 value, it is a broadening conversion and may lose data.")},
+            {TypeKind::F32, TypeKind::U16, Logger::Kind::INFO, TEXT("Assignning a uint16 value to a float32 value, it is a broadening conversion and may lose data.")},
+            {TypeKind::F32, TypeKind::U32, Logger::Kind::INFO, TEXT("Assignning a uint32 value to a float32 value, it may lose data")},
+            {TypeKind::F32, TypeKind::U64, Logger::Kind::WARN, TEXT("Assignning a float32 value to a float32 value, it is a narrow conversion and may lose data.")},
+            {TypeKind::F32, TypeKind::F64, Logger::Kind::WARN, TEXT("Assignning a float64 value to a float32 value, it is a narrow conversion and may lose data.")},
+
+            {TypeKind::F64, TypeKind::I8,  Logger::Kind::WARN, TEXT("Assignning a int8 value to a float64 value, it is a broadening conversion and may lose data.")},  
+            {TypeKind::F64, TypeKind::I16, Logger::Kind::WARN, TEXT("Assignning a int16 value to a float64 value, it is a broadening conversion and may lose data.")},
+            {TypeKind::F64, TypeKind::I32, Logger::Kind::WARN, TEXT("Assignning a int32 value to a float64 value, it is a broadening conversion and may lose data.")},
+            {TypeKind::F64, TypeKind::I64, Logger::Kind::WARN, TEXT("Assignning a int64 value to a float64 value, it may lose data.")},
+            {TypeKind::F64, TypeKind::U8,  Logger::Kind::WARN, TEXT("Assignning a uint8 value to a float64 value, it is a broadening conversion and may lose data.")},
+            {TypeKind::F64, TypeKind::U16, Logger::Kind::WARN, TEXT("Assignning a uint16 value to a float64 value, it is a broadening conversion and may lose data.")},
+            {TypeKind::F64, TypeKind::U32, Logger::Kind::WARN, TEXT("Assignning a uint32 value to a float64 value, it is a broadening conversion and may lose data.")},
+            {TypeKind::F64, TypeKind::U64, Logger::Kind::WARN, TEXT("Assignning a uint64 value to a float64 value, it may lose data.")},
+            {TypeKind::F64, TypeKind::F32, Logger::Kind::WARN, TEXT("Assignning a float32 value to a float64 value, it is a broadening conversion.")},
     };
 
-    bool FindTypeMapInfo(TypeKind left, TypeKind right, STD_STRING &msg)
+    const TypeMapInfo* FindTypeMapInfo(TypeKind left, TypeKind right)
     {
         for (const auto &t : TypeMaps)
         {
             if (t.leftKind == left && t.rightKind == right)
             {
-                msg = t.msg;
-                return true;
+                return &t;
             }
         }
-        return false;
+        return nullptr;
     }
 
     Stmt *TypeCheckPass::ExecuteAstStmts(AstStmts *stmt)
@@ -102,10 +151,8 @@ namespace lwscript
 
                 auto rightType = ((LiteralExpr *)v)->type;
 
-                STD_STRING msg;
-                auto flag = FindTypeMapInfo(leftType.GetKind(), rightType.GetKind(), msg);
-                if (flag)
-                    Logger::Info(k->tagToken, msg);
+                if (auto info = FindTypeMapInfo(leftType.GetKind(), rightType.GetKind()))
+                    Logger::Log(info->logKind, k->tagToken, info->msg);
             }
         }
 
