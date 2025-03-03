@@ -241,13 +241,6 @@ namespace lwscript
 		{
 			funcStmt->name = (IdentifierExpr *)ParseIdentifierExpr();
 
-			if (mCurClassInfo)
-			{
-				funcStmt->functionKind = FunctionDecl::Kind::CLASS_CLOSURE;
-				if (mCurClassInfo->name == funcStmt->name->literal)
-					funcStmt->functionKind = FunctionDecl::Kind::CLASS_CONSTRUCTOR;
-			}
-
 			Consume(TokenKind::LPAREN, TEXT("Expect '(' after 'fn' keyword"));
 
 			if (!IsMatchCurToken(TokenKind::RPAREN)) // has parameter
@@ -277,11 +270,11 @@ namespace lwscript
 			funcStmt->returnTypes = functionReturnTypes;
 			funcStmt->body = (ScopeStmt *)ParseScopeStmt();
 
-			if (funcStmt->body->stmts.back()->kind != AstKind::RETURN && funcStmt->functionKind != FunctionDecl::Kind::CLASS_CONSTRUCTOR)
-			{
-				auto tmpReturn = new ReturnStmt(GetCurToken());
-				funcStmt->body->stmts.emplace_back(tmpReturn);
-			}
+			// if (funcStmt->body->stmts.back()->kind != AstKind::RETURN && funcStmt->functionKind != FunctionDecl::Kind::CLASS_CONSTRUCTOR)
+			// {
+			// 	auto tmpReturn = new ReturnStmt(GetCurToken());
+			// 	funcStmt->body->stmts.emplace_back(tmpReturn);
+			// }
 		}
 
 		return funcStmt;
@@ -305,7 +298,7 @@ namespace lwscript
 		{
 			do
 			{
-				classStmt->parentClasses.emplace_back((IdentifierExpr *)ParseIdentifierExpr());
+				classStmt->parents.emplace_back((IdentifierExpr *)ParseIdentifierExpr());
 			} while (IsMatchCurTokenAndStepOnce(TokenKind::COMMA));
 
 			mCurClassInfo->hasSuperClass = true;
@@ -316,20 +309,20 @@ namespace lwscript
 		while (!IsMatchCurToken(TokenKind::RBRACE))
 		{
 			if (IsMatchCurToken(TokenKind::LET) || IsMatchCurToken(TokenKind::CONST))
-				classStmt->varItems.emplace_back((VarDecl *)ParseVarDecl());
+				classStmt->variables.emplace_back((VarDecl *)ParseVarDecl());
+			else if (IsMatchCurToken(TokenKind::ENUM))
+				classStmt->enumerations.emplace_back((EnumDecl *)ParseEnumDecl());
 			else if (IsMatchCurTokenAndStepOnce(TokenKind::FUNCTION))
 			{
 				auto fn = (FunctionDecl *)ParseFunctionDecl();
 				if (fn->name->literal == classStmt->name)
 					Logger::Error(fn->name->tagToken, TEXT("The class member function name :{} conflicts with its class:{}, only constructor function name is allowed to same with its class's name"), fn->name->literal);
-				classStmt->fnItems.emplace_back(fn);
+				classStmt->functions.emplace_back(ClassDecl::FunctionKind::MEMBER,fn);
 			}
-			else if (IsMatchCurToken(TokenKind::ENUM))
-				classStmt->enumItems.emplace_back((EnumDecl *)ParseEnumDecl());
 			else if (GetCurToken()->literal == classStmt->name) // constructor
 			{
 				auto fn = (FunctionDecl *)ParseFunctionDecl();
-				classStmt->constructors.emplace_back(fn);
+				classStmt->functions.emplace_back(ClassDecl::FunctionKind::CONSTRUCTOR, fn);
 			}
 			else
 				Consume({TokenKind::LET, TokenKind::FUNCTION, TokenKind::CONST}, TEXT("UnExpect identifier '") + GetCurToken()->literal + TEXT("'."));

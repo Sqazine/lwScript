@@ -120,7 +120,7 @@ namespace lwscript
 		void CompileVarArgExpr(VarArgExpr *expr, const RWState &state = RWState::READ);
 		void CompileFactorialExpr(FactorialExpr *expr, const RWState &state = RWState::READ);
 
-		Symbol CompileFunction(FunctionDecl * decl);
+		Symbol CompileFunction(FunctionDecl * decl,ClassDecl::FunctionKind kind=ClassDecl::FunctionKind::NONE);
 		uint32_t CompileVars(VarDecl * decl, bool IsInClassOrModuleScope);
 		Symbol CompileClass(ClassDecl * decl);
 

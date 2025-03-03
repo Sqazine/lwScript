@@ -387,7 +387,7 @@ namespace lwscript
 		STD_STRING ToString() override;
 	};
 
-		struct AstStmts : public Stmt
+	struct AstStmts : public Stmt
 	{
 		AstStmts(Token *tagToken);
 		AstStmts(Token *tagToken, std::vector<Stmt *> stmts);
@@ -428,22 +428,14 @@ namespace lwscript
 		std::unordered_map<IdentifierExpr *, Expr *> enumItems;
 	};
 
-	
 	struct FunctionDecl : public Decl
 	{
-		enum class Kind
-		{
-			CLASS_CONSTRUCTOR,
-			CLASS_CLOSURE,
-			FUNCTION,
-		};
 		FunctionDecl(Token *tagToken);
-		FunctionDecl(Token *tagToken, Kind kind, IdentifierExpr *name, const std::vector<VarDescExpr *> &parameters, ScopeStmt *body);
+		FunctionDecl(Token *tagToken, IdentifierExpr *name, const std::vector<VarDescExpr *> &parameters, ScopeStmt *body);
 		~FunctionDecl() override;
 
 		STD_STRING ToString() override;
 
-		Kind functionKind;
 		IdentifierExpr *name;
 		std::vector<VarDescExpr *> parameters;
 		ScopeStmt *body;
@@ -452,24 +444,38 @@ namespace lwscript
 
 	struct ClassDecl : public Decl
 	{
+		enum FunctionKind
+		{
+			NONE,
+			CONSTRUCTOR,
+			DESTRUCTOR,
+			MEMBER,
+		};
+
+		struct FunctionMember
+		{
+			FunctionMember() : kind(FunctionKind::NONE), decl(nullptr) {}
+			FunctionMember(FunctionKind kind, FunctionDecl *functionDecl) : kind(kind), decl(functionDecl) {}
+			FunctionKind kind{FunctionKind::NONE};
+			FunctionDecl *decl{nullptr};
+		};
+
 		ClassDecl(Token *tagToken);
 		ClassDecl(Token *tagToken,
 				  STD_STRING name,
-				  const std::vector<VarDecl *> &varItems,
-				  const std::vector<FunctionDecl *> &fnItems,
-				  const std::vector<EnumDecl *> &enumItems,
-				  const std::vector<FunctionDecl *> &constructors = {},
-				  const std::vector<IdentifierExpr *> &parentClasses = {});
+				  const std::vector<VarDecl *> &variables,
+				  const std::vector<FunctionMember> &functions,
+				  const std::vector<EnumDecl *> &enumerations,
+				  const std::vector<IdentifierExpr *> &parents = {});
 		~ClassDecl() override;
 
 		STD_STRING ToString() override;
 
 		STD_STRING name;
-		std::vector<IdentifierExpr *> parentClasses;
-		std::vector<FunctionDecl *> constructors;
-		std::vector<VarDecl *> varItems;
-		std::vector<FunctionDecl *> fnItems;
-		std::vector<EnumDecl *> enumItems;
+		std::vector<IdentifierExpr *> parents;
+		std::vector<VarDecl *> variables;
+		std::vector<FunctionMember> functions;
+		std::vector<EnumDecl *> enumerations;
 	};
 
 	struct ModuleDecl : public Decl

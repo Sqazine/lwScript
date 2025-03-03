@@ -773,12 +773,12 @@ namespace lwscript
 	}
 
 	FunctionDecl::FunctionDecl(Token *tagToken)
-		: Decl(tagToken, AstKind::FUNCTION), name(nullptr), body(nullptr), functionKind(Kind::FUNCTION)
+		: Decl(tagToken, AstKind::FUNCTION), name(nullptr), body(nullptr)
 	{
 	}
 
-	FunctionDecl::FunctionDecl(Token *tagToken, Kind kind, IdentifierExpr *name, const std::vector<VarDescExpr *> &parameters, ScopeStmt *body)
-		: Decl(tagToken, AstKind::FUNCTION), functionKind(kind), name(name), parameters(parameters), body(body)
+	FunctionDecl::FunctionDecl(Token *tagToken, IdentifierExpr *name, const std::vector<VarDescExpr *> &parameters, ScopeStmt *body)
+		: Decl(tagToken, AstKind::FUNCTION), name(name), parameters(parameters), body(body)
 	{
 	}
 
@@ -809,46 +809,43 @@ namespace lwscript
 	}
 	ClassDecl::ClassDecl(Token *tagToken,
 						 STD_STRING name,
-						 const std::vector<VarDecl *> &varItems,
-						 const std::vector<FunctionDecl *> &fnItems,
-						 const std::vector<EnumDecl *> &enumItems,
-						 const std::vector<FunctionDecl *> &constructors,
-						 const std::vector<IdentifierExpr *> &parentClasses)
+						 const std::vector<VarDecl *> &variables,
+						 const std::vector<FunctionMember> &functions,
+						 const std::vector<EnumDecl *> &enumerations,
+						 const std::vector<IdentifierExpr *> &parents)
 		: Decl(tagToken, AstKind::CLASS),
 		  name(name),
-		  varItems(varItems),
-		  fnItems(fnItems),
-		  enumItems(enumItems),
-		  constructors(constructors),
-		  parentClasses(parentClasses)
+		  variables(variables),
+		  functions(functions),
+		  enumerations(enumerations),
+		  parents(parents)
 	{
 	}
 	ClassDecl::~ClassDecl()
 	{
-		std::vector<IdentifierExpr *>().swap(parentClasses);
-		std::vector<FunctionDecl *>().swap(constructors);
-		std::vector<VarDecl *>().swap(varItems);
-		std::vector<FunctionDecl *>().swap(fnItems);
-		std::vector<EnumDecl *>().swap(enumItems);
+		std::vector<IdentifierExpr *>().swap(parents);
+		std::vector<VarDecl *>().swap(variables);
+		std::vector<FunctionMember>().swap(functions);
+		std::vector<EnumDecl *>().swap(enumerations);
 	}
 
 	STD_STRING ClassDecl::ToString()
 	{
 		STD_STRING result = TEXT("class ") + name;
-		if (!parentClasses.empty())
+		if (!parents.empty())
 		{
 			result += TEXT(":");
-			for (const auto &parentClass : parentClasses)
+			for (const auto &parentClass : parents)
 				result += parentClass->ToString() + TEXT(",");
 			result = result.substr(0, result.size() - 1);
 		}
 		result += TEXT("{");
-		for (auto enumStmt : enumItems)
+		for (auto enumStmt : enumerations)
 			result += enumStmt->ToString();
-		for (auto variableStmt : varItems)
+		for (auto variableStmt : variables)
 			result += variableStmt->ToString();
-		for (auto fnStmt : fnItems)
-			result += fnStmt->ToString();
+		for (auto fn : functions)
+			result += fn.decl->ToString();
 		return result + TEXT("}");
 	}
 }

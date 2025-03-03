@@ -1065,7 +1065,7 @@ namespace lwscript
 		EmitOpCode(OP_FACTORIAL, expr->tagToken);
 	}
 
-	Compiler::Symbol Compiler::CompileFunction(FunctionDecl *decl)
+	Compiler::Symbol Compiler::CompileFunction(FunctionDecl *decl, ClassDecl::FunctionKind kind)
 	{
 		auto varArg = GetVarArgFromParameterList(decl->parameters);
 
@@ -1075,7 +1075,7 @@ namespace lwscript
 		mSymbolTable = new SymbolTable(mSymbolTable);
 
 		STD_STRING symbolName = decl->name->literal;
-		if (decl->functionKind == FunctionDecl::Kind::CLASS_CLOSURE || decl->functionKind == FunctionDecl::Kind::CLASS_CONSTRUCTOR)
+		if (kind == ClassDecl::FunctionKind::MEMBER || kind == ClassDecl::FunctionKind::CONSTRUCTOR)
 			symbolName = TEXT("this");
 		mSymbolTable->Define(decl->tagToken, Privilege::IMMUTABLE, symbolName);
 
@@ -1099,7 +1099,7 @@ namespace lwscript
 
 		CompileScopeStmt(decl->body);
 
-		if (decl->functionKind == FunctionDecl::Kind::CLASS_CONSTRUCTOR)
+		if (kind == kind == ClassDecl::FunctionKind::CONSTRUCTOR)
 		{
 			EmitOpCode(OP_GET_LOCAL, decl->tagToken);
 			Emit(0);
@@ -1264,34 +1264,39 @@ namespace lwscript
 
 		int8_t varCount = 0;
 		int8_t constCount = 0;
+		int8_t constructorCount = 0;
 
-		for (const auto &enumStmt : decl->enumItems)
+		for (const auto &enumStmt : decl->enumerations)
 		{
 			CompileEnumDecl(enumStmt);
 			EmitConstant(new StrObject(enumStmt->name->literal), enumStmt->tagToken);
 			constCount++;
 		}
 
-		for (const auto &fnStmt : decl->fnItems)
+		for (const auto &function : decl->functions)
 		{
-			CompileFunction(fnStmt);
-			EmitConstant(new StrObject(fnStmt->name->literal), fnStmt->tagToken);
-			constCount++;
+			if (function.kind == ClassDecl::FunctionKind::MEMBER)
+			{
+				auto decl = function.decl;
+				CompileFunction(function.decl, ClassDecl::FunctionKind::MEMBER);
+				EmitConstant(new StrObject(decl->name->literal), decl->tagToken);
+				constCount++;
+			}
 		}
 
-		for (const auto &varStmt : decl->varItems)
+		for (const auto &varStmt : decl->variables)
 		{
 			if (varStmt->privilege == Privilege::IMMUTABLE)
 				constCount += CompileVars(varStmt, true);
 		}
 
-		for (const auto &varStmt : decl->varItems)
+		for (const auto &varStmt : decl->variables)
 		{
 			if (varStmt->privilege == Privilege::MUTABLE)
 				varCount += CompileVars(varStmt, true);
 		}
 
-		for (const auto &parentClass : decl->parentClasses)
+		for (const auto &parentClass : decl->parents)
 		{
 			CompileIdentifierExpr(parentClass, RWState::READ);
 			EmitOpCode(OP_CALL, parentClass->tagToken);
@@ -1299,15 +1304,21 @@ namespace lwscript
 			EmitConstant(new StrObject(parentClass->literal), parentClass->tagToken);
 		}
 
-		for (const auto &ctor : decl->constructors)
-			CompileFunction(ctor);
+		for (const auto &function : decl->functions)
+		{
+			if (function.kind == ClassDecl::FunctionKind::CONSTRUCTOR)
+			{
+				CompileFunction(function.decl, ClassDecl::FunctionKind::CONSTRUCTOR);
+				constructorCount++;
+			}
+		}
 
 		EmitConstant(new StrObject(decl->name), decl->tagToken);
 		EmitOpCode(OP_CLASS, decl->tagToken);
-		Emit(static_cast<uint8_t>(decl->constructors.size()));
+		Emit(constructorCount);
 		Emit(varCount);
 		Emit(constCount);
-		Emit(static_cast<uint8_t>(decl->parentClasses.size()));
+		Emit(static_cast<uint8_t>(decl->parents.size()));
 
 		EmitReturn(1, decl->tagToken);
 
@@ -1550,15 +1561,15 @@ namespace lwscript
 		{
 			std::vector<Expr *> result;
 
-			for (const auto &varStmt : ((ClassDecl *)astNode)->varItems)
+			for (const auto &varStmt : ((ClassDecl *)astNode)->variables)
 			{
 				auto letStmtResult = StatsPostfixExprs(varStmt);
 				result.insert(result.end(), letStmtResult.begin(), letStmtResult.end());
 			}
 
-			for (const auto &fnStmt : ((ClassDecl *)astNode)->fnItems)
+			for (const auto &function : ((ClassDecl *)astNode)->functions)
 			{
-				auto fnStmtResult = StatsPostfixExprs(fnStmt);
+				auto fnStmtResult = StatsPostfixExprs(function.decl);
 				result.insert(result.end(), fnStmtResult.begin(), fnStmtResult.end());
 			}
 			return result;
