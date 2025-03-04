@@ -74,10 +74,10 @@ namespace lwscript
 	Decl *ConstantFoldPass::ExecuteClassDecl(ClassDecl *decl)
 	{
 		for (auto &varStmt : decl->variables)
-			varStmt = (VarDecl *)ExecuteVarDecl(varStmt);
+			varStmt.second = (VarDecl *)ExecuteVarDecl(varStmt.second);
 
 		for (auto &fnStmt : decl->functions)
-			fnStmt.decl = (FunctionDecl *)ExecuteFunctionDecl(fnStmt.decl);
+			fnStmt.second.decl = (FunctionDecl *)ExecuteFunctionDecl(fnStmt.second.decl);
 
 		return decl;
 	}

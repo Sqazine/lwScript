@@ -207,9 +207,9 @@ namespace lwscript
 		auto varStmt = new VarDecl(curToken);
 
 		if (kind == TokenKind::LET)
-			varStmt->privilege = Privilege::MUTABLE;
+			varStmt->permission = Permission::MUTABLE;
 		else if (kind == TokenKind::CONST)
-			varStmt->privilege = Privilege::IMMUTABLE;
+			varStmt->permission = Permission::IMMUTABLE;
 
 		Consume(kind, TEXT("Expect 'let' or 'const' key word"));
 
@@ -298,7 +298,8 @@ namespace lwscript
 		{
 			do
 			{
-				classStmt->parents.emplace_back((IdentifierExpr *)ParseIdentifierExpr());
+				auto privilege = ParseClassMemberPrivilege();
+				classStmt->parents.emplace_back(std::make_pair(privilege, (IdentifierExpr *)ParseIdentifierExpr()));
 			} while (IsMatchCurTokenAndStepOnce(TokenKind::COMMA));
 
 			mCurClassInfo->hasSuperClass = true;
@@ -308,21 +309,23 @@ namespace lwscript
 
 		while (!IsMatchCurToken(TokenKind::RBRACE))
 		{
+			auto privilege = ParseClassMemberPrivilege();
+
 			if (IsMatchCurToken(TokenKind::LET) || IsMatchCurToken(TokenKind::CONST))
-				classStmt->variables.emplace_back((VarDecl *)ParseVarDecl());
+				classStmt->variables.emplace_back(privilege, (VarDecl *)ParseVarDecl());
 			else if (IsMatchCurToken(TokenKind::ENUM))
-				classStmt->enumerations.emplace_back((EnumDecl *)ParseEnumDecl());
+				classStmt->enumerations.emplace_back(privilege, (EnumDecl *)ParseEnumDecl());
 			else if (IsMatchCurTokenAndStepOnce(TokenKind::FUNCTION))
 			{
 				auto fn = (FunctionDecl *)ParseFunctionDecl();
 				if (fn->name->literal == classStmt->name)
 					Logger::Error(fn->name->tagToken, TEXT("The class member function name :{} conflicts with its class:{}, only constructor function name is allowed to same with its class's name"), fn->name->literal);
-				classStmt->functions.emplace_back(ClassDecl::FunctionKind::MEMBER,fn);
+				classStmt->functions.emplace_back(privilege, std::move(ClassDecl::FunctionMember(ClassDecl::FunctionKind::MEMBER, fn)));
 			}
 			else if (GetCurToken()->literal == classStmt->name) // constructor
 			{
 				auto fn = (FunctionDecl *)ParseFunctionDecl();
-				classStmt->functions.emplace_back(ClassDecl::FunctionKind::CONSTRUCTOR, fn);
+				classStmt->functions.emplace_back(privilege, std::move(ClassDecl::FunctionMember(ClassDecl::FunctionKind::CONSTRUCTOR, fn)));
 			}
 			else
 				Consume({TokenKind::LET, TokenKind::FUNCTION, TokenKind::CONST}, TEXT("UnExpect identifier '") + GetCurToken()->literal + TEXT("'."));
@@ -408,10 +411,10 @@ namespace lwscript
 		return moduleDecl;
 	}
 
-	Stmt* Parser::ParseDeclAndStmt()
+	Stmt *Parser::ParseDeclAndStmt()
 	{
-		Stmt* result = ParseDecl();
-		if(!result)
+		Stmt *result = ParseDecl();
+		if (!result)
 			result = ParseStmt();
 		return result;
 	}
@@ -1249,7 +1252,22 @@ namespace lwscript
 	{
 		//TODO:only support basic single word type
 		auto token = GetCurTokenAndStepOnce();
-		return Type(token->literal,token->sourceLocation);
+		return Type(token->literal, token->sourceLocation);
+	}
+
+	ClassDecl::MemberPrivilege Parser::ParseClassMemberPrivilege()
+	{
+		switch (GetCurToken()->kind)
+		{
+		case TokenKind::PRIVATE:
+			return ClassDecl::MemberPrivilege::PRIVATE;
+		case TokenKind::PROTECTED:
+			return ClassDecl::MemberPrivilege::PROTECTED;
+		case TokenKind::PUBLIC:
+			return ClassDecl::MemberPrivilege::PUBLIC;
+		default:
+			return ClassDecl::MemberPrivilege::PRIVATE;
+		}
 	}
 
 	Token *Parser::GetCurToken()

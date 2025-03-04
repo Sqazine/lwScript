@@ -91,7 +91,7 @@
 
 namespace lwscript
 {
-	enum Privilege : uint8_t
+	enum Permission : uint8_t
 	{
 		MUTABLE,
 		IMMUTABLE,

@@ -30,7 +30,7 @@ namespace lwscript
 		void Deserialize(const std::vector<uint8_t> &data);
 
 		ValueKind kind;
-		Privilege privilege = Privilege::MUTABLE;
+		Permission permission = Permission::MUTABLE;
 
 		union
 		{

@@ -60,7 +60,7 @@ namespace lwscript
         std::vector<uint8_t> result;
 
         result.emplace_back(kind);
-        result.emplace_back(privilege);
+        result.emplace_back(permission);
 
         if (IS_INT_VALUE(*this) || IS_REAL_VALUE(*this) || IS_BOOL_VALUE(*this))
         {
@@ -74,7 +74,7 @@ namespace lwscript
     void Value::Deserialize(const std::vector<uint8_t> &data)
     {
         kind = (ValueKind)data[0];
-        privilege = (Privilege)data[1];
+        permission = (Permission)data[1];
 
         if (IS_INT_VALUE(*this) || IS_REAL_VALUE(*this) || IS_BOOL_VALUE(*this))
             integer = ByteConverter::GetU64Integer(data, 2);

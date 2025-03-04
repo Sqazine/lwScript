@@ -56,7 +56,7 @@ namespace lwscript
             ~TypeInfo() noexcept = default;
 
             Type type {};
-            Privilege privilege {};
+            Permission permission {};
         };
 
         class TypeInfoTable

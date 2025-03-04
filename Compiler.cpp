@@ -21,7 +21,7 @@ namespace lwscript
 	{
 	}
 
-	Compiler::Symbol Compiler::SymbolTable::Define(const Token *relatedToken, Privilege privilege, const STD_STRING &name, const Compiler::FunctionSymbolInfo &functionInfo)
+	Compiler::Symbol Compiler::SymbolTable::Define(const Token *relatedToken, Permission permission, const STD_STRING &name, const Compiler::FunctionSymbolInfo &functionInfo)
 	{
 		if (mSymbolCount >= mSymbols.size())
 			Logger::Error(relatedToken, TEXT("Too many symbols in current scope."));
@@ -36,7 +36,7 @@ namespace lwscript
 
 		auto *symbol = &mSymbols[mSymbolCount++];
 		symbol->name = name;
-		symbol->privilege = privilege;
+		symbol->permission = permission;
 		symbol->functionSymInfo = functionInfo;
 		symbol->relatedToken = relatedToken;
 
@@ -149,12 +149,12 @@ namespace lwscript
 		auto symbol = &mSymbolTable->mSymbols[mSymbolTable->mSymbolCount++];
 		symbol->location = SymbolLocation::LOCAL;
 		symbol->index = mSymbolTable->mLocalSymbolCount++;
-		symbol->privilege = Privilege::IMMUTABLE;
+		symbol->permission = Permission::IMMUTABLE;
 		symbol->scopeDepth = 0;
 		symbol->name = MAIN_ENTRY_FUNCTION_NAME;
 
 		for (const auto &lib : LibraryManager::GetInstance()->GetLibraries())
-			mSymbolTable->Define(new Token(), Privilege::IMMUTABLE, lib->name);
+			mSymbolTable->Define(new Token(), Permission::IMMUTABLE, lib->name);
 	}
 
 	void Compiler::CompileDecl(Decl *decl)
@@ -225,19 +225,19 @@ namespace lwscript
 		}
 
 		EmitConstant(new EnumObject(decl->name->literal, pairs), decl->name->tagToken);
-		auto symbol = mSymbolTable->Define(decl->tagToken, Privilege::IMMUTABLE, decl->name->literal);
+		auto symbol = mSymbolTable->Define(decl->tagToken, Permission::IMMUTABLE, decl->name->literal);
 		EmitSymbol(symbol);
 	}
 
 	void Compiler::CompileModuleDecl(ModuleDecl *decl)
 	{
-		auto symbol = mSymbolTable->Define(decl->tagToken, Privilege::IMMUTABLE, decl->name->literal);
+		auto symbol = mSymbolTable->Define(decl->tagToken, Permission::IMMUTABLE, decl->name->literal);
 
 		mFunctionList.emplace_back(new FunctionObject(decl->name->literal));
 
 		mSymbolTable = new SymbolTable(mSymbolTable);
 
-		mSymbolTable->Define(decl->tagToken, Privilege::IMMUTABLE, TEXT(""));
+		mSymbolTable->Define(decl->tagToken, Permission::IMMUTABLE, TEXT(""));
 
 		uint8_t constCount = 0;
 		uint8_t varCount = 0;
@@ -272,13 +272,13 @@ namespace lwscript
 
 		for (const auto &varStmt : decl->varItems)
 		{
-			if (varStmt->privilege == Privilege::IMMUTABLE)
+			if (varStmt->permission == Permission::IMMUTABLE)
 				constCount += CompileVars(varStmt, true);
 		}
 
 		for (const auto &varStmt : decl->varItems)
 		{
-			if (varStmt->privilege == Privilege::MUTABLE)
+			if (varStmt->permission == Permission::MUTABLE)
 				varCount += CompileVars(varStmt, true);
 		}
 
@@ -910,7 +910,7 @@ namespace lwscript
 
 		if (state == RWState::WRITE)
 		{
-			if (symbol.privilege == Privilege::MUTABLE)
+			if (symbol.permission == Permission::MUTABLE)
 			{
 				EmitOpCode(setOp, expr->tagToken);
 				if (symbol.location == SymbolLocation::UPVALUE)
@@ -935,7 +935,7 @@ namespace lwscript
 		mFunctionList.emplace_back(new FunctionObject());
 		mSymbolTable = new SymbolTable(mSymbolTable);
 
-		mSymbolTable->Define(expr->tagToken, Privilege::IMMUTABLE, TEXT(""));
+		mSymbolTable->Define(expr->tagToken, Permission::IMMUTABLE, TEXT(""));
 
 		auto varArg = GetVarArgFromParameterList(expr->parameters);
 
@@ -946,12 +946,12 @@ namespace lwscript
 		{
 			auto varDescExpr = (VarDescExpr *)param;
 			if (varDescExpr->name->kind == AstKind::IDENTIFIER)
-				mSymbolTable->Define(varDescExpr->tagToken, Privilege::MUTABLE, ((IdentifierExpr *)((VarDescExpr *)param)->name)->literal);
+				mSymbolTable->Define(varDescExpr->tagToken, Permission::MUTABLE, ((IdentifierExpr *)((VarDescExpr *)param)->name)->literal);
 			else if (varDescExpr->name->kind == AstKind::VAR_ARG)
 			{
 				auto varArg = ((VarArgExpr *)varDescExpr->name);
 				if (varArg->argName)
-					mSymbolTable->Define(varArg->tagToken, Privilege::MUTABLE, varArg->argName->literal);
+					mSymbolTable->Define(varArg->tagToken, Permission::MUTABLE, varArg->argName->literal);
 			}
 		}
 
@@ -1069,7 +1069,7 @@ namespace lwscript
 	{
 		auto varArg = GetVarArgFromParameterList(decl->parameters);
 
-		auto functionSymbol = mSymbolTable->Define(decl->tagToken, Privilege::IMMUTABLE, decl->name->literal, FunctionSymbolInfo{(int8_t)decl->parameters.size(), varArg});
+		auto functionSymbol = mSymbolTable->Define(decl->tagToken, Permission::IMMUTABLE, decl->name->literal, FunctionSymbolInfo{(int8_t)decl->parameters.size(), varArg});
 
 		mFunctionList.emplace_back(new FunctionObject(decl->name->literal));
 		mSymbolTable = new SymbolTable(mSymbolTable);
@@ -1077,7 +1077,7 @@ namespace lwscript
 		STD_STRING symbolName = decl->name->literal;
 		if (kind == ClassDecl::FunctionKind::MEMBER || kind == ClassDecl::FunctionKind::CONSTRUCTOR)
 			symbolName = TEXT("this");
-		mSymbolTable->Define(decl->tagToken, Privilege::IMMUTABLE, symbolName);
+		mSymbolTable->Define(decl->tagToken, Permission::IMMUTABLE, symbolName);
 
 		CurFunction()->arity = static_cast<uint8_t>(decl->parameters.size());
 		CurFunction()->varArg = varArg;
@@ -1086,12 +1086,12 @@ namespace lwscript
 		{
 			auto varDescExpr = (VarDescExpr *)param;
 			if (varDescExpr->name->kind == AstKind::IDENTIFIER)
-				mSymbolTable->Define(varDescExpr->tagToken, Privilege::MUTABLE, ((IdentifierExpr *)((VarDescExpr *)param)->name)->literal);
+				mSymbolTable->Define(varDescExpr->tagToken, Permission::MUTABLE, ((IdentifierExpr *)((VarDescExpr *)param)->name)->literal);
 			else if (varDescExpr->name->kind == AstKind::VAR_ARG)
 			{
 				auto varArg = ((VarArgExpr *)varDescExpr->name);
 				if (varArg->argName)
-					mSymbolTable->Define(varArg->argName->tagToken, Privilege::MUTABLE, varArg->argName->literal);
+					mSymbolTable->Define(varArg->argName->tagToken, Permission::MUTABLE, varArg->argName->literal);
 			}
 		}
 
@@ -1167,7 +1167,7 @@ namespace lwscript
 						{
 							literal = ((IdentifierExpr *)((VarDescExpr *)arrayExpr->elements[i])->name)->literal;
 							token = ((IdentifierExpr *)((VarDescExpr *)arrayExpr->elements[i])->name)->tagToken;
-							symbol = mSymbolTable->Define(token, decl->privilege, literal);
+							symbol = mSymbolTable->Define(token, decl->permission, literal);
 							resolveCount++;
 						}
 						else if (((VarDescExpr *)arrayExpr->elements[i])->name->kind == AstKind::VAR_ARG)
@@ -1177,7 +1177,7 @@ namespace lwscript
 							{
 								literal = ((VarArgExpr *)((VarDescExpr *)arrayExpr->elements[i])->name)->argName->literal;
 								token = ((VarArgExpr *)((VarDescExpr *)arrayExpr->elements[i])->name)->argName->tagToken;
-								symbol = mSymbolTable->Define(token, decl->privilege, literal);
+								symbol = mSymbolTable->Define(token, decl->permission, literal);
 								resolveCount++;
 								appregateOpCode = OP_APPREGATE_RESOLVE_VAR_ARG;
 							}
@@ -1226,7 +1226,7 @@ namespace lwscript
 						token = ((VarArgExpr *)((VarDescExpr *)k)->name)->argName->tagToken;
 					}
 
-					auto symbol = mSymbolTable->Define(token, decl->privilege, literal);
+					auto symbol = mSymbolTable->Define(token, decl->permission, literal);
 					if (symbol.location == SymbolLocation::GLOBAL)
 					{
 						EmitOpCode(OP_SET_GLOBAL, symbol.relatedToken);
@@ -1255,60 +1255,64 @@ namespace lwscript
 
 	Compiler::Symbol Compiler::CompileClass(ClassDecl *decl)
 	{
-		auto symbol = mSymbolTable->Define(decl->tagToken, Privilege::IMMUTABLE, decl->name);
+		auto symbol = mSymbolTable->Define(decl->tagToken, Permission::IMMUTABLE, decl->name);
 
 		mFunctionList.emplace_back(new FunctionObject(decl->name));
 		mSymbolTable = new SymbolTable(mSymbolTable);
 
-		mSymbolTable->Define(decl->tagToken, Privilege::IMMUTABLE, TEXT(""));
+		mSymbolTable->Define(decl->tagToken, Permission::IMMUTABLE, TEXT(""));
 
 		int8_t varCount = 0;
 		int8_t constCount = 0;
 		int8_t constructorCount = 0;
 
-		for (const auto &enumStmt : decl->enumerations)
+		for (const auto &enumeration : decl->enumerations)
 		{
-			CompileEnumDecl(enumStmt);
-			EmitConstant(new StrObject(enumStmt->name->literal), enumStmt->tagToken);
+			auto decl=enumeration.second;
+			CompileEnumDecl(decl);
+			EmitConstant(new StrObject(decl->name->literal), decl->tagToken);
 			constCount++;
 		}
 
 		for (const auto &function : decl->functions)
 		{
-			if (function.kind == ClassDecl::FunctionKind::MEMBER)
+			auto functionMember = function.second;
+			if (functionMember.kind == ClassDecl::FunctionKind::MEMBER)
 			{
-				auto decl = function.decl;
-				CompileFunction(function.decl, ClassDecl::FunctionKind::MEMBER);
-				EmitConstant(new StrObject(decl->name->literal), decl->tagToken);
+				CompileFunction(functionMember.decl, ClassDecl::FunctionKind::MEMBER);
+				EmitConstant(new StrObject(functionMember.decl->name->literal), decl->tagToken);
 				constCount++;
 			}
 		}
 
-		for (const auto &varStmt : decl->variables)
+		for (const auto &varMember : decl->variables)
 		{
-			if (varStmt->privilege == Privilege::IMMUTABLE)
-				constCount += CompileVars(varStmt, true);
+			auto varDecl=varMember.second;
+			if (varDecl->permission == Permission::IMMUTABLE)
+				constCount += CompileVars(varDecl, true);
 		}
 
-		for (const auto &varStmt : decl->variables)
+		for (const auto &varMember : decl->variables)
 		{
-			if (varStmt->privilege == Privilege::MUTABLE)
-				varCount += CompileVars(varStmt, true);
+			auto varDecl=varMember.second;
+			if (varDecl->permission == Permission::MUTABLE)
+				varCount += CompileVars(varDecl, true);
 		}
 
-		for (const auto &parentClass : decl->parents)
+		for (const auto &parent : decl->parents)
 		{
-			CompileIdentifierExpr(parentClass, RWState::READ);
-			EmitOpCode(OP_CALL, parentClass->tagToken);
+			CompileIdentifierExpr(parent.second, RWState::READ);
+			EmitOpCode(OP_CALL, parent.second->tagToken);
 			Emit(0);
-			EmitConstant(new StrObject(parentClass->literal), parentClass->tagToken);
+			EmitConstant(new StrObject(parent.second->literal), parent.second->tagToken);
 		}
 
-		for (const auto &function : decl->functions)
+		for (const auto &functionMember : decl->functions)
 		{
-			if (function.kind == ClassDecl::FunctionKind::CONSTRUCTOR)
+			auto functionDecl=functionMember.second;
+			if (functionDecl.kind == ClassDecl::FunctionKind::CONSTRUCTOR)
 			{
-				CompileFunction(function.decl, ClassDecl::FunctionKind::CONSTRUCTOR);
+				CompileFunction(functionDecl.decl, ClassDecl::FunctionKind::CONSTRUCTOR);
 				constructorCount++;
 			}
 		}
@@ -1563,13 +1567,13 @@ namespace lwscript
 
 			for (const auto &varStmt : ((ClassDecl *)astNode)->variables)
 			{
-				auto letStmtResult = StatsPostfixExprs(varStmt);
+				auto letStmtResult = StatsPostfixExprs(varStmt.second);
 				result.insert(result.end(), letStmtResult.begin(), letStmtResult.end());
 			}
 
 			for (const auto &function : ((ClassDecl *)astNode)->functions)
 			{
-				auto fnStmtResult = StatsPostfixExprs(function.decl);
+				auto fnStmtResult = StatsPostfixExprs(function.second.decl);
 				result.insert(result.end(), fnStmtResult.begin(), fnStmtResult.end());
 			}
 			return result;

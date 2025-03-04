@@ -408,11 +408,11 @@ namespace lwscript
 	struct VarDecl : public Decl
 	{
 		VarDecl(Token *tagToken);
-		VarDecl(Token *tagToken, Privilege privilege, const std::vector<std::pair<Expr *, Expr *>> &variables);
+		VarDecl(Token *tagToken, Permission permission, const std::vector<std::pair<Expr *, Expr *>> &variables);
 		~VarDecl() override;
 		STD_STRING ToString() override;
 
-		Privilege privilege;
+		Permission permission;
 		std::vector<std::pair<Expr *, Expr *>> variables;
 	};
 
@@ -452,6 +452,13 @@ namespace lwscript
 			MEMBER,
 		};
 
+		enum MemberPrivilege
+		{
+			PUBLIC,
+			PROTECTED,
+			PRIVATE,
+		};
+
 		struct FunctionMember
 		{
 			FunctionMember() : kind(FunctionKind::NONE), decl(nullptr) {}
@@ -463,19 +470,19 @@ namespace lwscript
 		ClassDecl(Token *tagToken);
 		ClassDecl(Token *tagToken,
 				  STD_STRING name,
-				  const std::vector<VarDecl *> &variables,
-				  const std::vector<FunctionMember> &functions,
-				  const std::vector<EnumDecl *> &enumerations,
-				  const std::vector<IdentifierExpr *> &parents = {});
+				  const std::vector<std::pair<MemberPrivilege, IdentifierExpr *>> &parents,
+				  const std::vector<std::pair<MemberPrivilege, VarDecl *>> &variables,
+				  const std::vector<std::pair<MemberPrivilege, FunctionMember>> &functions,
+				  const std::vector<std::pair<MemberPrivilege, EnumDecl *>> &enumerations = {});
 		~ClassDecl() override;
 
 		STD_STRING ToString() override;
 
 		STD_STRING name;
-		std::vector<IdentifierExpr *> parents;
-		std::vector<VarDecl *> variables;
-		std::vector<FunctionMember> functions;
-		std::vector<EnumDecl *> enumerations;
+		std::vector<std::pair<MemberPrivilege, IdentifierExpr *>> parents;
+		std::vector<std::pair<MemberPrivilege, VarDecl *>> variables;
+		std::vector<std::pair<MemberPrivilege, FunctionMember>> functions;
+		std::vector<std::pair<MemberPrivilege, EnumDecl *>> enumerations;
 	};
 
 	struct ModuleDecl : public Decl

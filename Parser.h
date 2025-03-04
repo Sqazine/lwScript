@@ -108,6 +108,8 @@ namespace lwscript
 
 		Type ParseType();
 
+		ClassDecl::MemberPrivilege ParseClassMemberPrivilege();
+
 		Token *GetCurToken();
 		Token *GetCurTokenAndStepOnce();
 		Precedence GetCurTokenPrecedence();

@@ -2,14 +2,9 @@
 #include "Chunk.h"
 #include "Ast.h"
 #include "Object.h"
+#include "Utils.h"
 namespace lwscript
 {
-	enum class RWState // read write state
-	{
-		READ,
-		WRITE,
-	};
-
 	class LWSCRIPT_API Compiler
 	{
 	public:
@@ -21,6 +16,12 @@ namespace lwscript
 		void ResetStatus();
 
 	private:
+		enum class RWState // read write state
+		{
+			READ,
+			WRITE,
+		};
+
 		enum class SymbolLocation
 		{
 			GLOBAL,
@@ -45,7 +46,7 @@ namespace lwscript
 		{
 			STD_STRING name;
 			SymbolLocation location = SymbolLocation::GLOBAL;
-			Privilege privilege = Privilege::MUTABLE;
+			Permission permission = Permission::IMMUTABLE;
 			uint8_t index = 0;
 			int8_t scopeDepth = -1;
 			FunctionSymbolInfo functionSymInfo;
@@ -60,7 +61,7 @@ namespace lwscript
 			SymbolTable(SymbolTable *enclosing);
 			~SymbolTable();
 
-			Symbol Define(const Token *relatedToken, Privilege privilege, const STD_STRING &name, const FunctionSymbolInfo &functionInfo = {});
+			Symbol Define(const Token *relatedToken, Permission permission, const STD_STRING &name, const FunctionSymbolInfo &functionInfo = {});
 
 			Symbol Resolve(const Token *relatedToken, const STD_STRING &name, int8_t paramCount = -1, int8_t d = 0);
 
@@ -79,11 +80,11 @@ namespace lwscript
 		};
 
 		void CompileDecl(Decl *decl);
-		void CompileVarDecl(VarDecl * decl);
-		void CompileFunctionDecl(FunctionDecl * decl);
-		void CompileClassDecl(ClassDecl * decl);
-		void CompileEnumDecl(EnumDecl * decl);
-		void CompileModuleDecl(ModuleDecl * decl);
+		void CompileVarDecl(VarDecl *decl);
+		void CompileFunctionDecl(FunctionDecl *decl);
+		void CompileClassDecl(ClassDecl *decl);
+		void CompileEnumDecl(EnumDecl *decl);
+		void CompileModuleDecl(ModuleDecl *decl);
 
 		void CompileDeclAndStmt(Stmt *stmt);
 
@@ -120,9 +121,9 @@ namespace lwscript
 		void CompileVarArgExpr(VarArgExpr *expr, const RWState &state = RWState::READ);
 		void CompileFactorialExpr(FactorialExpr *expr, const RWState &state = RWState::READ);
 
-		Symbol CompileFunction(FunctionDecl * decl,ClassDecl::FunctionKind kind=ClassDecl::FunctionKind::NONE);
-		uint32_t CompileVars(VarDecl * decl, bool IsInClassOrModuleScope);
-		Symbol CompileClass(ClassDecl * decl);
+		Symbol CompileFunction(FunctionDecl *decl, ClassDecl::FunctionKind kind = ClassDecl::FunctionKind::NONE);
+		uint32_t CompileVars(VarDecl *decl, bool IsInClassOrModuleScope);
+		Symbol CompileClass(ClassDecl *decl);
 
 		uint64_t EmitOpCode(OpCode opCode, const Token *token);
 		uint64_t Emit(uint8_t opcode);

@@ -671,11 +671,11 @@ namespace lwscript
 	//----------------------Declarations-----------------------------
 
 	VarDecl::VarDecl(Token *tagToken)
-		: Decl(tagToken, AstKind::VAR), privilege(Privilege::MUTABLE)
+		: Decl(tagToken, AstKind::VAR), permission(Permission::MUTABLE)
 	{
 	}
-	VarDecl::VarDecl(Token *tagToken, Privilege privilege, const std::vector<std::pair<Expr *, Expr *>> &variables)
-		: Decl(tagToken, AstKind::VAR), privilege(privilege), variables(variables)
+	VarDecl::VarDecl(Token *tagToken, Permission permission, const std::vector<std::pair<Expr *, Expr *>> &variables)
+		: Decl(tagToken, AstKind::VAR), permission(permission), variables(variables)
 	{
 	}
 	VarDecl::~VarDecl()
@@ -687,7 +687,7 @@ namespace lwscript
 	{
 		STD_STRING result;
 
-		if (privilege == Privilege::IMMUTABLE)
+		if (permission == Permission::IMMUTABLE)
 			result += TEXT("const ");
 		else
 			result += TEXT("let ");
@@ -807,12 +807,13 @@ namespace lwscript
 		: Decl(tagToken, AstKind::CLASS)
 	{
 	}
+
 	ClassDecl::ClassDecl(Token *tagToken,
 						 STD_STRING name,
-						 const std::vector<VarDecl *> &variables,
-						 const std::vector<FunctionMember> &functions,
-						 const std::vector<EnumDecl *> &enumerations,
-						 const std::vector<IdentifierExpr *> &parents)
+						 const std::vector<std::pair<MemberPrivilege, IdentifierExpr *>> &parents,
+						 const std::vector<std::pair<MemberPrivilege, VarDecl *>> &variables,
+						 const std::vector<std::pair<MemberPrivilege, FunctionMember>> &functions,
+						 const std::vector<std::pair<MemberPrivilege, EnumDecl *>> &enumerations)
 		: Decl(tagToken, AstKind::CLASS),
 		  name(name),
 		  variables(variables),
@@ -821,12 +822,13 @@ namespace lwscript
 		  parents(parents)
 	{
 	}
+
 	ClassDecl::~ClassDecl()
 	{
-		std::vector<IdentifierExpr *>().swap(parents);
-		std::vector<VarDecl *>().swap(variables);
-		std::vector<FunctionMember>().swap(functions);
-		std::vector<EnumDecl *>().swap(enumerations);
+		std::vector<std::pair<MemberPrivilege, IdentifierExpr *>>().swap(parents);
+		std::vector<std::pair<MemberPrivilege, VarDecl *>>().swap(variables);
+		std::vector<std::pair<MemberPrivilege, FunctionMember>>().swap(functions);
+		std::vector<std::pair<MemberPrivilege, EnumDecl *>>().swap(enumerations);
 	}
 
 	STD_STRING ClassDecl::ToString()
@@ -835,17 +837,17 @@ namespace lwscript
 		if (!parents.empty())
 		{
 			result += TEXT(":");
-			for (const auto &parentClass : parents)
-				result += parentClass->ToString() + TEXT(",");
+			for (const auto &parent : parents)
+				result += parent.second->ToString() + TEXT(",");
 			result = result.substr(0, result.size() - 1);
 		}
 		result += TEXT("{");
-		for (auto enumStmt : enumerations)
-			result += enumStmt->ToString();
-		for (auto variableStmt : variables)
-			result += variableStmt->ToString();
+		for (auto enumeration : enumerations)
+			result += enumeration.second->ToString();
+		for (auto variable : variables)
+			result += variable.second->ToString();
 		for (auto fn : functions)
-			result += fn.decl->ToString();
+			result += fn.second.decl->ToString();
 		return result + TEXT("}");
 	}
 }

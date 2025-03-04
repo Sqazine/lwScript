@@ -72,6 +72,9 @@ namespace lwscript
 		STRUCT,				   // struct
 		THIS,				   // this
 		BASE,				   // base
+		PUBLIC,				   // public
+		PROTECTED,			   // protected
+		PRIVATE,			   // private
 		RETURN,				   // return
 		STATIC,				   // static
 		CONST,				   // const

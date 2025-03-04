@@ -723,7 +723,7 @@ namespace lwscript
 				{
 					name = POP_STACK();
 					auto v = POP_STACK();
-					v.privilege = Privilege::MUTABLE;
+					v.permission = Permission::MUTABLE;
 					classObj->members[TO_STR_VALUE(name)->value] = v;
 				}
 
@@ -731,7 +731,7 @@ namespace lwscript
 				{
 					name = POP_STACK();
 					auto v = POP_STACK();
-					v.privilege = Privilege::IMMUTABLE;
+					v.permission = Permission::IMMUTABLE;
 					classObj->members[TO_STR_VALUE(name)->value] = v;
 				}
 
@@ -834,7 +834,7 @@ namespace lwscript
 					Value member;
 					if (klass->GetMember(propName, member))
 					{
-						if (member.privilege == Privilege::IMMUTABLE)
+						if (member.permission == Permission::IMMUTABLE)
 							Logger::Error(relatedToken, TEXT("Constant cannot be assigned twice: {}'s member: {} is a constant value"), klass->name, propName);
 						else
 							klass->members[propName] = PEEK_STACK(0);
@@ -1008,7 +1008,7 @@ namespace lwscript
 					name = POP_STACK();
 					nameStr = TO_STR_VALUE(name)->value;
 					auto v = POP_STACK();
-					v.privilege = Privilege::IMMUTABLE;
+					v.permission = Permission::IMMUTABLE;
 					moduleObj->values[nameStr] = v;
 				}
 
@@ -1017,7 +1017,7 @@ namespace lwscript
 					name = POP_STACK();
 					nameStr = TO_STR_VALUE(name)->value;
 					auto v = POP_STACK();
-					v.privilege = Privilege::MUTABLE;
+					v.permission = Permission::MUTABLE;
 					moduleObj->values[nameStr] = v;
 				}
 
