@@ -24,14 +24,14 @@ namespace lwscript
 	Compiler::Symbol Compiler::SymbolTable::Define(const Token *relatedToken, Permission permission, const STD_STRING &name, const Compiler::FunctionSymbolInfo &functionInfo)
 	{
 		if (mSymbolCount >= mSymbols.size())
-			Logger::Error(relatedToken, TEXT("Too many symbols in current scope."));
+			LW_LOG_ERROR_WITH_LOC(relatedToken, TEXT("Too many symbols in current scope."));
 		for (int16_t i = mSymbolCount - 1; i >= 0; --i)
 		{
 			auto isSameParamCount = (mSymbols[i].functionSymInfo.paramCount < 0 || functionInfo.paramCount < 0) ? true : mSymbols[i].functionSymInfo.paramCount == functionInfo.paramCount;
 			if (mSymbols[i].scopeDepth == -1 || mSymbols[i].scopeDepth < mScopeDepth)
 				break;
 			if (mSymbols[i].name == name && isSameParamCount)
-				Logger::Error(relatedToken, TEXT("Redefinition symbol:{}"), name);
+				LW_LOG_ERROR_WITH_LOC(relatedToken, TEXT("Redefinition symbol:{}"), name);
 		}
 
 		auto *symbol = &mSymbols[mSymbolCount++];
@@ -65,7 +65,7 @@ namespace lwscript
 				if (isSameParamCount || mSymbols[i].functionSymInfo.varArg > VarArg::NONE)
 				{
 					if (mSymbols[i].scopeDepth == -1)
-						Logger::Error(relatedToken, TEXT("symbol not defined yet!"));
+						LW_LOG_ERROR_WITH_LOC(relatedToken, TEXT("symbol not defined yet!"));
 
 					if (d == 1)
 						mSymbols[i].isCaptured = true;
@@ -86,7 +86,7 @@ namespace lwscript
 			return result;
 		}
 
-		Logger::Error(relatedToken, TEXT("No symbol: \"{}\" in current scope."), name);
+		LW_LOG_ERROR_WITH_LOC(relatedToken, TEXT("No symbol: \"{}\" in current scope."), name);
 	}
 
 	Compiler::UpValue Compiler::SymbolTable::AddUpValue(const Token *relatedToken, uint8_t location, uint8_t depth)
@@ -99,7 +99,7 @@ namespace lwscript
 		}
 
 		if (mUpValueCount == UINT8_COUNT)
-			Logger::Error(relatedToken, TEXT("Too many closure upvalues in function."));
+			LW_LOG_ERROR_WITH_LOC(relatedToken, TEXT("Too many closure upvalues in function."));
 		mUpValues[mUpValueCount].location = location;
 		mUpValues[mUpValueCount].depth = depth;
 		mUpValues[mUpValueCount].index = mUpValueCount;
@@ -219,7 +219,7 @@ namespace lwscript
 				}
 			}
 			else
-				Logger::Error(v->tagToken, TEXT("Enum value only integer num,floating point num,boolean or string is available."));
+				LW_LOG_ERROR_WITH_LOC(v->tagToken, TEXT("Enum value only integer num,floating point num,boolean or string is available."));
 
 			pairs[k->literal] = enumValue;
 		}
@@ -586,9 +586,9 @@ namespace lwscript
 						auto assigneeElements = assignee->elements;
 						auto rightElements = ((ArrayExpr *)expr->right)->elements;
 						if (assigneeElements.size() < rightElements.size())
-							Logger::Warn(rightElements[assigneeElements.size()]->tagToken, TEXT("variable count less than value count,ignore the rest value"));
+							LW_LOG_WARN_WITH_LOC(rightElements[assigneeElements.size()]->tagToken, TEXT("variable count less than value count,ignore the rest value"));
 						else if (assigneeElements.size() > rightElements.size())
-							Logger::Warn(assigneeElements[rightElements.size()]->tagToken, TEXT("variable count greater than value count,rest value set as null"));
+							LW_LOG_WARN_WITH_LOC(assigneeElements[rightElements.size()]->tagToken, TEXT("variable count greater than value count,rest value set as null"));
 					}
 				}
 
@@ -776,7 +776,7 @@ namespace lwscript
 			CompileExpr(expr->right, RWState::WRITE);
 		}
 		else
-			Logger::Error(expr->tagToken, TEXT("No prefix op:{}"), expr->op);
+			LW_LOG_ERROR_WITH_LOC(expr->tagToken, TEXT("No prefix op:{}"), expr->op);
 	}
 	void Compiler::CompilePostfixExpr(PostfixExpr *expr, const RWState &state, bool isDelayCompile)
 	{
@@ -789,7 +789,7 @@ namespace lwscript
 			else if (expr->op == TEXT("--"))
 				EmitOpCode(OP_SUB, expr->tagToken);
 			else
-				Logger::Error(expr->tagToken, TEXT("No postfix op:{}"), expr->op);
+				LW_LOG_ERROR_WITH_LOC(expr->tagToken, TEXT("No postfix op:{}"), expr->op);
 			CompileExpr(expr->left, RWState::WRITE);
 			EmitOpCode(OP_POP, expr->tagToken);
 		}
@@ -919,7 +919,7 @@ namespace lwscript
 					Emit(symbol.index);
 			}
 			else
-				Logger::Error(expr->tagToken, TEXT("{} is a constant,which cannot be assigned!"), expr->ToString());
+				LW_LOG_ERROR_WITH_LOC(expr->tagToken, TEXT("{} is a constant,which cannot be assigned!"), expr->ToString());
 		}
 		else
 		{
@@ -1240,7 +1240,7 @@ namespace lwscript
 					varCount++;
 				}
 				else
-					Logger::Error(k->tagToken, TEXT("Unknown variable:{}"), k->ToString());
+					LW_LOG_ERROR_WITH_LOC(k->tagToken, TEXT("Unknown variable:{}"), k->ToString());
 			}
 		}
 
@@ -1268,7 +1268,7 @@ namespace lwscript
 
 		for (const auto &enumeration : decl->enumerations)
 		{
-			auto decl=enumeration.second;
+			auto decl = enumeration.second;
 			CompileEnumDecl(decl);
 			EmitConstant(new StrObject(decl->name->literal), decl->tagToken);
 			constCount++;
@@ -1287,14 +1287,14 @@ namespace lwscript
 
 		for (const auto &varMember : decl->variables)
 		{
-			auto varDecl=varMember.second;
+			auto varDecl = varMember.second;
 			if (varDecl->permission == Permission::IMMUTABLE)
 				constCount += CompileVars(varDecl, true);
 		}
 
 		for (const auto &varMember : decl->variables)
 		{
-			auto varDecl=varMember.second;
+			auto varDecl = varMember.second;
 			if (varDecl->permission == Permission::MUTABLE)
 				varCount += CompileVars(varDecl, true);
 		}
@@ -1309,7 +1309,7 @@ namespace lwscript
 
 		for (const auto &functionMember : decl->functions)
 		{
-			auto functionDecl=functionMember.second;
+			auto functionDecl = functionMember.second;
 			if (functionDecl.kind == ClassDecl::FunctionKind::CONSTRUCTOR)
 			{
 				CompileFunction(functionDecl.decl, ClassDecl::FunctionKind::CONSTRUCTOR);

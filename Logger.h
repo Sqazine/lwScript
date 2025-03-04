@@ -12,7 +12,8 @@ namespace lwscript
 {
     namespace Logger
     {
-        enum class Kind{
+        enum class Kind
+        {
             INFO,
             WARN,
             ERROR
@@ -97,102 +98,18 @@ namespace lwscript
         }
 
         template <typename... Args>
-        inline void Error(const STD_STRING &fmt, const Args &...args)
-        {
-            Println(TEXT("\033[31m[ERROR]:") + fmt + TEXT("\033[0m"), args...);
-#ifndef NDEBUG
-            assert(0);
-#else
-            exit(1);
-#endif
-        }
-
-        template <typename... Args>
-        inline void Error(uint64_t pos, const STD_STRING &fmt, const Args &...args)
-        {
-            auto lineNum = 1;
-            for (uint64_t i = 0; i < pos; ++i)
-                if (Record::mSourceCode[i] == TCHAR('\n') || Record::mSourceCode[i] == TCHAR('\r'))
-                    lineNum++;
-
-            AssemblyLogInfo(TEXT("[ERROR]"), TEXT("31"), lineNum, 1, pos, fmt, args...);
-#ifndef NDEBUG
-            assert(0);
-#else
-            exit(1);
-#endif
-        }
-
-        template <typename... Args>
-        inline void Error(const Token *tok, const STD_STRING &fmt, const Args &...args)
-        {
-            AssemblyLogInfo(TEXT("[ERROR]"), TEXT("31"), tok->sourceLocation.line, tok->sourceLocation.column, tok->sourceLocation.pos, fmt, args...);
-#ifndef NDEBUG
-            assert(0);
-#else
-            exit(1);
-#endif
-        }
-
-        template <typename... Args>
-        inline void Warn(const STD_STRING &fmt, const Args &...args)
-        {
-            Println(TEXT("\033[33m[WARN]:") + fmt + TEXT("\033[0m"), args...);
-        }
-
-        template <typename... Args>
-        void Warn(int32_t pos, const STD_STRING &fmt, const Args &...args)
-        {
-            auto lineNum = 1;
-            for (int32_t i = 0; i < pos; ++i)
-                if (Record::mSourceCode[i] == TCHAR('\n') || Record::mSourceCode[i] == TCHAR('\r'))
-                    lineNum++;
-
-            AssemblyLogInfo(TEXT("[WARN]"), TEXT("33"), lineNum, 1, pos, fmt, args...);
-        }
-
-        template <typename... Args>
-        void Warn(const Token *tok, const STD_STRING &fmt, const Args &...args)
-        {
-            AssemblyLogInfo(TEXT("[WARN]"), TEXT("33"), tok->sourceLocation.line, tok->sourceLocation.column, tok->sourceLocation.pos, fmt, args...);
-        }
-
-        template <typename... Args>
-        inline void Info(const STD_STRING &fmt, const Args &...args)
-        {
-            Println(TEXT("\033[32m[INFO]:") + fmt + TEXT("\033[0m"), args...);
-        }
-
-        template <typename... Args>
-        void Info(int32_t pos, const STD_STRING &fmt, const Args &...args)
-        {
-            auto lineNum = 1;
-            for (int32_t i = 0; i < pos; ++i)
-                if (Record::mSourceCode[i] == TCHAR('\n') || Record::mSourceCode[i] == TCHAR('\r'))
-                    lineNum++;
-
-            AssemblyLogInfo(TEXT("[INFO]"), TEXT("32"), lineNum, 1, pos, fmt, args...);
-        }
-
-        template <typename... Args>
-        void Info(const Token *tok, const STD_STRING &fmt, const Args &...args)
-        {
-            AssemblyLogInfo(TEXT("[INFO]"), TEXT("32"), tok->sourceLocation.line, tok->sourceLocation.column, tok->sourceLocation.pos, fmt, args...);
-        }
-
-        template <typename... Args>
-        void Log(Kind logKind,const STD_STRING &fmt, const Args &...args)
+        void Log(Kind logKind, const STD_STRING &fmt, const Args &...args)
         {
             switch (logKind)
             {
-            case Kind::INFO:
-                Info(fmt, args...);
+            case Kind::ERROR:
+                Println(TEXT("\033[31m[ERROR]:") + fmt + TEXT("\033[0m"), args...);
                 break;
             case Kind::WARN:
-                Warn(fmt, args...);
+                Println(TEXT("\033[33m[WARN]:") + fmt + TEXT("\033[0m"), args...);
                 break;
-            case Kind::ERROR:
-                Error(fmt, args...);
+            case Kind::INFO:
+                Println(TEXT("\033[32m[INFO]:") + fmt + TEXT("\033[0m"), args...);
                 break;
             default:
                 break;
@@ -202,16 +119,21 @@ namespace lwscript
         template <typename... Args>
         void Log(Kind logKind, int32_t pos, const STD_STRING &fmt, const Args &...args)
         {
+            auto lineNum = 1;
+            for (int32_t i = 0; i < pos; ++i)
+                if (Record::mSourceCode[i] == TCHAR('\n') || Record::mSourceCode[i] == TCHAR('\r'))
+                    lineNum++;
+
             switch (logKind)
             {
             case Kind::INFO:
-                Info(pos, fmt, args...);
+                AssemblyLogInfo(TEXT("[INFO]"), TEXT("32"), lineNum, 1, pos, fmt, args...);
                 break;
             case Kind::WARN:
-                Warn(pos, fmt, args...);
+                AssemblyLogInfo(TEXT("[WARN]"), TEXT("33"), lineNum, 1, pos, fmt, args...);
                 break;
             case Kind::ERROR:
-                Error(pos, fmt, args...);
+                AssemblyLogInfo(TEXT("[ERROR]"), TEXT("31"), lineNum, 1, pos, fmt, args...);
                 break;
             default:
                 break;
@@ -224,17 +146,73 @@ namespace lwscript
             switch (logKind)
             {
             case Kind::INFO:
-                Info(tok, fmt, args...);
+                AssemblyLogInfo(TEXT("[INFO]"), TEXT("32"), tok->sourceLocation.line, tok->sourceLocation.column, tok->sourceLocation.pos, fmt, args...);
                 break;
             case Kind::WARN:
-                Warn(tok, fmt, args...);
+                AssemblyLogInfo(TEXT("[WARN]"), TEXT("33"), tok->sourceLocation.line, tok->sourceLocation.column, tok->sourceLocation.pos, fmt, args...);
                 break;
             case Kind::ERROR:
-                Error(tok, fmt, args...);
+                AssemblyLogInfo(TEXT("[ERROR]"), TEXT("31"), tok->sourceLocation.line, tok->sourceLocation.column, tok->sourceLocation.pos, fmt, args...);
                 break;
             default:
                 break;
             }
         }
     }
+#ifndef NDEBUG
+#define LW_LOG_ERROR(fmt, ...)                                                       \
+    do                                                                            \
+    {                                                                             \
+        lwscript::Logger::Log(lwscript::Logger::Kind::ERROR, fmt, ##__VA_ARGS__); \
+        assert(0);                                                                \
+    } while (false)
+
+#define LW_LOG_ERROR_WITH_LOC(tokOrPos, fmt, ...)                                              \
+    do                                                                                      \
+    {                                                                                       \
+        lwscript::Logger::Log(lwscript::Logger::Kind::ERROR, tokOrPos, fmt, ##__VA_ARGS__); \
+        assert(0);                                                                          \
+    } while (false)
+
+#else
+
+#define LW_LOG_ERROR(fmt, ...)                                                       \
+    do                                                                            \
+    {                                                                             \
+        lwscript::Logger::Log(lwscript::Logger::Kind::ERROR, fmt, ##__VA_ARGS__); \
+        exit(1);                                                                  \
+    } while (false)
+
+#define LW_LOG_ERROR_WITH_LOC(tokOrPos, fmt, ...)                                              \
+    do                                                                                      \
+    {                                                                                       \
+        lwscript::Logger::Log(lwscript::Logger::Kind::ERROR, tokOrPos, fmt, ##__VA_ARGS__); \
+        exit(1);                                                                            \
+    } while (false)
+#endif
+
+#define LW_LOG_WARN(fmt, ...)                                                       \
+    do                                                                           \
+    {                                                                            \
+        lwscript::Logger::Log(lwscript::Logger::Kind::WARN, fmt, ##__VA_ARGS__); \
+    } while (false)
+
+#define LW_LOG_WARN_WITH_LOC(tokOrPos, fmt, ...)                                              \
+    do                                                                                     \
+    {                                                                                      \
+        lwscript::Logger::Log(lwscript::Logger::Kind::WARN, tokOrPos, fmt, ##__VA_ARGS__); \
+    } while (false)
+
+#define LW_LOG_INFO(fmt, ...)                                                       \
+    do                                                                           \
+    {                                                                            \
+        lwscript::Logger::Log(lwscript::Logger::Kind::INFO, fmt, ##__VA_ARGS__); \
+    } while (false)
+
+#define LW_LOG_INFO_WITH_LOC(tokOrPos, fmt, ...)                                              \
+    do                                                                                     \
+    {                                                                                      \
+        lwscript::Logger::Log(lwscript::Logger::Kind::INFO, tokOrPos, fmt, ##__VA_ARGS__); \
+    } while (false)
+
 }

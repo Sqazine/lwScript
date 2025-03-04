@@ -57,7 +57,7 @@ namespace lwscript
     {
 #ifndef NDEBUG
         if (mStackTop - mValueStack >= STACK_MAX)
-            Logger::Error(TEXT("Stack overflow."));
+            LW_LOG_ERROR(TEXT("Stack overflow."));
 #endif
         *(mStackTop++) = value;
     }
@@ -65,7 +65,7 @@ namespace lwscript
     {
 #ifndef NDEBUG
         if (mStackTop - mValueStack <= 0)
-            Logger::Error(TEXT("Stack underflow."));
+            LW_LOG_ERROR(TEXT("Stack underflow."));
 #endif
         return *(--mStackTop);
     }

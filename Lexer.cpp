@@ -124,7 +124,7 @@ namespace lwscript
 				if (IsMatchCurCharAndStepOnce(TCHAR('.')))
 					AddToken(TokenKind::ELLIPSIS);
 				else
-					Logger::Error(mCurPos, TEXT("Unknown literal:'..',did you want '.' or '...'?"));
+					LW_LOG_ERROR_WITH_LOC(mCurPos, TEXT("Unknown literal:'..',did you want '.' or '...'?"));
 			}
 			else
 				AddToken(TokenKind::DOT);
@@ -292,7 +292,7 @@ namespace lwscript
 			else
 			{
 				auto literal = mSource.substr(mStartPos, mCurPos - mStartPos);
-				Logger::Error(mCurPos, TEXT("Unknown literal:") + literal);
+				LW_LOG_ERROR_WITH_LOC(mCurPos, TEXT("Unknown literal:") + literal);
 			}
 		}
 	}
@@ -390,7 +390,7 @@ namespace lwscript
 			else if (GetCurChar() == TCHAR('f'))
 				GetCurCharAndStepOnce();
 			else
-				Logger::Error(mCurPos, TEXT("The character next to '.' in a floating number must be in [0-9] range or a single 'f' character."));
+				LW_LOG_ERROR_WITH_LOC(mCurPos, TEXT("The character next to '.' in a floating number must be in [0-9] range or a single 'f' character."));
 		}
 
 		AddToken(TokenKind::NUMBER);

@@ -28,16 +28,16 @@ namespace lwscript
                     auto e = arrayK->elements[i];
                     e = ExecuteExpr(e);
                     if (e->kind != AstKind::VAR_DESC && e->kind != AstKind::VAR_ARG)
-                        Logger::Error(e->tagToken, TEXT("only variable description or variable argument is available in destructing assign expr."));
+                        LW_LOG_ERROR_WITH_LOC(e->tagToken, TEXT("only variable description or variable argument is available in destructing assign expr."));
 
                     if (e->kind == AstKind::VAR_ARG && i != arrayK->elements.size() - 1)
-                        Logger::Error(k->tagToken, TEXT("variable argument expr only available at the end of destructing assignment expr."));
+                        LW_LOG_ERROR_WITH_LOC(k->tagToken, TEXT("variable argument expr only available at the end of destructing assignment expr."));
                 }
             }
             else if (k->kind == AstKind::VAR_DESC)
                 k = ExecuteExpr(k);
             else
-                Logger::Error(k->tagToken, TEXT("only destructing assign expr or variable description is available in let/const stmt's binding part."));
+                LW_LOG_ERROR_WITH_LOC(k->tagToken, TEXT("only destructing assign expr or variable description is available in let/const stmt's binding part."));
 
             v = ExecuteExpr(v);
         }
@@ -82,7 +82,7 @@ namespace lwscript
             e = (VarDescExpr *)ExecuteVarDescExpr(e);
 
             if (e->name->kind == AstKind::VAR_ARG && i != decl->parameters.size() - 1)
-                Logger::Error(e->tagToken, TEXT("variable argument expr only available at the end of function parameter list."));
+                LW_LOG_ERROR_WITH_LOC(e->tagToken, TEXT("variable argument expr only available at the end of function parameter list."));
         }
 
         decl->body = (ScopeStmt *)ExecuteScopeStmt(decl->body);
@@ -161,7 +161,7 @@ namespace lwscript
         for (auto &[k, v] : expr->elements)
         {
             if (!IsConstantLiteral(k))
-                Logger::Error(k->tagToken, TEXT("Dict keys can only have constant literals (int num,real num,string,boolean,null or variable identifier)."));
+                LW_LOG_ERROR_WITH_LOC(k->tagToken, TEXT("Dict keys can only have constant literals (int num,real num,string,boolean,null or variable identifier)."));
             v = ExecuteExpr(v);
         }
         return expr;
@@ -175,7 +175,7 @@ namespace lwscript
     Expr *SyntaxCheckPass::ExecuteNewExpr(NewExpr *expr)
     {
         if (expr->callee->kind != AstKind::CALL)
-            Logger::Error(expr->callee->tagToken, TEXT("Not a valid new expr,call expr is necessary followed 'new' keyword."));
+            LW_LOG_ERROR_WITH_LOC(expr->callee->tagToken, TEXT("Not a valid new expr,call expr is necessary followed 'new' keyword."));
 
         return expr;
     }
@@ -199,7 +199,7 @@ namespace lwscript
             e = (VarDescExpr *)ExecuteVarDescExpr(e);
 
             if (e->name->kind == AstKind::VAR_ARG && i != expr->parameters.size() - 1)
-                Logger::Error(e->tagToken, TEXT("variable argument expr only available at the end of lambda parameter list."));
+                LW_LOG_ERROR_WITH_LOC(e->tagToken, TEXT("variable argument expr only available at the end of lambda parameter list."));
         }
 
         expr->body = (ScopeStmt *)ExecuteScopeStmt(expr->body);
@@ -220,7 +220,7 @@ namespace lwscript
     Expr *SyntaxCheckPass::ExecuteRefExpr(RefExpr *expr)
     {
         if (expr->refExpr->kind != AstKind::IDENTIFIER && expr->refExpr->kind != AstKind::INDEX)
-            Logger::Error(expr->tagToken, TEXT("Only left value is available for reference."));
+            LW_LOG_ERROR_WITH_LOC(expr->tagToken, TEXT("Only left value is available for reference."));
         return expr;
     }
     Expr *SyntaxCheckPass::ExecuteStructExpr(StructExpr *expr)
@@ -240,7 +240,7 @@ namespace lwscript
     Expr *SyntaxCheckPass::ExecuteVarDescExpr(VarDescExpr *expr)
     {
         if (expr->name->kind != AstKind::IDENTIFIER && expr->name->kind != AstKind::VAR_ARG)
-            Logger::Error(expr->tagToken, TEXT("Only identifier or variable argument is available at variable declaration or param declaration"));
+            LW_LOG_ERROR_WITH_LOC(expr->tagToken, TEXT("Only identifier or variable argument is available at variable declaration or param declaration"));
         return expr;
     }
 

@@ -23,17 +23,17 @@ struct Config
 
 int32_t PrintVersion()
 {
-	lwscript::Logger::Info(LWSCRIPT_VERSION);
+	LW_LOG_INFO(LWSCRIPT_VERSION);
 	return EXIT_FAILURE;
 }
 
 int32_t PrintUsage()
 {
-	lwscript::Logger::Info(TEXT("Usage: lwscript [option]:"));
-	lwscript::Logger::Info(TEXT("-h or --help:show usage info."));
-	lwscript::Logger::Info(TEXT("-v or --version:show current lwscript version"));
-	lwscript::Logger::Info(TEXT("-s or --serialize: serialize source file as bytecode binary file"));
-	lwscript::Logger::Info(TEXT("-f or --file:run source file with a valid file path,like : lwscript -f examples/array.cd."));
+	LW_LOG_INFO(TEXT("Usage: lwscript [option]:"));
+	LW_LOG_INFO(TEXT("-h or --help:show usage info."));
+	LW_LOG_INFO(TEXT("-v or --version:show current lwscript version"));
+	LW_LOG_INFO(TEXT("-s or --serialize: serialize source file as bytecode binary file"));
+	LW_LOG_INFO(TEXT("-f or --file:run source file with a valid file path,like : lwscript -f examples/array.cd."));
 	return EXIT_FAILURE;
 }
 

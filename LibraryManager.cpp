@@ -68,7 +68,7 @@ namespace lwscript
         for (const auto &lib : mLibraries)
         {
             if (lib->name == libraryClass->name)
-                Logger::Error(TEXT("Conflict library name {}"), libraryClass->name);
+                LW_LOG_ERROR(TEXT("Conflict library name {}"), libraryClass->name);
         }
 
         mLibraries.emplace_back(libraryClass);
@@ -84,7 +84,7 @@ namespace lwscript
         const auto SizeOfFunction = new NativeFunctionObject([](Value *args, uint32_t argCount, const Token *relatedToken, Value &result) -> bool
                                                              {
                                                                  if (args == nullptr || argCount > 1)
-                                                                     Logger::Error(relatedToken, TEXT("[Native function 'sizeof']:Expect a argument."));
+                                                                     LW_LOG_ERROR_WITH_LOC(relatedToken, TEXT("[Native function 'sizeof']:Expect a argument."));
 
                                                                  if (IS_ARRAY_VALUE(args[0]))
                                                                  {
@@ -102,7 +102,7 @@ namespace lwscript
                                                                      return true;
                                                                  }
                                                                  else
-                                                                     Logger::Error(relatedToken, TEXT("[Native function 'sizeof']:Expect a array,dict ot string argument."));
+                                                                     LW_LOG_ERROR_WITH_LOC(relatedToken, TEXT("[Native function 'sizeof']:Expect a array,dict ot string argument."));
 
                                                                  return false;
                                                              });
@@ -110,18 +110,18 @@ namespace lwscript
         const auto InsertFunction = new NativeFunctionObject([](Value *args, uint32_t argCount, const Token *relatedToken, Value &result) -> bool
                                                              {
                                                                  if (args == nullptr || argCount != 3)
-                                                                     Logger::Error(relatedToken, TEXT("[Native function 'insert']:Expect 3 arguments,the arg0 must be array,dict or string object.The arg1 is the index object.The arg2 is the value object."));
+                                                                     LW_LOG_ERROR_WITH_LOC(relatedToken, TEXT("[Native function 'insert']:Expect 3 arguments,the arg0 must be array,dict or string object.The arg1 is the index object.The arg2 is the value object."));
 
                                                                  if (IS_ARRAY_VALUE(args[0]))
                                                                  {
                                                                      ArrayObject *array = TO_ARRAY_VALUE(args[0]);
                                                                      if (!IS_INT_VALUE(args[1]))
-                                                                         Logger::Error(relatedToken, TEXT("[Native function 'insert']:Arg1 must be integer type while insert to a array"));
+                                                                         LW_LOG_ERROR_WITH_LOC(relatedToken, TEXT("[Native function 'insert']:Arg1 must be integer type while insert to a array"));
 
                                                                      int64_t iIndex = TO_INT_VALUE(args[1]);
 
                                                                      if (iIndex < 0 || iIndex >= (int64_t)array->elements.size())
-                                                                         Logger::Error(relatedToken, TEXT("[Native function 'insert']:Index out of array's range"));
+                                                                         LW_LOG_ERROR_WITH_LOC(relatedToken, TEXT("[Native function 'insert']:Index out of array's range"));
 
                                                                      array->elements.insert(array->elements.begin() + iIndex, 1, args[2]);
                                                                  }
@@ -131,7 +131,7 @@ namespace lwscript
 
                                                                      for (auto [key, value] : dict->elements)
                                                                          if (key == args[1])
-                                                                             Logger::Error(relatedToken, TEXT("[Native function 'insert']:Already exist value in the dict object of arg1") + args[1].ToString());
+                                                                             LW_LOG_ERROR_WITH_LOC(relatedToken, TEXT("[Native function 'insert']:Already exist value in the dict object of arg1") + args[1].ToString());
 
                                                                      dict->elements[args[1]] = args[2];
                                                                  }
@@ -139,17 +139,17 @@ namespace lwscript
                                                                  {
                                                                      auto &string = TO_STR_VALUE(args[0])->value;
                                                                      if (!IS_INT_VALUE(args[1]))
-                                                                         Logger::Error(relatedToken, TEXT("[Native function 'insert']:Arg1 must be integer type while insert to a array"));
+                                                                         LW_LOG_ERROR_WITH_LOC(relatedToken, TEXT("[Native function 'insert']:Arg1 must be integer type while insert to a array"));
 
                                                                      int64_t iIndex = TO_INT_VALUE(args[1]);
 
                                                                      if (iIndex < 0 || iIndex >= (int64_t)string.size())
-                                                                         Logger::Error(relatedToken, TEXT("[Native function 'insert']:Index out of array's range"));
+                                                                         LW_LOG_ERROR_WITH_LOC(relatedToken, TEXT("[Native function 'insert']:Index out of array's range"));
 
                                                                      string.insert(iIndex, args[2].ToString());
                                                                  }
                                                                  else
-                                                                     Logger::Error(relatedToken, TEXT("[Native function 'insert']:Expect a array,dict ot string argument."));
+                                                                     LW_LOG_ERROR_WITH_LOC(relatedToken, TEXT("[Native function 'insert']:Expect a array,dict ot string argument."));
 
                                                                  result = args[0];
                                                                  return true;
@@ -158,18 +158,18 @@ namespace lwscript
         const auto EraseFunction = new NativeFunctionObject([](Value *args, uint32_t argCount, const Token *relatedToken, Value &result) -> bool
                                                             {
                                                                 if (args == nullptr || argCount != 2)
-                                                                    Logger::Error(relatedToken, TEXT("[Native function 'erase']:Expect 2 arguments,the arg0 must be array,dict or string object.The arg1 is the corresponding index object."));
+                                                                    LW_LOG_ERROR_WITH_LOC(relatedToken, TEXT("[Native function 'erase']:Expect 2 arguments,the arg0 must be array,dict or string object.The arg1 is the corresponding index object."));
 
                                                                 if (IS_ARRAY_VALUE(args[0]))
                                                                 {
                                                                     ArrayObject *array = TO_ARRAY_VALUE(args[0]);
                                                                     if (!IS_INT_VALUE(args[1]))
-                                                                        Logger::Error(relatedToken, TEXT("[Native function 'erase']:Arg1 must be integer type while insert to a array"));
+                                                                        LW_LOG_ERROR_WITH_LOC(relatedToken, TEXT("[Native function 'erase']:Arg1 must be integer type while insert to a array"));
 
                                                                     int64_t iIndex = TO_INT_VALUE(args[1]);
 
                                                                     if (iIndex < 0 || iIndex >= (int64_t)array->elements.size())
-                                                                        Logger::Error(relatedToken, TEXT("[Native function 'erase']:Index out of array's range"));
+                                                                        LW_LOG_ERROR_WITH_LOC(relatedToken, TEXT("[Native function 'erase']:Index out of array's range"));
 
                                                                     array->elements.erase(array->elements.begin() + iIndex);
                                                                 }
@@ -188,23 +188,23 @@ namespace lwscript
                                                                         }
 
                                                                     if (!hasValue)
-                                                                        Logger::Error(relatedToken, TEXT("[Native function 'erase']:No corresponding index in dict."));
+                                                                        LW_LOG_ERROR_WITH_LOC(relatedToken, TEXT("[Native function 'erase']:No corresponding index in dict."));
                                                                 }
                                                                 else if (IS_STR_VALUE(args[0]))
                                                                 {
                                                                     auto &string = TO_STR_VALUE(args[0])->value;
                                                                     if (!IS_INT_VALUE(args[1]))
-                                                                        Logger::Error(relatedToken, TEXT("[Native function 'erase']:Arg1 must be integer type while insert to a array"));
+                                                                        LW_LOG_ERROR_WITH_LOC(relatedToken, TEXT("[Native function 'erase']:Arg1 must be integer type while insert to a array"));
 
                                                                     int64_t iIndex = TO_INT_VALUE(args[1]);
 
                                                                     if (iIndex < 0 || iIndex >= (int64_t)string.size())
-                                                                        Logger::Error(relatedToken, TEXT("[Native function 'erase']:Index out of array's range"));
+                                                                        LW_LOG_ERROR_WITH_LOC(relatedToken, TEXT("[Native function 'erase']:Index out of array's range"));
 
                                                                     string.erase(string.begin() + iIndex);
                                                                 }
                                                                 else
-                                                                    Logger::Error(relatedToken, TEXT("[Native function 'erase']:Expect a array,dict ot string argument."));
+                                                                    LW_LOG_ERROR_WITH_LOC(relatedToken, TEXT("[Native function 'erase']:Expect a array,dict ot string argument."));
 
                                                                 result = args[0];
                                                                 return true;
@@ -213,10 +213,10 @@ namespace lwscript
         const auto AddressOfFunction = new NativeFunctionObject([](Value *args, uint32_t argCount, const Token *relatedToken, Value &result) -> bool
                                                                 {
                                                                     if (args == nullptr || argCount != 1)
-                                                                        Logger::Error(relatedToken, TEXT("[Native function 'addressof']:Expect 1 arguments."));
+                                                                        LW_LOG_ERROR_WITH_LOC(relatedToken, TEXT("[Native function 'addressof']:Expect 1 arguments."));
 
                                                                     if (!IS_OBJECT_VALUE(args[0]))
-                                                                        Logger::Error(relatedToken, TEXT("[Native function 'addressof']:The arg0 is a value,only object has address."));
+                                                                        LW_LOG_ERROR_WITH_LOC(relatedToken, TEXT("[Native function 'addressof']:The arg0 is a value,only object has address."));
 
                                                                     result = new StrObject(PointerAddressToString(args[0].object));
                                                                     return true;

@@ -61,11 +61,11 @@ namespace lwscript
 	{
 		auto magicNumber = ByteConverter::GetU32Integer(data,0);
 		if (magicNumber != LWSCRIPT_BINARY_FILE_MAGIC_NUMBER)
-			Logger::Error(TEXT("Invalid lwscript binary file,cannot deserialize from this file"));
+		LW_LOG_ERROR(TEXT("Invalid lwscript binary file,cannot deserialize from this file"));
 
 		auto versionNumber = ByteConverter::GetU32Integer(data,4);
 		if (versionNumber != LWSCRIPT_VERSION_BINARY)
-			Logger::Error(TEXT("Invalid lwscript binary file version of {},current version is {}"), versionNumber, LWSCRIPT_VERSION_BINARY);
+		LW_LOG_ERROR(TEXT("Invalid lwscript binary file version of {},current version is {}"), versionNumber, LWSCRIPT_VERSION_BINARY);
 
 		auto opCodesCount = ByteConverter::GetU32Integer(data,8);
 

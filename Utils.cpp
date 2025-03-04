@@ -18,7 +18,7 @@ namespace lwscript
         STD_IFSTREAM file;
         file.open(Logger::Record::mCurFilePath.c_str(), std::ios::in | std::ios::binary);
         if (!file.is_open())
-            Logger::Error(TEXT("Failed to open file:{}"), Logger::Record::mCurFilePath);
+            LW_LOG_ERROR_WITH_LOC(TEXT("Failed to open file:{}"), Logger::Record::mCurFilePath);
 
         STD_STRING_STREAM sstream;
         sstream << file.rdbuf();
@@ -34,10 +34,10 @@ namespace lwscript
 #ifdef LWSCRIPT_UTF8_ENCODE
         {
             auto utf8Path = Utf8::Decode(path.data());
-            Logger::Error(TEXT("Failed to open file:{}"), utf8Path);
+            LW_LOG_ERROR_WITH_LOC(TEXT("Failed to open file:{}"), utf8Path);
         }
 #else
-            Logger::Error(TEXT("Failed to open file:{}"), path);
+            LW_LOG_ERROR_WITH_LOC(TEXT("Failed to open file:{}"), path);
 #endif
         file.write((const char *)content.data(), content.size());
         file.close();
@@ -51,10 +51,10 @@ namespace lwscript
 #ifdef LWSCRIPT_UTF8_ENCODE
         {
             auto utf8Path = Utf8::Decode(path.data());
-            Logger::Error(TEXT("Failed to open file:{}"), utf8Path);
+            LW_LOG_ERROR_WITH_LOC(TEXT("Failed to open file:{}"), utf8Path);
         }
 #else
-            Logger::Error(TEXT("Failed to open file:{}"), path);
+            LW_LOG_ERROR_WITH_LOC(TEXT("Failed to open file:{}"), path);
 #endif
 
         std::stringstream sstream;
