@@ -4,9 +4,9 @@ namespace lwscript
 {
     constexpr struct
     {
-        STD_STRING_VIEW name;
+        STRING_VIEW name;
         TypeKind kind;
-    } primitiveTypeMap[] = {
+    } gPrimitiveTypeMap[] = {
         {TEXT("i8"), TypeKind::I8},
         {TEXT("u8"), TypeKind::U8},
         {TEXT("i16"), TypeKind::I16},
@@ -20,7 +20,7 @@ namespace lwscript
         {TEXT("bool"), TypeKind::BOOL},
         {TEXT("char"), TypeKind::CHAR},
         {TEXT("any"), TypeKind::ANY},
-        {TEXT("string"), TypeKind::STRING},
+        {TEXT("string"), TypeKind::STR},
     };
 
     Type::Type() noexcept
@@ -28,9 +28,9 @@ namespace lwscript
     {
     }
 
-    Type::Type(STD_STRING_VIEW name, const SourceLocation &scl) noexcept
+    Type::Type(STRING_VIEW name, const SourceLocation &scl) noexcept
     {
-        for (const auto &p : primitiveTypeMap)
+        for (const auto &p : gPrimitiveTypeMap)
         {
             if (p.name == name)
             {
@@ -62,7 +62,7 @@ namespace lwscript
         return mKind == TypeKind::F32 || mKind == TypeKind::F64;
     }
 
-    STD_STRING_VIEW Type::GetName() const noexcept
+    STRING_VIEW Type::GetName() const noexcept
     {
         return mName;
     }

@@ -21,7 +21,7 @@ namespace lwscript
 	{
 	}
 
-	Compiler::Symbol Compiler::SymbolTable::Define(const Token *relatedToken, Permission permission, const STD_STRING &name, const Compiler::FunctionSymbolInfo &functionInfo)
+	Compiler::Symbol Compiler::SymbolTable::Define(const Token *relatedToken, Permission permission, const STRING &name, const Compiler::FunctionSymbolInfo &functionInfo)
 	{
 		if (mSymbolCount >= mSymbols.size())
 			LW_LOG_ERROR_WITH_LOC(relatedToken, TEXT("Too many symbols in current scope."));
@@ -54,7 +54,7 @@ namespace lwscript
 		return *symbol;
 	}
 
-	Compiler::Symbol Compiler::SymbolTable::Resolve(const Token *relatedToken, const STD_STRING &name, int8_t paramCount, int8_t d)
+	Compiler::Symbol Compiler::SymbolTable::Resolve(const Token *relatedToken, const STRING &name, int8_t paramCount, int8_t d)
 	{
 		for (int16_t i = mSymbolCount - 1; i >= 0; --i)
 		{
@@ -198,7 +198,7 @@ namespace lwscript
 
 	void Compiler::CompileEnumDecl(EnumDecl *decl)
 	{
-		std::unordered_map<STD_STRING, Value> pairs;
+		std::unordered_map<STRING, Value> pairs;
 		for (const auto &[k, v] : decl->enumItems)
 		{
 			Value enumValue;
@@ -211,7 +211,7 @@ namespace lwscript
 					enumValue = literalExpr->f64Value;
 				else if (literalExpr->type.Is(TypeKind::BOOL))
 					enumValue = literalExpr->boolean;
-				else if (literalExpr->type.Is(TypeKind::STRING))
+				else if (literalExpr->type.Is(TypeKind::STR))
 					enumValue = new StrObject(literalExpr->str);
 				else if (literalExpr->type.Is(TypeKind::CHAR))
 				{
@@ -739,7 +739,7 @@ namespace lwscript
 		case TypeKind::BOOL:
 			EmitConstant(expr->boolean, expr->tagToken);
 			break;
-		case TypeKind::STRING:
+		case TypeKind::STR:
 			EmitConstant(new StrObject(expr->str), expr->tagToken);
 			break;
 		case TypeKind::CHAR:
@@ -1074,7 +1074,7 @@ namespace lwscript
 		mFunctionList.emplace_back(new FunctionObject(decl->name->literal));
 		mSymbolTable = new SymbolTable(mSymbolTable);
 
-		STD_STRING symbolName = decl->name->literal;
+		STRING symbolName = decl->name->literal;
 		if (kind == ClassDecl::FunctionKind::MEMBER || kind == ClassDecl::FunctionKind::CONSTRUCTOR)
 			symbolName = TEXT("this");
 		mSymbolTable->Define(decl->tagToken, Permission::IMMUTABLE, symbolName);
@@ -1160,7 +1160,7 @@ namespace lwscript
 					for (int32_t i = 0; i < arrayExpr->elements.size(); ++i)
 					{
 						Symbol symbol;
-						STD_STRING literal;
+						STRING literal;
 						Token *token = nullptr;
 
 						if (((VarDescExpr *)arrayExpr->elements[i])->name->kind == AstKind::IDENTIFIER)
@@ -1211,7 +1211,7 @@ namespace lwscript
 				{
 					CompileExpr(v);
 
-					STD_STRING literal;
+					STRING literal;
 					Token *token = nullptr;
 
 					if (((VarDescExpr *)k)->name->kind == AstKind::IDENTIFIER)

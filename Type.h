@@ -18,7 +18,7 @@ namespace lwscript
 
         BOOL,
         CHAR,
-        STRING,
+        STR,
         ANY,
 
         STRUCT,
@@ -29,7 +29,7 @@ namespace lwscript
     {
     public:
         Type() noexcept;
-        Type(STD_STRING_VIEW name, const SourceLocation &scl = {}) noexcept;
+        Type(STRING_VIEW name, const SourceLocation &scl = {}) noexcept;
         ~Type() noexcept = default;
 
         TypeKind GetKind() const noexcept;
@@ -43,13 +43,13 @@ namespace lwscript
             return mKind == kind;
         }
 
-        STD_STRING_VIEW GetName() const noexcept;
+        STRING_VIEW GetName() const noexcept;
 
         bool IsPrimitiveType() const noexcept;
         bool IsCompositeType() const noexcept;
 
     private:
-        STD_STRING_VIEW mName;
+        STRING_VIEW mName;
         SourceLocation mSourceLocation;
         TypeKind mKind;
     };

@@ -353,7 +353,7 @@ namespace lwscript
 						SAFE_DELETE(infix);
 					return newExpr;
 				}
-				else if (leftLiteral->type.Is(TypeKind::STRING) && rightLiteral->type.Is(TypeKind::STRING))
+				else if (leftLiteral->type.Is(TypeKind::STR) && rightLiteral->type.Is(TypeKind::STR))
 				{
 					auto strExpr = new LiteralExpr(infix->tagToken, leftLiteral->str + rightLiteral->str);
 					SAFE_DELETE(infix);

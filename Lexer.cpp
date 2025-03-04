@@ -57,7 +57,7 @@ namespace lwscript
 		ResetStatus();
 	}
 
-	const std::vector<Token *> &Lexer::ScanTokens(STD_STRING_VIEW src)
+	const std::vector<Token *> &Lexer::ScanTokens(STRING_VIEW src)
 	{
 		Logger::RecordSource(src);
 
@@ -75,7 +75,7 @@ namespace lwscript
 	}
 	void Lexer::ScanToken()
 	{
-		STD_STRING c;
+		STRING c;
 
 		CHAR_T ch;
 		bool isAscii = true;
@@ -348,7 +348,7 @@ namespace lwscript
 
 		mTokens.push_back(new Token(type, literal, srcLoc));
 	}
-	void Lexer::AddToken(TokenKind type, STD_STRING_VIEW literal)
+	void Lexer::AddToken(TokenKind type, STRING_VIEW literal)
 	{
 		SourceLocation srcLoc;
 		srcLoc.line = mLine;
@@ -407,7 +407,7 @@ namespace lwscript
 			isAscii = isascii(c) ? true : false;
 		}
 
-		STD_STRING literal = mSource.substr(mStartPos, mCurPos - mStartPos);
+		STRING literal = mSource.substr(mStartPos, mCurPos - mStartPos);
 
 		bool isKeyWord = false;
 		for (const auto &keyword : keywords)
@@ -439,7 +439,7 @@ namespace lwscript
 
 		GetCurCharAndStepOnce(); // eat the second '\"'
 
-		AddToken(TokenKind::STRING, mSource.substr(mStartPos + 1, mCurPos - mStartPos - 2));
+		AddToken(TokenKind::STR, mSource.substr(mStartPos + 1, mCurPos - mStartPos - 2));
 	}
 
 	void Lexer::Character()

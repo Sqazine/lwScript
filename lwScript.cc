@@ -37,7 +37,7 @@ int32_t PrintUsage()
 	return EXIT_FAILURE;
 }
 
-void Run(STD_STRING_VIEW content)
+void Run(STRING_VIEW content)
 {
 	auto tokens = gLexer->ScanTokens(content);
 #ifndef NDEBUG
@@ -71,8 +71,8 @@ void Run(STD_STRING_VIEW content)
 
 void Repl()
 {
-	STD_STRING line;
-	STD_STRING allLines;
+	STRING line;
+	STRING allLines;
 
 	PrintVersion();
 
@@ -90,7 +90,7 @@ void Repl()
 
 void RunFile(std::string_view path)
 {
-	STD_STRING content = lwscript::ReadFile(path);
+	STRING content = lwscript::ReadFile(path);
 	Run(content);
 }
 

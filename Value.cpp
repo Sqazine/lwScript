@@ -25,7 +25,7 @@ namespace lwscript
     {
     }
 
-    STD_STRING Value::ToString() const
+    STRING Value::ToString() const
     {
         switch (kind)
         {

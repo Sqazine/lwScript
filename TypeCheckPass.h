@@ -66,7 +66,7 @@ namespace lwscript
             TypeInfoTable(TypeInfoTable *enclosing) noexcept : mEnclosing(enclosing) {}
             ~TypeInfoTable() noexcept = default;
 
-            bool Find(STD_STRING_VIEW name, TypeInfo &result)
+            bool Find(STRING_VIEW name, TypeInfo &result)
             {
                 auto iter = mTypeInfos.find(name);
                 if (iter != mTypeInfos.end())
@@ -78,14 +78,14 @@ namespace lwscript
                     return mEnclosing->Find(name, result);
                 return false;
             }
-            void Define(STD_STRING_VIEW name, const TypeInfo &result)
+            void Define(STRING_VIEW name, const TypeInfo &result)
             {
                 mTypeInfos[name] = result;
             }
 
         private:
             TypeInfoTable *mEnclosing;
-            std::unordered_map<STD_STRING_VIEW, TypeInfo> mTypeInfos;
+            std::unordered_map<STRING_VIEW, TypeInfo> mTypeInfos;
         };
 
         TypeInfoTable mTypeInfoTable;

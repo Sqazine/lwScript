@@ -54,7 +54,7 @@ namespace lwscript
 	{
 		AstNode(Token *tagToken, AstKind kind) : tagToken(tagToken), kind(kind) {}
 		virtual ~AstNode() {}
-		virtual STD_STRING ToString() = 0;
+		virtual STRING ToString() = 0;
 		const AstKind kind;
 		Token *tagToken;
 	};
@@ -63,7 +63,9 @@ namespace lwscript
 	{
 		Expr(Token *tagToken, AstKind kind) : AstNode(tagToken, kind) {}
 		virtual ~Expr() {}
-		virtual STD_STRING ToString() = 0;
+#ifndef NDEBUG
+		virtual STRING ToString() = 0;
+#endif
 
 		Type type;
 	};
@@ -74,9 +76,11 @@ namespace lwscript
 		LiteralExpr(Token *tagToken, int64_t value);
 		LiteralExpr(Token *tagToken, double value);
 		LiteralExpr(Token *tagToken, bool value);
-		LiteralExpr(Token *tagToken, STD_STRING_VIEW value);
+		LiteralExpr(Token *tagToken, STRING_VIEW value);
 		~LiteralExpr() override;
-		STD_STRING ToString() override;
+#ifndef NDEBUG
+		STRING ToString() override;
+#endif
 
 		union
 		{
@@ -84,18 +88,20 @@ namespace lwscript
 			double f64Value;
 			bool boolean;
 			CHAR_T character;
-			STD_STRING str;
+			STRING str;
 		};
 	};
 
 	struct IdentifierExpr : public Expr
 	{
 		IdentifierExpr(Token *tagToken);
-		IdentifierExpr(Token *tagToken, STD_STRING_VIEW literal);
+		IdentifierExpr(Token *tagToken, STRING_VIEW literal);
 		~IdentifierExpr() override;
-		STD_STRING ToString() override;
+#ifndef NDEBUG
+		STRING ToString() override;
+#endif
 
-		STD_STRING literal;
+		STRING literal;
 	};
 
 	struct VarDescExpr : public Expr
@@ -103,7 +109,9 @@ namespace lwscript
 		VarDescExpr(Token *tagToken);
 		VarDescExpr(Token *tagToken, const Type &type, Expr *name);
 		~VarDescExpr() override;
-		STD_STRING ToString() override;
+#ifndef NDEBUG
+		STRING ToString() override;
+#endif
 
 		Expr *name;
 	};
@@ -113,7 +121,9 @@ namespace lwscript
 		ArrayExpr(Token *tagToken);
 		ArrayExpr(Token *tagToken, const std::vector<Expr *> &elements);
 		~ArrayExpr() override;
-		STD_STRING ToString() override;
+#ifndef NDEBUG
+		STRING ToString() override;
+#endif
 
 		std::vector<Expr *> elements;
 	};
@@ -123,7 +133,9 @@ namespace lwscript
 		DictExpr(Token *tagToken);
 		DictExpr(Token *tagToken, const std::vector<std::pair<Expr *, Expr *>> &elements);
 		~DictExpr() override;
-		STD_STRING ToString() override;
+#ifndef NDEBUG
+		STRING ToString() override;
+#endif
 
 		std::vector<std::pair<Expr *, Expr *>> elements;
 	};
@@ -133,7 +145,9 @@ namespace lwscript
 		GroupExpr(Token *tagToken);
 		GroupExpr(Token *tagToken, Expr *expr);
 		~GroupExpr() override;
-		STD_STRING ToString() override;
+#ifndef NDEBUG
+		STRING ToString() override;
+#endif
 
 		Expr *expr;
 	};
@@ -141,22 +155,26 @@ namespace lwscript
 	struct PrefixExpr : public Expr
 	{
 		PrefixExpr(Token *tagToken);
-		PrefixExpr(Token *tagToken, STD_STRING_VIEW op, Expr *right);
+		PrefixExpr(Token *tagToken, STRING_VIEW op, Expr *right);
 		~PrefixExpr() override;
-		STD_STRING ToString() override;
+#ifndef NDEBUG
+		STRING ToString() override;
+#endif
 
-		STD_STRING op;
+		STRING op;
 		Expr *right;
 	};
 
 	struct InfixExpr : public Expr
 	{
 		InfixExpr(Token *tagToken);
-		InfixExpr(Token *tagToken, STD_STRING_VIEW op, Expr *left, Expr *right);
+		InfixExpr(Token *tagToken, STRING_VIEW op, Expr *left, Expr *right);
 		~InfixExpr() override;
-		STD_STRING ToString() override;
+#ifndef NDEBUG
+		STRING ToString() override;
+#endif
 
-		STD_STRING op;
+		STRING op;
 		Expr *left;
 		Expr *right;
 	};
@@ -164,12 +182,14 @@ namespace lwscript
 	struct PostfixExpr : public Expr
 	{
 		PostfixExpr(Token *tagToken);
-		PostfixExpr(Token *tagToken, Expr *left, STD_STRING_VIEW op);
+		PostfixExpr(Token *tagToken, Expr *left, STRING_VIEW op);
 		~PostfixExpr() override;
-		STD_STRING ToString() override;
+#ifndef NDEBUG
+		STRING ToString() override;
+#endif
 
 		Expr *left;
-		STD_STRING op;
+		STRING op;
 	};
 
 	struct ConditionExpr : public Expr
@@ -177,7 +197,9 @@ namespace lwscript
 		ConditionExpr(Token *tagToken);
 		ConditionExpr(Token *tagToken, Expr *condition, Expr *trueBranch, Expr *falseBranch);
 		~ConditionExpr() override;
-		STD_STRING ToString() override;
+#ifndef NDEBUG
+		STRING ToString() override;
+#endif
 
 		Expr *condition;
 		Expr *trueBranch;
@@ -189,7 +211,9 @@ namespace lwscript
 		IndexExpr(Token *tagToken);
 		IndexExpr(Token *tagToken, Expr *ds, Expr *index);
 		~IndexExpr() override;
-		STD_STRING ToString() override;
+#ifndef NDEBUG
+		STRING ToString() override;
+#endif
 
 		Expr *ds;
 		Expr *index;
@@ -200,7 +224,9 @@ namespace lwscript
 		RefExpr(Token *tagToken);
 		RefExpr(Token *tagToken, Expr *refExpr);
 		~RefExpr() override;
-		STD_STRING ToString() override;
+#ifndef NDEBUG
+		STRING ToString() override;
+#endif
 
 		Expr *refExpr;
 	};
@@ -210,7 +236,9 @@ namespace lwscript
 		LambdaExpr(Token *tagToken);
 		LambdaExpr(Token *tagToken, const std::vector<VarDescExpr *> &parameters, struct ScopeStmt *body);
 		~LambdaExpr() override;
-		STD_STRING ToString() override;
+#ifndef NDEBUG
+		STRING ToString() override;
+#endif
 
 		std::vector<VarDescExpr *> parameters;
 		struct ScopeStmt *body;
@@ -221,7 +249,9 @@ namespace lwscript
 		CallExpr(Token *tagToken);
 		CallExpr(Token *tagToken, Expr *callee, const std::vector<Expr *> &arguments);
 		~CallExpr() override;
-		STD_STRING ToString() override;
+#ifndef NDEBUG
+		STRING ToString() override;
+#endif
 
 		Expr *callee;
 		std::vector<Expr *> arguments;
@@ -232,7 +262,9 @@ namespace lwscript
 		DotExpr(Token *tagToken);
 		DotExpr(Token *tagToken, Expr *callee, IdentifierExpr *callMember);
 		~DotExpr() override;
-		STD_STRING ToString() override;
+#ifndef NDEBUG
+		STRING ToString() override;
+#endif
 
 		Expr *callee;
 		IdentifierExpr *callMember;
@@ -243,7 +275,9 @@ namespace lwscript
 		NewExpr(Token *tagToken);
 		NewExpr(Token *tagToken, Expr *callee);
 		~NewExpr() override;
-		STD_STRING ToString() override;
+#ifndef NDEBUG
+		STRING ToString() override;
+#endif
 
 		Expr *callee;
 	};
@@ -252,14 +286,18 @@ namespace lwscript
 	{
 		ThisExpr(Token *tagToken);
 		~ThisExpr() override;
-		STD_STRING ToString() override;
+#ifndef NDEBUG
+		STRING ToString() override;
+#endif
 	};
 
 	struct BaseExpr : public Expr
 	{
 		BaseExpr(Token *tagToken, IdentifierExpr *callMember);
 		~BaseExpr() override;
-		STD_STRING ToString() override;
+#ifndef NDEBUG
+		STRING ToString() override;
+#endif
 
 		IdentifierExpr *callMember;
 	};
@@ -269,7 +307,9 @@ namespace lwscript
 		CompoundExpr(Token *tagToken);
 		CompoundExpr(Token *tagToken, const std::vector<struct Stmt *> &stmts, Expr *endExpr);
 		~CompoundExpr() override;
-		STD_STRING ToString() override;
+#ifndef NDEBUG
+		STRING ToString() override;
+#endif
 
 		std::vector<struct Stmt *> stmts;
 		Expr *endExpr;
@@ -278,11 +318,13 @@ namespace lwscript
 	struct StructExpr : public Expr
 	{
 		StructExpr(Token *tagToken);
-		StructExpr(Token *tagToken, const std::vector<std::pair<STD_STRING, Expr *>> &elements);
+		StructExpr(Token *tagToken, const std::vector<std::pair<STRING, Expr *>> &elements);
 		~StructExpr() override;
-		STD_STRING ToString() override;
+#ifndef NDEBUG
+		STRING ToString() override;
+#endif
 
-		std::vector<std::pair<STD_STRING, Expr *>> elements;
+		std::vector<std::pair<STRING, Expr *>> elements;
 	};
 
 	struct VarArgExpr : public Expr
@@ -290,7 +332,9 @@ namespace lwscript
 		VarArgExpr(Token *tagToken);
 		VarArgExpr(Token *tagToken, IdentifierExpr *argName);
 		~VarArgExpr() override;
-		STD_STRING ToString() override;
+#ifndef NDEBUG
+		STRING ToString() override;
+#endif
 		IdentifierExpr *argName;
 	};
 
@@ -299,7 +343,9 @@ namespace lwscript
 		FactorialExpr(Token *tagToken);
 		FactorialExpr(Token *tagToken, Expr *expr);
 		~FactorialExpr() override;
-		STD_STRING ToString() override;
+#ifndef NDEBUG
+		STRING ToString() override;
+#endif
 		Expr *expr;
 	};
 
@@ -308,7 +354,9 @@ namespace lwscript
 		AppregateExpr(Token *tagToken);
 		AppregateExpr(Token *tagToken, const std::vector<Expr *> &exprs);
 		~AppregateExpr() override;
-		STD_STRING ToString() override;
+#ifndef NDEBUG
+		STRING ToString() override;
+#endif
 		std::vector<Expr *> exprs;
 	};
 
@@ -316,7 +364,7 @@ namespace lwscript
 	{
 		Stmt(Token *tagToken, AstKind kind) : AstNode(tagToken, kind) {}
 		virtual ~Stmt() {}
-		virtual STD_STRING ToString() = 0;
+		virtual STRING ToString() = 0;
 	};
 
 	struct ExprStmt : public Stmt
@@ -324,7 +372,9 @@ namespace lwscript
 		ExprStmt(Token *tagToken);
 		ExprStmt(Token *tagToken, Expr *expr);
 		~ExprStmt() override;
-		STD_STRING ToString() override;
+#ifndef NDEBUG
+		STRING ToString() override;
+#endif
 
 		Expr *expr;
 	};
@@ -334,7 +384,9 @@ namespace lwscript
 		ReturnStmt(Token *tagToken);
 		ReturnStmt(Token *tagToken, Expr *expr);
 		~ReturnStmt() override;
-		STD_STRING ToString() override;
+#ifndef NDEBUG
+		STRING ToString() override;
+#endif
 
 		Expr *expr;
 	};
@@ -344,7 +396,9 @@ namespace lwscript
 		IfStmt(Token *tagToken);
 		IfStmt(Token *tagToken, Expr *condition, Stmt *thenBranch, Stmt *elseBranch);
 		~IfStmt() override;
-		STD_STRING ToString() override;
+#ifndef NDEBUG
+		STRING ToString() override;
+#endif
 
 		Expr *condition;
 		Stmt *thenBranch;
@@ -356,7 +410,9 @@ namespace lwscript
 		ScopeStmt(Token *tagToken);
 		ScopeStmt(Token *tagToken, const std::vector<Stmt *> &stmts);
 		~ScopeStmt() override;
-		STD_STRING ToString() override;
+#ifndef NDEBUG
+		STRING ToString() override;
+#endif
 
 		std::vector<Stmt *> stmts;
 	};
@@ -366,7 +422,9 @@ namespace lwscript
 		WhileStmt(Token *tagToken);
 		WhileStmt(Token *tagToken, Expr *condition, ScopeStmt *body, ScopeStmt *increment = nullptr);
 		~WhileStmt() override;
-		STD_STRING ToString() override;
+#ifndef NDEBUG
+		STRING ToString() override;
+#endif
 
 		Expr *condition;
 		ScopeStmt *body;
@@ -377,14 +435,18 @@ namespace lwscript
 	{
 		BreakStmt(Token *tagToken);
 		~BreakStmt() override;
-		STD_STRING ToString() override;
+#ifndef NDEBUG
+		STRING ToString() override;
+#endif
 	};
 
 	struct ContinueStmt : public Stmt
 	{
 		ContinueStmt(Token *tagToken);
 		~ContinueStmt() override;
-		STD_STRING ToString() override;
+#ifndef NDEBUG
+		STRING ToString() override;
+#endif
 	};
 
 	struct AstStmts : public Stmt
@@ -393,7 +455,9 @@ namespace lwscript
 		AstStmts(Token *tagToken, std::vector<Stmt *> stmts);
 		~AstStmts() override;
 
-		STD_STRING ToString() override;
+#ifndef NDEBUG
+		STRING ToString() override;
+#endif
 
 		std::vector<Stmt *> stmts;
 	};
@@ -402,7 +466,7 @@ namespace lwscript
 	{
 		Decl(Token *tagToken, AstKind kind) : Stmt(tagToken, kind) {}
 		virtual ~Decl() {}
-		virtual STD_STRING ToString() = 0;
+		virtual STRING ToString() = 0;
 	};
 
 	struct VarDecl : public Decl
@@ -410,7 +474,9 @@ namespace lwscript
 		VarDecl(Token *tagToken);
 		VarDecl(Token *tagToken, Permission permission, const std::vector<std::pair<Expr *, Expr *>> &variables);
 		~VarDecl() override;
-		STD_STRING ToString() override;
+#ifndef NDEBUG
+		STRING ToString() override;
+#endif
 
 		Permission permission;
 		std::vector<std::pair<Expr *, Expr *>> variables;
@@ -422,7 +488,9 @@ namespace lwscript
 		EnumDecl(Token *tagToken, IdentifierExpr *name, const std::unordered_map<IdentifierExpr *, Expr *> &enumItems);
 		~EnumDecl() override;
 
-		STD_STRING ToString() override;
+#ifndef NDEBUG
+		STRING ToString() override;
+#endif
 
 		IdentifierExpr *name;
 		std::unordered_map<IdentifierExpr *, Expr *> enumItems;
@@ -434,7 +502,9 @@ namespace lwscript
 		FunctionDecl(Token *tagToken, IdentifierExpr *name, const std::vector<VarDescExpr *> &parameters, ScopeStmt *body);
 		~FunctionDecl() override;
 
-		STD_STRING ToString() override;
+#ifndef NDEBUG
+		STRING ToString() override;
+#endif
 
 		IdentifierExpr *name;
 		std::vector<VarDescExpr *> parameters;
@@ -469,16 +539,18 @@ namespace lwscript
 
 		ClassDecl(Token *tagToken);
 		ClassDecl(Token *tagToken,
-				  STD_STRING name,
+				  STRING name,
 				  const std::vector<std::pair<MemberPrivilege, IdentifierExpr *>> &parents,
 				  const std::vector<std::pair<MemberPrivilege, VarDecl *>> &variables,
 				  const std::vector<std::pair<MemberPrivilege, FunctionMember>> &functions,
 				  const std::vector<std::pair<MemberPrivilege, EnumDecl *>> &enumerations = {});
 		~ClassDecl() override;
 
-		STD_STRING ToString() override;
+#ifndef NDEBUG
+		STRING ToString() override;
+#endif
 
-		STD_STRING name;
+		STRING name;
 		std::vector<std::pair<MemberPrivilege, IdentifierExpr *>> parents;
 		std::vector<std::pair<MemberPrivilege, VarDecl *>> variables;
 		std::vector<std::pair<MemberPrivilege, FunctionMember>> functions;
@@ -497,7 +569,9 @@ namespace lwscript
 				   const std::vector<FunctionDecl *> &functionItems);
 		~ModuleDecl() override;
 
-		STD_STRING ToString() override;
+#ifndef NDEBUG
+		STRING ToString() override;
+#endif
 
 		IdentifierExpr *name;
 		std::vector<VarDecl *> varItems;

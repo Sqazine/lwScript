@@ -6,7 +6,7 @@
 #include <sstream>
 namespace lwscript
 {
-    STD_STRING ReadFile(std::string_view path)
+    STRING ReadFile(std::string_view path)
     {
 #ifdef LWSCRIPT_UTF8_ENCODE
         auto utf8Path = Utf8::Decode(path.data());
@@ -20,7 +20,7 @@ namespace lwscript
         if (!file.is_open())
             LW_LOG_ERROR_WITH_LOC(TEXT("Failed to open file:{}"), Logger::Record::mCurFilePath);
 
-        STD_STRING_STREAM sstream;
+        STRING_STREAM sstream;
         sstream << file.rdbuf();
         file.close();
         return sstream.str();
@@ -68,11 +68,11 @@ namespace lwscript
         return result;
     }
 
-    STD_STRING PointerAddressToString(void *pointer)
+    STRING PointerAddressToString(void *pointer)
     {
-        STD_STRING_STREAM sstr;
+        STRING_STREAM sstr;
         sstr << pointer;
-        STD_STRING address = sstr.str();
+        STRING address = sstr.str();
         return address;
     }
 

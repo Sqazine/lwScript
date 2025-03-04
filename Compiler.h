@@ -44,7 +44,7 @@ namespace lwscript
 
 		struct Symbol
 		{
-			STD_STRING name;
+			STRING name;
 			SymbolLocation location = SymbolLocation::GLOBAL;
 			Permission permission = Permission::IMMUTABLE;
 			uint8_t index = 0;
@@ -61,9 +61,9 @@ namespace lwscript
 			SymbolTable(SymbolTable *enclosing);
 			~SymbolTable();
 
-			Symbol Define(const Token *relatedToken, Permission permission, const STD_STRING &name, const FunctionSymbolInfo &functionInfo = {});
+			Symbol Define(const Token *relatedToken, Permission permission, const STRING &name, const FunctionSymbolInfo &functionInfo = {});
 
-			Symbol Resolve(const Token *relatedToken, const STD_STRING &name, int8_t paramCount = -1, int8_t d = 0);
+			Symbol Resolve(const Token *relatedToken, const STRING &name, int8_t paramCount = -1, int8_t d = 0);
 
 			std::array<Symbol, UINT8_COUNT> mSymbols;
 			uint8_t mSymbolCount;

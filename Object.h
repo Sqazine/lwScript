@@ -96,7 +96,7 @@ namespace lwscript
         Object(ObjectKind kind);
         virtual ~Object();
 
-        virtual STD_STRING ToString() const = 0;
+        virtual STRING ToString() const = 0;
         void Mark();
         void UnMark();
         virtual void Blacken();
@@ -110,14 +110,14 @@ namespace lwscript
 
     struct LWSCRIPT_API StrObject : public Object
     {
-        StrObject(STD_STRING_VIEW value);
+        StrObject(STRING_VIEW value);
         ~StrObject() override;
 
-        STD_STRING ToString() const override;
+        STRING ToString() const override;
         bool IsEqualTo(Object *other) override;
         std::vector<uint8_t> Serialize() const override;
 
-        STD_STRING value{};
+        STRING value{};
     };
 
     struct LWSCRIPT_API ArrayObject : public Object
@@ -126,7 +126,7 @@ namespace lwscript
         ArrayObject(const std::vector<struct Value> &elements);
         ~ArrayObject() override;
 
-        STD_STRING ToString() const override;
+        STRING ToString() const override;
         void Blacken() override;
         bool IsEqualTo(Object *other) override;
         std::vector<uint8_t> Serialize() const override;
@@ -140,7 +140,7 @@ namespace lwscript
         DictObject(const ValueUnorderedMap &elements);
         ~DictObject() override;
 
-        STD_STRING ToString() const override;
+        STRING ToString() const override;
 
         void Blacken() override;
         bool IsEqualTo(Object *other) override;
@@ -152,27 +152,27 @@ namespace lwscript
     struct LWSCRIPT_API StructObject : public Object
     {
         StructObject();
-        StructObject(const std::unordered_map<STD_STRING, Value> &elements);
+        StructObject(const std::unordered_map<STRING, Value> &elements);
         ~StructObject() override;
 
-        STD_STRING ToString() const override;
+        STRING ToString() const override;
 
         void Blacken() override;
         bool IsEqualTo(Object *other) override;
         std::vector<uint8_t> Serialize() const override;
 
-        std::unordered_map<STD_STRING, Value> elements{};
+        std::unordered_map<STRING, Value> elements{};
     };
 
     struct LWSCRIPT_API FunctionObject : public Object
     {
         FunctionObject();
-        FunctionObject(STD_STRING_VIEW name);
+        FunctionObject(STRING_VIEW name);
         ~FunctionObject() override;
 
-        STD_STRING ToString() const override;
+        STRING ToString() const override;
 #ifndef NDEBUG
-        STD_STRING ToStringWithChunk() const;
+        STRING ToStringWithChunk() const;
 #endif
 
         void Blacken() override;
@@ -191,7 +191,7 @@ namespace lwscript
         VarArg varArg{VarArg::NONE};
         int8_t upValueCount{0};
         Chunk chunk{};
-        STD_STRING name{};
+        STRING name{};
     };
 
     struct LWSCRIPT_API UpValueObject : public Object
@@ -200,7 +200,7 @@ namespace lwscript
         UpValueObject(Value *location);
         ~UpValueObject() override;
 
-        STD_STRING ToString() const override;
+        STRING ToString() const override;
 
         void Blacken() override;
         bool IsEqualTo(Object *other) override;
@@ -217,7 +217,7 @@ namespace lwscript
         ClosureObject(FunctionObject *function);
         ~ClosureObject() override;
 
-        STD_STRING ToString() const override;
+        STRING ToString() const override;
 
         void Blacken() override;
         bool IsEqualTo(Object *other) override;
@@ -235,7 +235,7 @@ namespace lwscript
         NativeFunctionObject(NativeFunction f);
         ~NativeFunctionObject() override;
 
-        STD_STRING ToString() const override;
+        STRING ToString() const override;
 
         bool IsEqualTo(Object *other) override;
         std::vector<uint8_t> Serialize() const override;
@@ -248,7 +248,7 @@ namespace lwscript
         RefObject(Value *pointer);
         ~RefObject() override;
 
-        STD_STRING ToString() const override;
+        STRING ToString() const override;
 
         bool IsEqualTo(Object *other) override;
         std::vector<uint8_t> Serialize() const override;
@@ -259,22 +259,22 @@ namespace lwscript
     struct LWSCRIPT_API ClassObject : public Object
     {
         ClassObject();
-        ClassObject(STD_STRING_VIEW name);
+        ClassObject(STRING_VIEW name);
         ~ClassObject() override;
 
-        STD_STRING ToString() const override;
+        STRING ToString() const override;
 
         void Blacken() override;
         bool IsEqualTo(Object *other) override;
         std::vector<uint8_t> Serialize() const override;
 
-        bool GetMember(const STD_STRING &name, Value &retV);
-        bool GetParentMember(const STD_STRING &name, Value &retV);
+        bool GetMember(const STRING &name, Value &retV);
+        bool GetParentMember(const STRING &name, Value &retV);
 
-        STD_STRING name{};
+        STRING name{};
         std::map<int32_t, ClosureObject *> constructors{}; // argument count as key for now
-        std::unordered_map<STD_STRING, Value> members{};
-        std::map<STD_STRING, ClassObject *> parents{};
+        std::unordered_map<STRING, Value> members{};
+        std::map<STRING, ClassObject *> parents{};
     };
 
     struct LWSCRIPT_API ClassClosureBindObject : public Object
@@ -283,7 +283,7 @@ namespace lwscript
         ClassClosureBindObject(const Value &receiver, ClosureObject *cl);
         ~ClassClosureBindObject() override;
 
-        STD_STRING ToString() const override;
+        STRING ToString() const override;
 
         void Blacken() override;
         bool IsEqualTo(Object *other) override;
@@ -296,36 +296,36 @@ namespace lwscript
     struct LWSCRIPT_API EnumObject : public Object
     {
         EnumObject();
-        EnumObject(const STD_STRING &name, const std::unordered_map<STD_STRING, Value> &pairs);
+        EnumObject(const STRING &name, const std::unordered_map<STRING, Value> &pairs);
         ~EnumObject() override;
 
-        STD_STRING ToString() const override;
+        STRING ToString() const override;
 
         void Blacken() override;
         bool IsEqualTo(Object *other) override;
         std::vector<uint8_t> Serialize() const override;
 
-        bool GetMember(const STD_STRING &name, Value &retV);
+        bool GetMember(const STRING &name, Value &retV);
 
-        STD_STRING name{};
-        std::unordered_map<STD_STRING, Value> pairs{};
+        STRING name{};
+        std::unordered_map<STRING, Value> pairs{};
     };
 
     struct LWSCRIPT_API ModuleObject : public Object
     {
         ModuleObject();
-        ModuleObject(const STD_STRING &name, const std::unordered_map<STD_STRING, Value> &values);
+        ModuleObject(const STRING &name, const std::unordered_map<STRING, Value> &values);
         ~ModuleObject() override;
 
-        STD_STRING ToString() const override;
+        STRING ToString() const override;
 
         void Blacken() override;
         bool IsEqualTo(Object *other) override;
         std::vector<uint8_t> Serialize() const override;
 
-        bool GetMember(const STD_STRING &name, Value &retV);
+        bool GetMember(const STRING &name, Value &retV);
 
-        STD_STRING name{};
-        std::unordered_map<STD_STRING, Value> values{};
+        STRING name{};
+        std::unordered_map<STRING, Value> values{};
     };
 }

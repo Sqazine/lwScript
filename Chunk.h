@@ -69,7 +69,7 @@ namespace lwscript
         Chunk(const OpCodes &opcodes, const std::vector<Value> &constants);
         ~Chunk() = default;
 #ifndef NDEBUG
-        STD_STRING ToString() const;
+        STRING ToString() const;
 #endif
         std::vector<uint8_t> Serialize() const;
         void Deserialize(const std::vector<uint8_t> &data);
@@ -79,7 +79,7 @@ namespace lwscript
         std::vector<const Token *> opCodeRelatedTokens;
 
     private:
-        STD_STRING OpCodeToString(const OpCodes &opcodes) const;
+        STRING OpCodeToString(const OpCodes &opcodes) const;
         uint32_t GetBiggestTokenLength() const;
     };
 

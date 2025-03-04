@@ -20,12 +20,12 @@
             fn(TEXT("{}"), args[i].ToString());                                                               \
         return false;                                                                                         \
     }                                                                                                         \
-    STD_STRING content = TO_STR_VALUE(args[0])->value;                                                        \
+    STRING content = TO_STR_VALUE(args[0])->value;                                                        \
     if (argCount != 1) /*formatting output*/                                                                  \
     {                                                                                                         \
         size_t pos = content.find(TEXT("{}"));                                                                \
         size_t argpos = 1;                                                                                    \
-        while (pos != STD_STRING::npos)                                                                       \
+        while (pos != STRING::npos)                                                                       \
         {                                                                                                     \
             if (argpos < argCount)                                                                            \
                 content.replace(pos, 2, args[argpos++].ToString());                                           \
@@ -35,21 +35,21 @@
         }                                                                                                     \
     }                                                                                                         \
     size_t pos = content.find(TEXT("\\n"));                                                                   \
-    while (pos != STD_STRING::npos)                                                                           \
+    while (pos != STRING::npos)                                                                           \
     {                                                                                                         \
         content[pos] = TCHAR('\n');                                                                           \
         content.replace(pos + 1, 1, TEXT("")); /*erase a char*/                                               \
         pos = content.find(TEXT("\\n"));                                                                      \
     }                                                                                                         \
     pos = content.find(TEXT("\\t"));                                                                          \
-    while (pos != STD_STRING::npos)                                                                           \
+    while (pos != STRING::npos)                                                                           \
     {                                                                                                         \
         content[pos] = TCHAR('\t');                                                                           \
         content.replace(pos + 1, 1, TEXT("")); /*erase a char*/                                               \
         pos = content.find(TEXT("\\t"));                                                                      \
     }                                                                                                         \
     pos = content.find(TEXT("\\r"));                                                                          \
-    while (pos != STD_STRING::npos)                                                                           \
+    while (pos != STRING::npos)                                                                           \
     {                                                                                                         \
         content[pos] = TCHAR('\r');                                                                           \
         content.replace(pos + 1, 1, TEXT("")); /*erase a char*/                                               \

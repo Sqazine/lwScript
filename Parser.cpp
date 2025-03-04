@@ -79,7 +79,7 @@ namespace lwscript
 		{
 			{TokenKind::IDENTIFIER, &Parser::ParseIdentifierExpr},
 			{TokenKind::NUMBER, &Parser::ParseLiteralExpr},
-			{TokenKind::STRING, &Parser::ParseLiteralExpr},
+			{TokenKind::STR, &Parser::ParseLiteralExpr},
 			{TokenKind::NIL, &Parser::ParseLiteralExpr},
 			{TokenKind::TRUE, &Parser::ParseLiteralExpr},
 			{TokenKind::FALSE, &Parser::ParseLiteralExpr},
@@ -951,13 +951,13 @@ namespace lwscript
 		{
 			auto literal = token->literal;
 			Expr *numExpr = nullptr;
-			if (literal.find('.') != STD_STRING::npos)
+			if (literal.find('.') != STRING::npos)
 				numExpr = new LiteralExpr(token, std::stod(literal));
 			else
 				numExpr = new LiteralExpr(token, std::stoll(literal));
 			return numExpr;
 		}
-		else if (token->kind == TokenKind::STRING)
+		else if (token->kind == TokenKind::STR)
 			return new LiteralExpr(token, token->literal);
 		else if (token->kind == TokenKind::NIL)
 			return new LiteralExpr(token);
@@ -1031,7 +1031,7 @@ namespace lwscript
 
 		if (!IsMatchCurToken(TokenKind::RBRACE))
 		{
-			std::vector<std::pair<STD_STRING, Expr *>> elements;
+			std::vector<std::pair<STRING, Expr *>> elements;
 			do
 			{
 				if (IsMatchCurToken(TokenKind::RBRACE))
@@ -1350,7 +1350,7 @@ namespace lwscript
 		return false;
 	}
 
-	Token *Parser::Consume(TokenKind kind, STD_STRING_VIEW errMsg)
+	Token *Parser::Consume(TokenKind kind, STRING_VIEW errMsg)
 	{
 		if (mSkippingConsumeTokenKindStack.empty() || kind != mSkippingConsumeTokenKindStack.back())
 		{
@@ -1362,7 +1362,7 @@ namespace lwscript
 		return nullptr;
 	}
 
-	Token *Parser::Consume(const std::vector<TokenKind> &kinds, STD_STRING_VIEW errMsg)
+	Token *Parser::Consume(const std::vector<TokenKind> &kinds, STRING_VIEW errMsg)
 	{
 		if (!mSkippingConsumeTokenKindStack.empty())
 			for (const auto &kind : kinds)

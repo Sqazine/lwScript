@@ -34,10 +34,10 @@
 #define TEXT(x) STR(x)
 #define TCHAR(x) STR(x)
 #define CHAR_T wchar_t
-#define STD_STRING std::wstring
-#define STD_STRING_VIEW std::wstring_view
-#define STD_OSTREAM std::wostream
-#define STD_STRING_STREAM std::wstringstream
+#define STRING std::wstring
+#define STRING_VIEW std::wstring_view
+#define OSTREAM std::wostream
+#define STRING_STREAM std::wstringstream
 #define STD_IFSTREAM std::wifstream
 #define TO_STRING(x) std::to_wstring(x)
 #define COUT std::wcout
@@ -48,10 +48,10 @@
 #define TEXT(x) STR(x)
 #define TCHAR(x) STR(x)
 #define CHAR_T char
-#define STD_STRING std::string
-#define STD_STRING_VIEW std::string_view
-#define STD_OSTREAM std::ostream
-#define STD_STRING_STREAM std::stringstream
+#define STRING std::string
+#define STRING_VIEW std::string_view
+#define OSTREAM std::ostream
+#define STRING_STREAM std::stringstream
 #define STD_IFSTREAM std::ifstream
 #define TO_STRING(x) std::to_string(x)
 #define COUT std::cout
@@ -104,11 +104,11 @@ namespace lwscript
 		WITH_NAME,
 	};
 
-	STD_STRING LWSCRIPT_API ReadFile(std::string_view path);
+	STRING LWSCRIPT_API ReadFile(std::string_view path);
 	void LWSCRIPT_API WriteBinaryFile(std::string_view path, const std::vector<uint8_t> &content);
 	std::vector<uint8_t> LWSCRIPT_API ReadBinaryFile(std::string_view path);
 
-	STD_STRING PointerAddressToString(void *pointer);
+	STRING PointerAddressToString(void *pointer);
 
 	int64_t Factorial(int64_t v, int64_t tmp = 1);
 

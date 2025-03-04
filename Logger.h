@@ -20,24 +20,24 @@ namespace lwscript
         };
         namespace Record
         {
-            inline STD_STRING mCurFilePath = TEXT("interpreter");
-            inline STD_STRING mSourceCode = TEXT("");
+            inline STRING mCurFilePath = TEXT("interpreter");
+            inline STRING mSourceCode = TEXT("");
         }
 
-        inline void Output(STD_OSTREAM &os, STD_STRING s)
+        inline void Output(OSTREAM &os, STRING s)
         {
             os << s;
         }
 
         template <typename T, typename... Args>
-        inline void Output(STD_OSTREAM &os, STD_STRING s, const T &next, const Args &...args)
+        inline void Output(OSTREAM &os, STRING s, const T &next, const Args &...args)
         {
             auto index = s.find_first_of(TEXT("{}"));
-            if (index == STD_STRING::npos)
+            if (index == STRING::npos)
                 Output(os, s);
             else
             {
-                STD_STRING_STREAM sstr;
+                STRING_STREAM sstr;
                 sstr << next;
                 s.replace(index, 2, sstr.str());
                 sstr.clear();
@@ -46,24 +46,24 @@ namespace lwscript
         }
 
         template <typename... Args>
-        inline void Println(const STD_STRING &s, const Args &...args)
+        inline void Println(const STRING &s, const Args &...args)
         {
             Output(COUT, s + TEXT("\n"), args...);
         }
 
         template <typename... Args>
-        inline void Print(const STD_STRING &s, const Args &...args)
+        inline void Print(const STRING &s, const Args &...args)
         {
             Output(COUT, s, args...);
         }
 
-        inline void RecordSource(STD_STRING_VIEW sourceCode)
+        inline void RecordSource(STRING_VIEW sourceCode)
         {
             Record::mSourceCode = sourceCode;
         }
 
         template <typename... Args>
-        inline void AssemblyLogInfo(const STD_STRING &headerHint, const STD_STRING &colorHint, uint64_t lineNum, uint64_t column, uint64_t pos, const STD_STRING &fmt, const Args &...args)
+        inline void AssemblyLogInfo(const STRING &headerHint, const STRING &colorHint, uint64_t lineNum, uint64_t column, uint64_t pos, const STRING &fmt, const Args &...args)
         {
             auto start = pos;
             auto end = pos;
@@ -90,15 +90,15 @@ namespace lwscript
 
             auto blankSize = startStr.size() + pos - start;
 
-            STD_STRING errorHintStr;
+            STRING errorHintStr;
             errorHintStr.insert(0, blankSize, TCHAR(' '));
-            errorHintStr += TEXT("^ ") + STD_STRING(fmt);
+            errorHintStr += TEXT("^ ") + STRING(fmt);
 
             Println(TEXT("\033[{}m") + errorHintStr + TEXT("\033[0m"), colorHint, args...);
         }
 
         template <typename... Args>
-        void Log(Kind logKind, const STD_STRING &fmt, const Args &...args)
+        void Log(Kind logKind, const STRING &fmt, const Args &...args)
         {
             switch (logKind)
             {
@@ -117,7 +117,7 @@ namespace lwscript
         }
 
         template <typename... Args>
-        void Log(Kind logKind, int32_t pos, const STD_STRING &fmt, const Args &...args)
+        void Log(Kind logKind, int32_t pos, const STRING &fmt, const Args &...args)
         {
             auto lineNum = 1;
             for (int32_t i = 0; i < pos; ++i)
@@ -141,7 +141,7 @@ namespace lwscript
         }
 
         template <typename... Args>
-        void Log(Kind logKind, const Token *tok, const STD_STRING &fmt, const Args &...args)
+        void Log(Kind logKind, const Token *tok, const STRING &fmt, const Args &...args)
         {
             switch (logKind)
             {

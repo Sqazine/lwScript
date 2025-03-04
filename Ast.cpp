@@ -23,7 +23,7 @@ namespace lwscript
 	{
 		type = Type(TEXT("bool"), tagToken->sourceLocation);
 	}
-	LiteralExpr::LiteralExpr(Token *tagToken, STD_STRING_VIEW value)
+	LiteralExpr::LiteralExpr(Token *tagToken, STRING_VIEW value)
 		: Expr(tagToken, AstKind::LITERAL), str(value)
 	{
 		type = Type(TEXT("string"), tagToken->sourceLocation);
@@ -31,8 +31,8 @@ namespace lwscript
 	LiteralExpr::~LiteralExpr()
 	{
 	}
-
-	STD_STRING LiteralExpr::ToString()
+#ifndef NDEBUG
+	STRING LiteralExpr::ToString()
 	{
 		switch (type.GetKind())
 		{
@@ -51,19 +51,19 @@ namespace lwscript
 		case TypeKind::BOOL:
 			return boolean ? TEXT("true") : TEXT("false");
 		case TypeKind::CHAR:
-			return STD_STRING({character});
-		case TypeKind::STRING:
+			return STRING({character});
+		case TypeKind::STR:
 			return str;
 		default:
 			return TEXT("null");
 		}
 	}
-
+#endif
 	IdentifierExpr::IdentifierExpr(Token *tagToken)
 		: Expr(tagToken, AstKind::IDENTIFIER)
 	{
 	}
-	IdentifierExpr::IdentifierExpr(Token *tagToken, STD_STRING_VIEW literal)
+	IdentifierExpr::IdentifierExpr(Token *tagToken, STRING_VIEW literal)
 		: Expr(tagToken, AstKind::IDENTIFIER), literal(literal)
 	{
 	}
@@ -71,11 +71,12 @@ namespace lwscript
 	{
 	}
 
-	STD_STRING IdentifierExpr::ToString()
+#ifndef NDEBUG
+	STRING IdentifierExpr::ToString()
 	{
 		return literal;
 	}
-
+#endif
 	VarDescExpr::VarDescExpr(Token *tagToken)
 		: Expr(tagToken, AstKind::VAR_DESC), name(nullptr)
 	{
@@ -90,12 +91,12 @@ namespace lwscript
 	{
 		SAFE_DELETE(name);
 	}
-
-	STD_STRING VarDescExpr::ToString()
+#ifndef NDEBUG
+	STRING VarDescExpr::ToString()
 	{
-		return name->ToString() + TEXT(":") + STD_STRING(type.GetName().data());
+		return name->ToString() + TEXT(":") + STRING(type.GetName().data());
 	}
-
+#endif
 	ArrayExpr::ArrayExpr(Token *tagToken)
 		: Expr(tagToken, AstKind::ARRAY)
 	{
@@ -107,10 +108,10 @@ namespace lwscript
 	{
 		std::vector<Expr *>().swap(elements);
 	}
-
-	STD_STRING ArrayExpr::ToString()
+#ifndef NDEBUG
+	STRING ArrayExpr::ToString()
 	{
-		STD_STRING result = TEXT("[");
+		STRING result = TEXT("[");
 
 		if (!elements.empty())
 		{
@@ -121,6 +122,7 @@ namespace lwscript
 		result += TEXT("]");
 		return result;
 	}
+#endif
 
 	DictExpr::DictExpr(Token *tagToken)
 		: Expr(tagToken, AstKind::DICT)
@@ -134,10 +136,10 @@ namespace lwscript
 	{
 		std::vector<std::pair<Expr *, Expr *>>().swap(elements);
 	}
-
-	STD_STRING DictExpr::ToString()
+#ifndef NDEBUG
+	STRING DictExpr::ToString()
 	{
-		STD_STRING result = TEXT("{");
+		STRING result = TEXT("{");
 
 		if (!elements.empty())
 		{
@@ -148,6 +150,7 @@ namespace lwscript
 		result += TEXT("}");
 		return result;
 	}
+#endif
 
 	GroupExpr::GroupExpr(Token *tagToken)
 		: Expr(tagToken, AstKind::GROUP), expr(nullptr)
@@ -161,16 +164,19 @@ namespace lwscript
 	{
 		SAFE_DELETE(expr);
 	}
-	STD_STRING GroupExpr::ToString()
+
+#ifndef NDEBUG
+	STRING GroupExpr::ToString()
 	{
 		return TEXT("(") + expr->ToString() + TEXT(")");
 	}
+#endif
 
 	PrefixExpr::PrefixExpr(Token *tagToken)
 		: Expr(tagToken, AstKind::PREFIX), right(nullptr)
 	{
 	}
-	PrefixExpr::PrefixExpr(Token *tagToken, STD_STRING_VIEW op, Expr *right)
+	PrefixExpr::PrefixExpr(Token *tagToken, STRING_VIEW op, Expr *right)
 		: Expr(tagToken, AstKind::PREFIX), op(op), right(right)
 	{
 	}
@@ -178,17 +184,17 @@ namespace lwscript
 	{
 		SAFE_DELETE(right);
 	}
-
-	STD_STRING PrefixExpr::ToString()
+#ifndef NDEBUG
+	STRING PrefixExpr::ToString()
 	{
 		return op + right->ToString();
 	}
-
+#endif
 	InfixExpr::InfixExpr(Token *tagToken)
 		: Expr(tagToken, AstKind::INFIX), left(nullptr), right(nullptr)
 	{
 	}
-	InfixExpr::InfixExpr(Token *tagToken, STD_STRING_VIEW op, Expr *left, Expr *right)
+	InfixExpr::InfixExpr(Token *tagToken, STRING_VIEW op, Expr *left, Expr *right)
 		: Expr(tagToken, AstKind::INFIX), op(op), left(left), right(right)
 	{
 	}
@@ -197,17 +203,18 @@ namespace lwscript
 		SAFE_DELETE(left);
 		SAFE_DELETE(right);
 	}
-
-	STD_STRING InfixExpr::ToString()
+#ifndef NDEBUG
+	STRING InfixExpr::ToString()
 	{
 		return left->ToString() + op + right->ToString();
 	}
+#endif
 
 	PostfixExpr::PostfixExpr(Token *tagToken)
 		: Expr(tagToken, AstKind::POSTFIX), left(nullptr)
 	{
 	}
-	PostfixExpr::PostfixExpr(Token *tagToken, Expr *left, STD_STRING_VIEW op)
+	PostfixExpr::PostfixExpr(Token *tagToken, Expr *left, STRING_VIEW op)
 		: Expr(tagToken, AstKind::POSTFIX), left(left), op(op)
 	{
 	}
@@ -215,10 +222,13 @@ namespace lwscript
 	{
 		SAFE_DELETE(left);
 	}
-	STD_STRING PostfixExpr::ToString()
+
+#ifndef NDEBUG
+	STRING PostfixExpr::ToString()
 	{
 		return left->ToString() + op;
 	}
+#endif
 
 	ConditionExpr::ConditionExpr(Token *tagToken)
 		: Expr(tagToken, AstKind::CONDITION), condition(nullptr), trueBranch(nullptr), falseBranch(nullptr)
@@ -234,12 +244,12 @@ namespace lwscript
 		SAFE_DELETE(trueBranch);
 		SAFE_DELETE(falseBranch);
 	}
-
-	STD_STRING ConditionExpr::ToString()
+#ifndef NDEBUG
+	STRING ConditionExpr::ToString()
 	{
 		return condition->ToString() + TEXT("?") + trueBranch->ToString() + TEXT(":") + falseBranch->ToString();
 	}
-
+#endif
 	IndexExpr::IndexExpr(Token *tagToken)
 		: Expr(tagToken, AstKind::INDEX), ds(nullptr), index(nullptr)
 	{
@@ -253,10 +263,12 @@ namespace lwscript
 		SAFE_DELETE(ds);
 		SAFE_DELETE(index);
 	}
-	STD_STRING IndexExpr::ToString()
+#ifndef NDEBUG
+	STRING IndexExpr::ToString()
 	{
 		return ds->ToString() + TEXT("[") + index->ToString() + TEXT("]");
 	}
+#endif
 
 	RefExpr::RefExpr(Token *tagToken)
 		: Expr(tagToken, AstKind::REF), refExpr(nullptr)
@@ -270,12 +282,12 @@ namespace lwscript
 	{
 		SAFE_DELETE(refExpr);
 	}
-
-	STD_STRING RefExpr::ToString()
+#ifndef NDEBUG
+	STRING RefExpr::ToString()
 	{
 		return TEXT("&") + refExpr->ToString();
 	}
-
+#endif
 	LambdaExpr::LambdaExpr(Token *tagToken)
 		: Expr(tagToken, AstKind::LAMBDA), body(nullptr)
 	{
@@ -289,10 +301,10 @@ namespace lwscript
 		std::vector<VarDescExpr *>().swap(parameters);
 		SAFE_DELETE(body);
 	}
-
-	STD_STRING LambdaExpr::ToString()
+#ifndef NDEBUG
+	STRING LambdaExpr::ToString()
 	{
-		STD_STRING result = TEXT("fn(");
+		STRING result = TEXT("fn(");
 		if (!parameters.empty())
 		{
 			for (auto param : parameters)
@@ -303,6 +315,7 @@ namespace lwscript
 		result += body->ToString();
 		return result;
 	}
+#endif
 
 	CallExpr::CallExpr(Token *tagToken)
 		: Expr(tagToken, AstKind::CALL), callee(nullptr)
@@ -317,9 +330,10 @@ namespace lwscript
 		SAFE_DELETE(callee);
 		std::vector<Expr *>().swap(arguments);
 	}
-	STD_STRING CallExpr::ToString()
+#ifndef NDEBUG
+	STRING CallExpr::ToString()
 	{
-		STD_STRING result = callee->ToString() + TEXT("(");
+		STRING result = callee->ToString() + TEXT("(");
 
 		if (!arguments.empty())
 		{
@@ -330,6 +344,7 @@ namespace lwscript
 		result += TEXT(")");
 		return result;
 	}
+#endif
 
 	DotExpr::DotExpr(Token *tagToken)
 		: Expr(tagToken, AstKind::DOT), callee(nullptr), callMember(nullptr)
@@ -344,12 +359,12 @@ namespace lwscript
 		SAFE_DELETE(callee);
 		SAFE_DELETE(callMember);
 	}
-
-	STD_STRING DotExpr::ToString()
+#ifndef NDEBUG
+	STRING DotExpr::ToString()
 	{
 		return callee->ToString() + TEXT(".") + callMember->ToString();
 	}
-
+#endif
 	NewExpr::NewExpr(Token *tagToken)
 		: Expr(tagToken, AstKind::NEW), callee(nullptr)
 	{
@@ -362,11 +377,12 @@ namespace lwscript
 	{
 		SAFE_DELETE(callee);
 	}
-
-	STD_STRING NewExpr::ToString()
+#ifndef NDEBUG
+	STRING NewExpr::ToString()
 	{
 		return TEXT("new ") + callee->ToString();
 	}
+#endif
 
 	ThisExpr::ThisExpr(Token *tagToken)
 		: Expr(tagToken, AstKind::THIS)
@@ -376,11 +392,12 @@ namespace lwscript
 	ThisExpr::~ThisExpr()
 	{
 	}
-
-	STD_STRING ThisExpr::ToString()
+#ifndef NDEBUG
+	STRING ThisExpr::ToString()
 	{
 		return TEXT("this");
 	}
+#endif
 
 	BaseExpr::BaseExpr(Token *tagToken, IdentifierExpr *callMember)
 		: Expr(tagToken, AstKind::BASE), callMember(callMember)
@@ -390,11 +407,12 @@ namespace lwscript
 	{
 		SAFE_DELETE(callMember);
 	}
-
-	STD_STRING BaseExpr::ToString()
+#ifndef NDEBUG
+	STRING BaseExpr::ToString()
 	{
 		return TEXT("base.") + callMember->ToString();
 	}
+#endif
 
 	CompoundExpr::CompoundExpr(Token *tagToken)
 		: Expr(tagToken, AstKind::COMPOUND), endExpr(nullptr)
@@ -409,33 +427,34 @@ namespace lwscript
 		SAFE_DELETE(endExpr);
 		std::vector<Stmt *>().swap(stmts);
 	}
-
-	STD_STRING CompoundExpr::ToString()
+#ifndef NDEBUG
+	STRING CompoundExpr::ToString()
 	{
-		STD_STRING result = TEXT("({");
+		STRING result = TEXT("({");
 		for (const auto &stmt : stmts)
 			result += stmt->ToString();
 		result += endExpr->ToString();
 		result += TEXT("})");
 		return result;
 	}
+#endif
 
 	StructExpr::StructExpr(Token *tagToken)
 		: Expr(tagToken, AstKind::STRUCT)
 	{
 	}
-	StructExpr::StructExpr(Token *tagToken, const std::vector<std::pair<STD_STRING, Expr *>> &elements)
+	StructExpr::StructExpr(Token *tagToken, const std::vector<std::pair<STRING, Expr *>> &elements)
 		: Expr(tagToken, AstKind::STRUCT), elements(elements)
 	{
 	}
 	StructExpr::~StructExpr()
 	{
-		std::vector<std::pair<STD_STRING, Expr *>>().swap(elements);
+		std::vector<std::pair<STRING, Expr *>>().swap(elements);
 	}
-
-	STD_STRING StructExpr::ToString()
+#ifndef NDEBUG
+	STRING StructExpr::ToString()
 	{
-		STD_STRING result = TEXT("{");
+		STRING result = TEXT("{");
 		if (!elements.empty())
 		{
 			for (auto [key, value] : elements)
@@ -445,6 +464,7 @@ namespace lwscript
 		result += TEXT("}");
 		return result;
 	}
+#endif
 	VarArgExpr::VarArgExpr(Token *tagToken)
 		: Expr(tagToken, AstKind::VAR_ARG), argName(nullptr)
 	{
@@ -457,12 +477,12 @@ namespace lwscript
 	{
 		SAFE_DELETE(argName);
 	}
-
-	STD_STRING VarArgExpr::ToString()
+#ifndef NDEBUG
+	STRING VarArgExpr::ToString()
 	{
 		return TEXT("...") + (argName ? argName->ToString() : TEXT(""));
 	}
-
+#endif
 	FactorialExpr::FactorialExpr(Token *tagToken)
 		: Expr(tagToken, AstKind::FACTORIAL), expr(nullptr)
 	{
@@ -475,11 +495,12 @@ namespace lwscript
 	{
 		SAFE_DELETE(expr);
 	}
-
-	STD_STRING FactorialExpr::ToString()
+#ifndef NDEBUG
+	STRING FactorialExpr::ToString()
 	{
 		return expr->ToString() + TEXT("!");
 	}
+#endif
 
 	AppregateExpr::AppregateExpr(Token *tagToken)
 		: Expr(tagToken, AstKind::APPREGATE)
@@ -493,10 +514,10 @@ namespace lwscript
 	{
 		std::vector<Expr *>().swap(exprs);
 	}
-
-	STD_STRING AppregateExpr::ToString()
+#ifndef NDEBUG
+	STRING AppregateExpr::ToString()
 	{
-		STD_STRING result = TEXT("(");
+		STRING result = TEXT("(");
 		if (!exprs.empty())
 		{
 			for (const auto &expr : exprs)
@@ -506,7 +527,7 @@ namespace lwscript
 
 		return result + TEXT(")");
 	}
-
+#endif
 	//----------------------Statements-----------------------------
 
 	ExprStmt::ExprStmt(Token *tagToken)
@@ -521,12 +542,12 @@ namespace lwscript
 	{
 		SAFE_DELETE(expr);
 	}
-
-	STD_STRING ExprStmt::ToString()
+#ifndef NDEBUG
+	STRING ExprStmt::ToString()
 	{
 		return expr->ToString() + TEXT(";");
 	}
-
+#endif
 	ReturnStmt::ReturnStmt(Token *tagToken)
 		: Stmt(tagToken, AstKind::RETURN), expr(nullptr)
 	{
@@ -539,14 +560,15 @@ namespace lwscript
 	{
 		SAFE_DELETE(expr);
 	}
-
-	STD_STRING ReturnStmt::ToString()
+#ifndef NDEBUG
+	STRING ReturnStmt::ToString()
 	{
 		if (!expr)
 			return TEXT("return;");
 		else
 			return TEXT("return ") + expr->ToString() + TEXT(";");
 	}
+#endif
 
 	IfStmt::IfStmt(Token *tagToken)
 		: Stmt(tagToken, AstKind::IF), condition(nullptr), thenBranch(nullptr), elseBranch(nullptr)
@@ -565,15 +587,16 @@ namespace lwscript
 		SAFE_DELETE(thenBranch);
 		SAFE_DELETE(elseBranch);
 	}
-
-	STD_STRING IfStmt::ToString()
+#ifndef NDEBUG
+	STRING IfStmt::ToString()
 	{
-		STD_STRING result;
+		STRING result;
 		result = TEXT("if(") + condition->ToString() + TEXT(")") + thenBranch->ToString();
 		if (elseBranch != nullptr)
 			result += TEXT("else ") + elseBranch->ToString();
 		return result;
 	}
+#endif
 
 	ScopeStmt::ScopeStmt(Token *tagToken)
 		: Stmt(tagToken, AstKind::SCOPE)
@@ -587,15 +610,16 @@ namespace lwscript
 	{
 		std::vector<Stmt *>().swap(stmts);
 	}
-
-	STD_STRING ScopeStmt::ToString()
+#ifndef NDEBUG
+	STRING ScopeStmt::ToString()
 	{
-		STD_STRING result = TEXT("{");
+		STRING result = TEXT("{");
 		for (const auto &stmt : stmts)
 			result += stmt->ToString();
 		result += TEXT("}");
 		return result;
 	}
+#endif
 
 	WhileStmt::WhileStmt(Token *tagToken)
 		: Stmt(tagToken, AstKind::WHILE), condition(nullptr), body(nullptr), increment(nullptr)
@@ -611,14 +635,15 @@ namespace lwscript
 		SAFE_DELETE(body);
 		SAFE_DELETE(increment);
 	}
-
-	STD_STRING WhileStmt::ToString()
+#ifndef NDEBUG
+	STRING WhileStmt::ToString()
 	{
-		STD_STRING result = TEXT("while(") + condition->ToString() + TEXT("){") + body->ToString();
+		STRING result = TEXT("while(") + condition->ToString() + TEXT("){") + body->ToString();
 		if (increment)
 			result += increment->ToString();
 		return result += TEXT("}");
 	}
+#endif
 
 	BreakStmt::BreakStmt(Token *tagToken)
 		: Stmt(tagToken, AstKind::BREAK)
@@ -627,11 +652,12 @@ namespace lwscript
 	BreakStmt::~BreakStmt()
 	{
 	}
-
-	STD_STRING BreakStmt::ToString()
+#ifndef NDEBUG
+	STRING BreakStmt::ToString()
 	{
 		return TEXT("break;");
 	}
+#endif
 
 	ContinueStmt::ContinueStmt(Token *tagToken)
 		: Stmt(tagToken, AstKind::CONTINUE)
@@ -640,11 +666,12 @@ namespace lwscript
 	ContinueStmt::~ContinueStmt()
 	{
 	}
-
-	STD_STRING ContinueStmt::ToString()
+#ifndef NDEBUG
+	STRING ContinueStmt::ToString()
 	{
 		return TEXT("continue;");
 	}
+#endif
 
 	AstStmts::AstStmts(Token *tagToken)
 		: Stmt(tagToken, AstKind::ASTSTMTS)
@@ -659,15 +686,15 @@ namespace lwscript
 	{
 		std::vector<Stmt *>().swap(stmts);
 	}
-
-	STD_STRING AstStmts::ToString()
+#ifndef NDEBUG
+	STRING AstStmts::ToString()
 	{
-		STD_STRING result;
+		STRING result;
 		for (const auto &stmt : stmts)
 			result += stmt->ToString();
 		return result;
 	}
-
+#endif
 	//----------------------Declarations-----------------------------
 
 	VarDecl::VarDecl(Token *tagToken)
@@ -682,10 +709,10 @@ namespace lwscript
 	{
 		std::vector<std::pair<Expr *, Expr *>>().swap(variables);
 	}
-
-	STD_STRING VarDecl::ToString()
+#ifndef NDEBUG
+	STRING VarDecl::ToString()
 	{
-		STD_STRING result;
+		STRING result;
 
 		if (permission == Permission::IMMUTABLE)
 			result += TEXT("const ");
@@ -700,6 +727,7 @@ namespace lwscript
 		}
 		return result + TEXT(";");
 	}
+#endif
 
 	EnumDecl::EnumDecl(Token *tagToken)
 		: Decl(tagToken, AstKind::ENUM), name(nullptr)
@@ -714,9 +742,11 @@ namespace lwscript
 		SAFE_DELETE(name);
 		std::unordered_map<IdentifierExpr *, Expr *>().swap(enumItems);
 	}
-	STD_STRING EnumDecl::ToString()
+
+#ifndef NDEBUG
+	STRING EnumDecl::ToString()
 	{
-		STD_STRING result = TEXT("enum ") + name->ToString() + TEXT("{");
+		STRING result = TEXT("enum ") + name->ToString() + TEXT("{");
 
 		if (!enumItems.empty())
 		{
@@ -726,7 +756,7 @@ namespace lwscript
 		}
 		return result + TEXT("}");
 	}
-
+#endif
 	ModuleDecl::ModuleDecl(Token *tagToken)
 		: Decl(tagToken, AstKind::MODULE), name(nullptr)
 	{
@@ -755,10 +785,10 @@ namespace lwscript
 		std::vector<EnumDecl *>().swap(enumItems);
 		std::vector<FunctionDecl *>().swap(functionItems);
 	}
-
-	STD_STRING ModuleDecl::ToString()
+#ifndef NDEBUG
+	STRING ModuleDecl::ToString()
 	{
-		STD_STRING result = TEXT("module ") + name->ToString() + TEXT("\n{\n");
+		STRING result = TEXT("module ") + name->ToString() + TEXT("\n{\n");
 		for (const auto &item : varItems)
 			result += item->ToString() + TEXT("\n");
 		for (const auto &item : classItems)
@@ -771,6 +801,7 @@ namespace lwscript
 			result += item->ToString() + TEXT("\n");
 		return result + TEXT("}\n");
 	}
+#endif
 
 	FunctionDecl::FunctionDecl(Token *tagToken)
 		: Decl(tagToken, AstKind::FUNCTION), name(nullptr), body(nullptr)
@@ -788,10 +819,10 @@ namespace lwscript
 		std::vector<VarDescExpr *>().swap(parameters);
 		SAFE_DELETE(body);
 	}
-
-	STD_STRING FunctionDecl::ToString()
+#ifndef NDEBUG
+	STRING FunctionDecl::ToString()
 	{
-		STD_STRING result = TEXT("fn ") + name->ToString() + TEXT("(");
+		STRING result = TEXT("fn ") + name->ToString() + TEXT("(");
 		if (!parameters.empty())
 		{
 			for (auto param : parameters)
@@ -802,6 +833,7 @@ namespace lwscript
 		result += body->ToString();
 		return result;
 	}
+#endif
 
 	ClassDecl::ClassDecl(Token *tagToken)
 		: Decl(tagToken, AstKind::CLASS)
@@ -809,7 +841,7 @@ namespace lwscript
 	}
 
 	ClassDecl::ClassDecl(Token *tagToken,
-						 STD_STRING name,
+						 STRING name,
 						 const std::vector<std::pair<MemberPrivilege, IdentifierExpr *>> &parents,
 						 const std::vector<std::pair<MemberPrivilege, VarDecl *>> &variables,
 						 const std::vector<std::pair<MemberPrivilege, FunctionMember>> &functions,
@@ -830,10 +862,10 @@ namespace lwscript
 		std::vector<std::pair<MemberPrivilege, FunctionMember>>().swap(functions);
 		std::vector<std::pair<MemberPrivilege, EnumDecl *>>().swap(enumerations);
 	}
-
-	STD_STRING ClassDecl::ToString()
+#ifndef NDEBUG
+	STRING ClassDecl::ToString()
 	{
-		STD_STRING result = TEXT("class ") + name;
+		STRING result = TEXT("class ") + name;
 		if (!parents.empty())
 		{
 			result += TEXT(":");
@@ -850,4 +882,5 @@ namespace lwscript
 			result += fn.second.decl->ToString();
 		return result + TEXT("}");
 	}
+#endif
 }

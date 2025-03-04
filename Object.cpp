@@ -41,14 +41,14 @@ namespace lwscript
 #endif
 	}
 
-	StrObject::StrObject(STD_STRING_VIEW value)
+	StrObject::StrObject(STRING_VIEW value)
 		: Object(ObjectKind::STR), value(value)
 	{
 	}
 	StrObject::~StrObject()
 	{
 	}
-	STD_STRING StrObject::ToString() const
+	STRING StrObject::ToString() const
 	{
 		return value;
 	}
@@ -77,9 +77,9 @@ namespace lwscript
 	{
 	}
 
-	STD_STRING ArrayObject::ToString() const
+	STRING ArrayObject::ToString() const
 	{
-		STD_STRING result = TEXT("[");
+		STRING result = TEXT("[");
 		if (!elements.empty())
 		{
 			for (const auto &e : elements)
@@ -131,9 +131,9 @@ namespace lwscript
 	{
 	}
 
-	STD_STRING DictObject::ToString() const
+	STRING DictObject::ToString() const
 	{
-		STD_STRING result = TEXT("{");
+		STRING result = TEXT("{");
 		for (const auto &[k, v] : elements)
 			result += k.ToString() + TEXT(":") + v.ToString() + TEXT(",");
 		result = result.substr(0, result.size() - 1);
@@ -185,7 +185,7 @@ namespace lwscript
 		: Object(ObjectKind::STRUCT)
 	{
 	}
-	StructObject::StructObject(const std::unordered_map<STD_STRING, Value> &elements)
+	StructObject::StructObject(const std::unordered_map<STRING, Value> &elements)
 		: Object(ObjectKind::STRUCT), elements(elements)
 	{
 	}
@@ -193,9 +193,9 @@ namespace lwscript
 	{
 	}
 
-	STD_STRING StructObject::ToString() const
+	STRING StructObject::ToString() const
 	{
-		STD_STRING result = TEXT("{");
+		STRING result = TEXT("{");
 		for (const auto &[k, v] : elements)
 			result += k + TEXT(":") + v.ToString() + TEXT(",");
 		result = result.substr(0, result.size() - 1);
@@ -242,7 +242,7 @@ namespace lwscript
 		: Object(ObjectKind::FUNCTION), arity(0), upValueCount(0), varArg(VarArg::NONE)
 	{
 	}
-	FunctionObject::FunctionObject(STD_STRING_VIEW name)
+	FunctionObject::FunctionObject(STRING_VIEW name)
 		: Object(ObjectKind::FUNCTION), arity(0), upValueCount(0), name(name), varArg(VarArg::NONE)
 	{
 	}
@@ -250,12 +250,12 @@ namespace lwscript
 	{
 	}
 
-	STD_STRING FunctionObject::ToString() const
+	STRING FunctionObject::ToString() const
 	{
 		return TEXT("<fn ") + name + TEXT(":0x") + PointerAddressToString((void *)this) + TEXT(">");
 	}
 #ifndef NDEBUG
-	STD_STRING FunctionObject::ToStringWithChunk() const
+	STRING FunctionObject::ToStringWithChunk() const
 	{
 		return ToString() + TEXT("\n") + chunk.ToString();
 	}
@@ -330,7 +330,7 @@ namespace lwscript
 	{
 	}
 
-	STD_STRING UpValueObject::ToString() const
+	STRING UpValueObject::ToString() const
 	{
 		return location->ToString();
 	}
@@ -375,7 +375,7 @@ namespace lwscript
 	{
 	}
 
-	STD_STRING ClosureObject::ToString() const
+	STRING ClosureObject::ToString() const
 	{
 		return function->ToString();
 	}
@@ -422,7 +422,7 @@ namespace lwscript
 	{
 	}
 
-	STD_STRING NativeFunctionObject::ToString() const
+	STRING NativeFunctionObject::ToString() const
 	{
 		return TEXT("<native function>");
 	}
@@ -447,7 +447,7 @@ namespace lwscript
 	{
 	}
 
-	STD_STRING RefObject::ToString() const
+	STRING RefObject::ToString() const
 	{
 		return pointer->ToString();
 	}
@@ -469,7 +469,7 @@ namespace lwscript
 	{
 	}
 
-	ClassObject::ClassObject(STD_STRING_VIEW name)
+	ClassObject::ClassObject(STRING_VIEW name)
 		: Object(ObjectKind::CLASS), name(name)
 	{
 	}
@@ -478,9 +478,9 @@ namespace lwscript
 	{
 	}
 
-	STD_STRING ClassObject::ToString() const
+	STRING ClassObject::ToString() const
 	{
-		STD_STRING result = TEXT("class ") + name;
+		STRING result = TEXT("class ") + name;
 		if (!parents.empty())
 		{
 			result += TEXT(":");
@@ -525,7 +525,7 @@ namespace lwscript
 		return std::vector<uint8_t>();
 	}
 
-	bool ClassObject::GetMember(const STD_STRING &name, Value &retV)
+	bool ClassObject::GetMember(const STRING &name, Value &retV)
 	{
 		auto iter = members.find(name);
 		if (iter != members.end())
@@ -553,7 +553,7 @@ namespace lwscript
 		return false;
 	}
 
-	bool ClassObject::GetParentMember(const STD_STRING &name, Value &retV)
+	bool ClassObject::GetParentMember(const STRING &name, Value &retV)
 	{
 		if (!parents.empty())
 		{
@@ -586,7 +586,7 @@ namespace lwscript
 	ClassClosureBindObject::~ClassClosureBindObject()
 	{
 	}
-	STD_STRING ClassClosureBindObject::ToString() const
+	STRING ClassClosureBindObject::ToString() const
 	{
 		return closure->ToString();
 	}
@@ -619,7 +619,7 @@ namespace lwscript
 		: Object(ObjectKind::ENUM)
 	{
 	}
-	EnumObject::EnumObject(const STD_STRING &name, const std::unordered_map<STD_STRING, Value> &pairs)
+	EnumObject::EnumObject(const STRING &name, const std::unordered_map<STRING, Value> &pairs)
 		: Object(ObjectKind::ENUM), name(name), pairs(pairs)
 	{
 	}
@@ -628,9 +628,9 @@ namespace lwscript
 	{
 	}
 
-	STD_STRING EnumObject::ToString() const
+	STRING EnumObject::ToString() const
 	{
-		STD_STRING result = TEXT("enum ") + name + TEXT("{");
+		STRING result = TEXT("enum ") + name + TEXT("{");
 		if (!pairs.empty())
 		{
 			for (const auto &[k, v] : pairs)
@@ -647,7 +647,7 @@ namespace lwscript
 			v.Mark();
 	}
 
-	bool EnumObject::GetMember(const STD_STRING &name, Value &retV)
+	bool EnumObject::GetMember(const STRING &name, Value &retV)
 	{
 		auto iter = pairs.find(name);
 		if (iter != pairs.end())
@@ -680,7 +680,7 @@ namespace lwscript
 	{
 	}
 
-	ModuleObject::ModuleObject(const STD_STRING &name, const std::unordered_map<STD_STRING, Value> &values)
+	ModuleObject::ModuleObject(const STRING &name, const std::unordered_map<STRING, Value> &values)
 		: Object(ObjectKind::MODULE), name(name), values(values)
 	{
 	}
@@ -689,9 +689,9 @@ namespace lwscript
 	{
 	}
 
-	STD_STRING ModuleObject::ToString() const
+	STRING ModuleObject::ToString() const
 	{
-		STD_STRING result = TEXT("module ") + name + TEXT("{");
+		STRING result = TEXT("module ") + name + TEXT("{");
 		if (!values.empty())
 		{
 			for (const auto &[k, v] : values)
@@ -725,7 +725,7 @@ namespace lwscript
 		return std::vector<uint8_t>();
 	}
 
-	bool ModuleObject::GetMember(const STD_STRING &name, Value &retV)
+	bool ModuleObject::GetMember(const STRING &name, Value &retV)
 	{
 		auto iter = values.find(name);
 		if (iter != values.end())

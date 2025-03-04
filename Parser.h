@@ -39,7 +39,7 @@ namespace lwscript
 	{
 		ClassInfo *enclosing = nullptr;
 		bool hasSuperClass = false;
-		STD_STRING name;
+		STRING name;
 	};
 
 	class Parser;
@@ -124,8 +124,8 @@ namespace lwscript
 		bool IsMatchNextToken(TokenKind kind);
 		bool IsMatchNextTokenAndStepOnce(TokenKind kind);
 
-		Token *Consume(TokenKind kind, STD_STRING_VIEW errMsg);
-		Token *Consume(const std::vector<TokenKind> &kinds, STD_STRING_VIEW errMsg);
+		Token *Consume(TokenKind kind, STRING_VIEW errMsg);
+		Token *Consume(const std::vector<TokenKind> &kinds, STRING_VIEW errMsg);
 
 		bool IsAtEnd();
 

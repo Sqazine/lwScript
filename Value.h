@@ -22,7 +22,7 @@ namespace lwscript
 		Value(struct Object *object) noexcept;
 		~Value() noexcept = default;
 
-		STD_STRING ToString() const;
+		STRING ToString() const;
 		void Mark() const;
 		void UnMark() const;
 

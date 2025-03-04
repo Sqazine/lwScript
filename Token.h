@@ -9,7 +9,7 @@ namespace lwscript
 	enum class TokenKind
 	{
 		NUMBER = 0,			   // number literal,like 100
-		STRING,				   // string literal,like "AABB"
+		STR,				   // string literal,like "AABB"
 		CHARACTER,			   // character literal,like 'A'
 		IDENTIFIER,			   // variable like A
 		DOT,				   // .
@@ -115,19 +115,19 @@ namespace lwscript
 	struct LWSCRIPT_API Token
 	{
 		Token() : kind(TokenKind::END), literal(TEXT("")) {}
-		Token(TokenKind kind, STD_STRING_VIEW literal, const SourceLocation &srcLoc) : kind(kind), literal(literal), sourceLocation(srcLoc) {}
+		Token(TokenKind kind, STRING_VIEW literal, const SourceLocation &srcLoc) : kind(kind), literal(literal), sourceLocation(srcLoc) {}
 
-		STD_STRING ToString() const
+		STRING ToString() const
 		{
 			return TEXT("\"") + literal + TEXT("\"(") + TO_STRING(sourceLocation.line) + TEXT(",") + TO_STRING(sourceLocation.line) + TEXT(")");
 		}
 
 		TokenKind kind;
-		STD_STRING literal;
+		STRING literal;
 		SourceLocation sourceLocation;
 	};
 
-	inline STD_OSTREAM &operator<<(STD_OSTREAM &stream, const Token &token)
+	inline OSTREAM &operator<<(OSTREAM &stream, const Token &token)
 	{
 		return stream << token.ToString();
 	}
