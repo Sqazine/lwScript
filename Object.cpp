@@ -268,12 +268,10 @@ namespace lwscript
 			c.Mark();
 
 #ifdef LWSCRIPT_FUNCTION_CACHE_OPT
+		for (auto &[key, value] : caches)
 		{
-			for (auto &[key, value] : caches)
-			{
-				for (auto &valueElement : value)
-					valueElement.Mark();
-			}
+			for (auto &valueElement : value)
+				valueElement.Mark();
 		}
 #endif
 	}

@@ -31,14 +31,14 @@ namespace lwscript
         std::ofstream file;
         file.open(path.data(), std::ios::out | std::ios::binary);
         if (!file.is_open())
-#ifdef LWSCRIPT_UTF8_ENCODE
         {
+#ifdef LWSCRIPT_UTF8_ENCODE
             auto utf8Path = Utf8::Decode(path.data());
             LW_LOG_ERROR_WITH_LOC(TEXT("Failed to open file:{}"), utf8Path);
-        }
 #else
             LW_LOG_ERROR_WITH_LOC(TEXT("Failed to open file:{}"), path);
 #endif
+        }
         file.write((const char *)content.data(), content.size());
         file.close();
     }
@@ -48,14 +48,14 @@ namespace lwscript
         std::ifstream file;
         file.open(path.data(), std::ios::in | std::ios::binary);
         if (!file.is_open())
-#ifdef LWSCRIPT_UTF8_ENCODE
         {
+#ifdef LWSCRIPT_UTF8_ENCODE
             auto utf8Path = Utf8::Decode(path.data());
             LW_LOG_ERROR_WITH_LOC(TEXT("Failed to open file:{}"), utf8Path);
-        }
 #else
             LW_LOG_ERROR_WITH_LOC(TEXT("Failed to open file:{}"), path);
 #endif
+        }
 
         std::stringstream sstream;
         sstream << file.rdbuf();

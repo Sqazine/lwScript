@@ -30,25 +30,25 @@ namespace lwscript
 	{
 		std::vector<uint8_t> result;
 
-		auto magNumberBytes =  ByteConverter::ToU32ByteList(LWSCRIPT_BINARY_FILE_MAGIC_NUMBER);
+		auto magNumberBytes = ByteConverter::ToU32ByteList(LWSCRIPT_BINARY_FILE_MAGIC_NUMBER);
 		result.insert(result.end(), magNumberBytes.begin(), magNumberBytes.end());
 
-		auto versionBytes =  ByteConverter::ToU32ByteList(LWSCRIPT_VERSION_BINARY);
+		auto versionBytes = ByteConverter::ToU32ByteList(LWSCRIPT_VERSION_BINARY);
 		result.insert(result.end(), versionBytes.begin(), versionBytes.end());
 
-		auto opCodeCount =  ByteConverter::ToU32ByteList(opCodes.size());
+		auto opCodeCount = ByteConverter::ToU32ByteList(opCodes.size());
 		result.insert(result.end(), opCodeCount.begin(), opCodeCount.end());
 
 		result.insert(result.end(), opCodes.begin(), opCodes.end());
 
-		auto constantsCount =  ByteConverter::ToU32ByteList(constants.size());
+		auto constantsCount = ByteConverter::ToU32ByteList(constants.size());
 		result.insert(result.end(), constantsCount.begin(), constantsCount.end());
 
 		for (const auto &constant : constants)
 		{
 			auto bytes = constant.Serialize();
 
-			auto size =  ByteConverter::ToU32ByteList(bytes.size());
+			auto size = ByteConverter::ToU32ByteList(bytes.size());
 			result.insert(result.end(), size.begin(), size.end());
 
 			result.insert(result.end(), bytes.begin(), bytes.end());
@@ -59,25 +59,25 @@ namespace lwscript
 
 	void Chunk::Deserialize(const std::vector<uint8_t> &data)
 	{
-		auto magicNumber = ByteConverter::GetU32Integer(data,0);
+		auto magicNumber = ByteConverter::GetU32Integer(data, 0);
 		if (magicNumber != LWSCRIPT_BINARY_FILE_MAGIC_NUMBER)
-		LW_LOG_ERROR(TEXT("Invalid lwscript binary file,cannot deserialize from this file"));
+			LW_LOG_ERROR(TEXT("Invalid lwscript binary file,cannot deserialize from this file"));
 
-		auto versionNumber = ByteConverter::GetU32Integer(data,4);
+		auto versionNumber = ByteConverter::GetU32Integer(data, 4);
 		if (versionNumber != LWSCRIPT_VERSION_BINARY)
-		LW_LOG_ERROR(TEXT("Invalid lwscript binary file version of {},current version is {}"), versionNumber, LWSCRIPT_VERSION_BINARY);
+			LW_LOG_ERROR(TEXT("Invalid lwscript binary file version of {},current version is {}"), versionNumber, LWSCRIPT_VERSION_BINARY);
 
-		auto opCodesCount = ByteConverter::GetU32Integer(data,8);
+		auto opCodesCount = ByteConverter::GetU32Integer(data, 8);
 
 		opCodes.insert(opCodes.end(), data.begin() + 12, data.begin() + 12 + opCodesCount);
 
 		auto idx = 12 + opCodesCount;
 
-		auto constantsCount =  ByteConverter::GetU32Integer(data,idx);
+		auto constantsCount = ByteConverter::GetU32Integer(data, idx);
 		idx += 4;
 		for (int32_t i = 0; i < constantsCount; ++i)
 		{
-			auto constantSize = ByteConverter::GetU32Integer(data,idx);
+			auto constantSize = ByteConverter::GetU32Integer(data, idx);
 			idx += 4;
 
 			std::vector<uint8_t> constantBytes(data.begin() + idx, data.begin() + idx + constantSize);
@@ -96,9 +96,9 @@ namespace lwscript
 	{                                                                                                                \
 		auto tok = opCodeRelatedTokens[opcodes[i + 1]];                                                              \
 		auto tokStr = tok->ToString();                                                                               \
-		STRING tokGap(maxTokenShowSize - tokStr.size(), TCHAR(' '));                                             \
+		STRING tokGap(maxTokenShowSize - tokStr.size(), TCHAR(' '));                                                 \
 		tokStr += tokGap;                                                                                            \
-		cout << tokStr << std::setfill(TCHAR('0')) << std::setw(8) << i << TEXT("\t") << TEXT(#opCode) << std::endl; \
+		stream << tokStr << std::setfill(TCHAR('0')) << std::setw(8) << i << TEXT("\t") << TEXT(#opCode) << std::endl; \
 		i += 1;                                                                                                      \
 		break;                                                                                                       \
 	}
@@ -109,9 +109,9 @@ namespace lwscript
 		auto tok = opCodeRelatedTokens[opcodes[i + 1]];                                                                                                                   \
 		uint16_t addressOffset = opcodes[i + 2] << 8 | opcodes[i + 3];                                                                                                    \
 		auto tokStr = tok->ToString();                                                                                                                                    \
-		STRING tokGap(maxTokenShowSize - tokStr.size(), TCHAR(' '));                                                                                                  \
+		STRING tokGap(maxTokenShowSize - tokStr.size(), TCHAR(' '));                                                                                                      \
 		tokStr += tokGap;                                                                                                                                                 \
-		cout << tokStr << std::setfill(TCHAR('0')) << std::setw(8) << i << TEXT("\t") << TEXT(#opCode) << TEXT("\t") << i << "->" << i op addressOffset + 3 << std::endl; \
+		stream << tokStr << std::setfill(TCHAR('0')) << std::setw(8) << i << TEXT("\t") << TEXT(#opCode) << TEXT("\t") << i << "->" << i op addressOffset + 3 << std::endl; \
 		i += 3;                                                                                                                                                           \
 		break;                                                                                                                                                            \
 	}
@@ -122,15 +122,15 @@ namespace lwscript
 		auto tok = opCodeRelatedTokens[opcodes[i + 1]];                                                                                   \
 		auto pos = opcodes[i + 2];                                                                                                        \
 		auto tokStr = tok->ToString();                                                                                                    \
-		STRING tokGap(maxTokenShowSize - tokStr.size(), TCHAR(' '));                                                                  \
+		STRING tokGap(maxTokenShowSize - tokStr.size(), TCHAR(' '));                                                                      \
 		tokStr += tokGap;                                                                                                                 \
-		cout << tokStr << std::setfill(TCHAR('0')) << std::setw(8) << i << TEXT("\t") << TEXT(#opCode) << TEXT("\t") << pos << std::endl; \
+		stream << tokStr << std::setfill(TCHAR('0')) << std::setw(8) << i << TEXT("\t") << TEXT(#opCode) << TEXT("\t") << pos << std::endl; \
 		i += 2;                                                                                                                           \
 		break;                                                                                                                            \
 	}
 
 		const uint32_t maxTokenShowSize = GetBiggestTokenLength() + 4; // 4 for a gap "    "
-		STRING_STREAM cout;
+		STRING_STREAM stream;
 		for (int32_t i = 0; i < opcodes.size(); ++i)
 		{
 			switch (opcodes[i])
@@ -191,7 +191,7 @@ namespace lwscript
 				auto tokStr = tok->ToString();
 				STRING tokGap(maxTokenShowSize - tokStr.size(), TCHAR(' '));
 				tokStr += tokGap;
-				cout << tokStr << std::setfill(TCHAR('0')) << std::setw(8) << i << TEXT("\tOP_CONSTANT\t") << pos << TEXT("\t'") << constantStr << TEXT("'") << std::endl;
+				stream << tokStr << std::setfill(TCHAR('0')) << std::setw(8) << i << TEXT("\tOP_CONSTANT\t") << pos << TEXT("\t'") << constantStr << TEXT("'") << std::endl;
 				i += 2;
 				break;
 			}
@@ -205,7 +205,7 @@ namespace lwscript
 				auto tokStr = tok->ToString();
 				STRING tokGap(maxTokenShowSize - tokStr.size(), TCHAR(' '));
 				tokStr += tokGap;
-				cout << tokStr << std::setfill(TCHAR('0')) << std::setw(8) << i << TEXT("\tOP_CLASS\t") << ctorCount << TEXT("\t") << varCount << TEXT("\t") << constCount << TEXT("\t") << parentClassCount << std::endl;
+				stream << tokStr << std::setfill(TCHAR('0')) << std::setw(8) << i << TEXT("\tOP_CLASS\t") << ctorCount << TEXT("\t") << varCount << TEXT("\t") << constCount << TEXT("\t") << parentClassCount << std::endl;
 				i += 5;
 				break;
 			}
@@ -219,17 +219,17 @@ namespace lwscript
 				STRING tokGap(maxTokenShowSize - tokStr.size(), TCHAR(' '));
 				tokStr += tokGap;
 
-				cout << tokStr << std::setfill(TCHAR('0')) << std::setw(8) << i << TEXT("\tOP_CLOSURE\t") << pos << TEXT("\t") << funcStr << std::endl;
+				stream << tokStr << std::setfill(TCHAR('0')) << std::setw(8) << i << TEXT("\tOP_CLOSURE\t") << pos << TEXT("\t") << funcStr << std::endl;
 
 				auto upvalueCount = TO_FUNCTION_VALUE(constants[pos])->upValueCount;
 				if (upvalueCount > 0)
 				{
-					cout << TEXT("        upvalues:") << std::endl;
+					stream << TEXT("        upvalues:") << std::endl;
 					for (auto j = 0; j < upvalueCount; ++j)
 					{
-						cout << TEXT("                 location  ") << opcodes[++i];
-						cout << TEXT(" | ");
-						cout << TEXT("depth  ") << opcodes[++i] << std::endl;
+						stream << TEXT("                 location  ") << opcodes[++i];
+						stream << TEXT(" | ");
+						stream << TEXT("depth  ") << opcodes[++i] << std::endl;
 					}
 				}
 				i += 2;
@@ -243,7 +243,7 @@ namespace lwscript
 				auto tokStr = tok->ToString();
 				STRING tokGap(maxTokenShowSize - tokStr.size(), TCHAR(' '));
 				tokStr += tokGap;
-				cout << tokStr << std::setfill(TCHAR('0')) << std::setw(8) << i << TEXT("\tOP_MODULE\t") << varCount << TEXT("\t") << constCount << std::endl;
+				stream << tokStr << std::setfill(TCHAR('0')) << std::setw(8) << i << TEXT("\tOP_MODULE\t") << varCount << TEXT("\t") << constCount << std::endl;
 				i += 3;
 				break;
 			}
@@ -252,7 +252,7 @@ namespace lwscript
 			}
 		}
 
-		return cout.str();
+		return stream.str();
 	}
 
 	uint32_t Chunk::GetBiggestTokenLength() const

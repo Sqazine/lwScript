@@ -5,107 +5,153 @@
 #include "Logger.h"
 namespace lwscript
 {
-	Compiler::SymbolTable::SymbolTable()
-		: mSymbolCount(0), mGlobalSymbolCount(0), mLocalSymbolCount(0), mUpValueCount(0), enclosing(nullptr), mScopeDepth(0), mTableDepth(0)
+	enum class SymbolLocation
 	{
-	}
+		GLOBAL,
+		LOCAL,
+		UPVALUE,
+	};
 
-	Compiler::SymbolTable::SymbolTable(SymbolTable *enclosing)
-		: mSymbolCount(0), mGlobalSymbolCount(0), mLocalSymbolCount(0), mUpValueCount(0), enclosing(enclosing)
+	struct UpValue
 	{
-		mScopeDepth = enclosing->mScopeDepth + 1;
-		mTableDepth = enclosing->mTableDepth + 1;
-	}
+		uint8_t index = 0;
+		uint8_t location = 0;
+		uint8_t depth = -1;
+	};
 
-	Compiler::SymbolTable::~SymbolTable()
+	struct FunctionSymbolInfo
 	{
-	}
+		int8_t paramCount = -1;
+		VarArg varArg = VarArg::NONE;
+	};
 
-	Compiler::Symbol Compiler::SymbolTable::Define(const Token *relatedToken, Permission permission, const STRING &name, const Compiler::FunctionSymbolInfo &functionInfo)
+	struct Symbol
 	{
-		if (mSymbolCount >= mSymbols.size())
-			LW_LOG_ERROR_WITH_LOC(relatedToken, TEXT("Too many symbols in current scope."));
-		for (int16_t i = mSymbolCount - 1; i >= 0; --i)
+		STRING name;
+		SymbolLocation location = SymbolLocation::GLOBAL;
+		Permission permission = Permission::IMMUTABLE;
+		uint8_t index = 0;
+		int8_t scopeDepth = -1;
+		FunctionSymbolInfo functionSymInfo;
+		UpValue upvalue; // available only while type is SymbolLocation::UPVALUE
+		bool isCaptured = false;
+		const Token *relatedToken;
+	};
+	class SymbolTable
+	{
+	public:
+		SymbolTable()
+
+			: mSymbolCount(0), mGlobalSymbolCount(0), mLocalSymbolCount(0), mUpValueCount(0), enclosing(nullptr), mScopeDepth(0), mTableDepth(0)
 		{
-			auto isSameParamCount = (mSymbols[i].functionSymInfo.paramCount < 0 || functionInfo.paramCount < 0) ? true : mSymbols[i].functionSymInfo.paramCount == functionInfo.paramCount;
-			if (mSymbols[i].scopeDepth == -1 || mSymbols[i].scopeDepth < mScopeDepth)
-				break;
-			if (mSymbols[i].name == name && isSameParamCount)
-				LW_LOG_ERROR_WITH_LOC(relatedToken, TEXT("Redefinition symbol:{}"), name);
 		}
-
-		auto *symbol = &mSymbols[mSymbolCount++];
-		symbol->name = name;
-		symbol->permission = permission;
-		symbol->functionSymInfo = functionInfo;
-		symbol->relatedToken = relatedToken;
-
-		if (mScopeDepth == 0)
+		SymbolTable(SymbolTable *enclosing)
+			: mSymbolCount(0), mGlobalSymbolCount(0), mLocalSymbolCount(0), mUpValueCount(0), enclosing(enclosing)
 		{
-			symbol->location = SymbolLocation::GLOBAL;
-			symbol->index = mGlobalSymbolCount++;
+			mScopeDepth = enclosing->mScopeDepth + 1;
+			mTableDepth = enclosing->mTableDepth + 1;
 		}
-		else
-		{
-			symbol->location = SymbolLocation::LOCAL;
-			symbol->index = mLocalSymbolCount++;
-		}
-		symbol->scopeDepth = mScopeDepth;
-		return *symbol;
-	}
+		~SymbolTable() {}
 
-	Compiler::Symbol Compiler::SymbolTable::Resolve(const Token *relatedToken, const STRING &name, int8_t paramCount, int8_t d)
-	{
-		for (int16_t i = mSymbolCount - 1; i >= 0; --i)
+		Symbol Define(const Token *relatedToken, Permission permission, const STRING &name, const FunctionSymbolInfo &functionInfo = {})
 		{
-			auto isSameParamCount = (mSymbols[i].functionSymInfo.paramCount < 0 || paramCount < 0) ? true : mSymbols[i].functionSymInfo.paramCount == paramCount;
-
-			if (mSymbols[i].name == name && mSymbols[i].scopeDepth <= mScopeDepth)
+			if (mSymbolCount >= mSymbols.size())
+				LW_LOG_ERROR_WITH_LOC(relatedToken, TEXT("Too many symbols in current scope."));
+			for (int16_t i = mSymbolCount - 1; i >= 0; --i)
 			{
-				if (isSameParamCount || mSymbols[i].functionSymInfo.varArg > VarArg::NONE)
+				auto isSameParamCount = (mSymbols[i].functionSymInfo.paramCount < 0 || functionInfo.paramCount < 0) ? true : mSymbols[i].functionSymInfo.paramCount == functionInfo.paramCount;
+				if (mSymbols[i].scopeDepth == -1 || mSymbols[i].scopeDepth < mScopeDepth)
+					break;
+				if (mSymbols[i].name == name && isSameParamCount)
+					LW_LOG_ERROR_WITH_LOC(relatedToken, TEXT("Redefinition symbol:{}"), name);
+			}
+
+			auto *symbol = &mSymbols[mSymbolCount++];
+			symbol->name = name;
+			symbol->permission = permission;
+			symbol->functionSymInfo = functionInfo;
+			symbol->relatedToken = relatedToken;
+
+			if (mScopeDepth == 0)
+			{
+				symbol->location = SymbolLocation::GLOBAL;
+				symbol->index = mGlobalSymbolCount++;
+			}
+			else
+			{
+				symbol->location = SymbolLocation::LOCAL;
+				symbol->index = mLocalSymbolCount++;
+			}
+			symbol->scopeDepth = mScopeDepth;
+			return *symbol;
+		}
+
+		Symbol Resolve(const Token *relatedToken, const STRING &name, int8_t paramCount = -1, int8_t d = 0)
+		{
+			{
+				for (int16_t i = mSymbolCount - 1; i >= 0; --i)
 				{
-					if (mSymbols[i].scopeDepth == -1)
-						LW_LOG_ERROR_WITH_LOC(relatedToken, TEXT("symbol not defined yet!"));
+					auto isSameParamCount = (mSymbols[i].functionSymInfo.paramCount < 0 || paramCount < 0) ? true : mSymbols[i].functionSymInfo.paramCount == paramCount;
 
-					if (d == 1)
-						mSymbols[i].isCaptured = true;
+					if (mSymbols[i].name == name && mSymbols[i].scopeDepth <= mScopeDepth)
+					{
+						if (isSameParamCount || mSymbols[i].functionSymInfo.varArg > VarArg::NONE)
+						{
+							if (mSymbols[i].scopeDepth == -1)
+								LW_LOG_ERROR_WITH_LOC(relatedToken, TEXT("symbol not defined yet!"));
 
-					return mSymbols[i];
+							if (d == 1)
+								mSymbols[i].isCaptured = true;
+
+							return mSymbols[i];
+						}
+					}
 				}
+
+				if (enclosing)
+				{
+					Symbol result = enclosing->Resolve(relatedToken, name, paramCount, ++d);
+					if (d > 0 && result.location != SymbolLocation::GLOBAL)
+					{
+						result.location = SymbolLocation::UPVALUE;
+						result.upvalue = AddUpValue(relatedToken, result.index, enclosing->mTableDepth);
+					}
+					return result;
+				}
+
+				LW_LOG_ERROR_WITH_LOC(relatedToken, TEXT("No symbol: \"{}\" in current scope."), name);
 			}
 		}
 
-		if (enclosing)
+		std::array<Symbol, UINT8_COUNT> mSymbols;
+		uint8_t mSymbolCount;
+		uint8_t mGlobalSymbolCount;
+		uint8_t mLocalSymbolCount;
+		std::array<UpValue, UINT8_COUNT> mUpValues;
+		int32_t mUpValueCount;
+		uint8_t mScopeDepth; // Depth of scope nesting(related to code {} scope)
+		SymbolTable *enclosing;
+
+	private:
+		UpValue AddUpValue(const Token *relatedToken, uint8_t location, uint8_t depth)
 		{
-			Symbol result = enclosing->Resolve(relatedToken, name, paramCount, ++d);
-			if (d > 0 && result.location != SymbolLocation::GLOBAL)
+			for (int32_t i = 0; i < mUpValueCount; ++i)
 			{
-				result.location = SymbolLocation::UPVALUE;
-				result.upvalue = AddUpValue(relatedToken, result.index, enclosing->mTableDepth);
+				UpValue *upvalue = &mUpValues[i];
+				if (upvalue->location == location && upvalue->depth == depth)
+					return *upvalue;
 			}
-			return result;
+
+			if (mUpValueCount == UINT8_COUNT)
+				LW_LOG_ERROR_WITH_LOC(relatedToken, TEXT("Too many closure upvalues in function."));
+			mUpValues[mUpValueCount].location = location;
+			mUpValues[mUpValueCount].depth = depth;
+			mUpValues[mUpValueCount].index = mUpValueCount;
+			mUpValueCount++;
+			return mUpValues[mUpValueCount - 1];
 		}
-
-		LW_LOG_ERROR_WITH_LOC(relatedToken, TEXT("No symbol: \"{}\" in current scope."), name);
-	}
-
-	Compiler::UpValue Compiler::SymbolTable::AddUpValue(const Token *relatedToken, uint8_t location, uint8_t depth)
-	{
-		for (int32_t i = 0; i < mUpValueCount; ++i)
-		{
-			UpValue *upvalue = &mUpValues[i];
-			if (upvalue->location == location && upvalue->depth == depth)
-				return *upvalue;
-		}
-
-		if (mUpValueCount == UINT8_COUNT)
-			LW_LOG_ERROR_WITH_LOC(relatedToken, TEXT("Too many closure upvalues in function."));
-		mUpValues[mUpValueCount].location = location;
-		mUpValues[mUpValueCount].depth = depth;
-		mUpValues[mUpValueCount].index = mUpValueCount;
-		mUpValueCount++;
-		return mUpValues[mUpValueCount - 1];
-	}
+		uint8_t mTableDepth; // Depth of symbol table nesting(related to symboltable's enclosing)
+	};
 
 	Compiler::Compiler()
 		: mSymbolTable(nullptr)
@@ -1065,7 +1111,7 @@ namespace lwscript
 		EmitOpCode(OP_FACTORIAL, expr->tagToken);
 	}
 
-	Compiler::Symbol Compiler::CompileFunction(FunctionDecl *decl, ClassDecl::FunctionKind kind)
+	Symbol Compiler::CompileFunction(FunctionDecl *decl, ClassDecl::FunctionKind kind)
 	{
 		auto varArg = GetVarArgFromParameterList(decl->parameters);
 
@@ -1253,7 +1299,7 @@ namespace lwscript
 		return varCount;
 	}
 
-	Compiler::Symbol Compiler::CompileClass(ClassDecl *decl)
+	Symbol Compiler::CompileClass(ClassDecl *decl)
 	{
 		auto symbol = mSymbolTable->Define(decl->tagToken, Permission::IMMUTABLE, decl->name);
 

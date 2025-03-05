@@ -41,40 +41,40 @@ namespace lwscript
 	void VM::Execute()
 	{
 		//  - * /
-#define COMMON_BINARY(op)                                                                                                                                                                                                 \
-	do                                                                                                                                                                                                                    \
-	{                                                                                                                                                                                                                     \
-		Value right = POP_STACK();                                                                                                                                                                                        \
-		Value left = POP_STACK();                                                                                                                                                                                         \
-		if (IS_REF_VALUE(left))                                                                                                                                                                                           \
-			left = *TO_REF_VALUE(left)->pointer;                                                                                                                                                                          \
-		if (IS_REF_VALUE(right))                                                                                                                                                                                          \
-			right = *TO_REF_VALUE(right)->pointer;                                                                                                                                                                        \
-		if (IS_INT_VALUE(left) && IS_INT_VALUE(right))                                                                                                                                                                    \
-			PUSH_STACK(TO_INT_VALUE(left) op TO_INT_VALUE(right));                                                                                                                                                        \
-		else if (IS_REAL_VALUE(left) && IS_REAL_VALUE(right))                                                                                                                                                             \
-			PUSH_STACK(TO_REAL_VALUE(left) op TO_REAL_VALUE(right));                                                                                                                                                      \
-		else if (IS_INT_VALUE(left) && IS_REAL_VALUE(right))                                                                                                                                                              \
-			PUSH_STACK(TO_INT_VALUE(left) op TO_REAL_VALUE(right));                                                                                                                                                       \
-		else if (IS_REAL_VALUE(left) && IS_INT_VALUE(right))                                                                                                                                                              \
-			PUSH_STACK(TO_REAL_VALUE(left) op TO_INT_VALUE(right));                                                                                                                                                       \
-		else                                                                                                                                                                                                              \
+#define COMMON_BINARY(op)                                                                                                                                                                                                    \
+	do                                                                                                                                                                                                                       \
+	{                                                                                                                                                                                                                        \
+		Value right = POP_STACK();                                                                                                                                                                                           \
+		Value left = POP_STACK();                                                                                                                                                                                            \
+		if (IS_REF_VALUE(left))                                                                                                                                                                                              \
+			left = *TO_REF_VALUE(left)->pointer;                                                                                                                                                                             \
+		if (IS_REF_VALUE(right))                                                                                                                                                                                             \
+			right = *TO_REF_VALUE(right)->pointer;                                                                                                                                                                           \
+		if (IS_INT_VALUE(left) && IS_INT_VALUE(right))                                                                                                                                                                       \
+			PUSH_STACK(TO_INT_VALUE(left) op TO_INT_VALUE(right));                                                                                                                                                           \
+		else if (IS_REAL_VALUE(left) && IS_REAL_VALUE(right))                                                                                                                                                                \
+			PUSH_STACK(TO_REAL_VALUE(left) op TO_REAL_VALUE(right));                                                                                                                                                         \
+		else if (IS_INT_VALUE(left) && IS_REAL_VALUE(right))                                                                                                                                                                 \
+			PUSH_STACK(TO_INT_VALUE(left) op TO_REAL_VALUE(right));                                                                                                                                                          \
+		else if (IS_REAL_VALUE(left) && IS_INT_VALUE(right))                                                                                                                                                                 \
+			PUSH_STACK(TO_REAL_VALUE(left) op TO_INT_VALUE(right));                                                                                                                                                          \
+		else                                                                                                                                                                                                                 \
 			LW_LOG_ERROR_WITH_LOC(relatedToken, TEXT("Invalid binary op:{}{}{},only (&)int-(&)int,(&)real-(&)real,(&)int-(&)real or (&)real-(&)int type pair is available."), left.ToString(), TEXT(#op), right.ToString()); \
 	} while (0);
 
 // & | << >>
-#define INTEGER_BINARY(op)                                                                                                                                               \
-	do                                                                                                                                                                   \
-	{                                                                                                                                                                    \
-		Value right = POP_STACK();                                                                                                                                       \
-		Value left = POP_STACK();                                                                                                                                        \
-		if (IS_REF_VALUE(left))                                                                                                                                          \
-			left = *TO_REF_VALUE(left)->pointer;                                                                                                                         \
-		if (IS_REF_VALUE(right))                                                                                                                                         \
-			right = *TO_REF_VALUE(right)->pointer;                                                                                                                       \
-		if (IS_INT_VALUE(left) && IS_INT_VALUE(right))                                                                                                                   \
-			PUSH_STACK(TO_INT_VALUE(left) op TO_INT_VALUE(right));                                                                                                       \
-		else                                                                                                                                                             \
+#define INTEGER_BINARY(op)                                                                                                                                                  \
+	do                                                                                                                                                                      \
+	{                                                                                                                                                                       \
+		Value right = POP_STACK();                                                                                                                                          \
+		Value left = POP_STACK();                                                                                                                                           \
+		if (IS_REF_VALUE(left))                                                                                                                                             \
+			left = *TO_REF_VALUE(left)->pointer;                                                                                                                            \
+		if (IS_REF_VALUE(right))                                                                                                                                            \
+			right = *TO_REF_VALUE(right)->pointer;                                                                                                                          \
+		if (IS_INT_VALUE(left) && IS_INT_VALUE(right))                                                                                                                      \
+			PUSH_STACK(TO_INT_VALUE(left) op TO_INT_VALUE(right));                                                                                                          \
+		else                                                                                                                                                                \
 			LW_LOG_ERROR_WITH_LOC(relatedToken, TEXT("Invalid binary op:{}{}{},only (&)int-(&)int type pair is available."), left.ToString(), TEXT(#op), right.ToString()); \
 	} while (0);
 
@@ -101,18 +101,18 @@ namespace lwscript
 	} while (0);
 
 // && ||
-#define LOGIC_BINARY(op)                                                                                                                                                   \
-	do                                                                                                                                                                     \
-	{                                                                                                                                                                      \
-		Value right = POP_STACK();                                                                                                                                         \
-		Value left = POP_STACK();                                                                                                                                          \
-		if (IS_REF_VALUE(left))                                                                                                                                            \
-			left = *TO_REF_VALUE(left)->pointer;                                                                                                                           \
-		if (IS_REF_VALUE(right))                                                                                                                                           \
-			right = *TO_REF_VALUE(right)->pointer;                                                                                                                         \
-		if (IS_BOOL_VALUE(left) && IS_BOOL_VALUE(right))                                                                                                                   \
-			PUSH_STACK(TO_BOOL_VALUE(left) op TO_BOOL_VALUE(right) ? Value(true) : Value(false));                                                                          \
-		else                                                                                                                                                               \
+#define LOGIC_BINARY(op)                                                                                                                                                      \
+	do                                                                                                                                                                        \
+	{                                                                                                                                                                         \
+		Value right = POP_STACK();                                                                                                                                            \
+		Value left = POP_STACK();                                                                                                                                             \
+		if (IS_REF_VALUE(left))                                                                                                                                               \
+			left = *TO_REF_VALUE(left)->pointer;                                                                                                                              \
+		if (IS_REF_VALUE(right))                                                                                                                                              \
+			right = *TO_REF_VALUE(right)->pointer;                                                                                                                            \
+		if (IS_BOOL_VALUE(left) && IS_BOOL_VALUE(right))                                                                                                                      \
+			PUSH_STACK(TO_BOOL_VALUE(left) op TO_BOOL_VALUE(right) ? Value(true) : Value(false));                                                                             \
+		else                                                                                                                                                                  \
 			LW_LOG_ERROR_WITH_LOC(relatedToken, TEXT("Invalid binary op:{}{}{},only (&)bool-(&)bool type pair is available."), left.ToString(), TEXT(#op), right.ToString()); \
 	} while (0);
 
@@ -151,10 +151,8 @@ namespace lwscript
 				if (retCount == 0)
 				{
 #ifdef LWSCRIPT_FUNCTION_CACHE_OPT
-					{
-						auto callFrameTop = PEEK_CALL_FRAME(0);
-						callFrameTop->closure->function->SetCache(callFrameTop->argumentsHash, {Value()});
-					}
+					auto callFrameTop = PEEK_CALL_FRAME(0);
+					callFrameTop->closure->function->SetCache(callFrameTop->argumentsHash, {Value()});
 #endif
 
 					PUSH_STACK(Value());
@@ -162,11 +160,11 @@ namespace lwscript
 				else
 				{
 #ifdef LWSCRIPT_FUNCTION_CACHE_OPT
-					{
-						auto callFrameTop = PEEK_CALL_FRAME(0);
-						std::vector<Value> rets(retValues, retValues + retCount);
-						callFrameTop->closure->function->SetCache(callFrameTop->argumentsHash, rets);
-					}
+
+					auto callFrameTop = PEEK_CALL_FRAME(0);
+					std::vector<Value> rets(retValues, retValues + retCount);
+					callFrameTop->closure->function->SetCache(callFrameTop->argumentsHash, rets);
+
 #endif
 
 					uint8_t i = 0;

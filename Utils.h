@@ -91,13 +91,13 @@
 
 namespace lwscript
 {
-	enum Permission : uint8_t
+	enum class Permission : uint8_t
 	{
 		MUTABLE,
 		IMMUTABLE,
 	};
 
-	enum VarArg
+	enum class VarArg : uint8_t
 	{
 		NONE = 0,
 		WITHOUT_NAME,

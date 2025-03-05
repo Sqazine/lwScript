@@ -60,7 +60,7 @@ namespace lwscript
         std::vector<uint8_t> result;
 
         result.emplace_back(kind);
-        result.emplace_back(permission);
+        result.emplace_back(static_cast<uint8_t>(std::underlying_type<Permission>::type(permission)));
 
         if (IS_INT_VALUE(*this) || IS_REAL_VALUE(*this) || IS_BOOL_VALUE(*this))
         {
