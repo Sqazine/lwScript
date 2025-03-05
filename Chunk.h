@@ -60,13 +60,13 @@ namespace lwscript
         OP_RESET,
     };
 
-    using OpCodes = std::vector<uint8_t>;
+    using OpCodeList = std::vector<uint8_t>;
 
     class LWSCRIPT_API Chunk
     {
     public:
         Chunk() = default;
-        Chunk(const OpCodes &opcodes, const std::vector<Value> &constants);
+        Chunk(const OpCodeList &opcodes, const std::vector<Value> &constants);
         ~Chunk() = default;
 #ifndef NDEBUG
         STRING ToString() const;
@@ -74,12 +74,12 @@ namespace lwscript
         std::vector<uint8_t> Serialize() const;
         void Deserialize(const std::vector<uint8_t> &data);
 
-        OpCodes opCodes;
+        OpCodeList opCodes;
         std::vector<Value> constants;
         std::vector<const Token *> opCodeRelatedTokens;
 
     private:
-        STRING OpCodeToString(const OpCodes &opcodes) const;
+        STRING OpCodeToString(const OpCodeList &opcodes) const;
         uint32_t GetBiggestTokenLength() const;
     };
 

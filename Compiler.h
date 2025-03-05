@@ -87,7 +87,7 @@ namespace lwscript
 
 		Chunk &CurChunk();
 		FunctionObject *CurFunction();
-		OpCodes &CurOpCodes();
+		OpCodeList &CurOpCodeList();
 
 		VarArg GetVarArgFromParameterList(const std::vector<VarDescExpr *> &parameterList);
 

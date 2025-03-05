@@ -461,7 +461,7 @@ namespace lwscript
 	}
 	void Compiler::CompileWhileStmt(WhileStmt *stmt)
 	{
-		auto jmpAddress = (uint32_t)CurOpCodes().size();
+		auto jmpAddress = (uint32_t)CurOpCodeList().size();
 
 		auto conditionPostfixExprs = StatsPostfixExprs(stmt->condition);
 
@@ -638,8 +638,8 @@ namespace lwscript
 					}
 				}
 
-				CurOpCodes()[appregateOpCodeAddress] = appregateOpCode;
-				CurOpCodes()[resolveAddress] = resolveCount;
+				CurOpCodeList()[appregateOpCodeAddress] = appregateOpCode;
+				CurOpCodeList()[resolveAddress] = resolveCount;
 
 				for (uint8_t i = 0; i < resolveCount; ++i)
 				{
@@ -1244,8 +1244,8 @@ namespace lwscript
 						varCount++;
 					}
 
-					CurOpCodes()[appregateOpCodeAddress] = appregateOpCode;
-					CurOpCodes()[resolveAddress] = resolveCount;
+					CurOpCodeList()[appregateOpCodeAddress] = appregateOpCode;
+					CurOpCodeList()[resolveAddress] = resolveCount;
 
 					if (IsInClassOrModuleScope)
 					{
@@ -1390,13 +1390,13 @@ namespace lwscript
 
 		Emit(static_cast<uint8_t>(CurChunk().opCodeRelatedTokens.size() - 1));
 
-		return CurOpCodes().size() - 1;
+		return CurOpCodeList().size() - 1;
 	}
 
 	uint64_t Compiler::Emit(uint8_t opcode)
 	{
-		CurOpCodes().emplace_back(opcode);
-		return CurOpCodes().size() - 1;
+		CurOpCodeList().emplace_back(opcode);
+		return CurOpCodeList().size() - 1;
 	}
 
 	uint64_t Compiler::EmitConstant(const Value &value, const Token *token)
@@ -1404,7 +1404,7 @@ namespace lwscript
 		EmitOpCode(OP_CONSTANT, token);
 		uint8_t pos = AddConstant(value);
 		Emit(pos);
-		return CurOpCodes().size() - 1;
+		return CurOpCodeList().size() - 1;
 	}
 
 	uint64_t Compiler::EmitClosure(FunctionObject *function, const Token *token)
@@ -1412,14 +1412,14 @@ namespace lwscript
 		uint8_t pos = AddConstant(function);
 		EmitOpCode(OP_CLOSURE, token);
 		Emit(pos);
-		return CurOpCodes().size() - 1;
+		return CurOpCodeList().size() - 1;
 	}
 
 	uint64_t Compiler::EmitReturn(uint8_t retCount, const Token *token)
 	{
 		EmitOpCode(OP_RETURN, token);
 		Emit(retCount);
-		return CurOpCodes().size() - 1;
+		return CurOpCodeList().size() - 1;
 	}
 
 	uint64_t Compiler::EmitJump(OpCode opcode, const Token *token)
@@ -1427,13 +1427,13 @@ namespace lwscript
 		EmitOpCode(opcode, token);
 		Emit(0xFF);
 		Emit(0xFF);
-		return CurOpCodes().size() - 2;
+		return CurOpCodeList().size() - 2;
 	}
 
 	void Compiler::EmitLoop(uint16_t opcode, const Token *token)
 	{
 		EmitOpCode(OP_LOOP, token);
-		uint16_t offset = static_cast<uint16_t>(CurOpCodes().size()) - opcode + 2;
+		uint16_t offset = static_cast<uint16_t>(CurOpCodeList().size()) - opcode + 2;
 
 		Emit((offset >> 8) & 0xFF);
 		Emit(offset & 0xFF);
@@ -1441,9 +1441,9 @@ namespace lwscript
 
 	void Compiler::PatchJump(uint64_t offset)
 	{
-		uint16_t jumpOffset = static_cast<uint16_t>(CurOpCodes().size() - offset - 2);
-		CurOpCodes()[offset] = (jumpOffset >> 8) & 0xFF;
-		CurOpCodes()[offset + 1] = (jumpOffset)&0xFF;
+		uint16_t jumpOffset = static_cast<uint16_t>(CurOpCodeList().size() - offset - 2);
+		CurOpCodeList()[offset] = (jumpOffset >> 8) & 0xFF;
+		CurOpCodeList()[offset + 1] = (jumpOffset)&0xFF;
 	}
 
 	uint8_t Compiler::AddConstant(const Value &value)
@@ -1500,7 +1500,7 @@ namespace lwscript
 		return mFunctionList.back();
 	}
 
-	OpCodes &Compiler::CurOpCodes()
+	OpCodeList &Compiler::CurOpCodeList()
 	{
 		return CurChunk().opCodes;
 	}

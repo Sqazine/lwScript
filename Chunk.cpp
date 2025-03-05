@@ -7,7 +7,7 @@
 #include "Logger.h"
 namespace lwscript
 {
-	Chunk::Chunk(const OpCodes &opcodes, const std::vector<Value> &constants)
+	Chunk::Chunk(const OpCodeList &opcodes, const std::vector<Value> &constants)
 		: opCodes(opcodes), constants(constants)
 	{
 	}
@@ -89,7 +89,7 @@ namespace lwscript
 		}
 	}
 
-	STRING Chunk::OpCodeToString(const OpCodes &opcodes) const
+	STRING Chunk::OpCodeToString(const OpCodeList &opcodes) const
 	{
 #define CASE(opCode)                                                                                                 \
 	case opCode:                                                                                                     \
