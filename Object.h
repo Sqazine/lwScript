@@ -9,72 +9,72 @@
 #include "Value.h"
 namespace lwscript
 {
-#define IS_STR_OBJ(obj) ((obj)->kind == ObjectKind::STR)
-#define IS_ARRAY_OBJ(obj) ((obj)->kind == ObjectKind::ARRAY)
-#define IS_TABLE_OBJ(obj) ((obj)->kind == ObjectKind::DICT)
-#define IS_STRUCT_OBJ(obj) ((obj)->kind == ObjectKind::STRUCT)
-#define IS_FUNCTION_OBJ(obj) ((obj)->kind == ObjectKind::FUNCTION)
-#define IS_UPVALUE_OBJ(obj) ((obj)->kind == ObjectKind::UPVALUE)
-#define IS_CLOSURE_OBJ(obj) ((obj)->kind == ObjectKind::CLOSURE)
-#define IS_NATIVE_FUNCTION_OBJ(obj) ((obj)->kind == ObjectKind::NATIVE_FUNCTION)
-#define IS_REF_OBJ(obj) ((obj)->kind == ObjectKind::REF)
-#define IS_CLASS_OBJ(obj) ((obj)->kind == ObjectKind::CLASS)
-#define IS_CLASS_CLOSURE_BIND_OBJ(obj) ((obj)->kind == ObjectKind::CLASS_CLOSURE_BIND)
-#define IS_ENUM_OBJ(obj) ((obj)->kind == ObjectKind::ENUM)
-#define IS_MODULE_OBJ(obj) ((obj)->kind == ObjectKind::MODULE)
+#define LWS_IS_STR_OBJ(obj) ((obj)->kind == ::lwscript::ObjectKind::STR)
+#define LWS_IS_ARRAY_OBJ(obj) ((obj)->kind == ::lwscript::ObjectKind::ARRAY)
+#define LWS_IS_TABLE_OBJ(obj) ((obj)->kind == ::lwscript::ObjectKind::DICT)
+#define LWS_IS_STRUCT_OBJ(obj) ((obj)->kind == ::lwscript::ObjectKind::STRUCT)
+#define LWS_IS_FUNCTION_OBJ(obj) ((obj)->kind == ::lwscript::ObjectKind::FUNCTION)
+#define LWS_IS_UPVALUE_OBJ(obj) ((obj)->kind == ::lwscript::ObjectKind::UPVALUE)
+#define LWS_IS_CLOSURE_OBJ(obj) ((obj)->kind == ::lwscript::ObjectKind::CLOSURE)
+#define LWS_IS_NATIVE_FUNCTION_OBJ(obj) ((obj)->kind == ::lwscript::ObjectKind::NATIVE_FUNCTION)
+#define LWS_IS_REF_OBJ(obj) ((obj)->kind == ::lwscript::ObjectKind::REF)
+#define LWS_IS_CLASS_OBJ(obj) ((obj)->kind == ::lwscript::ObjectKind::CLASS)
+#define LWS_IS_CLASS_CLOSURE_BIND_OBJ(obj) ((obj)->kind == ::lwscript::ObjectKind::CLASS_CLOSURE_BIND)
+#define LWS_IS_ENUM_OBJ(obj) ((obj)->kind == ::lwscript::ObjectKind::ENUM)
+#define LWS_IS_MODULE_OBJ(obj) ((obj)->kind == ::lwscript::ObjectKind::MODULE)
 
-#define TO_STR_OBJ(obj) ((lwscript::StrObject *)(obj))
-#define TO_ARRAY_OBJ(obj) ((lwscript::ArrayObject *)(obj))
-#define TO_TABLE_OBJ(obj) ((lwscript::DictObject *)(obj))
-#define TO_STRUCT_OBJ(obj) ((lwscript::StructObject *)(obj))
-#define TO_FUNCTION_OBJ(obj) ((lwscript::FunctionObject *)(obj))
-#define TO_UPVALUE_OBJ(obj) ((lwscript::UpValueObject *)(obj))
-#define TO_CLOSURE_OBJ(obj) ((lwscript::ClosureObject *)(obj))
-#define TO_NATIVE_FUNCTION_OBJ(obj) ((lwscript::NativeFunctionObject *)(obj))
-#define TO_REF_OBJ(obj) ((lwscript::RefObject *)(obj))
-#define TO_CLASS_OBJ(obj) ((lwscript::ClassObject *)(obj))
-#define TO_CLASS_CLOSURE_BIND_OBJ(obj) ((lwscript::ClassClosureBindObject *)(obj))
-#define TO_ENUM_OBJ(obj) ((lwscript::EnumObject *)(obj))
-#define TO_MODULE_OBJ(obj) ((lwscript::ModuleObject *)(obj))
+#define LWS_TO_STR_OBJ(obj) ((::lwscript::StrObject *)(obj))
+#define LWS_TO_ARRAY_OBJ(obj) ((::lwscript::ArrayObject *)(obj))
+#define LWS_TO_TABLE_OBJ(obj) ((::lwscript::DictObject *)(obj))
+#define LWS_TO_STRUCT_OBJ(obj) ((::lwscript::StructObject *)(obj))
+#define LWS_TO_FUNCTION_OBJ(obj) ((::lwscript::FunctionObject *)(obj))
+#define LWS_TO_UPVALUE_OBJ(obj) ((::lwscript::UpValueObject *)(obj))
+#define LWS_TO_CLOSURE_OBJ(obj) ((::lwscript::ClosureObject *)(obj))
+#define LWS_TO_NATIVE_FUNCTION_OBJ(obj) ((::lwscript::NativeFunctionObject *)(obj))
+#define LWS_TO_REF_OBJ(obj) ((::lwscript::RefObject *)(obj))
+#define LWS_TO_CLASS_OBJ(obj) ((::lwscript::ClassObject *)(obj))
+#define LWS_TO_CLASS_CLOSURE_BIND_OBJ(obj) ((::lwscript::ClassClosureBindObject *)(obj))
+#define LWS_TO_ENUM_OBJ(obj) ((::lwscript::EnumObject *)(obj))
+#define LWS_TO_MODULE_OBJ(obj) ((::lwscript::ModuleObject *)(obj))
 
-#define IS_NULL_VALUE(v) ((v).kind == ValueKind::NIL)
-#define IS_INT_VALUE(v) ((v).kind == ValueKind::INT)
-#define IS_REAL_VALUE(v) ((v).kind == ValueKind::REAL)
-#define IS_BOOL_VALUE(v) ((v).kind == ValueKind::BOOL)
-#define IS_OBJECT_VALUE(v) ((v).kind == ValueKind::OBJECT)
-#define IS_STR_VALUE(v) (IS_OBJECT_VALUE(v) && IS_STR_OBJ((v).object))
-#define IS_ARRAY_VALUE(v) (IS_OBJECT_VALUE(v) && IS_ARRAY_OBJ((v).object))
-#define IS_DICT_VALUE(v) (IS_OBJECT_VALUE(v) && IS_TABLE_OBJ((v).object))
-#define IS_STRUCT_VALUE(v) (IS_OBJECT_VALUE(v) && IS_STRUCT_OBJ((v).object))
-#define IS_FUNCTION_VALUE(v) (IS_OBJECT_VALUE(v) && IS_FUNCTION_OBJ((v).object))
-#define IS_UPVALUE_VALUE(v) (IS_OBJECT_VALUE(v) && IS_UPVALUE_OBJ((v).object))
-#define IS_CLOSURE_VALUE(v) (IS_OBJECT_VALUE(v) && IS_CLOSURE_OBJ((v).object))
-#define IS_NATIVE_FUNCTION_VALUE(v) (IS_OBJECT_VALUE(v) && IS_NATIVE_FUNCTION_OBJ((v).object))
-#define IS_REF_VALUE(v) (IS_OBJECT_VALUE(v) && IS_REF_OBJ((v).object))
-#define IS_CLASS_VALUE(v) (IS_OBJECT_VALUE(v) && IS_CLASS_OBJ((v).object))
-#define IS_CLASS_CLOSURE_BIND_VALUE(v) (IS_OBJECT_VALUE(v) && IS_CLASS_CLOSURE_BIND_OBJ((v).object))
-#define IS_ENUM_VALUE(v) (IS_OBJECT_VALUE(v) && IS_ENUM_OBJ((v).object))
-#define IS_MODULE_VALUE(v) (IS_OBJECT_VALUE(v) && IS_MODULE_OBJ((v).object))
+#define LWS_IS_NULL_VALUE(v) ((v).kind == ::lwscript::ValueKind::NIL)
+#define LWS_IS_INT_VALUE(v) ((v).kind == ::lwscript::ValueKind::INT)
+#define LWS_IS_REAL_VALUE(v) ((v).kind == ::lwscript::ValueKind::REAL)
+#define LWS_IS_BOOL_VALUE(v) ((v).kind == ::lwscript::ValueKind::BOOL)
+#define LWS_IS_OBJECT_VALUE(v) ((v).kind == ::lwscript::ValueKind::OBJECT)
+#define LWS_IS_STR_VALUE(v) (LWS_IS_OBJECT_VALUE(v) && LWS_IS_STR_OBJ((v).object))
+#define LWS_IS_ARRAY_VALUE(v) (LWS_IS_OBJECT_VALUE(v) && LWS_IS_ARRAY_OBJ((v).object))
+#define LWS_IS_DICT_VALUE(v) (LWS_IS_OBJECT_VALUE(v) && LWS_IS_TABLE_OBJ((v).object))
+#define LWS_IS_STRUCT_VALUE(v) (LWS_IS_OBJECT_VALUE(v) && LWS_IS_STRUCT_OBJ((v).object))
+#define LWS_IS_FUNCTION_VALUE(v) (LWS_IS_OBJECT_VALUE(v) && LWS_IS_FUNCTION_OBJ((v).object))
+#define LWS_IS_UPVALUE_VALUE(v) (LWS_IS_OBJECT_VALUE(v) && LWS_IS_UPVALUE_OBJ((v).object))
+#define LWS_IS_CLOSURE_VALUE(v) (LWS_IS_OBJECT_VALUE(v) && LWS_IS_CLOSURE_OBJ((v).object))
+#define LWS_IS_NATIVE_FUNCTION_VALUE(v) (LWS_IS_OBJECT_VALUE(v) && LWS_IS_NATIVE_FUNCTION_OBJ((v).object))
+#define LWS_IS_REF_VALUE(v) (LWS_IS_OBJECT_VALUE(v) && LWS_IS_REF_OBJ((v).object))
+#define LWS_IS_CLASS_VALUE(v) (LWS_IS_OBJECT_VALUE(v) && LWS_IS_CLASS_OBJ((v).object))
+#define LWS_IS_CLASS_CLOSURE_BIND_VALUE(v) (LWS_IS_OBJECT_VALUE(v) && LWS_IS_CLASS_CLOSURE_BIND_OBJ((v).object))
+#define LWS_IS_ENUM_VALUE(v) (LWS_IS_OBJECT_VALUE(v) && LWS_IS_ENUM_OBJ((v).object))
+#define LWS_IS_MODULE_VALUE(v) (LWS_IS_OBJECT_VALUE(v) && LWS_IS_MODULE_OBJ((v).object))
 
-#define TO_INT_VALUE(v) ((v).integer)
-#define TO_REAL_VALUE(v) ((v).realnum)
-#define TO_BOOL_VALUE(v) ((v).boolean)
-#define TO_OBJECT_VALUE(v) ((v).object)
-#define TO_STR_VALUE(v) (TO_STR_OBJ((v).object))
-#define TO_ARRAY_VALUE(v) (TO_ARRAY_OBJ((v).object))
-#define TO_DICT_VALUE(v) (TO_TABLE_OBJ((v).object))
-#define TO_STRUCT_VALUE(v) (TO_STRUCT_OBJ((v).object))
-#define TO_FUNCTION_VALUE(v) (TO_FUNCTION_OBJ((v).object))
-#define TO_UPVALUE_VALUE(v) (TO_UPVALUE_OBJ((v).object))
-#define TO_CLOSURE_VALUE(v) (TO_CLOSURE_OBJ((v).object))
-#define TO_NATIVE_FUNCTION_VALUE(v) (TO_NATIVE_FUNCTION_OBJ((v).object))
-#define TO_REF_VALUE(v) (TO_REF_OBJ((v).object))
-#define TO_CLASS_VALUE(v) (TO_CLASS_OBJ((v).object))
-#define TO_CLASS_CLOSURE_BIND_VALUE(v) (TO_CLASS_CLOSURE_BIND_OBJ((v).object))
-#define TO_ENUM_VALUE(v) (TO_ENUM_OBJ((v).object))
-#define TO_MODULE_VALUE(v) (TO_MODULE_OBJ((v).object))
+#define LWS_TO_INT_VALUE(v) ((v).integer)
+#define LWS_TO_REAL_VALUE(v) ((v).realnum)
+#define LWS_TO_BOOL_VALUE(v) ((v).boolean)
+#define LWS_TO_OBJECT_VALUE(v) ((v).object)
+#define LWS_TO_STR_VALUE(v) (LWS_TO_STR_OBJ((v).object))
+#define LWS_TO_ARRAY_VALUE(v) (LWS_TO_ARRAY_OBJ((v).object))
+#define LWS_TO_DICT_VALUE(v) (LWS_TO_TABLE_OBJ((v).object))
+#define LWS_TO_STRUCT_VALUE(v) (LWS_TO_STRUCT_OBJ((v).object))
+#define LWS_TO_FUNCTION_VALUE(v) (LWS_TO_FUNCTION_OBJ((v).object))
+#define LWS_TO_UPVALUE_VALUE(v) (LWS_TO_UPVALUE_OBJ((v).object))
+#define LWS_TO_CLOSURE_VALUE(v) (LWS_TO_CLOSURE_OBJ((v).object))
+#define LWS_TO_NATIVE_FUNCTION_VALUE(v) (LWS_TO_NATIVE_FUNCTION_OBJ((v).object))
+#define LWS_TO_REF_VALUE(v) (LWS_TO_REF_OBJ((v).object))
+#define LWS_TO_CLASS_VALUE(v) (LWS_TO_CLASS_OBJ((v).object))
+#define LWS_TO_CLASS_CLOSURE_BIND_VALUE(v) (LWS_TO_CLASS_CLOSURE_BIND_OBJ((v).object))
+#define LWS_TO_ENUM_VALUE(v) (LWS_TO_ENUM_OBJ((v).object))
+#define LWS_TO_MODULE_VALUE(v) (LWS_TO_MODULE_OBJ((v).object))
 
-    enum LWSCRIPT_API ObjectKind : uint8_t
+    enum LWS_API ObjectKind : uint8_t
     {
         STR,
         ARRAY,
@@ -91,7 +91,7 @@ namespace lwscript
         MODULE
     };
 
-    struct LWSCRIPT_API Object
+    struct LWS_API Object
     {
         Object(ObjectKind kind);
         virtual ~Object();
@@ -108,7 +108,7 @@ namespace lwscript
         Object *next{nullptr};
     };
 
-    struct LWSCRIPT_API StrObject : public Object
+    struct LWS_API StrObject : public Object
     {
         StrObject(STRING_VIEW value);
         ~StrObject() override;
@@ -120,7 +120,7 @@ namespace lwscript
         STRING value{};
     };
 
-    struct LWSCRIPT_API ArrayObject : public Object
+    struct LWS_API ArrayObject : public Object
     {
         ArrayObject();
         ArrayObject(const std::vector<struct Value> &elements);
@@ -134,7 +134,7 @@ namespace lwscript
         std::vector<struct Value> elements{};
     };
 
-    struct LWSCRIPT_API DictObject : public Object
+    struct LWS_API DictObject : public Object
     {
         DictObject();
         DictObject(const ValueUnorderedMap &elements);
@@ -149,7 +149,7 @@ namespace lwscript
         ValueUnorderedMap elements{};
     };
 
-    struct LWSCRIPT_API StructObject : public Object
+    struct LWS_API StructObject : public Object
     {
         StructObject();
         StructObject(const std::unordered_map<STRING, Value> &elements);
@@ -164,7 +164,7 @@ namespace lwscript
         std::unordered_map<STRING, Value> elements{};
     };
 
-    struct LWSCRIPT_API FunctionObject : public Object
+    struct LWS_API FunctionObject : public Object
     {
         FunctionObject();
         FunctionObject(STRING_VIEW name);
@@ -179,7 +179,7 @@ namespace lwscript
         bool IsEqualTo(Object *other) override;
         std::vector<uint8_t> Serialize() const override;
 
-#ifdef LWSCRIPT_FUNCTION_CACHE_OPT
+#ifdef LWS_FUNCTION_CACHE_OPT
         void SetCache(size_t hash, const std::vector<Value> &result);
         bool GetCache(size_t hash, std::vector<Value> &result) const;
         void PrintCache();
@@ -194,7 +194,7 @@ namespace lwscript
         STRING name{};
     };
 
-    struct LWSCRIPT_API UpValueObject : public Object
+    struct LWS_API UpValueObject : public Object
     {
         UpValueObject();
         UpValueObject(Value *location);
@@ -211,7 +211,7 @@ namespace lwscript
         UpValueObject *nextUpValue{nullptr};
     };
 
-    struct LWSCRIPT_API ClosureObject : public Object
+    struct LWS_API ClosureObject : public Object
     {
         ClosureObject();
         ClosureObject(FunctionObject *function);
@@ -229,7 +229,7 @@ namespace lwscript
 
     using NativeFunction = std::function<bool(Value *, uint32_t, const Token *, Value &)>;
 
-    struct LWSCRIPT_API NativeFunctionObject : public Object
+    struct LWS_API NativeFunctionObject : public Object
     {
         NativeFunctionObject();
         NativeFunctionObject(NativeFunction f);
@@ -243,7 +243,7 @@ namespace lwscript
         NativeFunction fn{};
     };
 
-    struct LWSCRIPT_API RefObject : public Object
+    struct LWS_API RefObject : public Object
     {
         RefObject(Value *pointer);
         ~RefObject() override;
@@ -256,7 +256,7 @@ namespace lwscript
         Value *pointer{nullptr};
     };
 
-    struct LWSCRIPT_API ClassObject : public Object
+    struct LWS_API ClassObject : public Object
     {
         ClassObject();
         ClassObject(STRING_VIEW name);
@@ -277,7 +277,7 @@ namespace lwscript
         std::map<STRING, ClassObject *> parents{};
     };
 
-    struct LWSCRIPT_API ClassClosureBindObject : public Object
+    struct LWS_API ClassClosureBindObject : public Object
     {
         ClassClosureBindObject();
         ClassClosureBindObject(const Value &receiver, ClosureObject *cl);
@@ -293,7 +293,7 @@ namespace lwscript
         ClosureObject *closure{nullptr};
     };
 
-    struct LWSCRIPT_API EnumObject : public Object
+    struct LWS_API EnumObject : public Object
     {
         EnumObject();
         EnumObject(const STRING &name, const std::unordered_map<STRING, Value> &pairs);
@@ -311,7 +311,7 @@ namespace lwscript
         std::unordered_map<STRING, Value> pairs{};
     };
 
-    struct LWSCRIPT_API ModuleObject : public Object
+    struct LWS_API ModuleObject : public Object
     {
         ModuleObject();
         ModuleObject(const STRING &name, const std::unordered_map<STRING, Value> &values);

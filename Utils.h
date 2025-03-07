@@ -11,25 +11,25 @@
 
 #define GC_HEAP_GROW_FACTOR 2
 
-#ifndef LWSCRIPT_BUILD_STATIC
+#ifndef LWS_BUILD_STATIC
 #if defined(_WIN32) || defined(_WIN64)
-#ifdef LWSCRIPT_BUILD_DLL
-#define LWSCRIPT_API __declspec(dllexport)
+#ifdef LWS_BUILD_DLL
+#define LWS_API __declspec(dllexport)
 #else
-#define LWSCRIPT_API __declspec(dllimport)
+#define LWS_API __declspec(dllimport)
 #endif
 #else
-#ifdef LWSCRIPT_BUILD_DLL
-#define LWSCRIPT_API
+#ifdef LWS_BUILD_DLL
+#define LWS_API
 #else
-#define LWSCRIPT_API
+#define LWS_API
 #endif
 #endif
 #else
-#define LWSCRIPT_API
+#define LWS_API
 #endif
 
-#ifdef LWSCRIPT_UTF8_ENCODE
+#ifdef LWS_UTF8_ENCODE
 #define STR(x) L##x
 #define TEXT(x) STR(x)
 #define TCHAR(x) STR(x)
@@ -39,7 +39,7 @@
 #define OSTREAM std::wostream
 #define STRING_STREAM std::wstringstream
 #define STD_IFSTREAM std::wifstream
-#define TO_STRING(x) std::to_wstring(x)
+#define LWS_TO_STRING(x) std::to_wstring(x)
 #define COUT std::wcout
 #define CIN std::wcin
 #define STRCMP wcscmp
@@ -53,7 +53,7 @@
 #define OSTREAM std::ostream
 #define STRING_STREAM std::stringstream
 #define STD_IFSTREAM std::ifstream
-#define TO_STRING(x) std::to_string(x)
+#define LWS_TO_STRING(x) std::to_string(x)
 #define COUT std::cout
 #define CIN std::cin
 #define STRCMP strcmp
@@ -104,9 +104,9 @@ namespace lwscript
 		WITH_NAME,
 	};
 
-	STRING LWSCRIPT_API ReadFile(std::string_view path);
-	void LWSCRIPT_API WriteBinaryFile(std::string_view path, const std::vector<uint8_t> &content);
-	std::vector<uint8_t> LWSCRIPT_API ReadBinaryFile(std::string_view path);
+	STRING LWS_API ReadFile(std::string_view path);
+	void LWS_API WriteBinaryFile(std::string_view path, const std::vector<uint8_t> &content);
+	std::vector<uint8_t> LWS_API ReadBinaryFile(std::string_view path);
 
 	STRING PointerAddressToString(void *pointer);
 

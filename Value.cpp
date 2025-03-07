@@ -30,9 +30,9 @@ namespace lwscript
         switch (kind)
         {
         case ValueKind::INT:
-            return TO_STRING(integer);
+            return LWS_TO_STRING(integer);
         case ValueKind::REAL:
-            return TO_STRING(realnum);
+            return LWS_TO_STRING(realnum);
         case ValueKind::BOOL:
             return boolean ? TEXT("true") : TEXT("false");
         case ValueKind::NIL:
@@ -62,7 +62,7 @@ namespace lwscript
         result.emplace_back(kind);
         result.emplace_back(static_cast<uint8_t>(std::underlying_type<Permission>::type(permission)));
 
-        if (IS_INT_VALUE(*this) || IS_REAL_VALUE(*this) || IS_BOOL_VALUE(*this))
+        if (LWS_IS_INT_VALUE(*this) || LWS_IS_REAL_VALUE(*this) || LWS_IS_BOOL_VALUE(*this))
         {
             auto byteList = ByteConverter::ToU64ByteList(integer);
             result.insert(result.end(), byteList.begin(), byteList.end());
@@ -76,7 +76,7 @@ namespace lwscript
         kind = (ValueKind)data[0];
         permission = (Permission)data[1];
 
-        if (IS_INT_VALUE(*this) || IS_REAL_VALUE(*this) || IS_BOOL_VALUE(*this))
+        if (LWS_IS_INT_VALUE(*this) || LWS_IS_REAL_VALUE(*this) || LWS_IS_BOOL_VALUE(*this))
             integer = ByteConverter::GetU64Integer(data, 2);
     }
 
@@ -86,35 +86,35 @@ namespace lwscript
         {
         case ValueKind::INT:
         {
-            if (IS_INT_VALUE(right))
-                return TO_INT_VALUE(left) == TO_INT_VALUE(right);
-            else if (IS_REAL_VALUE(right))
-                return TO_INT_VALUE(left) == TO_REAL_VALUE(right);
+            if (LWS_IS_INT_VALUE(right))
+                return LWS_TO_INT_VALUE(left) == LWS_TO_INT_VALUE(right);
+            else if (LWS_IS_REAL_VALUE(right))
+                return LWS_TO_INT_VALUE(left) == LWS_TO_REAL_VALUE(right);
             else
                 return false;
         }
         case ValueKind::REAL:
         {
-            if (IS_INT_VALUE(right))
-                return TO_REAL_VALUE(left) == TO_INT_VALUE(right);
-            else if (IS_REAL_VALUE(right))
-                return TO_REAL_VALUE(left) == TO_REAL_VALUE(right);
+            if (LWS_IS_INT_VALUE(right))
+                return LWS_TO_REAL_VALUE(left) == LWS_TO_INT_VALUE(right);
+            else if (LWS_IS_REAL_VALUE(right))
+                return LWS_TO_REAL_VALUE(left) == LWS_TO_REAL_VALUE(right);
             else
                 return false;
         }
         case ValueKind::NIL:
-            return IS_NULL_VALUE(right);
+            return LWS_IS_NULL_VALUE(right);
         case ValueKind::BOOL:
         {
-            if (IS_BOOL_VALUE(right))
-                return TO_BOOL_VALUE(left) == TO_BOOL_VALUE(right);
+            if (LWS_IS_BOOL_VALUE(right))
+                return LWS_TO_BOOL_VALUE(left) == LWS_TO_BOOL_VALUE(right);
             else
                 return false;
         }
         case ValueKind::OBJECT:
         {
-            if (IS_OBJECT_VALUE(right))
-                return TO_OBJECT_VALUE(left)->IsEqualTo(TO_OBJECT_VALUE(right));
+            if (LWS_IS_OBJECT_VALUE(right))
+                return LWS_TO_OBJECT_VALUE(left)->IsEqualTo(LWS_TO_OBJECT_VALUE(right));
             else
                 return false;
         }

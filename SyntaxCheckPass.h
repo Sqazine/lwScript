@@ -4,7 +4,7 @@
 
 namespace lwscript
 {
-    class LWSCRIPT_API SyntaxCheckPass : public AstPass
+    class LWS_API SyntaxCheckPass : public AstPass
     {
     public:
          SyntaxCheckPass() noexcept;

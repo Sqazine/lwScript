@@ -44,10 +44,10 @@ namespace lwscript
 		case TypeKind::U16:
 		case TypeKind::U32:
 		case TypeKind::U64:
-			return TO_STRING(i64Value);
+			return LWS_TO_STRING(i64Value);
 		case TypeKind::F32:
 		case TypeKind::F64:
-			return TO_STRING(f64Value);
+			return LWS_TO_STRING(f64Value);
 		case TypeKind::BOOL:
 			return boolean ? TEXT("true") : TEXT("false");
 		case TypeKind::CHAR:

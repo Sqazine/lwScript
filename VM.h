@@ -6,7 +6,7 @@
 #include "LibraryManager.h"
 namespace lwscript
 {
-    class LWSCRIPT_API VM
+    class LWS_API VM
     {
         NON_COPYABLE(VM)
     public:

@@ -13,7 +13,7 @@ namespace lwscript
 		OBJECT,
 	};
 
-	struct LWSCRIPT_API Value
+	struct LWS_API Value
 	{
 		Value() noexcept;
 		Value(int64_t integer) noexcept;
@@ -41,10 +41,10 @@ namespace lwscript
 		};
 	};
 
-	LWSCRIPT_API bool operator==(const Value &left, const Value &right);
-	LWSCRIPT_API bool operator!=(const Value &left, const Value &right);
+	LWS_API bool operator==(const Value &left, const Value &right);
+	LWS_API bool operator!=(const Value &left, const Value &right);
 
-	struct LWSCRIPT_API ValueHash
+	struct LWS_API ValueHash
 	{
 		size_t operator()(const Value *v) const;
 		size_t operator()(const Value &v) const;

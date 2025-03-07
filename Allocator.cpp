@@ -48,7 +48,7 @@ namespace lwscript
             object = next;
         }
 
-#ifdef LWSCRIPT_GC_DEBUG
+#ifdef LWS_GC_DEBUG
         Logger::Info(TEXT("collected {} bytes (from {} to {}) next gc bytes {}"), bytes - mBytesAllocated, bytes, mNextGCByteSize);
 #endif
     }
@@ -57,7 +57,7 @@ namespace lwscript
     {
 #ifndef NDEBUG
         if (mStackTop - mValueStack >= STACK_MAX)
-            LW_LOG_ERROR(TEXT("Stack overflow."));
+            LWS_LOG_ERROR(TEXT("Stack overflow."));
 #endif
         *(mStackTop++) = value;
     }
@@ -65,7 +65,7 @@ namespace lwscript
     {
 #ifndef NDEBUG
         if (mStackTop - mValueStack <= 0)
-            LW_LOG_ERROR(TEXT("Stack underflow."));
+            LWS_LOG_ERROR(TEXT("Stack underflow."));
 #endif
         return *(--mStackTop);
     }
@@ -171,7 +171,7 @@ namespace lwscript
 
     void Allocator::GC()
     {
-#ifdef LWSCRIPT_GC_DEBUG
+#ifdef LWS_GC_DEBUG
         Logger::Info(TEXT("begin gc"));
         size_t bytes = mBytesAllocated;
 #endif
@@ -181,7 +181,7 @@ namespace lwscript
         Sweep();
         mNextGCByteSize = mBytesAllocated * GC_HEAP_GROW_FACTOR;
 
-#ifdef LWSCRIPT_GC_DEBUG
+#ifdef LWS_GC_DEBUG
         Logger::Info(TEXT("end gc"));
         Logger::Info(TEXT("    collected {} bytes (from {} to {}) next gc bytes {}"), bytes - mBytesAllocated, bytes, mNextGCByteSize);
 #endif

@@ -12,7 +12,7 @@ namespace lwscript
                                !std::is_abstract_v<T> &&
                                std::is_base_of_v<AstPass, T>;
 
-    class LWSCRIPT_API AstPass
+    class LWS_API AstPass
     {
     public:
         AstPass() noexcept = default;

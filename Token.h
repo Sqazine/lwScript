@@ -112,14 +112,14 @@ namespace lwscript
 		uint64_t pos{1};
 	};
 
-	struct LWSCRIPT_API Token
+	struct LWS_API Token
 	{
 		Token() : kind(TokenKind::END), literal(TEXT("")) {}
 		Token(TokenKind kind, STRING_VIEW literal, const SourceLocation &srcLoc) : kind(kind), literal(literal), sourceLocation(srcLoc) {}
 
 		STRING ToString() const
 		{
-			return TEXT("\"") + literal + TEXT("\"(") + TO_STRING(sourceLocation.line) + TEXT(",") + TO_STRING(sourceLocation.line) + TEXT(")");
+			return TEXT("\"") + literal + TEXT("\"(") + LWS_TO_STRING(sourceLocation.line) + TEXT(",") + LWS_TO_STRING(sourceLocation.line) + TEXT(")");
 		}
 
 		TokenKind kind;

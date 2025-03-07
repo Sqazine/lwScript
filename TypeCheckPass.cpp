@@ -195,7 +195,7 @@ namespace lwscript
                     return decl;
 
                 if (v->kind != AstKind::LITERAL)
-                    LW_LOG_ERROR(TEXT("Now Only check Literal Expr type and named variable only."));
+                    LWS_LOG_ERROR(TEXT("Now Only check Literal Expr type and named variable only."));
 
                 auto rightType = ((LiteralExpr *)v)->type;
 

@@ -5,9 +5,9 @@
 #include "Utils.h"
 namespace lwscript
 {
-	class Symbol;
+	struct Symbol;
 	class SymbolTable;
-	class LWSCRIPT_API Compiler
+	class LWS_API Compiler
 	{
 	public:
 		Compiler();

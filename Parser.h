@@ -48,7 +48,7 @@ namespace lwscript
 	typedef Expr *(Parser::*InfixFn)(Expr *);
 	typedef Expr *(Parser::*PostfixFn)(Expr *);
 
-	class LWSCRIPT_API Parser
+	class LWS_API Parser
 	{
 		NON_COPYABLE(Parser)
 	public:

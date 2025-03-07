@@ -8,7 +8,7 @@ namespace lwscript
 {
     STRING ReadFile(std::string_view path)
     {
-#ifdef LWSCRIPT_UTF8_ENCODE
+#ifdef LWS_UTF8_ENCODE
         auto utf8Path = Utf8::Decode(path.data());
         Logger::Record::mCurFilePath = utf8Path;
 #else
@@ -18,7 +18,7 @@ namespace lwscript
         STD_IFSTREAM file;
         file.open(Logger::Record::mCurFilePath.c_str(), std::ios::in | std::ios::binary);
         if (!file.is_open())
-            LW_LOG_ERROR_WITH_LOC(TEXT("Failed to open file:{}"), Logger::Record::mCurFilePath);
+            LWS_LOG_ERROR_WITH_LOC(TEXT("Failed to open file:{}"), Logger::Record::mCurFilePath);
 
         STRING_STREAM sstream;
         sstream << file.rdbuf();
@@ -32,28 +32,28 @@ namespace lwscript
         file.open(path.data(), std::ios::out | std::ios::binary);
         if (!file.is_open())
         {
-#ifdef LWSCRIPT_UTF8_ENCODE
+#ifdef LWS_UTF8_ENCODE
             auto utf8Path = Utf8::Decode(path.data());
-            LW_LOG_ERROR_WITH_LOC(TEXT("Failed to open file:{}"), utf8Path);
+            LWS_LOG_ERROR_WITH_LOC(TEXT("Failed to open file:{}"), utf8Path);
 #else
-            LW_LOG_ERROR_WITH_LOC(TEXT("Failed to open file:{}"), path);
+            LWS_LOG_ERROR_WITH_LOC(TEXT("Failed to open file:{}"), path);
 #endif
         }
         file.write((const char *)content.data(), content.size());
         file.close();
     }
 
-    std::vector<uint8_t> LWSCRIPT_API ReadBinaryFile(std::string_view path)
+    std::vector<uint8_t> LWS_API ReadBinaryFile(std::string_view path)
     {
         std::ifstream file;
         file.open(path.data(), std::ios::in | std::ios::binary);
         if (!file.is_open())
         {
-#ifdef LWSCRIPT_UTF8_ENCODE
+#ifdef LWS_UTF8_ENCODE
             auto utf8Path = Utf8::Decode(path.data());
-            LW_LOG_ERROR_WITH_LOC(TEXT("Failed to open file:{}"), utf8Path);
+            LWS_LOG_ERROR_WITH_LOC(TEXT("Failed to open file:{}"), utf8Path);
 #else
-            LW_LOG_ERROR_WITH_LOC(TEXT("Failed to open file:{}"), path);
+            LWS_LOG_ERROR_WITH_LOC(TEXT("Failed to open file:{}"), path);
 #endif
         }
 

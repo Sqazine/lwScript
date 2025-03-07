@@ -3,7 +3,7 @@
 
 namespace lwscript
 {
-#ifdef LWSCRIPT_CONSTANT_FOLD_OPT
+#ifdef LWS_CONSTANT_FOLD_OPT
 	Stmt *ConstantFoldPass::ExecuteAstStmts(AstStmts *stmt)
 	{
 		for (auto &s : stmt->stmts)

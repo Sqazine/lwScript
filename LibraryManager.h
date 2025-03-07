@@ -6,7 +6,7 @@
 #include "Utils.h"
 namespace lwscript
 {
-    class LWSCRIPT_API LibraryManager
+    class LWS_API LibraryManager
     {
     public:
         SINGLETON_DECL(LibraryManager)

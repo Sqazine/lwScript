@@ -23,17 +23,17 @@ struct Config
 
 int32_t PrintVersion()
 {
-	LW_LOG_INFO(LWSCRIPT_VERSION);
+	LWS_LOG_INFO(LWS_VERSION);
 	return EXIT_FAILURE;
 }
 
 int32_t PrintUsage()
 {
-	LW_LOG_INFO(TEXT("Usage: lwscript [option]:"));
-	LW_LOG_INFO(TEXT("-h or --help:show usage info."));
-	LW_LOG_INFO(TEXT("-v or --version:show current lwscript version"));
-	LW_LOG_INFO(TEXT("-s or --serialize: serialize source file as bytecode binary file"));
-	LW_LOG_INFO(TEXT("-f or --file:run source file with a valid file path,like : lwscript -f examples/array.cd."));
+	LWS_LOG_INFO(TEXT("Usage: lwscript [option]:"));
+	LWS_LOG_INFO(TEXT("-h or --help:show usage info."));
+	LWS_LOG_INFO(TEXT("-v or --version:show current lwscript version"));
+	LWS_LOG_INFO(TEXT("-s or --serialize: serialize source file as bytecode binary file"));
+	LWS_LOG_INFO(TEXT("-f or --file:run source file with a valid file path,like : lwscript -f examples/array.cd."));
 	return EXIT_FAILURE;
 }
 
@@ -142,7 +142,7 @@ int32_t main(int32_t argc, const char *argv[])
 	gVm = new lwscript::VM();
 
 	gAstPassManager
-#ifdef LWSCRIPT_CONSTANT_FOLD_OPT
+#ifdef LWS_CONSTANT_FOLD_OPT
 		->Add<lwscript::ConstantFoldPass>()
 #endif
 		->Add<lwscript::TypeCheckPass>()

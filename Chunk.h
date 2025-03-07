@@ -62,7 +62,7 @@ namespace lwscript
 
     using OpCodeList = std::vector<uint8_t>;
 
-    class LWSCRIPT_API Chunk
+    class LWS_API Chunk
     {
     public:
         Chunk() = default;

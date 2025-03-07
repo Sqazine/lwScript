@@ -3,7 +3,7 @@
 namespace lwscript
 {
     class TypeInfoTable;
-    class LWSCRIPT_API TypeCheckPass : public AstPass
+    class LWS_API TypeCheckPass : public AstPass
     {
     public:
         TypeCheckPass() noexcept;

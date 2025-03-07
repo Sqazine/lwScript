@@ -82,7 +82,7 @@ namespace lwscript
                 end = Record::mSourceCode.size();
             }
 
-            auto startStr = headerHint + TEXT(":") + Record::mCurFilePath + TEXT("(line ") + TO_STRING(lineNum) + TEXT(",column ") + TO_STRING(column) + TEXT("): ");
+            auto startStr = headerHint + TEXT(":") + Record::mCurFilePath + TEXT("(line ") + LWS_TO_STRING(lineNum) + TEXT(",column ") + LWS_TO_STRING(column) + TEXT("): ");
 
             auto lineSrcCode = Record::mSourceCode.substr(start, end - start);
 
@@ -160,14 +160,14 @@ namespace lwscript
         }
     }
 #ifndef NDEBUG
-#define LW_LOG_ERROR(fmt, ...)                                                       \
+#define LWS_LOG_ERROR(fmt, ...)                                                    \
     do                                                                            \
     {                                                                             \
         lwscript::Logger::Log(lwscript::Logger::Kind::ERROR, fmt, ##__VA_ARGS__); \
         assert(0);                                                                \
     } while (false)
 
-#define LW_LOG_ERROR_WITH_LOC(tokOrPos, fmt, ...)                                              \
+#define LWS_LOG_ERROR_WITH_LOC(tokOrPos, fmt, ...)                                           \
     do                                                                                      \
     {                                                                                       \
         lwscript::Logger::Log(lwscript::Logger::Kind::ERROR, tokOrPos, fmt, ##__VA_ARGS__); \
@@ -176,14 +176,14 @@ namespace lwscript
 
 #else
 
-#define LW_LOG_ERROR(fmt, ...)                                                       \
+#define LWS_LOG_ERROR(fmt, ...)                                                    \
     do                                                                            \
     {                                                                             \
         lwscript::Logger::Log(lwscript::Logger::Kind::ERROR, fmt, ##__VA_ARGS__); \
         exit(1);                                                                  \
     } while (false)
 
-#define LW_LOG_ERROR_WITH_LOC(tokOrPos, fmt, ...)                                              \
+#define LWS_LOG_ERROR_WITH_LOC(tokOrPos, fmt, ...)                                           \
     do                                                                                      \
     {                                                                                       \
         lwscript::Logger::Log(lwscript::Logger::Kind::ERROR, tokOrPos, fmt, ##__VA_ARGS__); \
@@ -191,25 +191,25 @@ namespace lwscript
     } while (false)
 #endif
 
-#define LW_LOG_WARN(fmt, ...)                                                       \
+#define LWS_LOG_WARN(fmt, ...)                                                    \
     do                                                                           \
     {                                                                            \
         lwscript::Logger::Log(lwscript::Logger::Kind::WARN, fmt, ##__VA_ARGS__); \
     } while (false)
 
-#define LW_LOG_WARN_WITH_LOC(tokOrPos, fmt, ...)                                              \
+#define LWS_LOG_WARN_WITH_LOC(tokOrPos, fmt, ...)                                           \
     do                                                                                     \
     {                                                                                      \
         lwscript::Logger::Log(lwscript::Logger::Kind::WARN, tokOrPos, fmt, ##__VA_ARGS__); \
     } while (false)
 
-#define LW_LOG_INFO(fmt, ...)                                                       \
+#define LWS_LOG_INFO(fmt, ...)                                                    \
     do                                                                           \
     {                                                                            \
         lwscript::Logger::Log(lwscript::Logger::Kind::INFO, fmt, ##__VA_ARGS__); \
     } while (false)
 
-#define LW_LOG_INFO_WITH_LOC(tokOrPos, fmt, ...)                                              \
+#define LWS_LOG_INFO_WITH_LOC(tokOrPos, fmt, ...)                                           \
     do                                                                                     \
     {                                                                                      \
         lwscript::Logger::Log(lwscript::Logger::Kind::INFO, tokOrPos, fmt, ##__VA_ARGS__); \
