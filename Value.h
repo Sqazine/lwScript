@@ -2,7 +2,7 @@
 #include <string>
 #include <unordered_map>
 #include "Utils.h"
-namespace lwscript
+namespace lwScript
 {
 	enum ValueKind : uint8_t
 	{

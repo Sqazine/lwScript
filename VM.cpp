@@ -5,7 +5,7 @@
 #include "Object.h"
 #include "Token.h"
 #include "Logger.h"
-namespace lwscript
+namespace lwScript
 {
 	std::vector<Value> VM::Run(FunctionObject *mainFunc) noexcept
 	{

@@ -4,7 +4,7 @@
 #include <string_view>
 #include <ostream>
 #include "Utils.h"
-namespace lwscript
+namespace lwScript
 {
 	enum class TokenKind
 	{

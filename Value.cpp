@@ -1,6 +1,6 @@
 #include "Value.h"
 #include "Object.h"
-namespace lwscript
+namespace lwScript
 {
     Value::Value() noexcept
         : kind(ValueKind::NIL), object(nullptr)

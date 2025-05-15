@@ -1,18 +1,18 @@
 #include <string>
 #include <string_view>
-#include "lwscript.h"
+#include "lwScript.h"
 
 #if defined(_WIN32) || defined(_WIN64)
 #pragma warning(disable : 4996)
 #endif
 
-lwscript::Lexer *gLexer{nullptr};
-lwscript::Parser *gParser{nullptr};
+lwScript::Lexer *gLexer{nullptr};
+lwScript::Parser *gParser{nullptr};
 
-lwscript::AstPassManager *gAstPassManager;
+lwScript::AstPassManager *gAstPassManager;
 
-lwscript::Compiler *gCompiler{nullptr};
-lwscript::VM *gVm{nullptr};
+lwScript::Compiler *gCompiler{nullptr};
+lwScript::VM *gVm{nullptr};
 
 struct Config
 {
@@ -29,11 +29,11 @@ int32_t PrintVersion()
 
 int32_t PrintUsage()
 {
-	LWS_LOG_INFO(TEXT("Usage: lwscript [option]:"));
+	LWS_LOG_INFO(TEXT("Usage: lwScript [option]:"));
 	LWS_LOG_INFO(TEXT("-h or --help:show usage info."));
-	LWS_LOG_INFO(TEXT("-v or --version:show current lwscript version"));
+	LWS_LOG_INFO(TEXT("-v or --version:show current lwScript version"));
 	LWS_LOG_INFO(TEXT("-s or --serialize: serialize source file as bytecode binary file"));
-	LWS_LOG_INFO(TEXT("-f or --file:run source file with a valid file path,like : lwscript -f examples/array.cd."));
+	LWS_LOG_INFO(TEXT("-f or --file:run source file with a valid file path,like : lwScript -f examples/array.cd."));
 	return EXIT_FAILURE;
 }
 
@@ -42,26 +42,26 @@ void Run(STRING_VIEW content)
 	auto tokens = gLexer->ScanTokens(content);
 #ifndef NDEBUG
 	for (const auto &token : tokens)
-		lwscript::Logger::Println(TEXT("{}"), *token);
+		lwScript::Logger::Println(TEXT("{}"), *token);
 #endif
 	auto stmt = gParser->Parse(tokens);
 
 	gAstPassManager->Execute(stmt);
 
 #ifndef NDEBUG
-	lwscript::Logger::Println(TEXT("{}"), stmt->ToString());
+	lwScript::Logger::Println(TEXT("{}"), stmt->ToString());
 #endif
 	auto mainFunc = gCompiler->Compile(stmt);
 
 #ifndef NDEBUG
 	auto str = mainFunc->ToStringWithChunk();
-	lwscript::Logger::Println(TEXT("{}"), str);
+	lwScript::Logger::Println(TEXT("{}"), str);
 #endif
 
 	if (gConfig.isSerializeBinaryChunk)
 	{
 		auto data = mainFunc->chunk.Serialize();
-		lwscript::WriteBinaryFile(gConfig.serializeBinaryFilePath, data);
+		lwScript::WriteBinaryFile(gConfig.serializeBinaryFilePath, data);
 	}
 	else
 	{
@@ -76,7 +76,7 @@ void Repl()
 
 	PrintVersion();
 
-	lwscript::Logger::Print(TEXT(">> "));
+	lwScript::Logger::Print(TEXT(">> "));
 	while (getline(CIN, line))
 	{
 		allLines += line;
@@ -84,13 +84,13 @@ void Repl()
 			allLines = TEXT("");
 		else
 			Run(allLines);
-		lwscript::Logger::Print(TEXT(">> "));
+		lwScript::Logger::Print(TEXT(">> "));
 	}
 }
 
 void RunFile(std::string_view path)
 {
-	STRING content = lwscript::ReadFile(path);
+	STRING content = lwScript::ReadFile(path);
 	Run(content);
 }
 
@@ -135,18 +135,18 @@ int32_t main(int32_t argc, const char *argv[])
 	if (ParseArgs(argc, argv) == EXIT_FAILURE)
 		return EXIT_FAILURE;
 
-	gLexer = new lwscript::Lexer();
-	gParser = new lwscript::Parser();
-	gAstPassManager = new lwscript::AstPassManager();
-	gCompiler = new lwscript::Compiler();
-	gVm = new lwscript::VM();
+	gLexer = new lwScript::Lexer();
+	gParser = new lwScript::Parser();
+	gAstPassManager = new lwScript::AstPassManager();
+	gCompiler = new lwScript::Compiler();
+	gVm = new lwScript::VM();
 
 	gAstPassManager
 #ifdef LWS_CONSTANT_FOLD_OPT
-		->Add<lwscript::ConstantFoldPass>()
+		->Add<lwScript::ConstantFoldPass>()
 #endif
-		->Add<lwscript::TypeCheckPass>()
-		->Add<lwscript::SyntaxCheckPass>();
+		->Add<lwScript::TypeCheckPass>()
+		->Add<lwScript::SyntaxCheckPass>();
 
 	if (!gConfig.sourceFilePath.empty())
 		RunFile(gConfig.sourceFilePath);

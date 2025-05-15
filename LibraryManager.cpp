@@ -59,7 +59,7 @@
     return false;                                                                                             \
 }
 
-namespace lwscript
+namespace lwScript
 {
     SINGLETON_IMPL(LibraryManager)
 

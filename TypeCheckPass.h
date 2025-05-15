@@ -1,6 +1,6 @@
 #pragma once
 #include "AstPass.h"
-namespace lwscript
+namespace lwScript
 {
     class TypeInfoTable;
     class LWS_API TypeCheckPass : public AstPass

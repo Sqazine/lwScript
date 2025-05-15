@@ -2,7 +2,7 @@
 #include "LibraryManager.h"
 #include "Utils.h"
 #include "Logger.h"
-namespace lwscript
+namespace lwScript
 {
 	struct PrecedenceBinding
 	{

@@ -89,7 +89,7 @@
 		}                \
 	} while (false);
 
-namespace lwscript
+namespace lwScript
 {
 	enum class Permission : uint8_t
 	{

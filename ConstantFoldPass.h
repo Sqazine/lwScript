@@ -3,7 +3,7 @@
 #include "Ast.h"
 #include "AstPass.h "
 
-namespace lwscript
+namespace lwScript
 {
 #ifdef LWS_CONSTANT_FOLD_OPT
     class LWS_API ConstantFoldPass : public AstPass

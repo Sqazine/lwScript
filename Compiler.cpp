@@ -3,7 +3,7 @@
 #include "Object.h"
 #include "LibraryManager.h"
 #include "Logger.h"
-namespace lwscript
+namespace lwScript
 {
 	enum class SymbolLocation
 	{
@@ -41,7 +41,6 @@ namespace lwscript
 	{
 	public:
 		SymbolTable()
-
 			: mSymbolCount(0), mGlobalSymbolCount(0), mLocalSymbolCount(0), mUpValueCount(0), enclosing(nullptr), mScopeDepth(0), mTableDepth(0)
 		{
 		}
@@ -51,7 +50,10 @@ namespace lwscript
 			mScopeDepth = enclosing->mScopeDepth + 1;
 			mTableDepth = enclosing->mTableDepth + 1;
 		}
-		~SymbolTable() {}
+		~SymbolTable()
+		{
+			SAFE_DELETE(enclosing);
+		}
 
 		Symbol Define(const Token *relatedToken, Permission permission, const STRING &name, const FunctionSymbolInfo &functionInfo = {})
 		{
@@ -88,39 +90,38 @@ namespace lwscript
 
 		Symbol Resolve(const Token *relatedToken, const STRING &name, int8_t paramCount = -1, int8_t d = 0)
 		{
+
+			for (int16_t i = mSymbolCount - 1; i >= 0; --i)
 			{
-				for (int16_t i = mSymbolCount - 1; i >= 0; --i)
+				auto isSameParamCount = (mSymbols[i].functionSymInfo.paramCount < 0 || paramCount < 0) ? true : mSymbols[i].functionSymInfo.paramCount == paramCount;
+
+				if (mSymbols[i].name == name && mSymbols[i].scopeDepth <= mScopeDepth)
 				{
-					auto isSameParamCount = (mSymbols[i].functionSymInfo.paramCount < 0 || paramCount < 0) ? true : mSymbols[i].functionSymInfo.paramCount == paramCount;
-
-					if (mSymbols[i].name == name && mSymbols[i].scopeDepth <= mScopeDepth)
+					if (isSameParamCount || mSymbols[i].functionSymInfo.varArg > VarArg::NONE)
 					{
-						if (isSameParamCount || mSymbols[i].functionSymInfo.varArg > VarArg::NONE)
-						{
-							if (mSymbols[i].scopeDepth == -1)
-								LWS_LOG_ERROR_WITH_LOC(relatedToken, TEXT("symbol not defined yet!"));
+						if (mSymbols[i].scopeDepth == -1)
+							LWS_LOG_ERROR_WITH_LOC(relatedToken, TEXT("symbol not defined yet!"));
 
-							if (d == 1)
-								mSymbols[i].isCaptured = true;
+						if (d == 1)
+							mSymbols[i].isCaptured = true;
 
-							return mSymbols[i];
-						}
+						return mSymbols[i];
 					}
 				}
-
-				if (enclosing)
-				{
-					Symbol result = enclosing->Resolve(relatedToken, name, paramCount, ++d);
-					if (d > 0 && result.location != SymbolLocation::GLOBAL)
-					{
-						result.location = SymbolLocation::UPVALUE;
-						result.upvalue = AddUpValue(relatedToken, result.index, enclosing->mTableDepth);
-					}
-					return result;
-				}
-
-				LWS_LOG_ERROR_WITH_LOC(relatedToken, TEXT("No symbol: \"{}\" in current scope."), name);
 			}
+
+			if (enclosing)
+			{
+				Symbol result = enclosing->Resolve(relatedToken, name, paramCount, ++d);
+				if (d > 0 && result.location != SymbolLocation::GLOBAL)
+				{
+					result.location = SymbolLocation::UPVALUE;
+					result.upvalue = AddUpValue(relatedToken, result.index, enclosing->mTableDepth);
+				}
+				return result;
+			}
+
+			LWS_LOG_ERROR_WITH_LOC(relatedToken, TEXT("No symbol: \"{}\" in current scope."), name);
 		}
 
 		std::array<Symbol, UINT8_COUNT> mSymbols;
@@ -161,6 +162,7 @@ namespace lwscript
 
 	Compiler::~Compiler()
 	{
+		ClearStatus();
 	}
 
 	FunctionObject *Compiler::Compile(Stmt *stmt)
@@ -183,13 +185,13 @@ namespace lwscript
 
 	void Compiler::ResetStatus()
 	{
+		ClearStatus();
+
 		mCurContinueStmtAddress = -1;
 		mCurBreakStmtAddress = -1;
 
-		std::vector<FunctionObject *>().swap(mFunctionList);
 		mFunctionList.emplace_back(new FunctionObject(MAIN_ENTRY_FUNCTION_NAME));
 
-		SAFE_DELETE(mSymbolTable);
 		mSymbolTable = new SymbolTable();
 
 		auto symbol = &mSymbolTable->mSymbols[mSymbolTable->mSymbolCount++];
@@ -1718,5 +1720,11 @@ namespace lwscript
 			return {};
 		}
 		return {};
+	}
+
+	void Compiler::ClearStatus()
+	{
+		SAFE_DELETE(mSymbolTable);
+		std::vector<FunctionObject *>().swap(mFunctionList);
 	}
 }

@@ -2,7 +2,7 @@
 #include "Utils.h"
 #include "Logger.h"
 
-namespace lwscript
+namespace lwScript
 {
     SyntaxCheckPass::SyntaxCheckPass() noexcept
         : mLoopDepth(0), mVarArgScopeDepth(false), mClassScopeDepth(0)

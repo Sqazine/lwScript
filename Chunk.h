@@ -2,7 +2,7 @@
 #include <vector>
 #include "Value.h"
 #include "Token.h"
-namespace lwscript
+namespace lwScript
 {
     enum OpCode : uint8_t
     {

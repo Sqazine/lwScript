@@ -2,7 +2,7 @@
 #include <cstdint>
 #include "AstPass.h"
 
-namespace lwscript
+namespace lwScript
 {
     class LWS_API SyntaxCheckPass : public AstPass
     {

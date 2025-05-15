@@ -4,7 +4,7 @@
 #include <vector>
 #include <type_traits>
 #include <memory>
-namespace lwscript
+namespace lwScript
 {
     class AstPass;
     template <typename T>

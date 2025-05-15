@@ -3,7 +3,7 @@
 #include "Ast.h"
 #include "Object.h"
 #include "Utils.h"
-namespace lwscript
+namespace lwScript
 {
 	struct Symbol;
 	class SymbolTable;
@@ -92,6 +92,8 @@ namespace lwscript
 		VarArg GetVarArgFromParameterList(const std::vector<VarDescExpr *> &parameterList);
 
 		std::vector<Expr *> StatsPostfixExprs(AstNode *astNode);
+
+		void ClearStatus();
 
 		std::vector<FunctionObject *> mFunctionList;
 		SymbolTable *mSymbolTable;

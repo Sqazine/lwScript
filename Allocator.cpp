@@ -1,6 +1,6 @@
 #include "Allocator.h"
 #include "VM.h"
-namespace lwscript
+namespace lwScript
 {
     SINGLETON_IMPL(Allocator)
 

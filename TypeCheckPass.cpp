@@ -1,6 +1,6 @@
 #include "TypeCheckPass.h"
 #include "Logger.h"
-namespace lwscript
+namespace lwScript
 {
     struct TypeInfo
     {

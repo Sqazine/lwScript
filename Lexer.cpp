@@ -1,6 +1,6 @@
 #include "Lexer.h"
 #include "Logger.h"
-namespace lwscript
+namespace lwScript
 {
 	constexpr struct
 	{

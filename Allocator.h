@@ -5,7 +5,7 @@
 #include "Utils.h"
 #include "Logger.h"
 
-namespace lwscript
+namespace lwScript
 {
     struct CallFrame
     {

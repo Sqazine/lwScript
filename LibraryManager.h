@@ -4,7 +4,7 @@
 #include "Value.h"
 #include "Object.h"
 #include "Utils.h"
-namespace lwscript
+namespace lwScript
 {
     class LWS_API LibraryManager
     {

@@ -5,7 +5,7 @@
 #include "Utils.h"
 #include "Object.h"
 #include "Logger.h"
-namespace lwscript
+namespace lwScript
 {
 	Chunk::Chunk(const OpCodeList &opcodes, const std::vector<Value> &constants)
 		: opCodes(opcodes), constants(constants)
@@ -61,11 +61,11 @@ namespace lwscript
 	{
 		auto magicNumber = ByteConverter::GetU32Integer(data, 0);
 		if (magicNumber != LWS_BINARY_FILE_MAGIC_NUMBER)
-			LWS_LOG_ERROR(TEXT("Invalid lwscript binary file,cannot deserialize from this file"));
+			LWS_LOG_ERROR(TEXT("Invalid lwScript binary file,cannot deserialize from this file"));
 
 		auto versionNumber = ByteConverter::GetU32Integer(data, 4);
 		if (versionNumber != LWS_VERSION_BINARY)
-			LWS_LOG_ERROR(TEXT("Invalid lwscript binary file version of {},current version is {}"), versionNumber, LWS_VERSION_BINARY);
+			LWS_LOG_ERROR(TEXT("Invalid lwScript binary file version of {},current version is {}"), versionNumber, LWS_VERSION_BINARY);
 
 		auto opCodesCount = ByteConverter::GetU32Integer(data, 8);
 

@@ -4,7 +4,7 @@
 #include "Chunk.h"
 #include "Object.h"
 #include "LibraryManager.h"
-namespace lwscript
+namespace lwScript
 {
     class LWS_API VM
     {

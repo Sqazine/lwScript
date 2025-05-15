@@ -6,7 +6,7 @@
 #include "Type.h"
 #include "Token.h"
 #include "Utils.h"
-namespace lwscript
+namespace lwScript
 {
 	enum class AstKind
 	{

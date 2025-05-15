@@ -7,7 +7,7 @@
 #include "Ast.h"
 #include "Utils.h"
 #include "Type.h"
-namespace lwscript
+namespace lwScript
 {
 	enum class Precedence
 	{

@@ -1,7 +1,7 @@
 #include "ConstantFoldPass.h"
 #include "Utils.h"
 
-namespace lwscript
+namespace lwScript
 {
 #ifdef LWS_CONSTANT_FOLD_OPT
 	Stmt *ConstantFoldPass::ExecuteAstStmts(AstStmts *stmt)

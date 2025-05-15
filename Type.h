@@ -1,6 +1,6 @@
 #pragma once
 #include "Token.h"
-namespace lwscript
+namespace lwScript
 {
     enum class TypeKind
     {

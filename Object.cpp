@@ -3,7 +3,7 @@
 #include "Utils.h"
 #include "Logger.h"
 #include "Allocator.h"
-namespace lwscript
+namespace lwScript
 {
 
 	Object::Object(ObjectKind kind)

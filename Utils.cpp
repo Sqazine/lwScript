@@ -4,7 +4,7 @@
 #include <codecvt>
 #include <fstream>
 #include <sstream>
-namespace lwscript
+namespace lwScript
 {
     STRING ReadFile(std::string_view path)
     {

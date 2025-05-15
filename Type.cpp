@@ -1,6 +1,6 @@
 #include "Type.h"
 
-namespace lwscript
+namespace lwScript
 {
     constexpr struct
     {
