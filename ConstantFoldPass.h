@@ -1,12 +1,12 @@
 #pragma once
 #include <vector>
 #include "Ast.h"
-#include "AstPass.h "
+#include "AstOptimizePass.h "
 
-namespace lwScript
+namespace CynicScript
 {
-#ifdef LWS_CONSTANT_FOLD_OPT
-    class LWS_API ConstantFoldPass : public AstPass
+#ifdef CYS_CONSTANT_FOLD_OPT
+    class CYS_API ConstantFoldPass : public AstOptimizePass
     {
     public:
         ConstantFoldPass() noexcept = default;

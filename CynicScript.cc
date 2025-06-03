@@ -1,18 +1,21 @@
 #include <string>
 #include <string_view>
-#include "lwScript.h"
+#include "CynicScript.h"
 
 #if defined(_WIN32) || defined(_WIN64)
 #pragma warning(disable : 4996)
 #endif
 
-lwScript::Lexer *gLexer{nullptr};
-lwScript::Parser *gParser{nullptr};
+#define CYS_REPL_CLEAR TEXT("clear")
+#define CYS_REPL_EXIT TEXT("exit")
 
-lwScript::AstPassManager *gAstPassManager;
+CynicScript::Lexer *gLexer{nullptr};
+CynicScript::Parser *gParser{nullptr};
 
-lwScript::Compiler *gCompiler{nullptr};
-lwScript::VM *gVm{nullptr};
+CynicScript::AstOptimizePassManager *gAstOptimizePassManager;
+
+CynicScript::Compiler *gCompiler{nullptr};
+CynicScript::VM *gVm{nullptr};
 
 struct Config
 {
@@ -23,17 +26,18 @@ struct Config
 
 int32_t PrintVersion()
 {
-	LWS_LOG_INFO(LWS_VERSION);
+	CYS_LOG_INFO(CYS_VERSION);
 	return EXIT_FAILURE;
 }
 
 int32_t PrintUsage()
 {
-	LWS_LOG_INFO(TEXT("Usage: lwScript [option]:"));
-	LWS_LOG_INFO(TEXT("-h or --help:show usage info."));
-	LWS_LOG_INFO(TEXT("-v or --version:show current lwScript version"));
-	LWS_LOG_INFO(TEXT("-s or --serialize: serialize source file as bytecode binary file"));
-	LWS_LOG_INFO(TEXT("-f or --file:run source file with a valid file path,like : lwScript -f examples/array.cd."));
+	CYS_LOG_INFO(TEXT("Usage: CynicScript [option]:"));
+	CYS_LOG_INFO(TEXT("-h or --help:show usage info."));
+	CYS_LOG_INFO(TEXT("-v or --version:show current CynicScript version"));
+	CYS_LOG_INFO(TEXT("-s or --serialize: serialize source file as bytecode binary file"));
+	CYS_LOG_INFO(TEXT("-f or --file:run source file with a valid file path,like : CynicScript -f examples/array.cd."));
+	CYS_LOG_INFO(TEXT("In REPL mode, you can input '{}' to clear the REPL history, and '{}' to exit the REPL."),CYS_REPL_CLEAR,CYS_REPL_EXIT);
 	return EXIT_FAILURE;
 }
 
@@ -42,26 +46,26 @@ void Run(STRING_VIEW content)
 	auto tokens = gLexer->ScanTokens(content);
 #ifndef NDEBUG
 	for (const auto &token : tokens)
-		lwScript::Logger::Println(TEXT("{}"), *token);
+		CynicScript::Logger::Println(TEXT("{}"), *token);
 #endif
 	auto stmt = gParser->Parse(tokens);
 
-	gAstPassManager->Execute(stmt);
+	gAstOptimizePassManager->Execute(stmt);
 
 #ifndef NDEBUG
-	lwScript::Logger::Println(TEXT("{}"), stmt->ToString());
+	CynicScript::Logger::Println(TEXT("{}"), stmt->ToString());
 #endif
 	auto mainFunc = gCompiler->Compile(stmt);
 
 #ifndef NDEBUG
 	auto str = mainFunc->ToStringWithChunk();
-	lwScript::Logger::Println(TEXT("{}"), str);
+	CynicScript::Logger::Println(TEXT("{}"), str);
 #endif
 
 	if (gConfig.isSerializeBinaryChunk)
 	{
 		auto data = mainFunc->chunk.Serialize();
-		lwScript::WriteBinaryFile(gConfig.serializeBinaryFilePath, data);
+		CynicScript::WriteBinaryFile(gConfig.serializeBinaryFilePath, data);
 	}
 	else
 	{
@@ -76,21 +80,31 @@ void Repl()
 
 	PrintVersion();
 
-	lwScript::Logger::Print(TEXT(">> "));
+	CynicScript::Logger::Print(TEXT(">> "));
 	while (getline(CIN, line))
 	{
 		allLines += line;
-		if (line == TEXT("clear"))
-			allLines = TEXT("");
+		if (line == CYS_REPL_CLEAR)
+		{
+			allLines.clear();
+		}
+		else if (line == CYS_REPL_EXIT)
+		{
+			CynicScript::Logger::Println(TEXT("Bye!"));
+			return;
+		}
 		else
+		{
 			Run(allLines);
-		lwScript::Logger::Print(TEXT(">> "));
+		}
+
+		CynicScript::Logger::Print(TEXT(">> "));
 	}
 }
 
 void RunFile(std::string_view path)
 {
-	STRING content = lwScript::ReadFile(path);
+	STRING content = CynicScript::ReadFile(path);
 	Run(content);
 }
 
@@ -135,18 +149,18 @@ int32_t main(int32_t argc, const char *argv[])
 	if (ParseArgs(argc, argv) == EXIT_FAILURE)
 		return EXIT_FAILURE;
 
-	gLexer = new lwScript::Lexer();
-	gParser = new lwScript::Parser();
-	gAstPassManager = new lwScript::AstPassManager();
-	gCompiler = new lwScript::Compiler();
-	gVm = new lwScript::VM();
+	gLexer = new CynicScript::Lexer();
+	gParser = new CynicScript::Parser();
+	gAstOptimizePassManager = new CynicScript::AstOptimizePassManager();
+	gCompiler = new CynicScript::Compiler();
+	gVm = new CynicScript::VM();
 
-	gAstPassManager
-#ifdef LWS_CONSTANT_FOLD_OPT
-		->Add<lwScript::ConstantFoldPass>()
+	gAstOptimizePassManager
+#ifdef CYS_CONSTANT_FOLD_OPT
+		->Add<CynicScript::ConstantFoldPass>()
 #endif
-		->Add<lwScript::TypeCheckPass>()
-		->Add<lwScript::SyntaxCheckPass>();
+		->Add<CynicScript::TypeCheckPass>()
+		->Add<CynicScript::SyntaxCheckPass>();
 
 	if (!gConfig.sourceFilePath.empty())
 		RunFile(gConfig.sourceFilePath);
@@ -155,7 +169,7 @@ int32_t main(int32_t argc, const char *argv[])
 
 	SAFE_DELETE(gLexer);
 	SAFE_DELETE(gParser);
-	SAFE_DELETE(gAstPassManager);
+	SAFE_DELETE(gAstOptimizePassManager);
 	SAFE_DELETE(gCompiler);
 	SAFE_DELETE(gVm);
 

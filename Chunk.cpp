@@ -5,7 +5,7 @@
 #include "Utils.h"
 #include "Object.h"
 #include "Logger.h"
-namespace lwScript
+namespace CynicScript
 {
 	Chunk::Chunk(const OpCodeList &opcodes, const std::vector<Value> &constants)
 		: opCodes(opcodes), constants(constants)
@@ -19,8 +19,8 @@ namespace lwScript
 		result += OpCodeToString(opCodes);
 		for (const auto &c : constants)
 		{
-			if (LWS_IS_FUNCTION_VALUE(c))
-				result += LWS_TO_FUNCTION_VALUE(c)->ToStringWithChunk();
+			if (CYS_IS_FUNCTION_VALUE(c))
+				result += CYS_TO_FUNCTION_VALUE(c)->ToStringWithChunk();
 		}
 		return result;
 	}
@@ -30,10 +30,10 @@ namespace lwScript
 	{
 		std::vector<uint8_t> result;
 
-		auto magNumberBytes = ByteConverter::ToU32ByteList(LWS_BINARY_FILE_MAGIC_NUMBER);
+		auto magNumberBytes = ByteConverter::ToU32ByteList(CYS_BINARY_FILE_MAGIC_NUMBER);
 		result.insert(result.end(), magNumberBytes.begin(), magNumberBytes.end());
 
-		auto versionBytes = ByteConverter::ToU32ByteList(LWS_VERSION_BINARY);
+		auto versionBytes = ByteConverter::ToU32ByteList(CYS_VERSION_BINARY);
 		result.insert(result.end(), versionBytes.begin(), versionBytes.end());
 
 		auto opCodeCount = ByteConverter::ToU32ByteList(opCodes.size());
@@ -60,12 +60,12 @@ namespace lwScript
 	void Chunk::Deserialize(const std::vector<uint8_t> &data)
 	{
 		auto magicNumber = ByteConverter::GetU32Integer(data, 0);
-		if (magicNumber != LWS_BINARY_FILE_MAGIC_NUMBER)
-			LWS_LOG_ERROR(TEXT("Invalid lwScript binary file,cannot deserialize from this file"));
+		if (magicNumber != CYS_BINARY_FILE_MAGIC_NUMBER)
+			CYS_LOG_ERROR(TEXT("Invalid CynicScript binary file,cannot deserialize from this file"));
 
 		auto versionNumber = ByteConverter::GetU32Integer(data, 4);
-		if (versionNumber != LWS_VERSION_BINARY)
-			LWS_LOG_ERROR(TEXT("Invalid lwScript binary file version of {},current version is {}"), versionNumber, LWS_VERSION_BINARY);
+		if (versionNumber != CYS_VERSION_BINARY)
+			CYS_LOG_ERROR(TEXT("Invalid CynicScript binary file version of {},current version is {}"), versionNumber, CYS_VERSION_BINARY);
 
 		auto opCodesCount = ByteConverter::GetU32Integer(data, 8);
 
@@ -213,7 +213,7 @@ namespace lwScript
 			{
 				auto tok = opCodeRelatedTokens[opcodes[i + 1]];
 				auto pos = opcodes[i + 2];
-				STRING funcStr = (TEXT("<fn ") + LWS_TO_FUNCTION_VALUE(constants[pos])->name + TEXT(":0x") + PointerAddressToString((void *)LWS_TO_FUNCTION_VALUE(constants[pos])) + TEXT(">"));
+				STRING funcStr = (TEXT("<fn ") + CYS_TO_FUNCTION_VALUE(constants[pos])->name + TEXT(":0x") + PointerAddressToString((void *)CYS_TO_FUNCTION_VALUE(constants[pos])) + TEXT(">"));
 
 				auto tokStr = tok->ToString();
 				STRING tokGap(maxTokenShowSize - tokStr.size(), TCHAR(' '));
@@ -221,7 +221,7 @@ namespace lwScript
 
 				stream << tokStr << std::setfill(TCHAR('0')) << std::setw(8) << i << TEXT("\tOP_CLOSURE\t") << pos << TEXT("\t") << funcStr << std::endl;
 
-				auto upvalueCount = LWS_TO_FUNCTION_VALUE(constants[pos])->upValueCount;
+				auto upvalueCount = CYS_TO_FUNCTION_VALUE(constants[pos])->upValueCount;
 				if (upvalueCount > 0)
 				{
 					stream << TEXT("        upvalues:") << std::endl;

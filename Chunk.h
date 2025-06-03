@@ -2,7 +2,7 @@
 #include <vector>
 #include "Value.h"
 #include "Token.h"
-namespace lwScript
+namespace CynicScript
 {
     enum OpCode : uint8_t
     {
@@ -62,7 +62,7 @@ namespace lwScript
 
     using OpCodeList = std::vector<uint8_t>;
 
-    class LWS_API Chunk
+    class CYS_API Chunk
     {
     public:
         Chunk() = default;

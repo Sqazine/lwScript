@@ -4,32 +4,32 @@
 #include <vector>
 #include <array>
 
-#define STACK_MAX 512
+#define STACK_MAX 1024
 #define GLOBAL_VARIABLE_MAX 512
 
 #define UINT8_COUNT (UINT8_MAX + 1)
 
 #define GC_HEAP_GROW_FACTOR 2
 
-#ifndef LWS_BUILD_STATIC
+#ifndef CYS_BUILD_STATIC
 #if defined(_WIN32) || defined(_WIN64)
-#ifdef LWS_BUILD_DLL
-#define LWS_API __declspec(dllexport)
+#ifdef CYS_BUILD_DLL
+#define CYS_API __declspec(dllexport)
 #else
-#define LWS_API __declspec(dllimport)
+#define CYS_API __declspec(dllimport)
 #endif
 #else
-#ifdef LWS_BUILD_DLL
-#define LWS_API
+#ifdef CYS_BUILD_DLL
+#define CYS_API
 #else
-#define LWS_API
+#define CYS_API
 #endif
 #endif
 #else
-#define LWS_API
+#define CYS_API
 #endif
 
-#ifdef LWS_UTF8_ENCODE
+#ifdef CYS_UTF8_ENCODE
 #define STR(x) L##x
 #define TEXT(x) STR(x)
 #define TCHAR(x) STR(x)
@@ -39,7 +39,7 @@
 #define OSTREAM std::wostream
 #define STRING_STREAM std::wstringstream
 #define STD_IFSTREAM std::wifstream
-#define LWS_TO_STRING(x) std::to_wstring(x)
+#define CYS_TO_STRING(x) std::to_wstring(x)
 #define COUT std::wcout
 #define CIN std::wcin
 #define STRCMP wcscmp
@@ -53,7 +53,7 @@
 #define OSTREAM std::ostream
 #define STRING_STREAM std::stringstream
 #define STD_IFSTREAM std::ifstream
-#define LWS_TO_STRING(x) std::to_string(x)
+#define CYS_TO_STRING(x) std::to_string(x)
 #define COUT std::cout
 #define CIN std::cin
 #define STRCMP strcmp
@@ -89,7 +89,7 @@
 		}                \
 	} while (false);
 
-namespace lwScript
+namespace CynicScript
 {
 	enum class Permission : uint8_t
 	{
@@ -104,9 +104,9 @@ namespace lwScript
 		WITH_NAME,
 	};
 
-	STRING LWS_API ReadFile(std::string_view path);
-	void LWS_API WriteBinaryFile(std::string_view path, const std::vector<uint8_t> &content);
-	std::vector<uint8_t> LWS_API ReadBinaryFile(std::string_view path);
+	STRING CYS_API ReadFile(std::string_view path);
+	void CYS_API WriteBinaryFile(std::string_view path, const std::vector<uint8_t> &content);
+	std::vector<uint8_t> CYS_API ReadBinaryFile(std::string_view path);
 
 	STRING PointerAddressToString(void *pointer);
 

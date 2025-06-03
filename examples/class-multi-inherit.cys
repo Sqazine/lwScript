@@ -34,7 +34,7 @@ io.println("{}",a.health);//1000
 /*
                ---Animal---
                |          |
-    Sparroe-----          |----Biology(health)  //means member 'health' only an instance copy,avoid some oop languages's multiple inheritance
+    Sparrow-----          |----Biology(health)  //means member 'health' only an instance copy,avoid some oop languages's multiple inheritance
                |          |
                ---Flyable--
 */

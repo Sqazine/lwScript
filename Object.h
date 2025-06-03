@@ -7,74 +7,74 @@
 #include "Chunk.h"
 #include "Token.h"
 #include "Value.h"
-namespace lwScript
+namespace CynicScript
 {
-#define LWS_IS_STR_OBJ(obj) ((obj)->kind == ::lwScript::ObjectKind::STR)
-#define LWS_IS_ARRAY_OBJ(obj) ((obj)->kind == ::lwScript::ObjectKind::ARRAY)
-#define LWS_IS_TABLE_OBJ(obj) ((obj)->kind == ::lwScript::ObjectKind::DICT)
-#define LWS_IS_STRUCT_OBJ(obj) ((obj)->kind == ::lwScript::ObjectKind::STRUCT)
-#define LWS_IS_FUNCTION_OBJ(obj) ((obj)->kind == ::lwScript::ObjectKind::FUNCTION)
-#define LWS_IS_UPVALUE_OBJ(obj) ((obj)->kind == ::lwScript::ObjectKind::UPVALUE)
-#define LWS_IS_CLOSURE_OBJ(obj) ((obj)->kind == ::lwScript::ObjectKind::CLOSURE)
-#define LWS_IS_NATIVE_FUNCTION_OBJ(obj) ((obj)->kind == ::lwScript::ObjectKind::NATIVE_FUNCTION)
-#define LWS_IS_REF_OBJ(obj) ((obj)->kind == ::lwScript::ObjectKind::REF)
-#define LWS_IS_CLASS_OBJ(obj) ((obj)->kind == ::lwScript::ObjectKind::CLASS)
-#define LWS_IS_CLASS_CLOSURE_BIND_OBJ(obj) ((obj)->kind == ::lwScript::ObjectKind::CLASS_CLOSURE_BIND)
-#define LWS_IS_ENUM_OBJ(obj) ((obj)->kind == ::lwScript::ObjectKind::ENUM)
-#define LWS_IS_MODULE_OBJ(obj) ((obj)->kind == ::lwScript::ObjectKind::MODULE)
+#define CYS_IS_STR_OBJ(obj) ((obj)->kind == ::CynicScript::ObjectKind::STR)
+#define CYS_IS_ARRAY_OBJ(obj) ((obj)->kind == ::CynicScript::ObjectKind::ARRAY)
+#define CYS_IS_TABLE_OBJ(obj) ((obj)->kind == ::CynicScript::ObjectKind::DICT)
+#define CYS_IS_STRUCT_OBJ(obj) ((obj)->kind == ::CynicScript::ObjectKind::STRUCT)
+#define CYS_IS_FUNCTION_OBJ(obj) ((obj)->kind == ::CynicScript::ObjectKind::FUNCTION)
+#define CYS_IS_UPVALUE_OBJ(obj) ((obj)->kind == ::CynicScript::ObjectKind::UPVALUE)
+#define CYS_IS_CLOSURE_OBJ(obj) ((obj)->kind == ::CynicScript::ObjectKind::CLOSURE)
+#define CYS_IS_NATIVE_FUNCTION_OBJ(obj) ((obj)->kind == ::CynicScript::ObjectKind::NATIVE_FUNCTION)
+#define CYS_IS_REF_OBJ(obj) ((obj)->kind == ::CynicScript::ObjectKind::REF)
+#define CYS_IS_CLASS_OBJ(obj) ((obj)->kind == ::CynicScript::ObjectKind::CLASS)
+#define CYS_IS_CLASS_CLOSURE_BIND_OBJ(obj) ((obj)->kind == ::CynicScript::ObjectKind::CLASS_CLOSURE_BIND)
+#define CYS_IS_ENUM_OBJ(obj) ((obj)->kind == ::CynicScript::ObjectKind::ENUM)
+#define CYS_IS_MODULE_OBJ(obj) ((obj)->kind == ::CynicScript::ObjectKind::MODULE)
 
-#define LWS_TO_STR_OBJ(obj) ((::lwScript::StrObject *)(obj))
-#define LWS_TO_ARRAY_OBJ(obj) ((::lwScript::ArrayObject *)(obj))
-#define LWS_TO_TABLE_OBJ(obj) ((::lwScript::DictObject *)(obj))
-#define LWS_TO_STRUCT_OBJ(obj) ((::lwScript::StructObject *)(obj))
-#define LWS_TO_FUNCTION_OBJ(obj) ((::lwScript::FunctionObject *)(obj))
-#define LWS_TO_UPVALUE_OBJ(obj) ((::lwScript::UpValueObject *)(obj))
-#define LWS_TO_CLOSURE_OBJ(obj) ((::lwScript::ClosureObject *)(obj))
-#define LWS_TO_NATIVE_FUNCTION_OBJ(obj) ((::lwScript::NativeFunctionObject *)(obj))
-#define LWS_TO_REF_OBJ(obj) ((::lwScript::RefObject *)(obj))
-#define LWS_TO_CLASS_OBJ(obj) ((::lwScript::ClassObject *)(obj))
-#define LWS_TO_CLASS_CLOSURE_BIND_OBJ(obj) ((::lwScript::ClassClosureBindObject *)(obj))
-#define LWS_TO_ENUM_OBJ(obj) ((::lwScript::EnumObject *)(obj))
-#define LWS_TO_MODULE_OBJ(obj) ((::lwScript::ModuleObject *)(obj))
+#define CYS_TO_STR_OBJ(obj) ((::CynicScript::StrObject *)(obj))
+#define CYS_TO_ARRAY_OBJ(obj) ((::CynicScript::ArrayObject *)(obj))
+#define CYS_TO_TABLE_OBJ(obj) ((::CynicScript::DictObject *)(obj))
+#define CYS_TO_STRUCT_OBJ(obj) ((::CynicScript::StructObject *)(obj))
+#define CYS_TO_FUNCTION_OBJ(obj) ((::CynicScript::FunctionObject *)(obj))
+#define CYS_TO_UPVALUE_OBJ(obj) ((::CynicScript::UpValueObject *)(obj))
+#define CYS_TO_CLOSURE_OBJ(obj) ((::CynicScript::ClosureObject *)(obj))
+#define CYS_TO_NATIVE_FUNCTION_OBJ(obj) ((::CynicScript::NativeFunctionObject *)(obj))
+#define CYS_TO_REF_OBJ(obj) ((::CynicScript::RefObject *)(obj))
+#define CYS_TO_CLASS_OBJ(obj) ((::CynicScript::ClassObject *)(obj))
+#define CYS_TO_CLASS_CLOSURE_BIND_OBJ(obj) ((::CynicScript::ClassClosureBindObject *)(obj))
+#define CYS_TO_ENUM_OBJ(obj) ((::CynicScript::EnumObject *)(obj))
+#define CYS_TO_MODULE_OBJ(obj) ((::CynicScript::ModuleObject *)(obj))
 
-#define LWS_IS_NULL_VALUE(v) ((v).kind == ::lwScript::ValueKind::NIL)
-#define LWS_IS_INT_VALUE(v) ((v).kind == ::lwScript::ValueKind::INT)
-#define LWS_IS_REAL_VALUE(v) ((v).kind == ::lwScript::ValueKind::REAL)
-#define LWS_IS_BOOL_VALUE(v) ((v).kind == ::lwScript::ValueKind::BOOL)
-#define LWS_IS_OBJECT_VALUE(v) ((v).kind == ::lwScript::ValueKind::OBJECT)
-#define LWS_IS_STR_VALUE(v) (LWS_IS_OBJECT_VALUE(v) && LWS_IS_STR_OBJ((v).object))
-#define LWS_IS_ARRAY_VALUE(v) (LWS_IS_OBJECT_VALUE(v) && LWS_IS_ARRAY_OBJ((v).object))
-#define LWS_IS_DICT_VALUE(v) (LWS_IS_OBJECT_VALUE(v) && LWS_IS_TABLE_OBJ((v).object))
-#define LWS_IS_STRUCT_VALUE(v) (LWS_IS_OBJECT_VALUE(v) && LWS_IS_STRUCT_OBJ((v).object))
-#define LWS_IS_FUNCTION_VALUE(v) (LWS_IS_OBJECT_VALUE(v) && LWS_IS_FUNCTION_OBJ((v).object))
-#define LWS_IS_UPVALUE_VALUE(v) (LWS_IS_OBJECT_VALUE(v) && LWS_IS_UPVALUE_OBJ((v).object))
-#define LWS_IS_CLOSURE_VALUE(v) (LWS_IS_OBJECT_VALUE(v) && LWS_IS_CLOSURE_OBJ((v).object))
-#define LWS_IS_NATIVE_FUNCTION_VALUE(v) (LWS_IS_OBJECT_VALUE(v) && LWS_IS_NATIVE_FUNCTION_OBJ((v).object))
-#define LWS_IS_REF_VALUE(v) (LWS_IS_OBJECT_VALUE(v) && LWS_IS_REF_OBJ((v).object))
-#define LWS_IS_CLASS_VALUE(v) (LWS_IS_OBJECT_VALUE(v) && LWS_IS_CLASS_OBJ((v).object))
-#define LWS_IS_CLASS_CLOSURE_BIND_VALUE(v) (LWS_IS_OBJECT_VALUE(v) && LWS_IS_CLASS_CLOSURE_BIND_OBJ((v).object))
-#define LWS_IS_ENUM_VALUE(v) (LWS_IS_OBJECT_VALUE(v) && LWS_IS_ENUM_OBJ((v).object))
-#define LWS_IS_MODULE_VALUE(v) (LWS_IS_OBJECT_VALUE(v) && LWS_IS_MODULE_OBJ((v).object))
+#define CYS_IS_NULL_VALUE(v) ((v).kind == ::CynicScript::ValueKind::NIL)
+#define CYS_IS_INT_VALUE(v) ((v).kind == ::CynicScript::ValueKind::INT)
+#define CYS_IS_REAL_VALUE(v) ((v).kind == ::CynicScript::ValueKind::REAL)
+#define CYS_IS_BOOL_VALUE(v) ((v).kind == ::CynicScript::ValueKind::BOOL)
+#define CYS_IS_OBJECT_VALUE(v) ((v).kind == ::CynicScript::ValueKind::OBJECT)
+#define CYS_IS_STR_VALUE(v) (CYS_IS_OBJECT_VALUE(v) && CYS_IS_STR_OBJ((v).object))
+#define CYS_IS_ARRAY_VALUE(v) (CYS_IS_OBJECT_VALUE(v) && CYS_IS_ARRAY_OBJ((v).object))
+#define CYS_IS_DICT_VALUE(v) (CYS_IS_OBJECT_VALUE(v) && CYS_IS_TABLE_OBJ((v).object))
+#define CYS_IS_STRUCT_VALUE(v) (CYS_IS_OBJECT_VALUE(v) && CYS_IS_STRUCT_OBJ((v).object))
+#define CYS_IS_FUNCTION_VALUE(v) (CYS_IS_OBJECT_VALUE(v) && CYS_IS_FUNCTION_OBJ((v).object))
+#define CYS_IS_UPVALUE_VALUE(v) (CYS_IS_OBJECT_VALUE(v) && CYS_IS_UPVALUE_OBJ((v).object))
+#define CYS_IS_CLOSURE_VALUE(v) (CYS_IS_OBJECT_VALUE(v) && CYS_IS_CLOSURE_OBJ((v).object))
+#define CYS_IS_NATIVE_FUNCTION_VALUE(v) (CYS_IS_OBJECT_VALUE(v) && CYS_IS_NATIVE_FUNCTION_OBJ((v).object))
+#define CYS_IS_REF_VALUE(v) (CYS_IS_OBJECT_VALUE(v) && CYS_IS_REF_OBJ((v).object))
+#define CYS_IS_CLASS_VALUE(v) (CYS_IS_OBJECT_VALUE(v) && CYS_IS_CLASS_OBJ((v).object))
+#define CYS_IS_CLASS_CLOSURE_BIND_VALUE(v) (CYS_IS_OBJECT_VALUE(v) && CYS_IS_CLASS_CLOSURE_BIND_OBJ((v).object))
+#define CYS_IS_ENUM_VALUE(v) (CYS_IS_OBJECT_VALUE(v) && CYS_IS_ENUM_OBJ((v).object))
+#define CYS_IS_MODULE_VALUE(v) (CYS_IS_OBJECT_VALUE(v) && CYS_IS_MODULE_OBJ((v).object))
 
-#define LWS_TO_INT_VALUE(v) ((v).integer)
-#define LWS_TO_REAL_VALUE(v) ((v).realnum)
-#define LWS_TO_BOOL_VALUE(v) ((v).boolean)
-#define LWS_TO_OBJECT_VALUE(v) ((v).object)
-#define LWS_TO_STR_VALUE(v) (LWS_TO_STR_OBJ((v).object))
-#define LWS_TO_ARRAY_VALUE(v) (LWS_TO_ARRAY_OBJ((v).object))
-#define LWS_TO_DICT_VALUE(v) (LWS_TO_TABLE_OBJ((v).object))
-#define LWS_TO_STRUCT_VALUE(v) (LWS_TO_STRUCT_OBJ((v).object))
-#define LWS_TO_FUNCTION_VALUE(v) (LWS_TO_FUNCTION_OBJ((v).object))
-#define LWS_TO_UPVALUE_VALUE(v) (LWS_TO_UPVALUE_OBJ((v).object))
-#define LWS_TO_CLOSURE_VALUE(v) (LWS_TO_CLOSURE_OBJ((v).object))
-#define LWS_TO_NATIVE_FUNCTION_VALUE(v) (LWS_TO_NATIVE_FUNCTION_OBJ((v).object))
-#define LWS_TO_REF_VALUE(v) (LWS_TO_REF_OBJ((v).object))
-#define LWS_TO_CLASS_VALUE(v) (LWS_TO_CLASS_OBJ((v).object))
-#define LWS_TO_CLASS_CLOSURE_BIND_VALUE(v) (LWS_TO_CLASS_CLOSURE_BIND_OBJ((v).object))
-#define LWS_TO_ENUM_VALUE(v) (LWS_TO_ENUM_OBJ((v).object))
-#define LWS_TO_MODULE_VALUE(v) (LWS_TO_MODULE_OBJ((v).object))
+#define CYS_TO_INT_VALUE(v) ((v).integer)
+#define CYS_TO_REAL_VALUE(v) ((v).realnum)
+#define CYS_TO_BOOL_VALUE(v) ((v).boolean)
+#define CYS_TO_OBJECT_VALUE(v) ((v).object)
+#define CYS_TO_STR_VALUE(v) (CYS_TO_STR_OBJ((v).object))
+#define CYS_TO_ARRAY_VALUE(v) (CYS_TO_ARRAY_OBJ((v).object))
+#define CYS_TO_DICT_VALUE(v) (CYS_TO_TABLE_OBJ((v).object))
+#define CYS_TO_STRUCT_VALUE(v) (CYS_TO_STRUCT_OBJ((v).object))
+#define CYS_TO_FUNCTION_VALUE(v) (CYS_TO_FUNCTION_OBJ((v).object))
+#define CYS_TO_UPVALUE_VALUE(v) (CYS_TO_UPVALUE_OBJ((v).object))
+#define CYS_TO_CLOSURE_VALUE(v) (CYS_TO_CLOSURE_OBJ((v).object))
+#define CYS_TO_NATIVE_FUNCTION_VALUE(v) (CYS_TO_NATIVE_FUNCTION_OBJ((v).object))
+#define CYS_TO_REF_VALUE(v) (CYS_TO_REF_OBJ((v).object))
+#define CYS_TO_CLASS_VALUE(v) (CYS_TO_CLASS_OBJ((v).object))
+#define CYS_TO_CLASS_CLOSURE_BIND_VALUE(v) (CYS_TO_CLASS_CLOSURE_BIND_OBJ((v).object))
+#define CYS_TO_ENUM_VALUE(v) (CYS_TO_ENUM_OBJ((v).object))
+#define CYS_TO_MODULE_VALUE(v) (CYS_TO_MODULE_OBJ((v).object))
 
-    enum LWS_API ObjectKind : uint8_t
+    enum CYS_API ObjectKind : uint8_t
     {
         STR,
         ARRAY,
@@ -91,7 +91,7 @@ namespace lwScript
         MODULE
     };
 
-    struct LWS_API Object
+    struct CYS_API Object
     {
         Object(ObjectKind kind);
         virtual ~Object();
@@ -108,7 +108,7 @@ namespace lwScript
         Object *next{nullptr};
     };
 
-    struct LWS_API StrObject : public Object
+    struct CYS_API StrObject : public Object
     {
         StrObject(STRING_VIEW value);
         ~StrObject() override;
@@ -120,7 +120,7 @@ namespace lwScript
         STRING value{};
     };
 
-    struct LWS_API ArrayObject : public Object
+    struct CYS_API ArrayObject : public Object
     {
         ArrayObject();
         ArrayObject(const std::vector<struct Value> &elements);
@@ -134,7 +134,7 @@ namespace lwScript
         std::vector<struct Value> elements{};
     };
 
-    struct LWS_API DictObject : public Object
+    struct CYS_API DictObject : public Object
     {
         DictObject();
         DictObject(const ValueUnorderedMap &elements);
@@ -149,7 +149,7 @@ namespace lwScript
         ValueUnorderedMap elements{};
     };
 
-    struct LWS_API StructObject : public Object
+    struct CYS_API StructObject : public Object
     {
         StructObject();
         StructObject(const std::unordered_map<STRING, Value> &elements);
@@ -164,7 +164,7 @@ namespace lwScript
         std::unordered_map<STRING, Value> elements{};
     };
 
-    struct LWS_API FunctionObject : public Object
+    struct CYS_API FunctionObject : public Object
     {
         FunctionObject();
         FunctionObject(STRING_VIEW name);
@@ -179,7 +179,7 @@ namespace lwScript
         bool IsEqualTo(Object *other) override;
         std::vector<uint8_t> Serialize() const override;
 
-#ifdef LWS_FUNCTION_CACHE_OPT
+#ifdef CYS_FUNCTION_CACHE_OPT
         void SetCache(size_t hash, const std::vector<Value> &result);
         bool GetCache(size_t hash, std::vector<Value> &result) const;
         void PrintCache();
@@ -194,7 +194,7 @@ namespace lwScript
         STRING name{};
     };
 
-    struct LWS_API UpValueObject : public Object
+    struct CYS_API UpValueObject : public Object
     {
         UpValueObject();
         UpValueObject(Value *location);
@@ -211,7 +211,7 @@ namespace lwScript
         UpValueObject *nextUpValue{nullptr};
     };
 
-    struct LWS_API ClosureObject : public Object
+    struct CYS_API ClosureObject : public Object
     {
         ClosureObject();
         ClosureObject(FunctionObject *function);
@@ -229,7 +229,7 @@ namespace lwScript
 
     using NativeFunction = std::function<bool(Value *, uint32_t, const Token *, Value &)>;
 
-    struct LWS_API NativeFunctionObject : public Object
+    struct CYS_API NativeFunctionObject : public Object
     {
         NativeFunctionObject();
         NativeFunctionObject(NativeFunction f);
@@ -243,7 +243,7 @@ namespace lwScript
         NativeFunction fn{};
     };
 
-    struct LWS_API RefObject : public Object
+    struct CYS_API RefObject : public Object
     {
         RefObject(Value *pointer);
         ~RefObject() override;
@@ -256,7 +256,7 @@ namespace lwScript
         Value *pointer{nullptr};
     };
 
-    struct LWS_API ClassObject : public Object
+    struct CYS_API ClassObject : public Object
     {
         ClassObject();
         ClassObject(STRING_VIEW name);
@@ -277,7 +277,7 @@ namespace lwScript
         std::map<STRING, ClassObject *> parents{};
     };
 
-    struct LWS_API ClassClosureBindObject : public Object
+    struct CYS_API ClassClosureBindObject : public Object
     {
         ClassClosureBindObject();
         ClassClosureBindObject(const Value &receiver, ClosureObject *cl);
@@ -293,7 +293,7 @@ namespace lwScript
         ClosureObject *closure{nullptr};
     };
 
-    struct LWS_API EnumObject : public Object
+    struct CYS_API EnumObject : public Object
     {
         EnumObject();
         EnumObject(const STRING &name, const std::unordered_map<STRING, Value> &pairs);
@@ -311,7 +311,7 @@ namespace lwScript
         std::unordered_map<STRING, Value> pairs{};
     };
 
-    struct LWS_API ModuleObject : public Object
+    struct CYS_API ModuleObject : public Object
     {
         ModuleObject();
         ModuleObject(const STRING &name, const std::unordered_map<STRING, Value> &values);

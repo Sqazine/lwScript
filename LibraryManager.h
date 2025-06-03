@@ -4,9 +4,9 @@
 #include "Value.h"
 #include "Object.h"
 #include "Utils.h"
-namespace lwScript
+namespace CynicScript
 {
-    class LWS_API LibraryManager
+    class CYS_API LibraryManager
     {
     public:
         SINGLETON_DECL(LibraryManager)

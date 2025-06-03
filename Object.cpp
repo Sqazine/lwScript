@@ -3,7 +3,7 @@
 #include "Utils.h"
 #include "Logger.h"
 #include "Allocator.h"
-namespace lwScript
+namespace CynicScript
 {
 
 	Object::Object(ObjectKind kind)
@@ -18,7 +18,7 @@ namespace lwScript
 	{
 		if (marked)
 			return;
-#ifdef LWS_GC_DEBUG
+#ifdef CYS_GC_DEBUG
 		Logger::Info(TEXT("(0x{}) mark: {}"), (void *)this, ToString());
 #endif
 		marked = true;
@@ -28,7 +28,7 @@ namespace lwScript
 	{
 		if (!marked)
 			return;
-#ifdef LWS_GC_DEBUG
+#ifdef CYS_GC_DEBUG
 		Logger::Info(TEXT("(0x{}) unMark: {}"), (void *)this, ToString());
 #endif
 		marked = false;
@@ -36,7 +36,7 @@ namespace lwScript
 
 	void Object::Blacken()
 	{
-#ifdef LWS_GC_DEBUG
+#ifdef CYS_GC_DEBUG
 		Logger::Info(TEXT("(0x{}) blacken: {}"), (void *)this, ToString());
 #endif
 	}
@@ -55,9 +55,9 @@ namespace lwScript
 
 	bool StrObject::IsEqualTo(Object *other)
 	{
-		if (!LWS_IS_STR_OBJ(other))
+		if (!CYS_IS_STR_OBJ(other))
 			return false;
-		return value == LWS_TO_STR_OBJ(other)->value;
+		return value == CYS_TO_STR_OBJ(other)->value;
 	}
 
 	std::vector<uint8_t> StrObject::Serialize() const
@@ -99,10 +99,10 @@ namespace lwScript
 
 	bool ArrayObject::IsEqualTo(Object *other)
 	{
-		if (!LWS_IS_ARRAY_OBJ(other))
+		if (!CYS_IS_ARRAY_OBJ(other))
 			return false;
 
-		ArrayObject *arrayOther = LWS_TO_ARRAY_OBJ(other);
+		ArrayObject *arrayOther = CYS_TO_ARRAY_OBJ(other);
 
 		if (arrayOther->elements.size() != elements.size())
 			return false;
@@ -153,10 +153,10 @@ namespace lwScript
 
 	bool DictObject::IsEqualTo(Object *other)
 	{
-		if (!LWS_IS_TABLE_OBJ(other))
+		if (!CYS_IS_TABLE_OBJ(other))
 			return false;
 
-		DictObject *dictOther = LWS_TO_TABLE_OBJ(other);
+		DictObject *dictOther = CYS_TO_TABLE_OBJ(other);
 
 		if (dictOther->elements.size() != elements.size())
 			return false;
@@ -211,10 +211,10 @@ namespace lwScript
 	}
 	bool StructObject::IsEqualTo(Object *other)
 	{
-		if (!LWS_IS_STRUCT_OBJ(other))
+		if (!CYS_IS_STRUCT_OBJ(other))
 			return false;
 
-		StructObject *structOther = LWS_TO_STRUCT_OBJ(other);
+		StructObject *structOther = CYS_TO_STRUCT_OBJ(other);
 
 		if (structOther->elements.size() != elements.size())
 			return false;
@@ -267,7 +267,7 @@ namespace lwScript
 		for (auto &c : chunk.constants)
 			c.Mark();
 
-#ifdef LWS_FUNCTION_CACHE_OPT
+#ifdef CYS_FUNCTION_CACHE_OPT
 		for (auto &[key, value] : caches)
 		{
 			for (auto &valueElement : value)
@@ -278,10 +278,10 @@ namespace lwScript
 
 	bool FunctionObject::IsEqualTo(Object *other)
 	{
-		if (!LWS_IS_FUNCTION_OBJ(other))
+		if (!CYS_IS_FUNCTION_OBJ(other))
 			return false;
 
-		auto func = LWS_TO_FUNCTION_OBJ(other);
+		auto func = CYS_TO_FUNCTION_OBJ(other);
 		if (arity != func->arity)
 			return false;
 		if (upValueCount != func->upValueCount)
@@ -298,7 +298,7 @@ namespace lwScript
 		return std::vector<uint8_t>();
 	}
 
-#ifdef LWS_FUNCTION_CACHE_OPT
+#ifdef CYS_FUNCTION_CACHE_OPT
 	void FunctionObject::SetCache(size_t hash, const std::vector<Value> &result)
 	{
 		caches[hash] = result;
@@ -341,10 +341,10 @@ namespace lwScript
 
 	bool UpValueObject::IsEqualTo(Object *other)
 	{
-		if (!LWS_IS_UPVALUE_OBJ(other))
+		if (!CYS_IS_UPVALUE_OBJ(other))
 			return false;
 
-		auto upvo = LWS_TO_UPVALUE_OBJ(other);
+		auto upvo = CYS_TO_UPVALUE_OBJ(other);
 
 		if (closed != upvo->closed)
 			return false;
@@ -389,9 +389,9 @@ namespace lwScript
 
 	bool ClosureObject::IsEqualTo(Object *other)
 	{
-		if (!LWS_IS_CLOSURE_OBJ(other))
+		if (!CYS_IS_CLOSURE_OBJ(other))
 			return false;
-		auto closure = LWS_TO_CLOSURE_OBJ(other);
+		auto closure = CYS_TO_CLOSURE_OBJ(other);
 
 		if (!function->IsEqualTo(closure->function))
 			return false;
@@ -427,7 +427,7 @@ namespace lwScript
 
 	bool NativeFunctionObject::IsEqualTo(Object *other)
 	{
-		if (!LWS_IS_NATIVE_FUNCTION_OBJ(other))
+		if (!CYS_IS_NATIVE_FUNCTION_OBJ(other))
 			return false;
 		return true;
 	}
@@ -452,9 +452,9 @@ namespace lwScript
 
 	bool RefObject::IsEqualTo(Object *other)
 	{
-		if (!LWS_IS_REF_OBJ(other))
+		if (!CYS_IS_REF_OBJ(other))
 			return false;
-		return *pointer == *LWS_TO_REF_OBJ(other)->pointer;
+		return *pointer == *CYS_TO_REF_OBJ(other)->pointer;
 	}
 
 	std::vector<uint8_t> RefObject::Serialize() const
@@ -506,9 +506,9 @@ namespace lwScript
 
 	bool ClassObject::IsEqualTo(Object *other)
 	{
-		if (!LWS_IS_CLASS_OBJ(other))
+		if (!CYS_IS_CLASS_OBJ(other))
 			return false;
-		auto klass = LWS_TO_CLASS_OBJ(other);
+		auto klass = CYS_TO_CLASS_OBJ(other);
 		if (name != klass->name)
 			return false;
 		if (members != klass->members)
@@ -598,9 +598,9 @@ namespace lwScript
 
 	bool ClassClosureBindObject::IsEqualTo(Object *other)
 	{
-		if (!LWS_IS_CLASS_CLOSURE_BIND_OBJ(other))
+		if (!CYS_IS_CLASS_CLOSURE_BIND_OBJ(other))
 			return false;
-		auto ccb = LWS_TO_CLASS_CLOSURE_BIND_OBJ(other);
+		auto ccb = CYS_TO_CLASS_CLOSURE_BIND_OBJ(other);
 		if (receiver != ccb->receiver)
 			return false;
 		if (!closure->IsEqualTo(ccb->closure))
@@ -658,9 +658,9 @@ namespace lwScript
 
 	bool EnumObject::IsEqualTo(Object *other)
 	{
-		if (!LWS_IS_ENUM_OBJ(other))
+		if (!CYS_IS_ENUM_OBJ(other))
 			return false;
-		auto eo = LWS_TO_ENUM_OBJ(other);
+		auto eo = CYS_TO_ENUM_OBJ(other);
 		if (name != eo->name)
 			return false;
 		if (pairs != eo->pairs)
@@ -708,9 +708,9 @@ namespace lwScript
 
 	bool ModuleObject::IsEqualTo(Object *other)
 	{
-		if (!LWS_IS_MODULE_OBJ(other))
+		if (!CYS_IS_MODULE_OBJ(other))
 			return false;
-		auto eo = LWS_TO_MODULE_OBJ(other);
+		auto eo = CYS_TO_MODULE_OBJ(other);
 		if (name != eo->name)
 			return false;
 		if (values != eo->values)

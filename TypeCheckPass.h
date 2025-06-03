@@ -1,9 +1,9 @@
 #pragma once
-#include "AstPass.h"
-namespace lwScript
+#include "AstOptimizePass.h"
+namespace CynicScript
 {
     class TypeInfoTable;
-    class LWS_API TypeCheckPass : public AstPass
+    class CYS_API TypeCheckPass : public AstOptimizePass
     {
     public:
         TypeCheckPass() noexcept;

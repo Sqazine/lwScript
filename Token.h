@@ -4,7 +4,7 @@
 #include <string_view>
 #include <ostream>
 #include "Utils.h"
-namespace lwScript
+namespace CynicScript
 {
 	enum class TokenKind
 	{
@@ -112,14 +112,14 @@ namespace lwScript
 		uint64_t pos{1};
 	};
 
-	struct LWS_API Token
+	struct CYS_API Token
 	{
 		Token() : kind(TokenKind::END), literal(TEXT("")) {}
 		Token(TokenKind kind, STRING_VIEW literal, const SourceLocation &srcLoc) : kind(kind), literal(literal), sourceLocation(srcLoc) {}
 
 		STRING ToString() const
 		{
-			return TEXT("\"") + literal + TEXT("\"(") + LWS_TO_STRING(sourceLocation.line) + TEXT(",") + LWS_TO_STRING(sourceLocation.line) + TEXT(")");
+			return TEXT("\"") + literal + TEXT("\"(") + CYS_TO_STRING(sourceLocation.line) + TEXT(",") + CYS_TO_STRING(sourceLocation.line) + TEXT(")");
 		}
 
 		TokenKind kind;

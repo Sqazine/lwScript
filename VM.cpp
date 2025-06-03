@@ -5,7 +5,7 @@
 #include "Object.h"
 #include "Token.h"
 #include "Logger.h"
-namespace lwScript
+namespace CynicScript
 {
 	std::vector<Value> VM::Run(FunctionObject *mainFunc) noexcept
 	{
@@ -27,7 +27,7 @@ namespace lwScript
 		std::vector<Value> returnValues;
 #ifndef NDEBUG
 		if (STACK_TOP() != STACK() + 1)
-			LWS_LOG_ERROR_WITH_LOC(new Token(), TEXT("Stack occupancy exception."));
+			CYS_LOG_ERROR_WITH_LOC(new Token(), TEXT("Stack occupancy exception."));
 #endif
 
 		while (STACK_TOP() != STACK() + 1)
@@ -46,20 +46,20 @@ namespace lwScript
 	{                                                                                                                                                                                                                        \
 		Value right = POP_STACK();                                                                                                                                                                                           \
 		Value left = POP_STACK();                                                                                                                                                                                            \
-		if (LWS_IS_REF_VALUE(left))                                                                                                                                                                                              \
-			left = *LWS_TO_REF_VALUE(left)->pointer;                                                                                                                                                                             \
-		if (LWS_IS_REF_VALUE(right))                                                                                                                                                                                             \
-			right = *LWS_TO_REF_VALUE(right)->pointer;                                                                                                                                                                           \
-		if (LWS_IS_INT_VALUE(left) && LWS_IS_INT_VALUE(right))                                                                                                                                                                       \
-			PUSH_STACK(LWS_TO_INT_VALUE(left) op LWS_TO_INT_VALUE(right));                                                                                                                                                           \
-		else if (LWS_IS_REAL_VALUE(left) && LWS_IS_REAL_VALUE(right))                                                                                                                                                                \
-			PUSH_STACK(LWS_TO_REAL_VALUE(left) op LWS_TO_REAL_VALUE(right));                                                                                                                                                         \
-		else if (LWS_IS_INT_VALUE(left) && LWS_IS_REAL_VALUE(right))                                                                                                                                                                 \
-			PUSH_STACK(LWS_TO_INT_VALUE(left) op LWS_TO_REAL_VALUE(right));                                                                                                                                                          \
-		else if (LWS_IS_REAL_VALUE(left) && LWS_IS_INT_VALUE(right))                                                                                                                                                                 \
-			PUSH_STACK(LWS_TO_REAL_VALUE(left) op LWS_TO_INT_VALUE(right));                                                                                                                                                          \
+		if (CYS_IS_REF_VALUE(left))                                                                                                                                                                                              \
+			left = *CYS_TO_REF_VALUE(left)->pointer;                                                                                                                                                                             \
+		if (CYS_IS_REF_VALUE(right))                                                                                                                                                                                             \
+			right = *CYS_TO_REF_VALUE(right)->pointer;                                                                                                                                                                           \
+		if (CYS_IS_INT_VALUE(left) && CYS_IS_INT_VALUE(right))                                                                                                                                                                       \
+			PUSH_STACK(CYS_TO_INT_VALUE(left) op CYS_TO_INT_VALUE(right));                                                                                                                                                           \
+		else if (CYS_IS_REAL_VALUE(left) && CYS_IS_REAL_VALUE(right))                                                                                                                                                                \
+			PUSH_STACK(CYS_TO_REAL_VALUE(left) op CYS_TO_REAL_VALUE(right));                                                                                                                                                         \
+		else if (CYS_IS_INT_VALUE(left) && CYS_IS_REAL_VALUE(right))                                                                                                                                                                 \
+			PUSH_STACK(CYS_TO_INT_VALUE(left) op CYS_TO_REAL_VALUE(right));                                                                                                                                                          \
+		else if (CYS_IS_REAL_VALUE(left) && CYS_IS_INT_VALUE(right))                                                                                                                                                                 \
+			PUSH_STACK(CYS_TO_REAL_VALUE(left) op CYS_TO_INT_VALUE(right));                                                                                                                                                          \
 		else                                                                                                                                                                                                                 \
-			LWS_LOG_ERROR_WITH_LOC(relatedToken, TEXT("Invalid binary op:{}{}{},only (&)int-(&)int,(&)real-(&)real,(&)int-(&)real or (&)real-(&)int type pair is available."), left.ToString(), TEXT(#op), right.ToString()); \
+			CYS_LOG_ERROR_WITH_LOC(relatedToken, TEXT("Invalid binary op:{}{}{},only (&)int-(&)int,(&)real-(&)real,(&)int-(&)real or (&)real-(&)int type pair is available."), left.ToString(), TEXT(#op), right.ToString()); \
 	} while (0);
 
 // & | << >>
@@ -68,14 +68,14 @@ namespace lwScript
 	{                                                                                                                                                                       \
 		Value right = POP_STACK();                                                                                                                                          \
 		Value left = POP_STACK();                                                                                                                                           \
-		if (LWS_IS_REF_VALUE(left))                                                                                                                                             \
-			left = *LWS_TO_REF_VALUE(left)->pointer;                                                                                                                            \
-		if (LWS_IS_REF_VALUE(right))                                                                                                                                            \
-			right = *LWS_TO_REF_VALUE(right)->pointer;                                                                                                                          \
-		if (LWS_IS_INT_VALUE(left) && LWS_IS_INT_VALUE(right))                                                                                                                      \
-			PUSH_STACK(LWS_TO_INT_VALUE(left) op LWS_TO_INT_VALUE(right));                                                                                                          \
+		if (CYS_IS_REF_VALUE(left))                                                                                                                                             \
+			left = *CYS_TO_REF_VALUE(left)->pointer;                                                                                                                            \
+		if (CYS_IS_REF_VALUE(right))                                                                                                                                            \
+			right = *CYS_TO_REF_VALUE(right)->pointer;                                                                                                                          \
+		if (CYS_IS_INT_VALUE(left) && CYS_IS_INT_VALUE(right))                                                                                                                      \
+			PUSH_STACK(CYS_TO_INT_VALUE(left) op CYS_TO_INT_VALUE(right));                                                                                                          \
 		else                                                                                                                                                                \
-			LWS_LOG_ERROR_WITH_LOC(relatedToken, TEXT("Invalid binary op:{}{}{},only (&)int-(&)int type pair is available."), left.ToString(), TEXT(#op), right.ToString()); \
+			CYS_LOG_ERROR_WITH_LOC(relatedToken, TEXT("Invalid binary op:{}{}{},only (&)int-(&)int type pair is available."), left.ToString(), TEXT(#op), right.ToString()); \
 	} while (0);
 
 // > <
@@ -84,18 +84,18 @@ namespace lwScript
 	{                                                                               \
 		Value right = POP_STACK();                                                  \
 		Value left = POP_STACK();                                                   \
-		if (LWS_IS_REF_VALUE(left))                                                     \
-			left = *LWS_TO_REF_VALUE(left)->pointer;                                    \
-		if (LWS_IS_REF_VALUE(right))                                                    \
-			right = *LWS_TO_REF_VALUE(right)->pointer;                                  \
-		if (LWS_IS_INT_VALUE(left) && LWS_IS_INT_VALUE(right))                              \
-			PUSH_STACK(LWS_TO_INT_VALUE(left) op LWS_TO_INT_VALUE(right) ? true : false);   \
-		else if (LWS_IS_REAL_VALUE(left) && LWS_IS_REAL_VALUE(right))                       \
-			PUSH_STACK(LWS_TO_REAL_VALUE(left) op LWS_TO_REAL_VALUE(right) ? true : false); \
-		else if (LWS_IS_INT_VALUE(left) && LWS_IS_REAL_VALUE(right))                        \
-			PUSH_STACK(LWS_TO_INT_VALUE(left) op LWS_TO_REAL_VALUE(right) ? true : false);  \
-		else if (LWS_IS_REAL_VALUE(left) && LWS_IS_INT_VALUE(right))                        \
-			PUSH_STACK(LWS_TO_REAL_VALUE(left) op LWS_TO_INT_VALUE(right) ? true : false);  \
+		if (CYS_IS_REF_VALUE(left))                                                     \
+			left = *CYS_TO_REF_VALUE(left)->pointer;                                    \
+		if (CYS_IS_REF_VALUE(right))                                                    \
+			right = *CYS_TO_REF_VALUE(right)->pointer;                                  \
+		if (CYS_IS_INT_VALUE(left) && CYS_IS_INT_VALUE(right))                              \
+			PUSH_STACK(CYS_TO_INT_VALUE(left) op CYS_TO_INT_VALUE(right) ? true : false);   \
+		else if (CYS_IS_REAL_VALUE(left) && CYS_IS_REAL_VALUE(right))                       \
+			PUSH_STACK(CYS_TO_REAL_VALUE(left) op CYS_TO_REAL_VALUE(right) ? true : false); \
+		else if (CYS_IS_INT_VALUE(left) && CYS_IS_REAL_VALUE(right))                        \
+			PUSH_STACK(CYS_TO_INT_VALUE(left) op CYS_TO_REAL_VALUE(right) ? true : false);  \
+		else if (CYS_IS_REAL_VALUE(left) && CYS_IS_INT_VALUE(right))                        \
+			PUSH_STACK(CYS_TO_REAL_VALUE(left) op CYS_TO_INT_VALUE(right) ? true : false);  \
 		else                                                                        \
 			PUSH_STACK(false);                                                      \
 	} while (0);
@@ -106,29 +106,29 @@ namespace lwScript
 	{                                                                                                                                                                         \
 		Value right = POP_STACK();                                                                                                                                            \
 		Value left = POP_STACK();                                                                                                                                             \
-		if (LWS_IS_REF_VALUE(left))                                                                                                                                               \
-			left = *LWS_TO_REF_VALUE(left)->pointer;                                                                                                                              \
-		if (LWS_IS_REF_VALUE(right))                                                                                                                                              \
-			right = *LWS_TO_REF_VALUE(right)->pointer;                                                                                                                            \
-		if (LWS_IS_BOOL_VALUE(left) && LWS_IS_BOOL_VALUE(right))                                                                                                                      \
-			PUSH_STACK(LWS_TO_BOOL_VALUE(left) op LWS_TO_BOOL_VALUE(right) ? Value(true) : Value(false));                                                                             \
+		if (CYS_IS_REF_VALUE(left))                                                                                                                                               \
+			left = *CYS_TO_REF_VALUE(left)->pointer;                                                                                                                              \
+		if (CYS_IS_REF_VALUE(right))                                                                                                                                              \
+			right = *CYS_TO_REF_VALUE(right)->pointer;                                                                                                                            \
+		if (CYS_IS_BOOL_VALUE(left) && CYS_IS_BOOL_VALUE(right))                                                                                                                      \
+			PUSH_STACK(CYS_TO_BOOL_VALUE(left) op CYS_TO_BOOL_VALUE(right) ? Value(true) : Value(false));                                                                             \
 		else                                                                                                                                                                  \
-			LWS_LOG_ERROR_WITH_LOC(relatedToken, TEXT("Invalid binary op:{}{}{},only (&)bool-(&)bool type pair is available."), left.ToString(), TEXT(#op), right.ToString()); \
+			CYS_LOG_ERROR_WITH_LOC(relatedToken, TEXT("Invalid binary op:{}{}{},only (&)bool-(&)bool type pair is available."), left.ToString(), TEXT(#op), right.ToString()); \
 	} while (0);
 
 #define READ_INS() (*frame->ip++)
 
 #define CHECK_IDX_RANGE(v, idx)                 \
 	if (idx < 0 || idx >= (uint64_t)(v).size()) \
-		LWS_LOG_ERROR_WITH_LOC(relatedToken, TEXT("Idx out of range."));
+		CYS_LOG_ERROR_WITH_LOC(relatedToken, TEXT("Idx out of range."));
 
 #define CHECK_IDX_VALID(idxValue) \
-	if (!LWS_IS_INT_VALUE(idxValue))  \
-		LWS_LOG_ERROR_WITH_LOC(relatedToken, TEXT("Invalid idx type for array or string,only integer is available."));
+	if (!CYS_IS_INT_VALUE(idxValue))  \
+		CYS_LOG_ERROR_WITH_LOC(relatedToken, TEXT("Invalid idx type for array or string,only integer is available."));
 
 		while (1)
 		{
-			if (LWS_IS_CALL_FRAME_STACK_EMPTY())
+			if (CYS_IS_CALL_FRAME_STACK_EMPTY())
 				return;
 			CallFrame *frame = PEEK_CALL_FRAME(0);
 
@@ -143,14 +143,14 @@ namespace lwScript
 
 				CLOSED_UPVALUES(frame->slots);
 
-				if (LWS_IS_CALL_FRAME_STACK_EMPTY())
+				if (CYS_IS_CALL_FRAME_STACK_EMPTY())
 					return;
 
 				SET_STACK_TOP(frame->slots);
 
 				if (retCount == 0)
 				{
-#ifdef LWS_FUNCTION_CACHE_OPT
+#ifdef CYS_FUNCTION_CACHE_OPT
 					auto callFrameTop = PEEK_CALL_FRAME(0);
 					callFrameTop->closure->function->SetCache(callFrameTop->argumentsHash, {Value()});
 #endif
@@ -159,7 +159,7 @@ namespace lwScript
 				}
 				else
 				{
-#ifdef LWS_FUNCTION_CACHE_OPT
+#ifdef CYS_FUNCTION_CACHE_OPT
 
 					auto callFrameTop = PEEK_CALL_FRAME(0);
 					std::vector<Value> rets(retValues, retValues + retCount);
@@ -198,8 +198,8 @@ namespace lwScript
 
 				auto globalValue = GET_GLOBAL_VARIABLE(pos);
 
-				if (LWS_IS_REF_VALUE(*globalValue))
-					*LWS_TO_REF_VALUE(*globalValue)->pointer = v;
+				if (CYS_IS_REF_VALUE(*globalValue))
+					*CYS_TO_REF_VALUE(*globalValue)->pointer = v;
 				else
 					*globalValue = v;
 				break;
@@ -217,8 +217,8 @@ namespace lwScript
 
 				auto slot = frame->slots + pos;
 
-				if (LWS_IS_REF_VALUE((*slot)))
-					*LWS_TO_REF_VALUE((*slot))->pointer = value;
+				if (CYS_IS_REF_VALUE((*slot)))
+					*CYS_TO_REF_VALUE((*slot))->pointer = value;
 				else
 					*slot = value; // now assume base ptr on the stack bottom
 				break;
@@ -253,22 +253,22 @@ namespace lwScript
 				Value left = PEEK_STACK(0);
 				Value right = PEEK_STACK(1);
 				Value result;
-				if (LWS_IS_REF_VALUE(left))
-					left = *LWS_TO_REF_VALUE(left)->pointer;
-				if (LWS_IS_REF_VALUE(right))
-					right = *LWS_TO_REF_VALUE(right)->pointer;
-				if (LWS_IS_INT_VALUE(left) && LWS_IS_INT_VALUE(right))
-					result = LWS_TO_INT_VALUE(left) + LWS_TO_INT_VALUE(right);
-				else if (LWS_IS_REAL_VALUE(left) && LWS_IS_REAL_VALUE(right))
-					result = LWS_TO_REAL_VALUE(left) + LWS_TO_REAL_VALUE(right);
-				else if (LWS_IS_INT_VALUE(left) && LWS_IS_REAL_VALUE(right))
-					result = LWS_TO_INT_VALUE(left) + LWS_TO_REAL_VALUE(right);
-				else if (LWS_IS_REAL_VALUE(left) && LWS_IS_INT_VALUE(right))
-					result = LWS_TO_REAL_VALUE(left) + LWS_TO_INT_VALUE(right);
-				else if (LWS_IS_STR_VALUE(left) && LWS_IS_STR_VALUE(right))
-					result = Allocator::GetInstance()->CreateObject<StrObject>(LWS_TO_STR_VALUE(left)->value + LWS_TO_STR_VALUE(right)->value);
+				if (CYS_IS_REF_VALUE(left))
+					left = *CYS_TO_REF_VALUE(left)->pointer;
+				if (CYS_IS_REF_VALUE(right))
+					right = *CYS_TO_REF_VALUE(right)->pointer;
+				if (CYS_IS_INT_VALUE(left) && CYS_IS_INT_VALUE(right))
+					result = CYS_TO_INT_VALUE(left) + CYS_TO_INT_VALUE(right);
+				else if (CYS_IS_REAL_VALUE(left) && CYS_IS_REAL_VALUE(right))
+					result = CYS_TO_REAL_VALUE(left) + CYS_TO_REAL_VALUE(right);
+				else if (CYS_IS_INT_VALUE(left) && CYS_IS_REAL_VALUE(right))
+					result = CYS_TO_INT_VALUE(left) + CYS_TO_REAL_VALUE(right);
+				else if (CYS_IS_REAL_VALUE(left) && CYS_IS_INT_VALUE(right))
+					result = CYS_TO_REAL_VALUE(left) + CYS_TO_INT_VALUE(right);
+				else if (CYS_IS_STR_VALUE(left) && CYS_IS_STR_VALUE(right))
+					result = Allocator::GetInstance()->CreateObject<StrObject>(CYS_TO_STR_VALUE(left)->value + CYS_TO_STR_VALUE(right)->value);
 				else
-					LWS_LOG_ERROR_WITH_LOC(relatedToken, TEXT("Invalid binary op:{}+{},only (&)int-(&)int,(&)real-(&)real,(&)int-(&)real or (&)real-(&)int type pair is available."), left.ToString(), right.ToString());
+					CYS_LOG_ERROR_WITH_LOC(relatedToken, TEXT("Invalid binary op:{}+{},only (&)int-(&)int,(&)real-(&)real,(&)int-(&)real or (&)real-(&)int type pair is available."), left.ToString(), right.ToString());
 
 				MOVE_STACK_TOP(-2);
 				PUSH_STACK(result);
@@ -328,46 +328,46 @@ namespace lwScript
 			case OP_NOT:
 			{
 				auto value = POP_STACK();
-				if (LWS_IS_REF_VALUE(value))
-					value = *LWS_TO_REF_VALUE(value)->pointer;
-				if (!LWS_IS_BOOL_VALUE(value))
-					LWS_LOG_ERROR_WITH_LOC(relatedToken, TEXT("Invalid op:!{}, only bool type is available."), value.ToString());
-				PUSH_STACK(!LWS_TO_BOOL_VALUE(value));
+				if (CYS_IS_REF_VALUE(value))
+					value = *CYS_TO_REF_VALUE(value)->pointer;
+				if (!CYS_IS_BOOL_VALUE(value))
+					CYS_LOG_ERROR_WITH_LOC(relatedToken, TEXT("Invalid op:!{}, only bool type is available."), value.ToString());
+				PUSH_STACK(!CYS_TO_BOOL_VALUE(value));
 				break;
 			}
 			case OP_EQUAL:
 			{
 				Value left = POP_STACK();
 				Value right = POP_STACK();
-				if (LWS_IS_REF_VALUE(left))
-					left = *LWS_TO_REF_VALUE(left)->pointer;
-				if (LWS_IS_REF_VALUE(right))
-					right = *LWS_TO_REF_VALUE(right)->pointer;
+				if (CYS_IS_REF_VALUE(left))
+					left = *CYS_TO_REF_VALUE(left)->pointer;
+				if (CYS_IS_REF_VALUE(right))
+					right = *CYS_TO_REF_VALUE(right)->pointer;
 				PUSH_STACK(left == right);
 				break;
 			}
 			case OP_MINUS:
 			{
 				auto value = POP_STACK();
-				if (LWS_IS_REF_VALUE(value))
-					value = *LWS_TO_REF_VALUE(value)->pointer;
-				if (LWS_IS_INT_VALUE(value))
-					PUSH_STACK(-LWS_TO_INT_VALUE(value));
-				else if (LWS_IS_REAL_VALUE(value))
-					PUSH_STACK(-LWS_TO_REAL_VALUE(value));
+				if (CYS_IS_REF_VALUE(value))
+					value = *CYS_TO_REF_VALUE(value)->pointer;
+				if (CYS_IS_INT_VALUE(value))
+					PUSH_STACK(-CYS_TO_INT_VALUE(value));
+				else if (CYS_IS_REAL_VALUE(value))
+					PUSH_STACK(-CYS_TO_REAL_VALUE(value));
 				else
-					LWS_LOG_ERROR_WITH_LOC(relatedToken, TEXT("Invalid op:-{}, only -(int||real expr) is available."), value.ToString());
+					CYS_LOG_ERROR_WITH_LOC(relatedToken, TEXT("Invalid op:-{}, only -(int||real expr) is available."), value.ToString());
 				break;
 			}
 			case OP_FACTORIAL:
 			{
 				auto value = POP_STACK();
-				if (LWS_IS_REF_VALUE(value))
-					value = *LWS_TO_REF_VALUE(value)->pointer;
-				if (LWS_IS_INT_VALUE(value))
-					PUSH_STACK(Factorial(LWS_TO_INT_VALUE(value)));
+				if (CYS_IS_REF_VALUE(value))
+					value = *CYS_TO_REF_VALUE(value)->pointer;
+				if (CYS_IS_INT_VALUE(value))
+					PUSH_STACK(Factorial(CYS_TO_INT_VALUE(value)));
 				else
-					LWS_LOG_ERROR_WITH_LOC(relatedToken, TEXT("Invalid op:{}!, only (int expr)! is available."), value.ToString());
+					CYS_LOG_ERROR_WITH_LOC(relatedToken, TEXT("Invalid op:{}!, only (int expr)! is available."), value.ToString());
 				break;
 			}
 			case OP_ARRAY:
@@ -409,34 +409,34 @@ namespace lwScript
 			{
 				auto idxValue = POP_STACK();
 				auto dsValue = POP_STACK();
-				if (LWS_IS_ARRAY_VALUE(dsValue))
+				if (CYS_IS_ARRAY_VALUE(dsValue))
 				{
-					auto array = LWS_TO_ARRAY_VALUE(dsValue);
+					auto array = CYS_TO_ARRAY_VALUE(dsValue);
 					CHECK_IDX_VALID(idxValue);
 
-					auto intIdx = NormalizeIdx(LWS_TO_INT_VALUE(idxValue), array->elements.size());
+					auto intIdx = NormalizeIdx(CYS_TO_INT_VALUE(idxValue), array->elements.size());
 					CHECK_IDX_RANGE(array->elements, intIdx);
 
 					PUSH_STACK(array->elements[intIdx]);
 				}
-				else if (LWS_IS_STR_VALUE(dsValue))
+				else if (CYS_IS_STR_VALUE(dsValue))
 				{
-					auto strObj = LWS_TO_STR_VALUE(dsValue);
+					auto strObj = CYS_TO_STR_VALUE(dsValue);
 					CHECK_IDX_VALID(idxValue)
-					auto intIdx = NormalizeIdx(LWS_TO_INT_VALUE(idxValue), strObj->value.size());
+					auto intIdx = NormalizeIdx(CYS_TO_INT_VALUE(idxValue), strObj->value.size());
 					CHECK_IDX_RANGE(strObj->value, intIdx);
 					PUSH_STACK(Allocator::GetInstance()->CreateObject<StrObject>(strObj->value.substr(intIdx, 1)));
 				}
-				else if (LWS_IS_DICT_VALUE(dsValue))
+				else if (CYS_IS_DICT_VALUE(dsValue))
 				{
-					auto dict = LWS_TO_DICT_VALUE(dsValue);
+					auto dict = CYS_TO_DICT_VALUE(dsValue);
 
 					auto iter = dict->elements.find(idxValue);
 
 					if (iter != dict->elements.end())
 						PUSH_STACK(iter->second);
 					else
-						LWS_LOG_ERROR_WITH_LOC(relatedToken, TEXT("No key in dict"));
+						CYS_LOG_ERROR_WITH_LOC(relatedToken, TEXT("No key in dict"));
 				}
 				break;
 			}
@@ -445,29 +445,29 @@ namespace lwScript
 				auto idxValue = POP_STACK();
 				auto dsValue = POP_STACK();
 				auto newValue = PEEK_STACK(0);
-				if (LWS_IS_ARRAY_VALUE(dsValue))
+				if (CYS_IS_ARRAY_VALUE(dsValue))
 				{
-					auto array = LWS_TO_ARRAY_VALUE(dsValue);
+					auto array = CYS_TO_ARRAY_VALUE(dsValue);
 					CHECK_IDX_VALID(idxValue);
-					auto intIdx = NormalizeIdx(LWS_TO_INT_VALUE(idxValue), array->elements.size());
+					auto intIdx = NormalizeIdx(CYS_TO_INT_VALUE(idxValue), array->elements.size());
 					CHECK_IDX_RANGE(array->elements, intIdx);
 					array->elements[intIdx] = newValue;
 				}
-				else if (LWS_IS_STR_VALUE(dsValue))
+				else if (CYS_IS_STR_VALUE(dsValue))
 				{
-					auto strObj = LWS_TO_STR_VALUE(dsValue);
+					auto strObj = CYS_TO_STR_VALUE(dsValue);
 					CHECK_IDX_VALID(idxValue)
-					auto intIdx = NormalizeIdx(LWS_TO_INT_VALUE(idxValue), strObj->value.size());
+					auto intIdx = NormalizeIdx(CYS_TO_INT_VALUE(idxValue), strObj->value.size());
 					CHECK_IDX_RANGE(strObj->value, intIdx)
 
-					if (!LWS_IS_STR_VALUE(newValue))
-						LWS_LOG_ERROR_WITH_LOC(relatedToken, TEXT("Cannot insert a non string clip:{} to string:{}"), newValue.ToString(), strObj->value);
+					if (!CYS_IS_STR_VALUE(newValue))
+						CYS_LOG_ERROR_WITH_LOC(relatedToken, TEXT("Cannot insert a non string clip:{} to string:{}"), newValue.ToString(), strObj->value);
 
-					strObj->value.append(LWS_TO_STR_VALUE(newValue)->value, intIdx, LWS_TO_STR_VALUE(newValue)->value.size());
+					strObj->value.append(CYS_TO_STR_VALUE(newValue)->value, intIdx, CYS_TO_STR_VALUE(newValue)->value.size());
 				}
-				else if (LWS_IS_DICT_VALUE(dsValue))
+				else if (CYS_IS_DICT_VALUE(dsValue))
 				{
-					auto dict = LWS_TO_DICT_VALUE(dsValue);
+					auto dict = CYS_TO_DICT_VALUE(dsValue);
 					dict->elements[idxValue] = newValue;
 				}
 				break;
@@ -521,18 +521,18 @@ namespace lwScript
 
 				auto globalValue = GET_GLOBAL_VARIABLE(index);
 
-				if (LWS_IS_DICT_VALUE(*globalValue))
-					PUSH_STACK(Allocator::GetInstance()->CreateObject<RefObject>(&LWS_TO_DICT_VALUE(*globalValue)->elements[idxValue]));
-				else if (LWS_IS_ARRAY_VALUE(*globalValue))
+				if (CYS_IS_DICT_VALUE(*globalValue))
+					PUSH_STACK(Allocator::GetInstance()->CreateObject<RefObject>(&CYS_TO_DICT_VALUE(*globalValue)->elements[idxValue]));
+				else if (CYS_IS_ARRAY_VALUE(*globalValue))
 				{
-					auto array = LWS_TO_ARRAY_VALUE(*globalValue);
+					auto array = CYS_TO_ARRAY_VALUE(*globalValue);
 					CHECK_IDX_VALID(idxValue)
-					auto intIdx = NormalizeIdx(LWS_TO_INT_VALUE(idxValue), array->elements.size());
+					auto intIdx = NormalizeIdx(CYS_TO_INT_VALUE(idxValue), array->elements.size());
 					CHECK_IDX_RANGE(array->elements, intIdx);
 					PUSH_STACK(Allocator::GetInstance()->CreateObject<RefObject>(&(array->elements[intIdx])));
 				}
 				else
-					LWS_LOG_ERROR_WITH_LOC(relatedToken, TEXT("Invalid indexed reference type:{} not a dict or array value."), globalValue->ToString());
+					CYS_LOG_ERROR_WITH_LOC(relatedToken, TEXT("Invalid indexed reference type:{} not a dict or array value."), globalValue->ToString());
 				break;
 			}
 			case OP_REF_INDEX_LOCAL:
@@ -540,18 +540,18 @@ namespace lwScript
 				auto index = READ_INS();
 				auto idxValue = POP_STACK();
 				Value *v = frame->slots + index;
-				if (LWS_IS_DICT_VALUE((*v)))
-					PUSH_STACK(Allocator::GetInstance()->CreateObject<RefObject>(&LWS_TO_DICT_VALUE((*v))->elements[idxValue]));
-				else if (LWS_IS_ARRAY_VALUE((*v)))
+				if (CYS_IS_DICT_VALUE((*v)))
+					PUSH_STACK(Allocator::GetInstance()->CreateObject<RefObject>(&CYS_TO_DICT_VALUE((*v))->elements[idxValue]));
+				else if (CYS_IS_ARRAY_VALUE((*v)))
 				{
-					auto array = LWS_TO_ARRAY_VALUE((*v));
+					auto array = CYS_TO_ARRAY_VALUE((*v));
 					CHECK_IDX_VALID(idxValue)
-					auto intIdx = NormalizeIdx(LWS_TO_INT_VALUE(idxValue), array->elements.size());
+					auto intIdx = NormalizeIdx(CYS_TO_INT_VALUE(idxValue), array->elements.size());
 					CHECK_IDX_RANGE(array->elements, intIdx);
 					PUSH_STACK(Allocator::GetInstance()->CreateObject<RefObject>(&array->elements[intIdx]));
 				}
 				else
-					LWS_LOG_ERROR_WITH_LOC(relatedToken, TEXT("Invalid indexed reference type:{} not a dict or array value."), v->ToString());
+					CYS_LOG_ERROR_WITH_LOC(relatedToken, TEXT("Invalid indexed reference type:{} not a dict or array value."), v->ToString());
 				break;
 			}
 			case OP_REF_INDEX_UPVALUE:
@@ -559,42 +559,42 @@ namespace lwScript
 				auto index = READ_INS();
 				auto idxValue = POP_STACK();
 				Value *v = frame->closure->upvalues[index]->location;
-				if (LWS_IS_DICT_VALUE((*v)))
-					PUSH_STACK(Allocator::GetInstance()->CreateObject<RefObject>(&LWS_TO_DICT_VALUE((*v))->elements[idxValue]));
-				else if (LWS_IS_ARRAY_VALUE((*v)))
+				if (CYS_IS_DICT_VALUE((*v)))
+					PUSH_STACK(Allocator::GetInstance()->CreateObject<RefObject>(&CYS_TO_DICT_VALUE((*v))->elements[idxValue]));
+				else if (CYS_IS_ARRAY_VALUE((*v)))
 				{
-					auto array = LWS_TO_ARRAY_VALUE((*v));
+					auto array = CYS_TO_ARRAY_VALUE((*v));
 					CHECK_IDX_VALID(idxValue)
-					auto intIdx = NormalizeIdx(LWS_TO_INT_VALUE(idxValue), array->elements.size());
+					auto intIdx = NormalizeIdx(CYS_TO_INT_VALUE(idxValue), array->elements.size());
 					CHECK_IDX_RANGE(array->elements, intIdx)
 					PUSH_STACK(Allocator::GetInstance()->CreateObject<RefObject>(&array->elements[intIdx]));
 				}
 				else
-					LWS_LOG_ERROR_WITH_LOC(relatedToken, TEXT("Invalid indexed reference type: {}  not a dict or array value."), v->ToString());
+					CYS_LOG_ERROR_WITH_LOC(relatedToken, TEXT("Invalid indexed reference type: {}  not a dict or array value."), v->ToString());
 				break;
 			}
 			case OP_CALL:
 			{
 				auto argCount = READ_INS();
 				auto callee = PEEK_STACK(argCount);
-				if (LWS_IS_CLOSURE_VALUE(callee) || LWS_IS_CLASS_CLOSURE_BIND_VALUE(callee)) // normal function or class member function
+				if (CYS_IS_CLOSURE_VALUE(callee) || CYS_IS_CLASS_CLOSURE_BIND_VALUE(callee)) // normal function or class member function
 				{
-					if (LWS_IS_CLASS_CLOSURE_BIND_VALUE(callee))
+					if (CYS_IS_CLASS_CLOSURE_BIND_VALUE(callee))
 					{
-						auto binding = LWS_TO_CLASS_CLOSURE_BIND_VALUE(callee);
+						auto binding = CYS_TO_CLASS_CLOSURE_BIND_VALUE(callee);
 
 						SET_VALUE_FROM_STACK_TOP_OFFSET(-(argCount + 1), binding->receiver);
 						callee = binding->closure;
 					}
 
-					if (LWS_TO_CLOSURE_VALUE(callee)->function->varArg > VarArg::NONE)
+					if (CYS_TO_CLOSURE_VALUE(callee)->function->varArg > VarArg::NONE)
 					{
-						auto arity = LWS_TO_CLOSURE_VALUE(callee)->function->arity;
+						auto arity = CYS_TO_CLOSURE_VALUE(callee)->function->arity;
 						if (argCount < arity)
 						{
 							if (argCount == arity - 1)
 							{
-								if (LWS_TO_CLOSURE_VALUE(callee)->function->varArg == VarArg::WITH_NAME)
+								if (CYS_TO_CLOSURE_VALUE(callee)->function->varArg == VarArg::WITH_NAME)
 								{
 									PUSH_STACK(new ArrayObject());
 									argCount = arity;
@@ -603,12 +603,12 @@ namespace lwScript
 									argCount = arity - 1;
 							}
 							else
-								LWS_LOG_ERROR_WITH_LOC(relatedToken, TEXT("No matching argument count."));
+								CYS_LOG_ERROR_WITH_LOC(relatedToken, TEXT("No matching argument count."));
 						}
 						else if (argCount >= arity)
 						{
 							auto diff = argCount - arity + 1;
-							if (LWS_TO_CLOSURE_VALUE(callee)->function->varArg == VarArg::WITH_NAME)
+							if (CYS_TO_CLOSURE_VALUE(callee)->function->varArg == VarArg::WITH_NAME)
 							{
 								std::vector<Value> varArgs;
 								for (int32_t i = 0; i < diff; ++i)
@@ -624,13 +624,13 @@ namespace lwScript
 							}
 						}
 					}
-					else if (argCount != LWS_TO_CLOSURE_VALUE(callee)->function->arity)
-						LWS_LOG_ERROR_WITH_LOC(relatedToken, TEXT("No matching argument count."));
+					else if (argCount != CYS_TO_CLOSURE_VALUE(callee)->function->arity)
+						CYS_LOG_ERROR_WITH_LOC(relatedToken, TEXT("No matching argument count."));
 
 					auto argsHash = HashValueList(STACK_TOP() - argCount, STACK_TOP());
 					std::vector<Value> rets;
-#ifdef LWS_FUNCTION_CACHE_OPT
-					if (LWS_TO_CLOSURE_VALUE(callee)->function->GetCache(argsHash, rets))
+#ifdef CYS_FUNCTION_CACHE_OPT
+					if (CYS_TO_CLOSURE_VALUE(callee)->function->GetCache(argsHash, rets))
 					{
 						MOVE_STACK_TOP(-(argCount + 1));
 						for (int32_t i = 0; i < rets.size(); ++i)
@@ -641,18 +641,18 @@ namespace lwScript
 					{
 						// init a new frame
 						CallFrame newframe;
-						newframe.closure = LWS_TO_CLOSURE_VALUE(callee);
+						newframe.closure = CYS_TO_CLOSURE_VALUE(callee);
 						newframe.ip = newframe.closure->function->chunk.opCodes.data();
 						newframe.slots = STACK_TOP() - argCount - 1;
-#ifdef LWS_FUNCTION_CACHE_OPT
+#ifdef CYS_FUNCTION_CACHE_OPT
 						newframe.argumentsHash = argsHash;
 #endif
 						PUSH_CALL_FRAME(newframe);
 					}
 				}
-				else if (LWS_IS_CLASS_VALUE(callee)) // class constructor
+				else if (CYS_IS_CLASS_VALUE(callee)) // class constructor
 				{
-					auto klass = LWS_TO_CLASS_VALUE(callee);
+					auto klass = CYS_TO_CLASS_VALUE(callee);
 					// no user-defined constructor and calling none argument construction
 					// like: class A{} let a=new A();
 					// skip calling constructor(because class object has been instantiated)
@@ -662,7 +662,7 @@ namespace lwScript
 					{
 						auto iter = klass->constructors.find(argCount);
 						if (iter == klass->constructors.end())
-							LWS_LOG_ERROR_WITH_LOC(relatedToken, TEXT("Not matching argument count of class: {}'s constructors."), klass->name);
+							CYS_LOG_ERROR_WITH_LOC(relatedToken, TEXT("Not matching argument count of class: {}'s constructors."), klass->name);
 
 						auto ctor = iter->second;
 						// init a new frame
@@ -674,11 +674,11 @@ namespace lwScript
 						PUSH_CALL_FRAME(newframe);
 					}
 				}
-				else if (LWS_IS_NATIVE_FUNCTION_VALUE(callee)) // native function
+				else if (CYS_IS_NATIVE_FUNCTION_VALUE(callee)) // native function
 				{
 
 					Value result;
-					auto hasRetV = LWS_TO_NATIVE_FUNCTION_VALUE(callee)->fn(STACK_TOP() - argCount, argCount, relatedToken, result);
+					auto hasRetV = CYS_TO_NATIVE_FUNCTION_VALUE(callee)->fn(STACK_TOP() - argCount, argCount, relatedToken, result);
 
 					MOVE_STACK_TOP(-(argCount + 1));
 
@@ -688,7 +688,7 @@ namespace lwScript
 						PUSH_STACK(Value());
 				}
 				else
-					LWS_LOG_ERROR_WITH_LOC(relatedToken, TEXT("Invalid callee,Only function is available: {}"), callee.ToString());
+					CYS_LOG_ERROR_WITH_LOC(relatedToken, TEXT("Invalid callee,Only function is available: {}"), callee.ToString());
 				break;
 			}
 			case OP_CLASS:
@@ -701,12 +701,12 @@ namespace lwScript
 
 				auto classObj = Allocator::GetInstance()->CreateObject<ClassObject>();
 
-				classObj->name = LWS_TO_STR_VALUE(name)->value;
+				classObj->name = CYS_TO_STR_VALUE(name)->value;
 				POP_STACK(); // pop name strobject
 
 				for (int32_t i = 0; i < ctorCount; ++i)
 				{
-					auto v = LWS_TO_CLOSURE_VALUE(POP_STACK());
+					auto v = CYS_TO_CLOSURE_VALUE(POP_STACK());
 					classObj->constructors[v->function->arity] = v;
 				}
 
@@ -714,7 +714,7 @@ namespace lwScript
 				{
 					name = POP_STACK();
 					auto parentClass = POP_STACK();
-					classObj->parents[LWS_TO_STR_VALUE(name)->value] = LWS_TO_CLASS_VALUE(parentClass);
+					classObj->parents[CYS_TO_STR_VALUE(name)->value] = CYS_TO_CLASS_VALUE(parentClass);
 				}
 
 				for (int32_t i = 0; i < varCount; ++i)
@@ -722,7 +722,7 @@ namespace lwScript
 					name = POP_STACK();
 					auto v = POP_STACK();
 					v.permission = Permission::MUTABLE;
-					classObj->members[LWS_TO_STR_VALUE(name)->value] = v;
+					classObj->members[CYS_TO_STR_VALUE(name)->value] = v;
 				}
 
 				for (int32_t i = 0; i < constCount; ++i)
@@ -730,7 +730,7 @@ namespace lwScript
 					name = POP_STACK();
 					auto v = POP_STACK();
 					v.permission = Permission::IMMUTABLE;
-					classObj->members[LWS_TO_STR_VALUE(name)->value] = v;
+					classObj->members[CYS_TO_STR_VALUE(name)->value] = v;
 				}
 
 				PUSH_STACK(classObj);
@@ -742,7 +742,7 @@ namespace lwScript
 				auto structObj = Allocator::GetInstance()->CreateObject<StructObject>();
 				for (int64_t i = 0; i < (int64_t)eCount; ++i)
 				{
-					auto key = LWS_TO_STR_VALUE(POP_STACK())->value;
+					auto key = CYS_TO_STR_VALUE(POP_STACK())->value;
 					auto value = POP_STACK();
 					structObj->elements[key] = value;
 				}
@@ -753,30 +753,30 @@ namespace lwScript
 			{
 				auto peekValue = PEEK_STACK(1);
 
-				if (LWS_IS_REF_VALUE(peekValue))
-					peekValue = *(LWS_TO_REF_VALUE(peekValue)->pointer);
+				if (CYS_IS_REF_VALUE(peekValue))
+					peekValue = *(CYS_TO_REF_VALUE(peekValue)->pointer);
 
-				auto propName = LWS_TO_STR_VALUE(POP_STACK())->value;
-				if (LWS_IS_CLASS_VALUE(peekValue))
+				auto propName = CYS_TO_STR_VALUE(POP_STACK())->value;
+				if (CYS_IS_CLASS_VALUE(peekValue))
 				{
-					ClassObject *klass = LWS_TO_CLASS_VALUE(peekValue);
+					ClassObject *klass = CYS_TO_CLASS_VALUE(peekValue);
 
 					Value member;
 					if (klass->GetMember(propName, member))
 					{
 						POP_STACK(); // pop class object
-						if (LWS_IS_CLOSURE_VALUE(member))
-							member = Allocator::GetInstance()->CreateObject<ClassClosureBindObject>(klass, LWS_TO_CLOSURE_VALUE(member));
+						if (CYS_IS_CLOSURE_VALUE(member))
+							member = Allocator::GetInstance()->CreateObject<ClassClosureBindObject>(klass, CYS_TO_CLOSURE_VALUE(member));
 
 						PUSH_STACK(member);
 						break;
 					}
 					else
-						LWS_LOG_ERROR_WITH_LOC(relatedToken, TEXT("No member: {} in class object:{}"), propName, klass->name);
+						CYS_LOG_ERROR_WITH_LOC(relatedToken, TEXT("No member: {} in class object:{}"), propName, klass->name);
 				}
-				else if (LWS_IS_ENUM_VALUE(peekValue))
+				else if (CYS_IS_ENUM_VALUE(peekValue))
 				{
-					EnumObject *enumObj = LWS_TO_ENUM_VALUE(peekValue);
+					EnumObject *enumObj = CYS_TO_ENUM_VALUE(peekValue);
 
 					Value member;
 					if (enumObj->GetMember(propName, member))
@@ -786,21 +786,21 @@ namespace lwScript
 						break;
 					}
 					else
-						LWS_LOG_ERROR_WITH_LOC(relatedToken, TEXT("No member: {} in enum object: {}"), propName, enumObj->name);
+						CYS_LOG_ERROR_WITH_LOC(relatedToken, TEXT("No member: {} in enum object: {}"), propName, enumObj->name);
 				}
-				else if (LWS_IS_STRUCT_VALUE(peekValue))
+				else if (CYS_IS_STRUCT_VALUE(peekValue))
 				{
-					auto structObj = LWS_TO_STRUCT_VALUE(peekValue);
+					auto structObj = CYS_TO_STRUCT_VALUE(peekValue);
 					auto iter = structObj->elements.find(propName);
 					if (iter == structObj->elements.end())
-						LWS_LOG_ERROR_WITH_LOC(relatedToken, TEXT("No property: {} in struct object:{}."), propName, structObj->ToString());
+						CYS_LOG_ERROR_WITH_LOC(relatedToken, TEXT("No property: {} in struct object:{}."), propName, structObj->ToString());
 					POP_STACK(); // pop struct object
 					PUSH_STACK(iter->second);
 					break;
 				}
-				else if (LWS_IS_MODULE_VALUE(peekValue))
+				else if (CYS_IS_MODULE_VALUE(peekValue))
 				{
-					auto moduleObj = LWS_TO_MODULE_VALUE(peekValue);
+					auto moduleObj = CYS_TO_MODULE_VALUE(peekValue);
 					Value member;
 					if (moduleObj->GetMember(propName, member))
 					{
@@ -809,10 +809,10 @@ namespace lwScript
 						break;
 					}
 					else
-						LWS_LOG_ERROR_WITH_LOC(relatedToken, TEXT("No member: {} in module: {}"), propName, moduleObj->name);
+						CYS_LOG_ERROR_WITH_LOC(relatedToken, TEXT("No member: {} in module: {}"), propName, moduleObj->name);
 				}
 				else
-					LWS_LOG_ERROR_WITH_LOC(relatedToken, TEXT("Invalid call:not a valid class,enum or struct object instance: {}"), peekValue.ToString());
+					CYS_LOG_ERROR_WITH_LOC(relatedToken, TEXT("Invalid call:not a valid class,enum or struct object instance: {}"), peekValue.ToString());
 
 				break;
 			}
@@ -820,59 +820,59 @@ namespace lwScript
 			{
 				auto peekValue = PEEK_STACK(1);
 
-				if (LWS_IS_REF_VALUE(peekValue))
-					peekValue = *(LWS_TO_REF_VALUE(peekValue)->pointer);
+				if (CYS_IS_REF_VALUE(peekValue))
+					peekValue = *(CYS_TO_REF_VALUE(peekValue)->pointer);
 
-				auto propName = LWS_TO_STR_VALUE(POP_STACK())->value;
-				if (LWS_IS_CLASS_VALUE(peekValue))
+				auto propName = CYS_TO_STR_VALUE(POP_STACK())->value;
+				if (CYS_IS_CLASS_VALUE(peekValue))
 				{
-					auto klass = LWS_TO_CLASS_VALUE(peekValue);
+					auto klass = CYS_TO_CLASS_VALUE(peekValue);
 					POP_STACK(); // pop class value
 
 					Value member;
 					if (klass->GetMember(propName, member))
 					{
 						if (member.permission == Permission::IMMUTABLE)
-							LWS_LOG_ERROR_WITH_LOC(relatedToken, TEXT("Constant cannot be assigned twice: {}'s member: {} is a constant value"), klass->name, propName);
+							CYS_LOG_ERROR_WITH_LOC(relatedToken, TEXT("Constant cannot be assigned twice: {}'s member: {} is a constant value"), klass->name, propName);
 						else
 							klass->members[propName] = PEEK_STACK(0);
 					}
 					else
-						LWS_LOG_ERROR_WITH_LOC(relatedToken, TEXT("No member named: {} in class: {}"), propName, klass->name);
+						CYS_LOG_ERROR_WITH_LOC(relatedToken, TEXT("No member named: {} in class: {}"), propName, klass->name);
 				}
-				else if (LWS_IS_STRUCT_VALUE(peekValue))
+				else if (CYS_IS_STRUCT_VALUE(peekValue))
 				{
-					auto structObj = LWS_TO_STRUCT_VALUE(peekValue);
+					auto structObj = CYS_TO_STRUCT_VALUE(peekValue);
 					auto iter = structObj->elements.find(propName);
 					if (iter == structObj->elements.end())
-						LWS_LOG_ERROR_WITH_LOC(relatedToken, TEXT("No property: {} in struct object:{}"), propName, structObj->ToString());
+						CYS_LOG_ERROR_WITH_LOC(relatedToken, TEXT("No property: {} in struct object:{}"), propName, structObj->ToString());
 					POP_STACK(); // pop struct object
 					structObj->elements[iter->first] = PEEK_STACK(0);
 					break;
 				}
-				else if (LWS_IS_ENUM_VALUE(peekValue))
-					LWS_LOG_ERROR_WITH_LOC(relatedToken, TEXT("Invalid call:cannot assign value to a enum object member."));
+				else if (CYS_IS_ENUM_VALUE(peekValue))
+					CYS_LOG_ERROR_WITH_LOC(relatedToken, TEXT("Invalid call:cannot assign value to a enum object member."));
 				else
-					LWS_LOG_ERROR_WITH_LOC(relatedToken, TEXT("Invalid call:not a valid class or struct object instance."));
+					CYS_LOG_ERROR_WITH_LOC(relatedToken, TEXT("Invalid call:not a valid class or struct object instance."));
 				break;
 			}
 			case OP_GET_BASE:
 			{
-				if (!LWS_IS_CLASS_VALUE(PEEK_STACK(1)))
-					LWS_LOG_ERROR_WITH_LOC(relatedToken, TEXT("Invalid class call:not a valid class instance."));
-				auto propName = LWS_TO_STR_VALUE(POP_STACK())->value;
-				auto klass = LWS_TO_CLASS_VALUE(POP_STACK());
+				if (!CYS_IS_CLASS_VALUE(PEEK_STACK(1)))
+					CYS_LOG_ERROR_WITH_LOC(relatedToken, TEXT("Invalid class call:not a valid class instance."));
+				auto propName = CYS_TO_STR_VALUE(POP_STACK())->value;
+				auto klass = CYS_TO_CLASS_VALUE(POP_STACK());
 				Value member;
 				bool hasValue = klass->GetParentMember(propName, member);
 				if (!hasValue)
-					LWS_LOG_ERROR_WITH_LOC(relatedToken, TEXT("No member: {} in class: {}'s parent class(es)."), propName, klass->name);
+					CYS_LOG_ERROR_WITH_LOC(relatedToken, TEXT("No member: {} in class: {}'s parent class(es)."), propName, klass->name);
 				PUSH_STACK(member);
 				break;
 			}
 			case OP_CLOSURE:
 			{
 				auto pos = READ_INS();
-				auto func = LWS_TO_FUNCTION_VALUE(frame->closure->function->chunk.constants[pos]);
+				auto func = CYS_TO_FUNCTION_VALUE(frame->closure->function->chunk.constants[pos]);
 
 				PUSH_STACK(func); // push function object for avoiding gc
 				auto closure = Allocator::GetInstance()->CreateObject<ClosureObject>(func);
@@ -899,9 +899,9 @@ namespace lwScript
 			{
 				auto count = READ_INS();
 				auto value = POP_STACK();
-				if (LWS_IS_ARRAY_VALUE(value))
+				if (CYS_IS_ARRAY_VALUE(value))
 				{
-					auto arrayObj = LWS_TO_ARRAY_VALUE(value);
+					auto arrayObj = CYS_TO_ARRAY_VALUE(value);
 					if (count >= arrayObj->elements.size())
 					{
 						auto diff = count - arrayObj->elements.size();
@@ -936,9 +936,9 @@ namespace lwScript
 			{
 				auto count = READ_INS();
 				auto value = PEEK_STACK(0);
-				if (LWS_IS_ARRAY_VALUE(value))
+				if (CYS_IS_ARRAY_VALUE(value))
 				{
-					auto arrayObj = LWS_TO_ARRAY_VALUE(value);
+					auto arrayObj = CYS_TO_ARRAY_VALUE(value);
 					if (count >= arrayObj->elements.size())
 					{
 						ArrayObject *varArgArray = Allocator::GetInstance()->CreateObject<ArrayObject>();
@@ -992,7 +992,7 @@ namespace lwScript
 			case OP_MODULE:
 			{
 				auto name = PEEK_STACK(0);
-				auto nameStr = LWS_TO_STR_VALUE(name)->value;
+				auto nameStr = CYS_TO_STR_VALUE(name)->value;
 
 				auto varCount = READ_INS();
 				auto constCount = READ_INS();
@@ -1004,7 +1004,7 @@ namespace lwScript
 				for (int32_t i = 0; i < constCount; ++i)
 				{
 					name = POP_STACK();
-					nameStr = LWS_TO_STR_VALUE(name)->value;
+					nameStr = CYS_TO_STR_VALUE(name)->value;
 					auto v = POP_STACK();
 					v.permission = Permission::IMMUTABLE;
 					moduleObj->values[nameStr] = v;
@@ -1013,7 +1013,7 @@ namespace lwScript
 				for (int32_t i = 0; i < varCount; ++i)
 				{
 					name = POP_STACK();
-					nameStr = LWS_TO_STR_VALUE(name)->value;
+					nameStr = CYS_TO_STR_VALUE(name)->value;
 					auto v = POP_STACK();
 					v.permission = Permission::MUTABLE;
 					moduleObj->values[nameStr] = v;
@@ -1047,6 +1047,6 @@ namespace lwScript
 
 	bool VM::IsFalsey(const Value &v) noexcept
 	{
-		return LWS_IS_NULL_VALUE(v) || (LWS_IS_BOOL_VALUE(v) && !LWS_TO_BOOL_VALUE(v));
+		return CYS_IS_NULL_VALUE(v) || (CYS_IS_BOOL_VALUE(v) && !CYS_TO_BOOL_VALUE(v));
 	}
 }

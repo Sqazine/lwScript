@@ -2,7 +2,7 @@
 #include <string>
 #include <unordered_map>
 #include "Utils.h"
-namespace lwScript
+namespace CynicScript
 {
 	enum ValueKind : uint8_t
 	{
@@ -13,7 +13,7 @@ namespace lwScript
 		OBJECT,
 	};
 
-	struct LWS_API Value
+	struct CYS_API Value
 	{
 		Value() noexcept;
 		Value(int64_t integer) noexcept;
@@ -41,10 +41,10 @@ namespace lwScript
 		};
 	};
 
-	LWS_API bool operator==(const Value &left, const Value &right);
-	LWS_API bool operator!=(const Value &left, const Value &right);
+	CYS_API bool operator==(const Value &left, const Value &right);
+	CYS_API bool operator!=(const Value &left, const Value &right);
 
-	struct LWS_API ValueHash
+	struct CYS_API ValueHash
 	{
 		size_t operator()(const Value *v) const;
 		size_t operator()(const Value &v) const;

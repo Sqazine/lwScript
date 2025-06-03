@@ -7,9 +7,9 @@
 #include "Token.h"
 #include "Utils.h"
 
-namespace lwScript
+namespace CynicScript
 {
-	class LWS_API Lexer
+	class CYS_API Lexer
 	{
 	public:
 		Lexer();

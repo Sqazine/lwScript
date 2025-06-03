@@ -1,6 +1,6 @@
 #include "TypeCheckPass.h"
 #include "Logger.h"
-namespace lwScript
+namespace CynicScript
 {
     struct TypeInfo
     {
@@ -195,7 +195,7 @@ namespace lwScript
                     return decl;
 
                 if (v->kind != AstKind::LITERAL)
-                    LWS_LOG_ERROR(TEXT("Now Only check Literal Expr type and named variable only."));
+                    CYS_LOG_ERROR(TEXT("Now Only check Literal Expr type and named variable only."));
 
                 auto rightType = ((LiteralExpr *)v)->type;
 

@@ -1,6 +1,6 @@
 #include "Allocator.h"
 #include "VM.h"
-namespace lwScript
+namespace CynicScript
 {
     SINGLETON_IMPL(Allocator)
 
@@ -48,7 +48,7 @@ namespace lwScript
             object = next;
         }
 
-#ifdef LWS_GC_DEBUG
+#ifdef CYS_GC_DEBUG
         Logger::Info(TEXT("collected {} bytes (from {} to {}) next gc bytes {}"), bytes - mBytesAllocated, bytes, mNextGCByteSize);
 #endif
     }
@@ -57,7 +57,7 @@ namespace lwScript
     {
 #ifndef NDEBUG
         if (mStackTop - mValueStack >= STACK_MAX)
-            LWS_LOG_ERROR(TEXT("Stack overflow."));
+            CYS_LOG_ERROR(TEXT("Stack overflow."));
 #endif
         *(mStackTop++) = value;
     }
@@ -65,7 +65,7 @@ namespace lwScript
     {
 #ifndef NDEBUG
         if (mStackTop - mValueStack <= 0)
-            LWS_LOG_ERROR(TEXT("Stack underflow."));
+            CYS_LOG_ERROR(TEXT("Stack underflow."));
 #endif
         return *(--mStackTop);
     }
@@ -171,7 +171,7 @@ namespace lwScript
 
     void Allocator::GC()
     {
-#ifdef LWS_GC_DEBUG
+#ifdef CYS_GC_DEBUG
         Logger::Info(TEXT("begin gc"));
         size_t bytes = mBytesAllocated;
 #endif
@@ -181,7 +181,7 @@ namespace lwScript
         Sweep();
         mNextGCByteSize = mBytesAllocated * GC_HEAP_GROW_FACTOR;
 
-#ifdef LWS_GC_DEBUG
+#ifdef CYS_GC_DEBUG
         Logger::Info(TEXT("end gc"));
         Logger::Info(TEXT("    collected {} bytes (from {} to {}) next gc bytes {}"), bytes - mBytesAllocated, bytes, mNextGCByteSize);
 #endif

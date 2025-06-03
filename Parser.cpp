@@ -2,7 +2,7 @@
 #include "LibraryManager.h"
 #include "Utils.h"
 #include "Logger.h"
-namespace lwScript
+namespace CynicScript
 {
 	struct PrecedenceBinding
 	{
@@ -319,7 +319,7 @@ namespace lwScript
 			{
 				auto fn = (FunctionDecl *)ParseFunctionDecl();
 				if (fn->name->literal == classStmt->name)
-					LWS_LOG_ERROR_WITH_LOC(fn->name->tagToken, TEXT("The class member function name :{} conflicts with its class:{}, only constructor function name is allowed to same with its class's name"), fn->name->literal);
+					CYS_LOG_ERROR_WITH_LOC(fn->name->tagToken, TEXT("The class member function name :{} conflicts with its class:{}, only constructor function name is allowed to same with its class's name"), fn->name->literal);
 				classStmt->functions.emplace_back(privilege, std::move(ClassDecl::FunctionMember(ClassDecl::FunctionKind::MEMBER, fn)));
 			}
 			else if (GetCurToken()->literal == classStmt->name) // constructor
@@ -402,7 +402,7 @@ namespace lwScript
 				moduleDecl->moduleItems.emplace_back((ModuleDecl *)ParseModuleDecl());
 				break;
 			default:
-				LWS_LOG_ERROR_WITH_LOC(GetCurToken(), TEXT("Only let,const,function,class,enum and module is available in module scope"));
+				CYS_LOG_ERROR_WITH_LOC(GetCurToken(), TEXT("Only let,const,function,class,enum and module is available in module scope"));
 			}
 		}
 
@@ -767,7 +767,7 @@ namespace lwScript
 		auto thisExpr = new ThisExpr(token);
 
 		if (!mCurClassInfo)
-			LWS_LOG_ERROR_WITH_LOC(thisExpr->tagToken, TEXT("Invalid 'this' keyword:Cannot use 'this' outside class."));
+			CYS_LOG_ERROR_WITH_LOC(thisExpr->tagToken, TEXT("Invalid 'this' keyword:Cannot use 'this' outside class."));
 
 		return thisExpr;
 	}
@@ -781,7 +781,7 @@ namespace lwScript
 		auto baseExpr = new BaseExpr(token, (IdentifierExpr *)ParseIdentifierExpr());
 
 		if (!mCurClassInfo)
-			LWS_LOG_ERROR_WITH_LOC(baseExpr->tagToken, TEXT("Invalid 'base' keyword:Cannot use 'base' outside class."));
+			CYS_LOG_ERROR_WITH_LOC(baseExpr->tagToken, TEXT("Invalid 'base' keyword:Cannot use 'base' outside class."));
 
 		return baseExpr;
 	}
@@ -809,7 +809,7 @@ namespace lwScript
 				if (IsMatchCurToken(TokenKind::DEFAULT))
 				{
 					if (hasDefaultBranch)
-						LWS_LOG_ERROR_WITH_LOC(GetCurToken(), TEXT("Already exists a default branch.only a default branch is available in a match expr."));
+						CYS_LOG_ERROR_WITH_LOC(GetCurToken(), TEXT("Already exists a default branch.only a default branch is available in a match expr."));
 
 					GetCurTokenAndStepOnce();
 
@@ -881,14 +881,14 @@ namespace lwScript
 		do
 		{
 			if (IsMatchCurToken(TokenKind::RBRACE_RPAREN))
-				LWS_LOG_ERROR_WITH_LOC(GetCurToken(), TEXT("Expr required at the end of block expression."));
+				CYS_LOG_ERROR_WITH_LOC(GetCurToken(), TEXT("Expr required at the end of block expression."));
 			stmts.emplace_back(ParseDeclAndStmt());
 		} while (IsMatchCurTokenAndStepOnce(TokenKind::SEMICOLON));
 
 		mSkippingConsumeTokenKindStack.pop_back();
 
 		if (stmts.back()->kind != AstKind::EXPR)
-			LWS_LOG_ERROR_WITH_LOC(stmts.back()->tagToken, TEXT("Expr required at the end of block expression."));
+			CYS_LOG_ERROR_WITH_LOC(stmts.back()->tagToken, TEXT("Expr required at the end of block expression."));
 
 		auto expr = ((ExprStmt *)stmts.back())->expr;
 		stmts.pop_back();
@@ -906,7 +906,7 @@ namespace lwScript
 		if (mPrefixFunctions.find(GetCurToken()->kind) == mPrefixFunctions.end())
 		{
 			auto token = GetCurTokenAndStepOnce();
-			LWS_LOG_ERROR_WITH_LOC(token, TEXT("no prefix definition for:{}"), token->literal);
+			CYS_LOG_ERROR_WITH_LOC(token, TEXT("no prefix definition for:{}"), token->literal);
 
 			auto nullExpr = new LiteralExpr(token);
 
@@ -966,7 +966,7 @@ namespace lwScript
 		else if (token->kind == TokenKind::FALSE)
 			return new LiteralExpr(token, false);
 
-		LWS_LOG_ERROR_WITH_LOC(token, TEXT("Unknown Literal."));
+		CYS_LOG_ERROR_WITH_LOC(token, TEXT("Unknown Literal."));
 		return nullptr;
 	}
 
@@ -1040,7 +1040,7 @@ namespace lwScript
 				Expr *key = ParseExpr();
 
 				if (key->kind != AstKind::IDENTIFIER)
-					LWS_LOG_ERROR_WITH_LOC(key->tagToken, TEXT("Struct object require key must be a valid identifier."));
+					CYS_LOG_ERROR_WITH_LOC(key->tagToken, TEXT("Struct object require key must be a valid identifier."));
 
 				Consume(TokenKind::COLON, TEXT("Expect ':' after struct object's key."));
 				Expr *value = ParseExpr();
@@ -1191,7 +1191,7 @@ namespace lwScript
 			{
 				varArgCount++;
 				if (varArgCount > 1)
-					LWS_LOG_ERROR_WITH_LOC(varDescExpr->tagToken, TEXT("only 1 variable arg decl is available in var declaration."));
+					CYS_LOG_ERROR_WITH_LOC(varDescExpr->tagToken, TEXT("only 1 variable arg decl is available in var declaration."));
 			}
 
 			arrayExpr->elements.emplace_back(varDescExpr);
@@ -1207,7 +1207,7 @@ namespace lwScript
 				if (((VarDescExpr *)arrayExpr->elements[i])->name->kind == AstKind::VAR_ARG)
 				{
 					if (i < arrayExpr->elements.size() - 1)
-						LWS_LOG_ERROR_WITH_LOC(arrayExpr->elements[i]->tagToken, TEXT("variable arg decl must be located at the end of destructing assignment declaration."));
+						CYS_LOG_ERROR_WITH_LOC(arrayExpr->elements[i]->tagToken, TEXT("variable arg decl must be located at the end of destructing assignment declaration."));
 				}
 			}
 		}
@@ -1232,7 +1232,7 @@ namespace lwScript
 				else if (((VarDescExpr *)arrayExpr->elements.back())->name->kind == AstKind::VAR_ARG)
 					initializeList->elements = ((ArrayExpr *)value)->elements;
 				else
-					LWS_LOG_ERROR_WITH_LOC(GetCurToken(), TEXT("variable less than value."));
+					CYS_LOG_ERROR_WITH_LOC(GetCurToken(), TEXT("variable less than value."));
 			}
 			else if (value->kind == AstKind::CALL)
 				return std::make_pair(arrayExpr, value);
@@ -1357,7 +1357,7 @@ namespace lwScript
 			if (IsMatchCurToken(kind))
 				return GetCurTokenAndStepOnce();
 			Token *token = GetCurToken();
-			LWS_LOG_ERROR_WITH_LOC(token, TEXT("{}"), errMsg);
+			CYS_LOG_ERROR_WITH_LOC(token, TEXT("{}"), errMsg);
 		}
 		return nullptr;
 	}
@@ -1373,7 +1373,7 @@ namespace lwScript
 			if (IsMatchCurToken(kind))
 				return GetCurTokenAndStepOnce();
 		Token *token = GetCurToken();
-		LWS_LOG_ERROR_WITH_LOC(token, TEXT("{}"), errMsg);
+		CYS_LOG_ERROR_WITH_LOC(token, TEXT("{}"), errMsg);
 		return nullptr;
 	}
 

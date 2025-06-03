@@ -7,7 +7,7 @@
 #include "Ast.h"
 #include "Lexer.h"
 #include "Parser.h"
-#include "AstPass.h"
+#include "AstOptimizePass.h"
 #include "ConstantFoldPass.h"
 #include "TypeCheckPass.h"
 #include "SyntaxCheckPass.h"

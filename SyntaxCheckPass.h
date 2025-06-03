@@ -1,10 +1,10 @@
 #pragma once
 #include <cstdint>
-#include "AstPass.h"
+#include "AstOptimizePass.h"
 
-namespace lwScript
+namespace CynicScript
 {
-    class LWS_API SyntaxCheckPass : public AstPass
+    class CYS_API SyntaxCheckPass : public AstOptimizePass
     {
     public:
          SyntaxCheckPass() noexcept;

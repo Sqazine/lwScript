@@ -3,11 +3,11 @@
 #include "Ast.h"
 #include "Object.h"
 #include "Utils.h"
-namespace lwScript
+namespace CynicScript
 {
 	struct Symbol;
 	class SymbolTable;
-	class LWS_API Compiler
+	class CYS_API Compiler
 	{
 	public:
 		Compiler();

@@ -3,7 +3,7 @@
 #include "Object.h"
 #include "LibraryManager.h"
 #include "Logger.h"
-namespace lwScript
+namespace CynicScript
 {
 	enum class SymbolLocation
 	{
@@ -58,14 +58,14 @@ namespace lwScript
 		Symbol Define(const Token *relatedToken, Permission permission, const STRING &name, const FunctionSymbolInfo &functionInfo = {})
 		{
 			if (mSymbolCount >= mSymbols.size())
-				LWS_LOG_ERROR_WITH_LOC(relatedToken, TEXT("Too many symbols in current scope."));
+				CYS_LOG_ERROR_WITH_LOC(relatedToken, TEXT("Too many symbols in current scope."));
 			for (int16_t i = mSymbolCount - 1; i >= 0; --i)
 			{
 				auto isSameParamCount = (mSymbols[i].functionSymInfo.paramCount < 0 || functionInfo.paramCount < 0) ? true : mSymbols[i].functionSymInfo.paramCount == functionInfo.paramCount;
 				if (mSymbols[i].scopeDepth == -1 || mSymbols[i].scopeDepth < mScopeDepth)
 					break;
 				if (mSymbols[i].name == name && isSameParamCount)
-					LWS_LOG_ERROR_WITH_LOC(relatedToken, TEXT("Redefinition symbol:{}"), name);
+					CYS_LOG_ERROR_WITH_LOC(relatedToken, TEXT("Redefinition symbol:{}"), name);
 			}
 
 			auto *symbol = &mSymbols[mSymbolCount++];
@@ -100,7 +100,7 @@ namespace lwScript
 					if (isSameParamCount || mSymbols[i].functionSymInfo.varArg > VarArg::NONE)
 					{
 						if (mSymbols[i].scopeDepth == -1)
-							LWS_LOG_ERROR_WITH_LOC(relatedToken, TEXT("symbol not defined yet!"));
+							CYS_LOG_ERROR_WITH_LOC(relatedToken, TEXT("symbol not defined yet!"));
 
 						if (d == 1)
 							mSymbols[i].isCaptured = true;
@@ -121,7 +121,7 @@ namespace lwScript
 				return result;
 			}
 
-			LWS_LOG_ERROR_WITH_LOC(relatedToken, TEXT("No symbol: \"{}\" in current scope."), name);
+			CYS_LOG_ERROR_WITH_LOC(relatedToken, TEXT("No symbol: \"{}\" in current scope."), name);
 		}
 
 		std::array<Symbol, UINT8_COUNT> mSymbols;
@@ -144,7 +144,7 @@ namespace lwScript
 			}
 
 			if (mUpValueCount == UINT8_COUNT)
-				LWS_LOG_ERROR_WITH_LOC(relatedToken, TEXT("Too many closure upvalues in function."));
+				CYS_LOG_ERROR_WITH_LOC(relatedToken, TEXT("Too many closure upvalues in function."));
 			mUpValues[mUpValueCount].location = location;
 			mUpValues[mUpValueCount].depth = depth;
 			mUpValues[mUpValueCount].index = mUpValueCount;
@@ -267,7 +267,7 @@ namespace lwScript
 				}
 			}
 			else
-				LWS_LOG_ERROR_WITH_LOC(v->tagToken, TEXT("Enum value only integer num,floating point num,boolean or string is available."));
+				CYS_LOG_ERROR_WITH_LOC(v->tagToken, TEXT("Enum value only integer num,floating point num,boolean or string is available."));
 
 			pairs[k->literal] = enumValue;
 		}
@@ -634,9 +634,9 @@ namespace lwScript
 						auto assigneeElements = assignee->elements;
 						auto rightElements = ((ArrayExpr *)expr->right)->elements;
 						if (assigneeElements.size() < rightElements.size())
-							LWS_LOG_WARN_WITH_LOC(rightElements[assigneeElements.size()]->tagToken, TEXT("variable count less than value count,ignore the rest value"));
+							CYS_LOG_WARN_WITH_LOC(rightElements[assigneeElements.size()]->tagToken, TEXT("variable count less than value count,ignore the rest value"));
 						else if (assigneeElements.size() > rightElements.size())
-							LWS_LOG_WARN_WITH_LOC(assigneeElements[rightElements.size()]->tagToken, TEXT("variable count greater than value count,rest value set as null"));
+							CYS_LOG_WARN_WITH_LOC(assigneeElements[rightElements.size()]->tagToken, TEXT("variable count greater than value count,rest value set as null"));
 					}
 				}
 
@@ -824,7 +824,7 @@ namespace lwScript
 			CompileExpr(expr->right, RWState::WRITE);
 		}
 		else
-			LWS_LOG_ERROR_WITH_LOC(expr->tagToken, TEXT("No prefix op:{}"), expr->op);
+			CYS_LOG_ERROR_WITH_LOC(expr->tagToken, TEXT("No prefix op:{}"), expr->op);
 	}
 	void Compiler::CompilePostfixExpr(PostfixExpr *expr, const RWState &state, bool isDelayCompile)
 	{
@@ -837,7 +837,7 @@ namespace lwScript
 			else if (expr->op == TEXT("--"))
 				EmitOpCode(OP_SUB, expr->tagToken);
 			else
-				LWS_LOG_ERROR_WITH_LOC(expr->tagToken, TEXT("No postfix op:{}"), expr->op);
+				CYS_LOG_ERROR_WITH_LOC(expr->tagToken, TEXT("No postfix op:{}"), expr->op);
 			CompileExpr(expr->left, RWState::WRITE);
 			EmitOpCode(OP_POP, expr->tagToken);
 		}
@@ -967,7 +967,7 @@ namespace lwScript
 					Emit(symbol.index);
 			}
 			else
-				LWS_LOG_ERROR_WITH_LOC(expr->tagToken, TEXT("{} is a constant,which cannot be assigned!"), expr->ToString());
+				CYS_LOG_ERROR_WITH_LOC(expr->tagToken, TEXT("{} is a constant,which cannot be assigned!"), expr->ToString());
 		}
 		else
 		{
@@ -1288,7 +1288,7 @@ namespace lwScript
 					varCount++;
 				}
 				else
-					LWS_LOG_ERROR_WITH_LOC(k->tagToken, TEXT("Unknown variable:{}"), k->ToString());
+					CYS_LOG_ERROR_WITH_LOC(k->tagToken, TEXT("Unknown variable:{}"), k->ToString());
 			}
 		}
 

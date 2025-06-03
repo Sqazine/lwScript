@@ -8,7 +8,7 @@
 #include "Token.h"
 #include "Utils.h"
 
-namespace lwScript
+namespace CynicScript
 {
     namespace Logger
     {
@@ -82,7 +82,7 @@ namespace lwScript
                 end = Record::mSourceCode.size();
             }
 
-            auto startStr = headerHint + TEXT(":") + Record::mCurFilePath + TEXT("(line ") + LWS_TO_STRING(lineNum) + TEXT(",column ") + LWS_TO_STRING(column) + TEXT("): ");
+            auto startStr = headerHint + TEXT(":") + Record::mCurFilePath + TEXT("(line ") + CYS_TO_STRING(lineNum) + TEXT(",column ") + CYS_TO_STRING(column) + TEXT("): ");
 
             auto lineSrcCode = Record::mSourceCode.substr(start, end - start);
 
@@ -160,59 +160,59 @@ namespace lwScript
         }
     }
 #ifndef NDEBUG
-#define LWS_LOG_ERROR(fmt, ...)                                                    \
-    do                                                                            \
-    {                                                                             \
-        lwScript::Logger::Log(lwScript::Logger::Kind::ERROR, fmt, ##__VA_ARGS__); \
-        assert(0);                                                                \
+#define CYS_LOG_ERROR(fmt, ...)                                                         \
+    do                                                                                  \
+    {                                                                                   \
+        CynicScript::Logger::Log(CynicScript::Logger::Kind::ERROR, fmt, ##__VA_ARGS__); \
+        assert(0);                                                                      \
     } while (false)
 
-#define LWS_LOG_ERROR_WITH_LOC(tokOrPos, fmt, ...)                                           \
-    do                                                                                      \
-    {                                                                                       \
-        lwScript::Logger::Log(lwScript::Logger::Kind::ERROR, tokOrPos, fmt, ##__VA_ARGS__); \
-        assert(0);                                                                          \
+#define CYS_LOG_ERROR_WITH_LOC(tokOrPos, fmt, ...)                                                \
+    do                                                                                            \
+    {                                                                                             \
+        CynicScript::Logger::Log(CynicScript::Logger::Kind::ERROR, tokOrPos, fmt, ##__VA_ARGS__); \
+        assert(0);                                                                                \
     } while (false)
 
 #else
 
-#define LWS_LOG_ERROR(fmt, ...)                                                    \
-    do                                                                            \
-    {                                                                             \
-        lwScript::Logger::Log(lwScript::Logger::Kind::ERROR, fmt, ##__VA_ARGS__); \
-        exit(1);                                                                  \
+#define CYS_LOG_ERROR(fmt, ...)                                                         \
+    do                                                                                  \
+    {                                                                                   \
+        CynicScript::Logger::Log(CynicScript::Logger::Kind::ERROR, fmt, ##__VA_ARGS__); \
+        exit(1);                                                                        \
     } while (false)
 
-#define LWS_LOG_ERROR_WITH_LOC(tokOrPos, fmt, ...)                                           \
-    do                                                                                      \
-    {                                                                                       \
-        lwScript::Logger::Log(lwScript::Logger::Kind::ERROR, tokOrPos, fmt, ##__VA_ARGS__); \
-        exit(1);                                                                            \
+#define CYS_LOG_ERROR_WITH_LOC(tokOrPos, fmt, ...)                                                \
+    do                                                                                            \
+    {                                                                                             \
+        CynicScript::Logger::Log(CynicScript::Logger::Kind::ERROR, tokOrPos, fmt, ##__VA_ARGS__); \
+        exit(1);                                                                                  \
     } while (false)
 #endif
 
-#define LWS_LOG_WARN(fmt, ...)                                                    \
-    do                                                                           \
-    {                                                                            \
-        lwScript::Logger::Log(lwScript::Logger::Kind::WARN, fmt, ##__VA_ARGS__); \
+#define CYS_LOG_WARN(fmt, ...)                                                         \
+    do                                                                                 \
+    {                                                                                  \
+        CynicScript::Logger::Log(CynicScript::Logger::Kind::WARN, fmt, ##__VA_ARGS__); \
     } while (false)
 
-#define LWS_LOG_WARN_WITH_LOC(tokOrPos, fmt, ...)                                           \
-    do                                                                                     \
-    {                                                                                      \
-        lwScript::Logger::Log(lwScript::Logger::Kind::WARN, tokOrPos, fmt, ##__VA_ARGS__); \
+#define CYS_LOG_WARN_WITH_LOC(tokOrPos, fmt, ...)                                                \
+    do                                                                                           \
+    {                                                                                            \
+        CynicScript::Logger::Log(CynicScript::Logger::Kind::WARN, tokOrPos, fmt, ##__VA_ARGS__); \
     } while (false)
 
-#define LWS_LOG_INFO(fmt, ...)                                                    \
-    do                                                                           \
-    {                                                                            \
-        lwScript::Logger::Log(lwScript::Logger::Kind::INFO, fmt, ##__VA_ARGS__); \
+#define CYS_LOG_INFO(fmt, ...)                                                         \
+    do                                                                                 \
+    {                                                                                  \
+        CynicScript::Logger::Log(CynicScript::Logger::Kind::INFO, fmt, ##__VA_ARGS__); \
     } while (false)
 
-#define LWS_LOG_INFO_WITH_LOC(tokOrPos, fmt, ...)                                           \
-    do                                                                                     \
-    {                                                                                      \
-        lwScript::Logger::Log(lwScript::Logger::Kind::INFO, tokOrPos, fmt, ##__VA_ARGS__); \
+#define CYS_LOG_INFO_WITH_LOC(tokOrPos, fmt, ...)                                                \
+    do                                                                                           \
+    {                                                                                            \
+        CynicScript::Logger::Log(CynicScript::Logger::Kind::INFO, tokOrPos, fmt, ##__VA_ARGS__); \
     } while (false)
 
 }

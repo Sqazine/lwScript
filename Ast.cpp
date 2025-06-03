@@ -1,6 +1,6 @@
 #include "Ast.h"
 
-namespace lwScript
+namespace CynicScript
 {
 	//----------------------Expressions-----------------------------
 
@@ -44,10 +44,10 @@ namespace lwScript
 		case TypeKind::U16:
 		case TypeKind::U32:
 		case TypeKind::U64:
-			return LWS_TO_STRING(i64Value);
+			return CYS_TO_STRING(i64Value);
 		case TypeKind::F32:
 		case TypeKind::F64:
-			return LWS_TO_STRING(f64Value);
+			return CYS_TO_STRING(f64Value);
 		case TypeKind::BOOL:
 			return boolean ? TEXT("true") : TEXT("false");
 		case TypeKind::CHAR:

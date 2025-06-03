@@ -4,19 +4,19 @@
 #include <vector>
 #include <type_traits>
 #include <memory>
-namespace lwScript
+namespace CynicScript
 {
-    class AstPass;
+    class AstOptimizePass;
     template <typename T>
-    concept IsChildOfAstPass = !std::is_same_v<T, void> &&
-                               !std::is_abstract_v<T> &&
-                               std::is_base_of_v<AstPass, T>;
+    concept IsChildOfAstOptimizePass = !std::is_same_v<T, void> &&
+                                       !std::is_abstract_v<T> &&
+                                       std::is_base_of_v<AstOptimizePass, T>;
 
-    class LWS_API AstPass
+    class CYS_API AstOptimizePass
     {
     public:
-        AstPass() noexcept = default;
-        virtual ~AstPass() = default;
+        AstOptimizePass() noexcept = default;
+        virtual ~AstOptimizePass() = default;
 
         Stmt *Execute(Stmt *stmt)
         {
@@ -167,23 +167,23 @@ namespace lwScript
 
     protected:
         template <typename T>
-        requires IsChildOfAstPass<T>
+        requires IsChildOfAstOptimizePass<T>
         void RequirePass();
 
     private:
-        friend class AstPassManager;
-        AstPassManager *mOwner;
+        friend class AstOptimizePassManager;
+        AstOptimizePassManager *mOwner;
     };
 
-    class AstPassManager
+    class AstOptimizePassManager
     {
     public:
-        constexpr AstPassManager() noexcept = default;
-        constexpr ~AstPassManager() noexcept = default;
+        constexpr AstOptimizePassManager() noexcept = default;
+        constexpr ~AstOptimizePassManager() noexcept = default;
 
         template <typename T, typename... Args>
-        requires IsChildOfAstPass<T>
-            AstPassManager *Add(Args &&...params) noexcept
+        requires IsChildOfAstOptimizePass<T>
+            AstOptimizePassManager *Add(Args &&...params) noexcept
         {
             for (size_t pos = 0; pos < mPasses.size(); ++pos)
             {
@@ -205,12 +205,12 @@ namespace lwScript
         }
 
     private:
-        std::vector<std::unique_ptr<AstPass>> mPasses;
+        std::vector<std::unique_ptr<AstOptimizePass>> mPasses;
 
-        friend class AstPass;
+        friend class AstOptimizePass;
 
         template <typename T>
-        requires IsChildOfAstPass<T>
+        requires IsChildOfAstOptimizePass<T>
         bool HasPass()
         {
             for (int32_t pos; pos < mPasses.size(); ++pos)
@@ -223,8 +223,8 @@ namespace lwScript
     };
 
     template <typename T>
-    requires IsChildOfAstPass<T>
-    inline void AstPass::RequirePass()
+    requires IsChildOfAstOptimizePass<T>
+    inline void AstOptimizePass::RequirePass()
     {
         if (!mOwner->HasPass<T>())
             mOwner->Add<T>();

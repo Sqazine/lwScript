@@ -9,7 +9,8 @@ fn fib(x,pre,cur)
 }
 
 let start=time.clock();
-let a=fib(180,0,1);
+let x=50;
+let a=fib(x,0,1);
 let end=time.clock();
-io.println("{}",a);//9227465
+io.println("fibonacci({}):{}",x,a);//fibonacci(50):12586269025
 io.println("{}",end-start);

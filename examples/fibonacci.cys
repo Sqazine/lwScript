@@ -7,8 +7,8 @@ fn fib(x)
 }
 
 let start=time.clock();
-let x=180;
+let x=50;
 let a=fib(x);
 let end=time.clock();
-io.println("fibonacci({}):{}",x,a);//190392490709135
+io.println("fibonacci({}):{}",x,a);//fibonacci(50):12586269025
 io.println("{}",end-start);

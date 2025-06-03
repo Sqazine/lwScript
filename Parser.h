@@ -7,7 +7,7 @@
 #include "Ast.h"
 #include "Utils.h"
 #include "Type.h"
-namespace lwScript
+namespace CynicScript
 {
 	enum class Precedence
 	{
@@ -48,7 +48,7 @@ namespace lwScript
 	typedef Expr *(Parser::*InfixFn)(Expr *);
 	typedef Expr *(Parser::*PostfixFn)(Expr *);
 
-	class LWS_API Parser
+	class CYS_API Parser
 	{
 		NON_COPYABLE(Parser)
 	public:

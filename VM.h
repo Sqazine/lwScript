@@ -4,9 +4,9 @@
 #include "Chunk.h"
 #include "Object.h"
 #include "LibraryManager.h"
-namespace lwScript
+namespace CynicScript
 {
-    class LWS_API VM
+    class CYS_API VM
     {
         NON_COPYABLE(VM)
     public:

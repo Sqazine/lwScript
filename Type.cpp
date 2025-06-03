@@ -1,6 +1,6 @@
 #include "Type.h"
 
-namespace lwScript
+namespace CynicScript
 {
     constexpr struct
     {

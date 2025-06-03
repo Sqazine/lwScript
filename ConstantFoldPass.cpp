@@ -1,9 +1,9 @@
 #include "ConstantFoldPass.h"
 #include "Utils.h"
 
-namespace lwScript
+namespace CynicScript
 {
-#ifdef LWS_CONSTANT_FOLD_OPT
+#ifdef CYS_CONSTANT_FOLD_OPT
 	Stmt *ConstantFoldPass::ExecuteAstStmts(AstStmts *stmt)
 	{
 		for (auto &s : stmt->stmts)

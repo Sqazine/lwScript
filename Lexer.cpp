@@ -1,6 +1,6 @@
 #include "Lexer.h"
 #include "Logger.h"
-namespace lwScript
+namespace CynicScript
 {
 	constexpr struct
 	{
@@ -124,7 +124,7 @@ namespace lwScript
 				if (IsMatchCurCharAndStepOnce(TCHAR('.')))
 					AddToken(TokenKind::ELLIPSIS);
 				else
-					LWS_LOG_ERROR_WITH_LOC(mCurPos, TEXT("Unknown literal:'..',did you want '.' or '...'?"));
+					CYS_LOG_ERROR_WITH_LOC(mCurPos, TEXT("Unknown literal:'..',did you want '.' or '...'?"));
 			}
 			else
 				AddToken(TokenKind::DOT);
@@ -292,7 +292,7 @@ namespace lwScript
 			else
 			{
 				auto literal = mSource.substr(mStartPos, mCurPos - mStartPos);
-				LWS_LOG_ERROR_WITH_LOC(mCurPos, TEXT("Unknown literal:") + literal);
+				CYS_LOG_ERROR_WITH_LOC(mCurPos, TEXT("Unknown literal:") + literal);
 			}
 		}
 	}
@@ -390,7 +390,7 @@ namespace lwScript
 			else if (GetCurChar() == TCHAR('f'))
 				GetCurCharAndStepOnce();
 			else
-				LWS_LOG_ERROR_WITH_LOC(mCurPos, TEXT("The character next to '.' in a floating number must be in [0-9] range or a single 'f' character."));
+				CYS_LOG_ERROR_WITH_LOC(mCurPos, TEXT("The character next to '.' in a floating number must be in [0-9] range or a single 'f' character."));
 		}
 
 		AddToken(TokenKind::NUMBER);

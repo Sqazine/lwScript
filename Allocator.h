@@ -5,7 +5,7 @@
 #include "Utils.h"
 #include "Logger.h"
 
-namespace lwScript
+namespace CynicScript
 {
     struct CallFrame
     {
@@ -13,11 +13,11 @@ namespace lwScript
         uint8_t *ip = nullptr;
         Value *slots = nullptr;
 
-#ifdef LWS_FUNCTION_CACHE_OPT
+#ifdef CYS_FUNCTION_CACHE_OPT
         size_t argumentsHash;
 #endif
     };
-    class LWS_API Allocator
+    class CYS_API Allocator
     {
     public:
         SINGLETON_DECL(Allocator)
@@ -88,7 +88,7 @@ namespace lwScript
         T *object = new T(std::forward<Args>(params)...);
         size_t objBytes = sizeof(*object);
         mBytesAllocated += objBytes;
-#ifdef LWS_GC_STRESS
+#ifdef CYS_GC_STRESS
         GC();
 #endif
         if (mBytesAllocated > mNextGCByteSize)
@@ -97,7 +97,7 @@ namespace lwScript
         object->next = mObjectChain;
         object->marked = false;
         mObjectChain = object;
-#ifdef LWS_GC_DEBUG
+#ifdef CYS_GC_DEBUG
         Logger::Info(TEXT("{} has been add to gc record chain {} for {}"), (void *)object, objBytes, object->kind);
 #endif
 
@@ -107,7 +107,7 @@ namespace lwScript
     template <class T>
     inline void Allocator::FreeObject(T *object)
     {
-#ifdef LWS_GC_DEBUG
+#ifdef CYS_GC_DEBUG
         Logger::Info(TEXT("delete object(0x{})"), (void *)object);
 #endif
         mBytesAllocated -= sizeof(object);
@@ -128,7 +128,7 @@ namespace lwScript
 #define PUSH_CALL_FRAME(v) (Allocator::GetInstance()->PushCallFrame(v))
 #define POP_CALL_FRAME() (Allocator::GetInstance()->PopCallFrame())
 #define PEEK_CALL_FRAME(dist) (Allocator::GetInstance()->PeekCallFrame(dist))
-#define LWS_IS_CALL_FRAME_STACK_EMPTY() (Allocator::GetInstance()->IsCallFrameStackEmpty())
+#define CYS_IS_CALL_FRAME_STACK_EMPTY() (Allocator::GetInstance()->IsCallFrameStackEmpty())
 #define CALL_FRAME_COUNT() (Allocator::GetInstance()->CallFrameCount())
 
 #define CAPTURE_UPVALUE(location) (Allocator::GetInstance()->CaptureUpValue(location))
