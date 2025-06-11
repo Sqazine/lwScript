@@ -9,7 +9,7 @@
 #include "Parser.h"
 #include "AstOptimizePass.h"
 #include "ConstantFoldPass.h"
-#include "TypeCheckPass.h"
+#include "TypeCheckAndResolvePass.h"
 #include "SyntaxCheckPass.h"
 #include "Compiler.h"
 #include "VM.h"

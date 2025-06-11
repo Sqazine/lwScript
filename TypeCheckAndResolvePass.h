@@ -3,11 +3,11 @@
 namespace CynicScript
 {
     class TypeInfoTable;
-    class CYS_API TypeCheckPass : public AstOptimizePass
+    class CYS_API TypeCheckAndResolvePass : public AstOptimizePass
     {
     public:
-        TypeCheckPass() noexcept;
-        virtual ~TypeCheckPass() override;
+        TypeCheckAndResolvePass() noexcept;
+        virtual ~TypeCheckAndResolvePass() override;
 
     protected:
         virtual Stmt *ExecuteAstStmts(AstStmts *stmt) override;

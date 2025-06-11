@@ -1,4 +1,4 @@
-#include "TypeCheckPass.h"
+#include "TypeCheckAndResolvePass.h"
 #include "Logger.h"
 namespace CynicScript
 {
@@ -163,24 +163,24 @@ namespace CynicScript
         return nullptr;
     }
 
-    TypeCheckPass::TypeCheckPass() noexcept
+    TypeCheckAndResolvePass::TypeCheckAndResolvePass() noexcept
         : mTypeInfoTable(new TypeInfoTable())
     {
     }
 
-    TypeCheckPass::~TypeCheckPass() noexcept
+    TypeCheckAndResolvePass::~TypeCheckAndResolvePass() noexcept
     {
         SAFE_DELETE(mTypeInfoTable);
     }
 
-    Stmt *TypeCheckPass::ExecuteAstStmts(AstStmts *stmt)
+    Stmt *TypeCheckAndResolvePass::ExecuteAstStmts(AstStmts *stmt)
     {
         for (auto &s : stmt->stmts)
             s = ExecuteStmt(s);
 
         return stmt;
     }
-    Decl *TypeCheckPass::ExecuteVarDecl(VarDecl *decl)
+    Decl *TypeCheckAndResolvePass::ExecuteVarDecl(VarDecl *decl)
     {
         for (auto &[k, v] : decl->variables)
         {
@@ -189,157 +189,164 @@ namespace CynicScript
             }
             else if (k->kind == AstKind::VAR_DESC)
             {
-                auto leftType = ((VarDescExpr *)k)->type;
+                Type &leftType = ((VarDescExpr *)k)->type;
+                Type rightType;
 
                 if (leftType.Is(TypeKind::ANY))
+                {
+                    leftType = v->type;
                     return decl;
+                }
 
-                if (v->kind != AstKind::LITERAL)
+                if (v->kind == AstKind::LITERAL)
+                {
+                    rightType = ((LiteralExpr *)v)->type;
+                    if (auto info = FindTypeMapInfo(leftType.GetKind(), rightType.GetKind()))
+                        Logger::Log(info->logKind, k->tagToken, info->msg);
+                }
+                else
+                {
                     CYS_LOG_ERROR(TEXT("Now Only check Literal Expr type and named variable only."));
-
-                auto rightType = ((LiteralExpr *)v)->type;
-
-                if (auto info = FindTypeMapInfo(leftType.GetKind(), rightType.GetKind()))
-                    Logger::Log(info->logKind, k->tagToken, info->msg);
+                }
             }
         }
 
         return decl;
     }
-    Stmt *TypeCheckPass::ExecuteExprStmt(ExprStmt *stmt)
+    Stmt *TypeCheckAndResolvePass::ExecuteExprStmt(ExprStmt *stmt)
     {
         stmt->expr = ExecuteExpr(stmt->expr);
         return stmt;
     }
-    Stmt *TypeCheckPass::ExecuteReturnStmt(ReturnStmt *stmt)
+    Stmt *TypeCheckAndResolvePass::ExecuteReturnStmt(ReturnStmt *stmt)
     {
         return stmt;
     }
-    Stmt *TypeCheckPass::ExecuteIfStmt(IfStmt *stmt)
+    Stmt *TypeCheckAndResolvePass::ExecuteIfStmt(IfStmt *stmt)
     {
         return stmt;
     }
-    Stmt *TypeCheckPass::ExecuteScopeStmt(ScopeStmt *stmt)
+    Stmt *TypeCheckAndResolvePass::ExecuteScopeStmt(ScopeStmt *stmt)
     {
         return stmt;
     }
-    Stmt *TypeCheckPass::ExecuteWhileStmt(WhileStmt *stmt)
+    Stmt *TypeCheckAndResolvePass::ExecuteWhileStmt(WhileStmt *stmt)
     {
         return stmt;
     }
-    Decl *TypeCheckPass::ExecuteEnumDecl(EnumDecl *decl)
+    Decl *TypeCheckAndResolvePass::ExecuteEnumDecl(EnumDecl *decl)
     {
         return decl;
     }
-    Decl *TypeCheckPass::ExecuteFunctionDecl(FunctionDecl *decl)
+    Decl *TypeCheckAndResolvePass::ExecuteFunctionDecl(FunctionDecl *decl)
     {
         return decl;
     }
-    Decl *TypeCheckPass::ExecuteClassDecl(ClassDecl *decl)
+    Decl *TypeCheckAndResolvePass::ExecuteClassDecl(ClassDecl *decl)
     {
         return decl;
     }
-    Stmt *TypeCheckPass::ExecuteBreakStmt(BreakStmt *stmt)
+    Stmt *TypeCheckAndResolvePass::ExecuteBreakStmt(BreakStmt *stmt)
     {
         return stmt;
     }
-    Stmt *TypeCheckPass::ExecuteContinueStmt(ContinueStmt *stmt)
+    Stmt *TypeCheckAndResolvePass::ExecuteContinueStmt(ContinueStmt *stmt)
     {
         return stmt;
     }
-    Decl *TypeCheckPass::ExecuteModuleDecl(ModuleDecl *decl)
+    Decl *TypeCheckAndResolvePass::ExecuteModuleDecl(ModuleDecl *decl)
     {
         return decl;
     }
-    Expr *TypeCheckPass::ExecuteLiteralExpr(LiteralExpr *expr)
+    Expr *TypeCheckAndResolvePass::ExecuteLiteralExpr(LiteralExpr *expr)
     {
         return expr;
     }
-    Expr *TypeCheckPass::ExecuteInfixExpr(InfixExpr *expr)
+    Expr *TypeCheckAndResolvePass::ExecuteInfixExpr(InfixExpr *expr)
     {
         return expr;
     }
-    Expr *TypeCheckPass::ExecutePrefixExpr(PrefixExpr *expr)
+    Expr *TypeCheckAndResolvePass::ExecutePrefixExpr(PrefixExpr *expr)
     {
         return expr;
     }
-    Expr *TypeCheckPass::ExecutePostfixExpr(PostfixExpr *expr)
+    Expr *TypeCheckAndResolvePass::ExecutePostfixExpr(PostfixExpr *expr)
     {
         return expr;
     }
-    Expr *TypeCheckPass::ExecuteConditionExpr(ConditionExpr *expr)
+    Expr *TypeCheckAndResolvePass::ExecuteConditionExpr(ConditionExpr *expr)
     {
         return expr;
     }
-    Expr *TypeCheckPass::ExecuteGroupExpr(GroupExpr *expr)
+    Expr *TypeCheckAndResolvePass::ExecuteGroupExpr(GroupExpr *expr)
     {
         return expr;
     }
-    Expr *TypeCheckPass::ExecuteArrayExpr(ArrayExpr *expr)
+    Expr *TypeCheckAndResolvePass::ExecuteArrayExpr(ArrayExpr *expr)
     {
         return expr;
     }
-    Expr *TypeCheckPass::ExecuteAppregateExpr(AppregateExpr *expr)
+    Expr *TypeCheckAndResolvePass::ExecuteAppregateExpr(AppregateExpr *expr)
     {
         return expr;
     }
-    Expr *TypeCheckPass::ExecuteDictExpr(DictExpr *expr)
+    Expr *TypeCheckAndResolvePass::ExecuteDictExpr(DictExpr *expr)
     {
         return expr;
     }
-    Expr *TypeCheckPass::ExecuteIndexExpr(IndexExpr *expr)
+    Expr *TypeCheckAndResolvePass::ExecuteIndexExpr(IndexExpr *expr)
     {
         return expr;
     }
-    Expr *TypeCheckPass::ExecuteNewExpr(NewExpr *expr)
+    Expr *TypeCheckAndResolvePass::ExecuteNewExpr(NewExpr *expr)
     {
         return expr;
     }
-    Expr *TypeCheckPass::ExecuteThisExpr(ThisExpr *expr)
+    Expr *TypeCheckAndResolvePass::ExecuteThisExpr(ThisExpr *expr)
     {
         return expr;
     }
-    Expr *TypeCheckPass::ExecuteBaseExpr(BaseExpr *expr)
+    Expr *TypeCheckAndResolvePass::ExecuteBaseExpr(BaseExpr *expr)
     {
         return expr;
     }
-    Expr *TypeCheckPass::ExecuteIdentifierExpr(IdentifierExpr *expr)
+    Expr *TypeCheckAndResolvePass::ExecuteIdentifierExpr(IdentifierExpr *expr)
     {
         return expr;
     }
-    Expr *TypeCheckPass::ExecuteLambdaExpr(LambdaExpr *expr)
+    Expr *TypeCheckAndResolvePass::ExecuteLambdaExpr(LambdaExpr *expr)
     {
         return expr;
     }
-    Expr *TypeCheckPass::ExecuteCompoundExpr(CompoundExpr *expr)
+    Expr *TypeCheckAndResolvePass::ExecuteCompoundExpr(CompoundExpr *expr)
     {
         return expr;
     }
-    Expr *TypeCheckPass::ExecuteCallExpr(CallExpr *expr)
+    Expr *TypeCheckAndResolvePass::ExecuteCallExpr(CallExpr *expr)
     {
         return expr;
     }
-    Expr *TypeCheckPass::ExecuteDotExpr(DotExpr *expr)
+    Expr *TypeCheckAndResolvePass::ExecuteDotExpr(DotExpr *expr)
     {
         return expr;
     }
-    Expr *TypeCheckPass::ExecuteRefExpr(RefExpr *expr)
+    Expr *TypeCheckAndResolvePass::ExecuteRefExpr(RefExpr *expr)
     {
         return expr;
     }
-    Expr *TypeCheckPass::ExecuteStructExpr(StructExpr *expr)
+    Expr *TypeCheckAndResolvePass::ExecuteStructExpr(StructExpr *expr)
     {
         return expr;
     }
-    Expr *TypeCheckPass::ExecuteVarArgExpr(VarArgExpr *expr)
+    Expr *TypeCheckAndResolvePass::ExecuteVarArgExpr(VarArgExpr *expr)
     {
         return expr;
     }
-    Expr *TypeCheckPass::ExecuteFactorialExpr(FactorialExpr *expr)
+    Expr *TypeCheckAndResolvePass::ExecuteFactorialExpr(FactorialExpr *expr)
     {
         return expr;
     }
-    Expr *TypeCheckPass::ExecuteVarDescExpr(VarDescExpr *expr)
+    Expr *TypeCheckAndResolvePass::ExecuteVarDescExpr(VarDescExpr *expr)
     {
         return expr;
     }

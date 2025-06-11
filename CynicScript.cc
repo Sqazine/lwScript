@@ -37,7 +37,7 @@ int32_t PrintUsage()
 	CYS_LOG_INFO(TEXT("-v or --version:show current CynicScript version"));
 	CYS_LOG_INFO(TEXT("-s or --serialize: serialize source file as bytecode binary file"));
 	CYS_LOG_INFO(TEXT("-f or --file:run source file with a valid file path,like : CynicScript -f examples/array.cd."));
-	CYS_LOG_INFO(TEXT("In REPL mode, you can input '{}' to clear the REPL history, and '{}' to exit the REPL."),CYS_REPL_CLEAR,CYS_REPL_EXIT);
+	CYS_LOG_INFO(TEXT("In REPL mode, you can input '{}' to clear the REPL history, and '{}' to exit the REPL."), CYS_REPL_CLEAR, CYS_REPL_EXIT);
 	return EXIT_FAILURE;
 }
 
@@ -159,8 +159,8 @@ int32_t main(int32_t argc, const char *argv[])
 #ifdef CYS_CONSTANT_FOLD_OPT
 		->Add<CynicScript::ConstantFoldPass>()
 #endif
-		->Add<CynicScript::TypeCheckPass>()
-		->Add<CynicScript::SyntaxCheckPass>();
+		->Add<CynicScript::SyntaxCheckPass>()
+		->Add<CynicScript::TypeCheckAndResolvePass>();
 
 	if (!gConfig.sourceFilePath.empty())
 		RunFile(gConfig.sourceFilePath);

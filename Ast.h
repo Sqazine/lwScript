@@ -54,7 +54,9 @@ namespace CynicScript
 	{
 		AstNode(Token *tagToken, AstKind kind) : tagToken(tagToken), kind(kind) {}
 		virtual ~AstNode() {}
+#ifndef NDEBUG
 		virtual STRING ToString() = 0;
+#endif
 		const AstKind kind;
 		Token *tagToken;
 	};

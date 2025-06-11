@@ -4,6 +4,9 @@ namespace CynicScript
 {
     enum class TypeKind
     {
+        UNDEFINED = 0,
+
+        // Primitive Type
         I8,
         U8,
         I16,
@@ -12,15 +15,16 @@ namespace CynicScript
         U32,
         I64,
         U64,
-        
+
         F32,
         F64,
 
         BOOL,
         CHAR,
-        STR,
         ANY,
+        STR,
 
+        // Composite Type
         STRUCT,
         CLASS,
     };
@@ -29,7 +33,9 @@ namespace CynicScript
     {
     public:
         Type() noexcept;
-        Type(STRING_VIEW name, const SourceLocation &scl = {}) noexcept;
+        Type(TypeKind kind) noexcept;
+        Type(STRING_VIEW name) noexcept;
+        Type(TypeKind kind, STRING_VIEW name) noexcept;
         ~Type() noexcept = default;
 
         TypeKind GetKind() const noexcept;
@@ -49,8 +55,9 @@ namespace CynicScript
         bool IsCompositeType() const noexcept;
 
     private:
+        void CheckIsValid() const;
+
         STRING_VIEW mName;
-        SourceLocation mSourceLocation;
         TypeKind mKind;
     };
 };

@@ -11,22 +11,22 @@ namespace CynicScript
 	LiteralExpr::LiteralExpr(Token *tagToken, int64_t value)
 		: Expr(tagToken, AstKind::LITERAL), i64Value(value)
 	{
-		type = Type(TEXT("i64"), tagToken->sourceLocation);
+		type = Type(TypeKind::I64);
 	}
 	LiteralExpr::LiteralExpr(Token *tagToken, double value)
 		: Expr(tagToken, AstKind::LITERAL), f64Value(value)
 	{
-		type = Type(TEXT("f64"), tagToken->sourceLocation);
+		type = Type(TypeKind::F64);
 	}
 	LiteralExpr::LiteralExpr(Token *tagToken, bool value)
 		: Expr(tagToken, AstKind::LITERAL), boolean(value)
 	{
-		type = Type(TEXT("bool"), tagToken->sourceLocation);
+		type = Type(TypeKind::BOOL);
 	}
 	LiteralExpr::LiteralExpr(Token *tagToken, STRING_VIEW value)
 		: Expr(tagToken, AstKind::LITERAL), str(value)
 	{
-		type = Type(TEXT("string"), tagToken->sourceLocation);
+		type = Type(TypeKind::STR);
 	}
 	LiteralExpr::~LiteralExpr()
 	{
@@ -80,7 +80,7 @@ namespace CynicScript
 	VarDescExpr::VarDescExpr(Token *tagToken)
 		: Expr(tagToken, AstKind::VAR_DESC), name(nullptr)
 	{
-		type = Type(Type(TEXT("any")));
+		type = Type(TypeKind::ANY);
 	}
 	VarDescExpr::VarDescExpr(Token *tagToken, const Type &type, Expr *name)
 		: Expr(tagToken, AstKind::VAR_DESC), name(name)

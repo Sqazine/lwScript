@@ -950,11 +950,31 @@ namespace CynicScript
 		if (token->kind == TokenKind::NUMBER)
 		{
 			auto literal = token->literal;
-			Expr *numExpr = nullptr;
+			LiteralExpr *numExpr = new LiteralExpr(token);
 			if (literal.find('.') != STRING::npos)
-				numExpr = new LiteralExpr(token, std::stod(literal));
+			{
+				auto v = std::stod(literal);
+				numExpr->f64Value = v;
+
+				if (v < std::numeric_limits<float>::max())
+					numExpr->type = Type(TypeKind::F32);
+				else if (v < std::numeric_limits<double>::max())
+					numExpr->type = Type(TypeKind::F64);
+			}
 			else
-				numExpr = new LiteralExpr(token, std::stoll(literal));
+			{
+				size_t v = std::stoll(literal);
+				numExpr->i64Value = v;
+
+				if (v < std::numeric_limits<uint8_t>::max())
+					numExpr->type = Type(TypeKind::U8);
+				else if (v < std::numeric_limits<uint16_t>::max())
+					numExpr->type = Type(TypeKind::U16);
+				else if (v < std::numeric_limits<uint32_t>::max())
+					numExpr->type = Type(TypeKind::U32);
+				else if (v < std::numeric_limits<uint64_t>::max())
+					numExpr->type = Type(TypeKind::U64);
+			}
 			return numExpr;
 		}
 		else if (token->kind == TokenKind::STR)
@@ -1252,7 +1272,7 @@ namespace CynicScript
 	{
 		//TODO:only support basic single word type
 		auto token = GetCurTokenAndStepOnce();
-		return Type(token->literal, token->sourceLocation);
+		return Type(token->literal);
 	}
 
 	ClassDecl::MemberPrivilege Parser::ParseClassMemberPrivilege()

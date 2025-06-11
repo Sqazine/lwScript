@@ -1,5 +1,5 @@
 #include "Type.h"
-
+#include "Logger.h"
 namespace CynicScript
 {
     constexpr struct
@@ -20,26 +20,46 @@ namespace CynicScript
         {TEXT("bool"), TypeKind::BOOL},
         {TEXT("char"), TypeKind::CHAR},
         {TEXT("any"), TypeKind::ANY},
-        {TEXT("string"), TypeKind::STR},
     };
 
     Type::Type() noexcept
-        : mKind(TypeKind::ANY), mName(TEXT("any"))
+        : mKind(TypeKind::UNDEFINED), mName(TEXT("undefined"))
     {
     }
 
-    Type::Type(STRING_VIEW name, const SourceLocation &scl) noexcept
+    Type::Type(TypeKind kind) noexcept
+    {
+        for (const auto &p : gPrimitiveTypeMap)
+        {
+            if (p.kind == kind)
+            {
+                mName = p.name;
+                mKind = p.kind;
+                return;
+            }
+        }
+
+        CheckIsValid();
+    }
+
+    Type::Type(STRING_VIEW name) noexcept
     {
         for (const auto &p : gPrimitiveTypeMap)
         {
             if (p.name == name)
             {
-                mName = name;
+                mName = p.name;
                 mKind = p.kind;
-                mSourceLocation = scl;
                 return;
             }
         }
+
+        CheckIsValid();
+    }
+
+    Type::Type(TypeKind kind, STRING_VIEW name) noexcept
+        : mName(name), mKind(kind)
+    {
     }
 
     TypeKind Type::GetKind() const noexcept
@@ -75,5 +95,17 @@ namespace CynicScript
     bool Type::IsCompositeType() const noexcept
     {
         return !IsPrimitiveType();
+    }
+
+    void Type::CheckIsValid() const
+    {
+        if (mKind == TypeKind::UNDEFINED)
+        {
+            CYS_LOG_ERROR(TEXT("Type is undefined, please check your code."));
+        }
+        if (mName.empty())
+        {
+            CYS_LOG_ERROR(TEXT("Type name is empty, please check your code."));
+        }
     }
 }
