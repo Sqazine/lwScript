@@ -89,7 +89,7 @@ namespace CynicScript
 
     bool Type::IsPrimitiveType() const noexcept
     {
-        return mKind >= TypeKind::I8 && mKind <= TypeKind::ANY;
+        return mKind >= TypeKind::I8 && mKind <= TypeKind::PRIMITIVE;
     }
 
     bool Type::IsCompositeType() const noexcept

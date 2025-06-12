@@ -48,7 +48,7 @@ namespace CynicScript
         const CHAR_T *msg;
     };
 
-    constexpr TypeMapInfo TypeMaps[] =
+    constexpr TypeMapInfo gPrimitiveTypeMaps[] =
         {
             {TypeKind::I8, TypeKind::I16, Logger::Kind::WARN, TEXT("Assignning a int16 value to a int8 value, it is a narrow conversion and may lose data.")},
             {TypeKind::I8, TypeKind::I32, Logger::Kind::WARN, TEXT("Assignning a int32 value to a int8 value, it is a narrow conversion and may lose data.")},
@@ -151,9 +151,9 @@ namespace CynicScript
             {TypeKind::F64, TypeKind::F32, Logger::Kind::WARN, TEXT("Assignning a float32 value to a float64 value, it is a broadening conversion.")},
     };
 
-    const TypeMapInfo *FindTypeMapInfo(TypeKind left, TypeKind right)
+    const TypeMapInfo *FindPrimitiveTypeMapInfo(TypeKind left, TypeKind right)
     {
-        for (const auto &t : TypeMaps)
+        for (const auto &t : gPrimitiveTypeMaps)
         {
             if (t.leftKind == left && t.rightKind == right)
             {
@@ -190,23 +190,23 @@ namespace CynicScript
             else if (k->kind == AstKind::VAR_DESC)
             {
                 Type &leftType = ((VarDescExpr *)k)->type;
-                Type rightType;
+                Type &rightType = v->type;
 
-                if (leftType.Is(TypeKind::ANY))
+                if (leftType.Is(TypeKind::UNDEFINED))
                 {
                     leftType = v->type;
                     return decl;
                 }
-
-                if (v->kind == AstKind::LITERAL)
+                else if (leftType.Is(TypeKind::ANY))
                 {
-                    rightType = ((LiteralExpr *)v)->type;
-                    if (auto info = FindTypeMapInfo(leftType.GetKind(), rightType.GetKind()))
-                        Logger::Log(info->logKind, k->tagToken, info->msg);
+                    return decl;
                 }
-                else
+                else if (leftType.IsPrimitiveType() && rightType.IsPrimitiveType())
                 {
-                    CYS_LOG_ERROR(TEXT("Now Only check Literal Expr type and named variable only."));
+                    if (auto info = FindPrimitiveTypeMapInfo(leftType.GetKind(), rightType.GetKind()))
+                    {
+                        Logger::Log(info->logKind, k->tagToken, info->msg);
+                    }
                 }
             }
         }

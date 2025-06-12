@@ -23,6 +23,7 @@ namespace CynicScript
         CHAR,
         ANY,
         STR,
+        PRIMITIVE = STR, // This is a special type that represents all primitive types
 
         // Composite Type
         STRUCT,

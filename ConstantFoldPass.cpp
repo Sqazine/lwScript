@@ -3,7 +3,6 @@
 
 namespace CynicScript
 {
-#ifdef CYS_CONSTANT_FOLD_OPT
 	Stmt *ConstantFoldPass::ExecuteAstStmts(AstStmts *stmt)
 	{
 		for (auto &s : stmt->stmts)
@@ -411,6 +410,4 @@ namespace CynicScript
 
 		return expr;
 	}
-
-#endif
 }

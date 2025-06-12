@@ -5,7 +5,6 @@
 
 namespace CynicScript
 {
-#ifdef CYS_CONSTANT_FOLD_OPT
     class CYS_API ConstantFoldPass : public AstOptimizePass
     {
     public:
@@ -55,5 +54,4 @@ namespace CynicScript
 
         Expr *ConstantFold(Expr *expr);
     };
-#endif
 }

@@ -156,9 +156,7 @@ int32_t main(int32_t argc, const char *argv[])
 	gVm = new CynicScript::VM();
 
 	gAstOptimizePassManager
-#ifdef CYS_CONSTANT_FOLD_OPT
 		->Add<CynicScript::ConstantFoldPass>()
-#endif
 		->Add<CynicScript::SyntaxCheckPass>()
 		->Add<CynicScript::TypeCheckAndResolvePass>();
 
